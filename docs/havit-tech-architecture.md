@@ -1082,3 +1082,255 @@ Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 
 ---
 
 *关联文档：havit-product-design.md v0.4*
+
+---
+
+## 十三、系统启动模式（Run Mode）
+
+### 13.1 两种运行模式
+
+通过配置项 `mode` 或环境变量 `HAVIT_RUN_MODE` 控制，分为 `release`（默认）和 `demo` 两种模式。
+
+| 维度 | release | demo |
+|---|---|---|
+| 定位 | 家庭生产部署 | 在线演示站 / 本地试用 |
+| 初始化方式 | `/setup` 向导注册 Owner | 自动注入种子数据 |
+| 非空库行为 | 正常启动 | Fatal 拒绝启动（保护生产数据） |
+| 登录页 | 标准登录 | 自动填充测试账号 + Demo Banner |
+| 写操作 | 全部开放 | 按需限制（可配置为只读） |
+
+### 13.2 启动时序
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Go 进程启动                          │
+└───────────────────────────┬─────────────────────────────┘
+                            │
+                    Viper 加载配置
+                            │
+                    Goose 执行迁移
+                            │
+               ┌────────────┴────────────┐
+          release 模式               demo 模式
+               │                         │
+       查询 users 表                查询 users 表
+               │                         │
+        ┌──────┴──────┐           ┌──────┴──────┐
+      有数据         空库         有数据         空库
+        │              │            │              │
+     正常启动    标记           Fatal 拒绝      注入种子数据
+              needs_setup       启动            然后启动
+               = true
+```
+
+### 13.3 系统状态接口
+
+前端挂载时的第一个请求，无需鉴权：
+
+```
+GET /api/system/status
+```
+
+```go
+// handler/system.go
+type SystemStatus struct {
+    Mode       string `json:"mode"`        // "release" | "demo"
+    NeedsSetup bool   `json:"needs_setup"` // true = 重定向 /setup
+    Version    string `json:"version"`     // "v0.1.0"
+}
+
+func (h *SystemHandler) Status(w http.ResponseWriter, r *http.Request) {
+    render.JSON(w, r, SystemStatus{
+        Mode:       h.cfg.Mode,
+        NeedsSetup: h.state.NeedsSetup,
+        Version:    buildVersion, // ldflags 注入
+    })
+}
+```
+
+响应示例：
+
+```json
+{ "mode": "release", "needs_setup": true,  "version": "v0.1.0" }
+{ "mode": "demo",    "needs_setup": false, "version": "v0.1.0" }
+```
+
+### 13.4 前端路由守卫
+
+前端挂载时先请求 `/api/system/status`，根据返回结果决定路由走向，不直接跳登录页：
+
+```typescript
+// routes/__root.tsx
+export const Route = createRootRouteWithContext<RouterContext>()({
+    beforeLoad: async ({ context }) => {
+        const status = await context.queryClient.fetchQuery({
+            queryKey:  ['system', 'status'],
+            queryFn:   () => ky.get('/api/system/status').json<SystemStatus>(),
+            staleTime: Infinity,   // 启动后状态不会变，不需要重新请求
+        });
+
+        // Release 模式：未初始化，强制跳 /setup
+        if (status.mode === 'release' && status.needs_setup) {
+            throw redirect({ to: '/setup' });
+        }
+
+        // 将 mode 注入 context，供子路由和组件消费
+        return { systemStatus: status };
+    },
+});
+
+// 登录页：Demo 模式自动填充账号
+function LoginPage() {
+    const { systemStatus } = Route.useRouteContext();
+    const isDemo = systemStatus.mode === 'demo';
+
+    return (
+        <>
+            {isDemo && (
+                <Alert color="yellow" icon={<IconInfoCircle />}>
+                    当前为演示模式，数据仅供体验，不会被保存。
+                </Alert>
+            )}
+            <TextInput
+                label="用户名"
+                defaultValue={isDemo ? 'admin@havit.local' : ''}
+            />
+            <PasswordInput
+                label="密码"
+                defaultValue={isDemo ? 'havit-demo' : ''}
+            />
+        </>
+    );
+}
+```
+
+### 13.5 Release 模式：初始化向导（/setup）
+
+首次部署后，任何路由访问都被重定向到 `/setup`。第一个注册的用户自动获得 `owner` 角色，注册完成后 `needs_setup` 状态持久化为 `false`，后续访问恢复正常登录页。
+
+`/setup` 路由本身需要跳过鉴权中间件（和 `/api/system/status` 一样加入白名单）。
+
+### 13.6 Demo 模式：种子数据
+
+**目录结构：**
+
+```
+internal/
+└── db/
+    ├── migrations/        # Goose 结构迁移
+    ├── query/             # sqlc 查询语句
+    ├── sqlc/              # 生成的 Go 代码
+    └── seeds/
+        ├── embed.go       # go:embed 挂载
+        └── demo-seed.sql  # 纯 SQL 种子数据
+```
+
+**embed 实现：**
+
+```go
+// internal/db/seeds/embed.go
+package seeds
+
+import _ "embed"
+
+//go:embed demo-seed.sql
+var DemoSeedSQL string
+```
+
+**启动注入逻辑：**
+
+```go
+// internal/db/init.go
+func InitDemoDataIfNeeded(db *sql.DB, mode string) error {
+    if mode != "demo" {
+        return nil
+    }
+
+    var count int
+    if err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count); err != nil {
+        return err
+    }
+
+    // 非空库：拒绝启动，防止覆写生产数据
+    if count > 0 {
+        return fmt.Errorf(
+            "fatal: database already initialized, " +
+            "refusing to start in demo mode to protect existing data")
+    }
+
+    slog.Info("demo mode: empty database detected, injecting seed data")
+    if _, err := db.Exec(seeds.DemoSeedSQL); err != nil {
+        return fmt.Errorf("seed injection failed: %w", err)
+    }
+    slog.Info("demo mode: seed data injected successfully")
+    return nil
+}
+```
+
+**demo-seed.sql 编写规范：**
+
+```sql
+-- internal/db/seeds/demo-seed.sql
+-- ⚠️ 插入顺序必须遵守外键依赖关系：users → locations → items → 关联表
+
+-- 1. 超级管理员（密码 havit-demo 的 bcrypt hash）
+INSERT INTO users (id, username, password, role, created_at)
+VALUES ('01DEMO0000USER000001', 'admin@havit.local',
+        '$2a$10$demoHashPlaceholder', 'owner', 1717770000);
+
+-- 2. 位置节点（先父后子）
+INSERT INTO locations (id, parent_id, name, type, created_at, updated_at) VALUES
+('01DEMO000LOC0000001', NULL,                  '我的家',   'physical', 1717770000, 1717770000),
+('01DEMO000LOC0000002', '01DEMO000LOC0000001', '客厅',     'physical', 1717770000, 1717770000),
+('01DEMO000LOC0000003', '01DEMO000LOC0000002', '电视柜',   'physical', 1717770000, 1717770000),
+('01DEMO000LOC0000004', '01DEMO000LOC0000001', '卧室',     'physical', 1717770000, 1717770000),
+('01DEMO000LOC0000005', '01DEMO000LOC0000004', '书桌',     'physical', 1717770000, 1717770000),
+('01DEMO000LOC0000006', NULL,                  '@随身',    'virtual',  1717770000, 1717770000);
+
+-- 3. 标签
+INSERT INTO tags (id, name, color) VALUES
+('01DEMO000TAG0000001', '摄影',     '#4A90D9'),
+('01DEMO000TAG0000002', '数码',     '#7B61FF'),
+('01DEMO000TAG0000003', '高频使用', '#F5A623');
+
+-- 4. 物品
+INSERT INTO items (id, name, category, type, status,
+                   location_id, owner_id, created_at, updated_at) VALUES
+-- 耐用品
+('01DEMO000ITEM000001', 'Sony A7M4 相机机身', '数码电子', 'durable', 'in_stock',
+ '01DEMO000LOC0000003', '01DEMO0000USER000001', 1717770000, 1717770000),
+('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头', '数码电子', 'durable', 'in_stock',
+ '01DEMO000LOC0000003', '01DEMO0000USER000001', 1717770000, 1717770000),
+-- EDC 物品（当前状态 @随身）
+('01DEMO000ITEM000003', 'AirPods Pro 2', '数码电子', 'edc', 'in_stock',
+ '01DEMO000LOC0000006', '01DEMO0000USER000001', 1717770000, 1717770000),
+-- 消耗品 A（库存推算）
+('01DEMO000ITEM000004', '咖啡豆 (埃塞俄比亚)', '食品', 'consumable_a', 'in_stock',
+ '01DEMO000LOC0000002', '01DEMO0000USER000001', 1717770000, 1717770000),
+-- 消耗品 B（净水器滤芯，库存=1，低于阈值，演示红色提醒）
+('01DEMO000ITEM000005', '净水器滤芯', '家庭用品', 'consumable_b', 'in_stock',
+ '01DEMO000LOC0000002', '01DEMO0000USER000001', 1717770000, 1717770000);
+
+-- 5. 消耗品 B：当前库存设为 0，触发低库存提醒效果
+UPDATE items SET current_stock = 0, min_stock_threshold = 1
+WHERE id = '01DEMO000ITEM000005';
+
+-- 6. 物品-标签关联
+INSERT INTO item_tags (item_id, tag_id) VALUES
+('01DEMO000ITEM000001', '01DEMO000TAG0000001'),
+('01DEMO000ITEM000001', '01DEMO000TAG0000002'),
+('01DEMO000ITEM000002', '01DEMO000TAG0000001'),
+('01DEMO000ITEM000003', '01DEMO000TAG0000003');
+
+-- 7. 消耗品 A 历史购买事件（用于演示推算功能）
+INSERT INTO purchase_events (id, item_id, quantity, purchased_at) VALUES
+('01DEMO000EVT0000001', '01DEMO000ITEM000004', 1, 1710000000),
+('01DEMO000EVT0000002', '01DEMO000ITEM000004', 1, 1712678400),
+('01DEMO000EVT0000003', '01DEMO000ITEM000004', 1, 1715270400);
+
+-- 8. 借出记录（演示借出追踪功能）
+INSERT INTO loans (id, item_id, borrower_name, borrower_contact,
+                   loaned_at, due_at, status) VALUES
+('01DEMO000LOAN000001', '01DEMO000ITEM000002', '小王', 'xiaowang@example.com',
+ 1714521600, 1717200000, 'active');
+-- due_at 已过期，演示"逾期未还"提醒状态

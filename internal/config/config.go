@@ -10,6 +10,7 @@ import (
 )
 
 type Config struct {
+	Mode    string
 	Server  ServerConfig
 	Data    DataConfig
 	Auth    AuthConfig
@@ -56,6 +57,7 @@ type BackupConfig struct {
 func Load() *Config {
 	v := viper.New()
 
+	v.SetDefault("mode", "release")
 	v.SetDefault("server.port", 3000)
 	v.SetDefault("server.base_url", "http://localhost:3000")
 	v.SetDefault("data.dir", "./data")

@@ -1,9 +1,69 @@
 import ky from 'ky';
 
+const TOKEN_KEY = 'havit_token';
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function setToken(token: string) {
+  localStorage.setItem(TOKEN_KEY, token);
+}
+
+export function clearToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
 export const api = ky.create({
   prefixUrl: '/api/v1',
   timeout: 30_000,
+  hooks: {
+    beforeRequest: [
+      (req) => {
+        const t = getToken();
+        if (t) req.headers.set('Authorization', `Bearer ${t}`);
+      },
+    ],
+    afterResponse: [
+      (_req, _opt, res) => {
+        if (res.status === 401) {
+          clearToken();
+        }
+      },
+    ],
+  },
 });
+
+export interface SystemStatus {
+  mode: 'release' | 'demo';
+  needs_setup: boolean;
+  version: string;
+}
+
+export interface CurrentUser {
+  id: string;
+  username: string;
+  role: string;
+  created_at: number;
+}
+
+export interface AuthResponse {
+  user: CurrentUser;
+  token: string;
+}
+
+export const systemApi = {
+  status: () => api.get('system/status').json<SystemStatus>(),
+};
+
+export const authApi = {
+  setup: (body: { username: string; password: string }) =>
+    api.post('auth/setup', { json: body }).json<AuthResponse>(),
+  login: (body: { username: string; password: string }) =>
+    api.post('auth/login', { json: body }).json<AuthResponse>(),
+  me: () => api.get('auth/me').json<CurrentUser>(),
+  logout: () => api.post('auth/logout'),
+};
 
 export interface Item {
   id: string;
