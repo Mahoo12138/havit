@@ -1,0 +1,11 @@
+/data/
+/tmp/
+/havit
+/havit.exe
+*.log
+node_modules/
+internal/static/dist/
+!internal/static/dist/.gitkeep
+.DS_Store
+.idea/
+.vscode/
