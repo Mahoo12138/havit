@@ -65,6 +65,31 @@ export const authApi = {
   logout: () => api.post('auth/logout'),
 };
 
+export interface ImportError {
+  line: number;
+  name: string;
+  message: string;
+}
+
+export interface ImportResult {
+  total: number;
+  created: number;
+  failed: number;
+  errors?: ImportError[];
+}
+
+export const importApi = {
+  items: (format: 'csv' | 'json', body: string | File) => {
+    const contentType = format === 'csv' ? 'text/csv; charset=utf-8' : 'application/json';
+    return api
+      .post(`import/items?format=${format}`, {
+        body,
+        headers: { 'Content-Type': contentType },
+      })
+      .json<ImportResult>();
+  },
+};
+
 export interface Item {
   id: string;
   name: string;

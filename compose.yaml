@@ -1,0 +1,16 @@
+services:
+  havit:
+    build: .
+    image: havit:dev
+    container_name: havit
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    environment:
+      HAVIT_MODE: release
+      # HAVIT_MODE: demo            # 演示模式：自动注入种子数据
+      # HAVIT_AI_ENABLED: "true"
+      # HAVIT_AI_API_KEY: ${AI_API_KEY}
+      # HAVIT_NOTIFY_APPRISE_URL: http://apprise:8000
+    restart: unless-stopped

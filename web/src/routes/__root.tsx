@@ -17,6 +17,7 @@ import {
 } from '@mantine/core';
 import {
   IconBox,
+  IconFileImport,
   IconInfoCircle,
   IconLogout,
   IconMap2,
@@ -121,6 +122,12 @@ function RootLayout() {
           to="/locations"
           label="位置"
           leftSection={<IconMap2 size={18} />}
+        />
+        <NavLink
+          component={Link}
+          to="/import"
+          label="批量导入"
+          leftSection={<IconFileImport size={18} />}
         />
       </AppShell.Navbar>
 

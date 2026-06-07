@@ -17,8 +17,10 @@ import (
 	"github.com/mahoo12138/havit/internal/config"
 	"github.com/mahoo12138/havit/internal/db"
 	"github.com/mahoo12138/havit/internal/handler"
+	authmw "github.com/mahoo12138/havit/internal/middleware"
 	"github.com/mahoo12138/havit/internal/service"
 	"github.com/mahoo12138/havit/internal/static"
+	"github.com/mahoo12138/havit/internal/system"
 )
 
 func main() {
@@ -42,8 +44,28 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := db.InitDemoDataIfNeeded(context.Background(), database, cfg.Mode); err != nil {
+		slog.Error("demo init", "err", err)
+		os.Exit(1)
+	}
+
+	state := system.NewState(cfg.Mode, database)
+	slog.Info("startup",
+		"mode", state.Mode(),
+		"needs_setup", state.NeedsSetup(),
+		"version", system.Version,
+	)
+
+	authSvc := service.NewAuthService(
+		database,
+		cfg.Auth.JWTSecret,
+		cfg.Auth.SessionExpireHours,
+		state.IsDemo(),
+		state.MarkInitialized,
+	)
 	itemSvc := service.NewItemService(database)
 	locSvc := service.NewLocationService(database)
+	importSvc := service.NewImportService(database)
 
 	r := chi.NewRouter()
 	r.Use(chimiddleware.RequestID)
@@ -52,19 +74,34 @@ func main() {
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
 
+	systemH := handler.NewSystemHandler(state)
+	authH := handler.NewAuthHandler(authSvc, state)
+	itemH := handler.NewItemHandler(itemSvc)
+	locH := handler.NewLocationHandler(locSvc)
+	importH := handler.NewImportHandler(importSvc)
+
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
-
-		itemH := handler.NewItemHandler(itemSvc)
-		locH := handler.NewLocationHandler(locSvc)
-
 		r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("ok"))
 		})
 
-		itemH.Mount(r)
-		locH.Mount(r)
+		systemH.Mount(r)
+		authH.MountPublic(r)
+
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.Auth(authSvc))
+			authH.MountProtected(r)
+			// Import gets its own larger body limit set in handler.
+			importH.Mount(r)
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.Auth(authSvc))
+			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
+			itemH.Mount(r)
+			locH.Mount(r)
+		})
 	})
 
 	static.Mount(r)
