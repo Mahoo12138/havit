@@ -1,18 +1,17 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
+import { IconInfoCircle } from '@tabler/icons-react';
+import { useState } from 'react';
 import {
   Alert,
   Button,
   Card,
-  Center,
-  PasswordInput,
   Stack,
-  TextInput,
-  Title,
-} from '@mantine/core';
-import { IconInfoCircle } from '@tabler/icons-react';
-import { notifications } from '@mantine/notifications';
-import { useState } from 'react';
+  StackTight,
+  TextField,
+  uiStyles,
+  useToast,
+} from '../components/ui';
 import { authApi, setToken } from '../api/client';
 
 export const Route = createFileRoute('/login')({
@@ -26,6 +25,7 @@ function LoginPage() {
   const { systemStatus } = Route.useRouteContext();
   const { redirect } = Route.useSearch();
   const nav = useNavigate();
+  const toast = useToast();
   const isDemo = systemStatus.mode === 'demo';
 
   const [username, setUsername] = useState(isDemo ? 'admin@havit.local' : '');
@@ -37,45 +37,47 @@ function LoginPage() {
       setToken(data.token);
       nav({ to: redirect ?? '/' });
     },
-    onError: () =>
-      notifications.show({ color: 'red', message: '用户名或密码错误' }),
+    onError: () => toast.show('用户名或密码错误'),
   });
 
   return (
-    <Center mih="100vh">
-      <Card withBorder shadow="sm" p="xl" w={380}>
+    <main className={`${uiStyles.center} auth-screen`}>
+      <Card className="auth-card">
         <Stack>
-          <Title order={3} ta="center">
-            登录 Havit
-          </Title>
+          <StackTight className={uiStyles.textCenter}>
+            <h1 className={`${uiStyles.heading} page-heading`}>登录 Havit</h1>
+            <p className={`${uiStyles.muted} page-kicker`}>
+              个人与家庭的全资产台账
+            </p>
+          </StackTight>
 
           {isDemo && (
-            <Alert color="yellow" icon={<IconInfoCircle />}>
+            <Alert icon={<IconInfoCircle size={18} />}>
               当前为演示模式，已为你预填测试账号。
             </Alert>
           )}
 
-          <TextInput
+          <TextField
             label="用户名"
             value={username}
             onChange={(e) => setUsername(e.currentTarget.value)}
             required
           />
-          <PasswordInput
+          <TextField
             label="密码"
+            type="password"
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
             required
           />
           <Button
-            loading={login.isPending}
-            disabled={!username || !password}
+            disabled={!username || !password || login.isPending}
             onClick={() => login.mutate()}
           >
-            登录
+            {login.isPending ? '登录中...' : '登录'}
           </Button>
         </Stack>
       </Card>
-    </Center>
+    </main>
   );
 }

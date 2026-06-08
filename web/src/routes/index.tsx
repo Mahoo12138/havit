@@ -1,18 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Card, Group, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Card, Row, RowBetween, Stack, StackTight, uiStyles } from '../components/ui';
 import { itemsApi, locationsApi } from '../api/client';
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
 });
 
-function countLocations(nodes: Array<{ children?: Array<unknown> }> | undefined): number {
+function countLocations(
+  nodes: Array<{ children?: Array<unknown> }> | undefined,
+): number {
   if (!nodes) return 0;
   let n = 0;
   for (const node of nodes) {
     n += 1;
-    n += countLocations((node as { children?: Array<{ children?: Array<unknown> }> }).children);
+    n += countLocations(
+      (node as { children?: Array<{ children?: Array<unknown> }> }).children,
+    );
   }
   return n;
 }
@@ -29,33 +33,44 @@ function Dashboard() {
 
   return (
     <Stack>
-      <Title order={2}>仪表盘</Title>
-      <SimpleGrid cols={{ base: 1, sm: 3 }}>
-        <Card withBorder>
-          <Group justify="space-between">
-            <Text c="dimmed">物品总数</Text>
-            <Text fw={700} size="xl">
-              {items.data?.items.length ?? '—'}
-            </Text>
-          </Group>
-        </Card>
-        <Card withBorder>
-          <Group justify="space-between">
-            <Text c="dimmed">位置节点</Text>
-            <Text fw={700} size="xl">
-              {locs.data ? countLocations(locs.data.tree) : '—'}
-            </Text>
-          </Group>
-        </Card>
-        <Card withBorder>
-          <Group justify="space-between">
-            <Text c="dimmed">在库物品</Text>
-            <Text fw={700} size="xl">
-              {items.data?.items.filter((i) => i.status === 'in_stock').length ?? '—'}
-            </Text>
-          </Group>
-        </Card>
-      </SimpleGrid>
+      <Card className="surface-card">
+        <RowBetween>
+          <StackTight>
+            <h2 className="page-heading">家庭资产总览</h2>
+            <p className="page-kicker">
+              快速确认资产数量、位置结构和当前在库状态。
+            </p>
+          </StackTight>
+          <span className={uiStyles.help}>M1 ledger view</span>
+        </RowBetween>
+      </Card>
+      <div className={uiStyles.grid3}>
+        <StatCard label="物品总数" value={items.data?.items.length ?? '加载中'} />
+        <StatCard
+          label="位置节点"
+          value={locs.data ? countLocations(locs.data.tree) : '加载中'}
+        />
+        <StatCard
+          label="在库物品"
+          value={
+            items.data?.items.filter((i) => i.status === 'in_stock').length ??
+            '加载中'
+          }
+        />
+      </div>
     </Stack>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number | string }) {
+  return (
+    <Card className="surface-card stat-card">
+      <StackTight>
+        <Row>
+          <span className={uiStyles.muted}>{label}</span>
+        </Row>
+        <strong className={uiStyles.statValue}>{value}</strong>
+      </StackTight>
+    </Card>
   );
 }

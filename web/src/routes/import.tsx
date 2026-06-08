@@ -1,22 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { IconFileImport, IconInfoCircle } from '@tabler/icons-react';
+import { useRef, useState } from 'react';
 import {
   Alert,
   Badge,
   Button,
   Card,
   Code,
-  FileButton,
-  Group,
-  List,
+  Row,
   Stack,
-  Text,
-  Title,
-} from '@mantine/core';
-import { notifications } from '@mantine/notifications';
-import { IconFileImport, IconInfoCircle } from '@tabler/icons-react';
-import { useState } from 'react';
+  StackTight,
+  uiStyles,
+  useToast,
+} from '../components/ui';
 import { importApi, type ImportResult } from '../api/client';
+import { useNetworkStatus } from '../utils/useNetworkStatus';
 
 export const Route = createFileRoute('/import')({
   component: ImportPage,
@@ -24,7 +23,10 @@ export const Route = createFileRoute('/import')({
 
 function ImportPage() {
   const qc = useQueryClient();
+  const toast = useToast();
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
+  const isOnline = useNetworkStatus();
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
@@ -36,71 +38,88 @@ function ImportPage() {
       setResult(data);
       qc.invalidateQueries({ queryKey: ['items'] });
       qc.invalidateQueries({ queryKey: ['locations'] });
-      notifications.show({
-        color: data.failed > 0 ? 'yellow' : 'green',
-        message: `已创建 ${data.created} 条，失败 ${data.failed} 条`,
-      });
+      toast.show(`已创建 ${data.created} 条，失败 ${data.failed} 条`);
     },
-    onError: (e: Error) =>
-      notifications.show({ color: 'red', message: `导入失败：${e.message}` }),
+    onError: (e: Error) => toast.show(`导入失败：${e.message}`),
   });
 
   return (
     <Stack>
-      <Title order={2}>批量导入</Title>
+      <StackTight>
+        <h2 className="page-heading">批量导入</h2>
+        <p className="page-kicker">
+          从旧表格或 JSON 备份迁移资产，合法行会独立写入。
+        </p>
+      </StackTight>
 
-      <Alert color="blue" icon={<IconInfoCircle />}>
-        支持 <Code>.csv</Code> / <Code>.json</Code> 文件。CSV 列名规范：
-        <Code>name, type, category, description, location, purchase_price,
-        purchase_currency, purchase_date, serial_number</Code>。
-        <br />
-        <Text span fw={500}>name</Text> 必填；<Text span fw={500}>type</Text>
-        留空默认 <Code>durable</Code>。
-        <br />
-        <Text span fw={500}>location</Text> 支持路径分隔符
-        <Code>→</Code> <Code>/</Code> <Code>{'->'}</Code>，缺失节点自动创建。
-        <br />
-        <Text span fw={500}>purchase_date</Text> 接受
-        <Code>YYYY-MM-DD</Code>、<Code>YYYY/MM/DD</Code> 或 epoch 秒。
+      <Alert icon={<IconInfoCircle size={18} />}>
+        <div>
+          支持 <Code>.csv</Code> / <Code>.json</Code> 文件。CSV 列名规范：
+          <Code>
+            name, type, category, description, location, purchase_price,
+            purchase_currency, purchase_date, serial_number
+          </Code>
+          。
+          <br />
+          <strong>name</strong> 必填；<strong>type</strong> 留空默认{' '}
+          <Code>durable</Code>。
+          <br />
+          <strong>location</strong> 支持路径分隔符 <Code>→</Code>{' '}
+          <Code>/</Code> <Code>{'->'}</Code>，缺失节点自动创建。
+          <br />
+          <strong>purchase_date</strong> 接受 <Code>YYYY-MM-DD</Code>、
+          <Code>YYYY/MM/DD</Code> 或 epoch 秒。
+        </div>
       </Alert>
 
-      <Card withBorder>
+      <Card className="surface-card">
         <Stack>
-          <FileButton onChange={(f) => f && upload.mutate(f)} accept=".csv,.json,text/csv,application/json">
-            {(props) => (
-              <Button {...props} leftSection={<IconFileImport size={16} />} loading={upload.isPending}>
-                选择文件
-              </Button>
-            )}
-          </FileButton>
-          <Text size="xs" c="dimmed">
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".csv,.json,text/csv,application/json"
+            hidden
+            onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+              if (file) upload.mutate(file);
+              event.currentTarget.value = '';
+            }}
+          />
+          <Button
+            leftSection={<IconFileImport size={16} />}
+            disabled={!isOnline || upload.isPending}
+            title={!isOnline ? '离线模式下无法导入' : undefined}
+            onClick={() => inputRef.current?.click()}
+          >
+            {upload.isPending ? '导入中...' : '选择文件'}
+          </Button>
+          <p className={uiStyles.help}>
             整批以单个事务提交。所有合法行成功创建，错误行不影响其它行写入。
-          </Text>
+          </p>
         </Stack>
       </Card>
 
       {result && (
-        <Card withBorder>
+        <Card className="surface-card">
           <Stack>
-            <Group>
-              <Title order={4}>结果</Title>
-              <Badge color="gray">共 {result.total}</Badge>
-              <Badge color="green">已创建 {result.created}</Badge>
-              <Badge color="red">失败 {result.failed}</Badge>
-            </Group>
+            <Row>
+              <h3 className={uiStyles.heading}>结果</h3>
+              <Badge>共 {result.total}</Badge>
+              <Badge>已创建 {result.created}</Badge>
+              <Badge>失败 {result.failed}</Badge>
+            </Row>
             {result.errors && result.errors.length > 0 && (
-              <>
-                <Text c="dimmed" size="sm">
-                  失败行：
-                </Text>
-                <List size="sm">
+              <div>
+                <p className={uiStyles.muted}>失败行：</p>
+                <ul>
                   {result.errors.map((e, i) => (
-                    <List.Item key={i}>
-                      第 {e.line} 行 {e.name && <Code>{e.name}</Code>} — {e.message}
-                    </List.Item>
+                    <li key={i}>
+                      第 {e.line} 行 {e.name && <Code>{e.name}</Code>}：
+                      {e.message}
+                    </li>
                   ))}
-                </List>
-              </>
+                </ul>
+              </div>
             )}
           </Stack>
         </Card>

@@ -97,6 +97,10 @@ func (h *AuthHandler) me(w http.ResponseWriter, r *http.Request) {
 	}
 	u, err := h.svc.GetUser(r.Context(), claims.UserID)
 	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+			return
+		}
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}

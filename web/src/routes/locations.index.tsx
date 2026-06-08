@@ -1,28 +1,31 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ActionIcon,
-  Button,
-  Card,
-  Group,
-  Modal,
-  Select,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
-import { notifications } from '@mantine/notifications';
 import { IconChevronRight, IconPlus, IconTrash } from '@tabler/icons-react';
 import { useState } from 'react';
+import {
+  Button,
+  Card,
+  Dialog,
+  Row,
+  RowBetween,
+  SelectField,
+  Stack,
+  StackTight,
+  TextField,
+  uiStyles,
+  useToast,
+} from '../components/ui';
 import { locationsApi, type Location } from '../api/client';
+import { useNetworkStatus } from '../utils/useNetworkStatus';
 
 export const Route = createFileRoute('/locations/')({
   component: LocationsPage,
 });
 
-function flatten(nodes: Location[] | undefined, prefix = ''): Array<{ value: string; label: string }> {
+function flatten(
+  nodes: Location[] | undefined,
+  prefix = '',
+): Array<{ value: string; label: string }> {
   if (!nodes) return [];
   const out: Array<{ value: string; label: string }> = [];
   for (const n of nodes) {
@@ -35,8 +38,10 @@ function flatten(nodes: Location[] | undefined, prefix = ''): Array<{ value: str
 
 function LocationsPage() {
   const qc = useQueryClient();
-  const [opened, { open, close }] = useDisclosure(false);
+  const toast = useToast();
+  const [opened, setOpened] = useState(false);
   const [form, setForm] = useState({ name: '', parent_id: '' });
+  const isOnline = useNetworkStatus();
 
   const tree = useQuery({
     queryKey: ['locations'],
@@ -50,74 +55,91 @@ function LocationsPage() {
         parent_id: form.parent_id || undefined,
       }),
     onSuccess: () => {
-      notifications.show({ message: '位置已创建', color: 'green' });
+      toast.show('位置已创建');
       qc.invalidateQueries({ queryKey: ['locations'] });
       setForm({ name: '', parent_id: '' });
-      close();
+      setOpened(false);
     },
-    onError: (e: Error) =>
-      notifications.show({ message: `创建失败：${e.message}`, color: 'red' }),
+    onError: (e: Error) => toast.show(`创建失败：${e.message}`),
   });
 
   const del = useMutation({
     mutationFn: (id: string) => locationsApi.delete(id),
     onSuccess: () => {
-      notifications.show({ message: '已删除', color: 'gray' });
+      toast.show('已删除');
       qc.invalidateQueries({ queryKey: ['locations'] });
     },
-    onError: (e: Error) =>
-      notifications.show({ message: `删除失败：${e.message}`, color: 'red' }),
+    onError: (e: Error) => toast.show(`删除失败：${e.message}`),
   });
 
   return (
     <Stack>
-      <Group justify="space-between">
-        <Title order={2}>位置</Title>
-        <Button leftSection={<IconPlus size={16} />} onClick={open}>
+      <RowBetween>
+        <StackTight>
+          <h2 className="page-heading">位置</h2>
+          <p className="page-kicker">
+            用树形位置描述家、房间、柜子和收纳容器。
+          </p>
+        </StackTight>
+        <Button
+          leftSection={<IconPlus size={16} />}
+          onClick={() => setOpened(true)}
+          disabled={!isOnline}
+          title={!isOnline ? '离线模式下无法新增位置' : undefined}
+        >
           新增
         </Button>
-      </Group>
+      </RowBetween>
 
-      <Card withBorder>
+      <Card className="surface-card">
         {tree.data && tree.data.tree.length > 0 ? (
-          <TreeView nodes={tree.data.tree} onDelete={(id) => del.mutate(id)} />
+          <TreeView
+            nodes={tree.data.tree}
+            onDelete={(id) => del.mutate(id)}
+            isOnline={isOnline}
+          />
         ) : (
-          <Text c="dimmed" ta="center">
+          <div className="empty-state">
             还没有位置节点。先创建"家"或"客厅"试试。
-          </Text>
+          </div>
         )}
       </Card>
 
-      <Modal opened={opened} onClose={close} title="新增位置" centered>
+      <Dialog
+        open={opened}
+        onClose={() => setOpened(false)}
+        title="新增位置"
+      >
         <Stack>
-          <TextInput
+          <TextField
             label="名称"
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.currentTarget.value })}
           />
-          <Select
+          <SelectField
             label="父节点（可选）"
-            data={flatten(tree.data?.tree)}
+            options={flatten(tree.data?.tree)}
+            placeholder="无父节点"
             value={form.parent_id}
-            onChange={(v) => setForm({ ...form, parent_id: v ?? '' })}
-            searchable
-            clearable
+            onChange={(e) =>
+              setForm({ ...form, parent_id: e.currentTarget.value })
+            }
           />
-          <Group justify="flex-end">
-            <Button variant="default" onClick={close}>
+          <RowBetween>
+            <Button variant="quiet" onClick={() => setOpened(false)}>
               取消
             </Button>
             <Button
-              loading={create.isPending}
-              disabled={!form.name}
+              disabled={!form.name || !isOnline || create.isPending}
+              title={!isOnline ? '离线模式下无法保存' : undefined}
               onClick={() => create.mutate()}
             >
-              保存
+              {create.isPending ? '保存中...' : '保存'}
             </Button>
-          </Group>
+          </RowBetween>
         </Stack>
-      </Modal>
+      </Dialog>
     </Stack>
   );
 }
@@ -126,40 +148,42 @@ function TreeView({
   nodes,
   depth = 0,
   onDelete,
+  isOnline,
 }: {
   nodes: Location[];
   depth?: number;
   onDelete: (id: string) => void;
+  isOnline: boolean;
 }) {
   return (
-    <Stack gap={4}>
+    <Stack>
       {nodes.map((n) => (
         <div key={n.id}>
-          <Group
-            gap="xs"
+          <RowBetween
+            className="tree-row"
             style={{ paddingLeft: depth * 20 }}
-            justify="space-between"
-            wrap="nowrap"
           >
-            <Group gap={4}>
+            <Row>
               <IconChevronRight size={14} />
-              <Text>{n.name}</Text>
-              <Text c="dimmed" size="xs">
-                ({n.type})
-              </Text>
-            </Group>
-            <ActionIcon
+              <span>{n.name}</span>
+              <span className={uiStyles.muted}>({n.type})</span>
+            </Row>
+            <Button
               variant="subtle"
-              color="red"
-              size="sm"
               onClick={() => onDelete(n.id)}
-              title="删除"
+              disabled={!isOnline}
+              title={isOnline ? '删除' : '离线模式下无法删除'}
             >
               <IconTrash size={14} />
-            </ActionIcon>
-          </Group>
+            </Button>
+          </RowBetween>
           {n.children && n.children.length > 0 && (
-            <TreeView nodes={n.children} depth={depth + 1} onDelete={onDelete} />
+            <TreeView
+              nodes={n.children}
+              depth={depth + 1}
+              onDelete={onDelete}
+              isOnline={isOnline}
+            />
           )}
         </div>
       ))}

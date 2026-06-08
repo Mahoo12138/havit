@@ -20,11 +20,11 @@ func InitDemoDataIfNeeded(ctx context.Context, d *sql.DB, mode string) error {
 		return nil
 	}
 
-	var count int
-	if err := d.QueryRowContext(ctx, `SELECT COUNT(*) FROM users`).Scan(&count); err != nil {
-		return fmt.Errorf("count users: %w", err)
+	initialized, err := hasExistingAppData(ctx, d)
+	if err != nil {
+		return err
 	}
-	if count > 0 {
+	if initialized {
 		return fmt.Errorf("fatal: database already initialized, refusing to start in demo mode to protect existing data")
 	}
 
@@ -41,4 +41,30 @@ func InitDemoDataIfNeeded(ctx context.Context, d *sql.DB, mode string) error {
 	}
 	slog.Info("demo mode: seed data injected successfully")
 	return nil
+}
+
+func hasExistingAppData(ctx context.Context, d *sql.DB) (bool, error) {
+	for _, table := range []string{
+		"users",
+		"locations",
+		"tags",
+		"items",
+		"attachments",
+		"purchase_events",
+		"calibration_events",
+		"loans",
+		"virtual_credentials",
+		"virtual_addon_purchases",
+		"reminders",
+		"item_events",
+	} {
+		var count int
+		if err := d.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+table).Scan(&count); err != nil {
+			return false, fmt.Errorf("count %s: %w", table, err)
+		}
+		if count > 0 {
+			return true, nil
+		}
+	}
+	return false, nil
 }

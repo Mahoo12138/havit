@@ -85,6 +85,7 @@ CREATE TABLE attachments (
     filename     TEXT NOT NULL,
     path         TEXT NOT NULL,
     size         INTEGER,
+    content_type TEXT,
     is_ai_source INTEGER NOT NULL DEFAULT 0,
     created_at   INTEGER NOT NULL
 );
@@ -177,7 +178,5 @@ CREATE VIRTUAL TABLE items_fts USING fts5(
     description,
     category,
     serial_number,
-    content='items',
-    content_rowid='rowid',
     tokenize='trigram'
 );

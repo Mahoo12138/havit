@@ -53,8 +53,14 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 	if in.Name == "" {
 		return nil, errors.New("name required")
 	}
+	if in.LocationID == nil || *in.LocationID == "" {
+		return nil, errors.New("location_id required")
+	}
 	if in.Type == "" {
 		in.Type = model.ItemTypeDurable
+	}
+	if !validItemType(string(in.Type)) {
+		return nil, fmt.Errorf("invalid type: %s", in.Type)
 	}
 
 	now := time.Now().Unix()
@@ -132,12 +138,15 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 	where := "1 = 1"
 
 	if f.Query != "" {
-		where += ` AND items.rowid IN (SELECT rowid FROM items_fts WHERE items_fts MATCH ?)`
+		where += ` AND items.id IN (SELECT item_id FROM items_fts WHERE items_fts MATCH ?)`
 		args = append(args, f.Query)
 	}
 	if f.Status != "" {
 		where += ` AND status = ?`
 		args = append(args, f.Status)
+	} else {
+		where += ` AND status != ?`
+		args = append(args, model.StatusArchived)
 	}
 	if f.Type != "" {
 		where += ` AND type = ?`
@@ -201,9 +210,15 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 		cur.Category = in.Category
 	}
 	if in.Type != nil {
+		if !validItemType(string(*in.Type)) {
+			return nil, fmt.Errorf("invalid type: %s", *in.Type)
+		}
 		cur.Type = *in.Type
 	}
 	if in.Status != nil {
+		if !validItemStatus(*in.Status) {
+			return nil, fmt.Errorf("invalid status: %s", *in.Status)
+		}
 		cur.Status = *in.Status
 	}
 	if in.LocationID != nil {
@@ -276,4 +291,14 @@ func derefStr(p *string) string {
 		return ""
 	}
 	return *p
+}
+
+func validItemStatus(s model.ItemStatus) bool {
+	switch s {
+	case model.StatusInStock, model.StatusBorrowed, model.StatusIdle, model.StatusForSale,
+		model.StatusSold, model.StatusGivenAway, model.StatusLost, model.StatusStolen,
+		model.StatusUnreturned, model.StatusDamaged, model.StatusArchived:
+		return true
+	}
+	return false
 }

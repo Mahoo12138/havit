@@ -2,6 +2,7 @@ package model
 
 type ItemType string
 type ItemStatus string
+type AttachmentType string
 
 const (
 	ItemTypeDurable     ItemType = "durable"
@@ -25,6 +26,10 @@ const (
 	StatusArchived   ItemStatus = "archived"
 )
 
+const (
+	AttachmentTypePhoto AttachmentType = "photo"
+)
+
 type Item struct {
 	ID          string     `json:"id"`
 	Name        string     `json:"name"`
@@ -33,9 +38,9 @@ type Item struct {
 	Type        ItemType   `json:"type"`
 	Status      ItemStatus `json:"status"`
 
-	LocationID          *string `json:"location_id,omitempty"`
-	HomeBaseLocationID  *string `json:"home_base_location_id,omitempty"`
-	CurrentStatusTag    *string `json:"current_status_tag,omitempty"`
+	LocationID         *string `json:"location_id,omitempty"`
+	HomeBaseLocationID *string `json:"home_base_location_id,omitempty"`
+	CurrentStatusTag   *string `json:"current_status_tag,omitempty"`
 
 	PurchasePrice    *float64 `json:"purchase_price,omitempty"`
 	PurchaseCurrency *string  `json:"purchase_currency,omitempty"`
@@ -45,10 +50,23 @@ type Item struct {
 	WarrantyExpiresAt *int64  `json:"warranty_expires_at,omitempty"`
 	SerialNumber      *string `json:"serial_number,omitempty"`
 
-	IsPrivate bool   `json:"is_private"`
+	IsPrivate bool    `json:"is_private"`
 	OwnerID   *string `json:"owner_id,omitempty"`
-	CreatedAt int64  `json:"created_at"`
-	UpdatedAt int64  `json:"updated_at"`
+	CreatedAt int64   `json:"created_at"`
+	UpdatedAt int64   `json:"updated_at"`
+}
+
+type Attachment struct {
+	ID          string         `json:"id"`
+	ItemID      string         `json:"item_id"`
+	Type        AttachmentType `json:"type"`
+	Filename    string         `json:"filename"`
+	Path        string         `json:"path"`
+	Size        int64          `json:"size"`
+	ContentType string         `json:"content_type"`
+	URL         string         `json:"url"`
+	IsAISource  bool           `json:"is_ai_source"`
+	CreatedAt   int64          `json:"created_at"`
 }
 
 type Location struct {

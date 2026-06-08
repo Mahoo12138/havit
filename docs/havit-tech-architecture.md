@@ -949,7 +949,7 @@ export const button = styleVariants({
 
 ```typescript
 // components/Select/Select.tsx
-import * as BaseSelect from '@base-ui-components/react/select';
+import { Select as BaseSelect } from '@base-ui/react/select';
 import * as styles from './Select.css';
 
 interface SelectProps {
@@ -1085,9 +1085,9 @@ func (s *NotifyService) StartScheduler(ctx context.Context) {
 FROM node:22-alpine AS frontend
 WORKDIR /app/web
 COPY web/package*.json ./
-RUN npm ci
+RUN corepack enable && corepack prepare pnpm@10.22.0 --activate && pnpm install --frozen-lockfile
 COPY web/ .
-RUN npm run build          # 输出到 ../static
+RUN pnpm build             # 输出到 ../static
 
 # 阶段二：构建后端
 FROM golang:1.23-alpine AS backend
@@ -1164,7 +1164,7 @@ sqlc generate
 air
 
 # 前端开发（代理 /api 到 :3000）
-cd web && npm run dev
+cd web && pnpm dev
 ```
 
 **.air.toml：**
@@ -1190,7 +1190,7 @@ cd web && npm run dev
 | LLM 搜索体感延迟 | 并发赛跑：FTS5 先出结果，LLM 结果 SSE 异步刷新，用户感知瞬时响应 |
 | SQLite 备份文件损坏 | 三步原子流程：`VACUUM INTO` 先建一致性快照，再打包，绝不直接 tar 运行中的 db 文件 |
 | PWA 离线写冲突 | M3 前明确不做离线写，网络断开时置灰所有写操作按钮 |
-| Vanilla Extract 与 Mantine 样式冲突 | VE 只负责自定义组件，Mantine 内部样式不干预，通过 CSS 变量共享 token |
+| Headless UI 视觉一致性不足 | Base UI 只提供行为，自有组件层必须统一封装表单、弹层、Toast 与导航样式 |
 | 单二进制体积 | 前端 tree-shaking + `-ldflags="-s -w"`，预计 < 35MB |
 
 ---
@@ -1201,7 +1201,7 @@ cd web && npm run dev
 
 Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 + 全量 Schema + FTS5（trigram）+ 物品 CRUD + 位置树 CRUD + JWT 认证 + CSV/JSON 批量导入 + Docker 多阶段构建
 
-前端：React + Vite + Mantine + TanStack Router/Query + Vanilla Extract 骨架 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
+前端：React + Vite + Base UI + TanStack Router/Query + Vanilla Extract 骨架 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
 
 **M2（P1，约 8~10 周）**
 

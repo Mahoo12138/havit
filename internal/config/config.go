@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -29,8 +30,8 @@ type DataConfig struct {
 }
 
 type AuthConfig struct {
-	JWTSecret           string `mapstructure:"jwt_secret"`
-	SessionExpireHours  int    `mapstructure:"session_expire_hours"`
+	JWTSecret          string `mapstructure:"jwt_secret"`
+	SessionExpireHours int    `mapstructure:"session_expire_hours"`
 }
 
 type AIConfig struct {
@@ -55,6 +56,10 @@ type BackupConfig struct {
 }
 
 func Load() *Config {
+	return LoadFrom([]string{"/data", "."})
+}
+
+func LoadFrom(configPaths []string) *Config {
 	v := viper.New()
 
 	v.SetDefault("mode", "release")
@@ -76,13 +81,17 @@ func Load() *Config {
 
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")
-	v.AddConfigPath("/data")
-	v.AddConfigPath(".")
+	for _, p := range configPaths {
+		v.AddConfigPath(p)
+	}
 	_ = v.ReadInConfig()
 
 	v.SetEnvPrefix("HAVIT")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
+	if os.Getenv("HAVIT_MODE") == "" {
+		_ = v.BindEnv("mode", "HAVIT_RUN_MODE")
+	}
 
 	var cfg Config
 	_ = v.Unmarshal(&cfg)
@@ -90,6 +99,7 @@ func Load() *Config {
 	if cfg.Auth.JWTSecret == "" {
 		cfg.Auth.JWTSecret = generateSecret()
 		v.Set("auth.jwt_secret", cfg.Auth.JWTSecret)
+		_ = os.MkdirAll(cfg.Data.Dir, 0o755)
 		_ = v.WriteConfigAs(filepath.Join(cfg.Data.Dir, "config.yaml"))
 	}
 
