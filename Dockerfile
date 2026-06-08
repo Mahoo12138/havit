@@ -6,14 +6,16 @@
 FROM node:22-alpine AS frontend
 WORKDIR /app/web
 
-COPY web/package.json web/package-lock.json* ./
-RUN npm ci --no-audit --no-fund
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN corepack enable \
+ && corepack prepare pnpm@10.22.0 --activate \
+ && pnpm install --frozen-lockfile
 
 COPY web/ ./
 # vite.config.ts outputs to ../internal/static/dist, so we need the parent dir to exist.
 RUN mkdir -p /app/internal/static \
- && npx --package=@tanstack/router-cli tsr generate \
- && npm run build
+ && pnpm exec tsr generate \
+ && pnpm build
 
 # ============================================================
 # Stage 2: build backend

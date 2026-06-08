@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { IconPhotoPlus } from '@tabler/icons-react';
+import { useRef } from 'react';
 import {
   Badge,
   Button,
@@ -11,7 +13,7 @@ import {
   uiStyles,
   useToast,
 } from '../components/ui';
-import { itemsApi, locationsApi, type Location } from '../api/client';
+import { itemsApi, locationsApi, type Attachment, type Location } from '../api/client';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
 
 export const Route = createFileRoute('/items/$itemId')({
@@ -36,10 +38,15 @@ function ItemDetail() {
   const qc = useQueryClient();
   const toast = useToast();
   const isOnline = useNetworkStatus();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const item = useQuery({
     queryKey: ['item', itemId],
     queryFn: () => itemsApi.get(itemId),
+  });
+  const attachments = useQuery({
+    queryKey: ['item', itemId, 'attachments'],
+    queryFn: () => itemsApi.attachments(itemId),
   });
   const locs = useQuery({
     queryKey: ['locations'],
@@ -63,6 +70,14 @@ function ItemDetail() {
     },
     onError: (e: Error) => toast.show(`状态更新失败：${e.message}`),
   });
+  const uploadPhoto = useMutation({
+    mutationFn: (file: File) => itemsApi.uploadPhoto(itemId, file),
+    onSuccess: () => {
+      toast.show('照片已上传');
+      qc.invalidateQueries({ queryKey: ['item', itemId, 'attachments'] });
+    },
+    onError: (e: Error) => toast.show(`照片上传失败：${e.message}`),
+  });
 
   if (item.isLoading) return <p>加载中...</p>;
   if (item.error || !item.data) {
@@ -71,6 +86,10 @@ function ItemDetail() {
 
   const it = item.data;
   const locationPath = findLocationPath(locs.data?.tree, it.location_id);
+  const photos = (attachments.data?.attachments ?? []).filter(
+    (att) => att.type === 'photo',
+  );
+  const primaryPhoto = photos[0];
 
   return (
     <Stack>
@@ -88,6 +107,66 @@ function ItemDetail() {
           归档
         </Button>
       </RowBetween>
+
+      <Card className="surface-card">
+        <div className={uiStyles.photoPanel}>
+          <div className={uiStyles.photoPreview}>
+            {primaryPhoto ? (
+              <img
+                className={uiStyles.photoImage}
+                src={primaryPhoto.url}
+                alt={`${it.name} 的照片`}
+              />
+            ) : (
+              <div className={uiStyles.photoEmpty}>
+                <strong>暂无照片</strong>
+                <br />
+                上传一张照片作为这件物品的视觉存证。
+              </div>
+            )}
+          </div>
+
+          <Stack>
+            <RowBetween>
+              <StackTight>
+                <h3 className={uiStyles.heading}>照片</h3>
+                <span className={uiStyles.muted}>
+                  {photos.length > 0 ? `${photos.length} 张已上传` : '还没有照片'}
+                </span>
+              </StackTight>
+              <Button
+                leftSection={<IconPhotoPlus size={16} />}
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!isOnline || uploadPhoto.isPending}
+                title={!isOnline ? '离线模式下无法上传照片' : undefined}
+              >
+                {uploadPhoto.isPending ? '上传中...' : '上传'}
+              </Button>
+            </RowBetween>
+
+            <input
+              ref={fileInputRef}
+              className={uiStyles.hiddenFileInput}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.currentTarget.files?.[0];
+                if (file) uploadPhoto.mutate(file);
+                e.currentTarget.value = '';
+              }}
+            />
+
+            <div className={uiStyles.photoList}>
+              {photos.map((photo) => (
+                <PhotoListItem key={photo.id} itemName={it.name} photo={photo} />
+              ))}
+              {attachments.isLoading && (
+                <span className={uiStyles.muted}>照片加载中...</span>
+              )}
+            </div>
+          </Stack>
+        </div>
+      </Card>
 
       <Card className="surface-card">
         <div className="detail-grid">
@@ -122,6 +201,27 @@ function ItemDetail() {
   );
 }
 
+function PhotoListItem({
+  itemName,
+  photo,
+}: {
+  itemName: string;
+  photo: Attachment;
+}) {
+  return (
+    <a className={uiStyles.photoListItem} href={photo.url} target="_blank" rel="noreferrer">
+      <img className={uiStyles.photoThumb} src={photo.url} alt={`${itemName} 缩略图`} />
+      <StackTight>
+        <span>{photo.filename}</span>
+        <span className={uiStyles.muted}>
+          {formatBytes(photo.size)}
+          {photo.content_type ? ` · ${photo.content_type}` : ''}
+        </span>
+      </StackTight>
+    </a>
+  );
+}
+
 function findLocationPath(
   nodes: Location[] | undefined,
   locationId: string | undefined,
@@ -144,4 +244,10 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
       <span>{children}</span>
     </div>
   );
+}
+
+function formatBytes(size: number): string {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
 }

@@ -18,16 +18,16 @@ go build -o havit ./cmd/havit
 
 ```
 cd web
-npm install
-npm run dev       # http://localhost:5173, 代理 /api → :3000
-npm run build     # 产物 -> internal/static/dist (被 go:embed)
+pnpm install
+pnpm dev          # http://localhost:5173, 代理 /api → :3000
+pnpm build        # 产物 -> internal/static/dist (被 go:embed)
 ```
 
 构建前端后重新 `go build`，单二进制即包含前端。
 
 ## 运行模式
 
-由配置 `mode` 或环境变量 `HAVIT_MODE` 控制：
+由配置 `mode` 或环境变量 `HAVIT_MODE` 控制；兼容 `HAVIT_RUN_MODE`，两者同时存在时 `HAVIT_MODE` 优先：
 
 | 模式 | 行为 |
 |---|---|
@@ -38,6 +38,7 @@ npm run build     # 产物 -> internal/static/dist (被 go:embed)
 
 ```
 HAVIT_MODE=demo ./havit       # 演示站
+# 或：HAVIT_RUN_MODE=demo ./havit
 ./havit                       # 家庭部署，默认 release
 ```
 

@@ -66,6 +66,7 @@ func main() {
 	itemSvc := service.NewItemService(database)
 	locSvc := service.NewLocationService(database)
 	importSvc := service.NewImportService(database)
+	attachmentSvc := service.NewAttachmentService(database, cfg.Data.Dir)
 
 	r := chi.NewRouter()
 	r.Use(chimiddleware.RequestID)
@@ -79,6 +80,7 @@ func main() {
 	itemH := handler.NewItemHandler(itemSvc)
 	locH := handler.NewLocationHandler(locSvc)
 	importH := handler.NewImportHandler(importSvc)
+	attachmentH := handler.NewAttachmentHandler(attachmentSvc, cfg.Storage.MaxPhotoSizeMB)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -94,6 +96,8 @@ func main() {
 			authH.MountProtected(r)
 			// Import gets its own larger body limit set in handler.
 			importH.Mount(r)
+			// Attachment upload gets its own body limit and streams to disk.
+			attachmentH.Mount(r)
 		})
 
 		r.Group(func(r chi.Router) {

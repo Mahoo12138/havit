@@ -109,7 +109,7 @@ export function SelectField({
           <BaseSelect.Icon>⌄</BaseSelect.Icon>
         </BaseSelect.Trigger>
         <BaseSelect.Portal>
-          <BaseSelect.Positioner sideOffset={6}>
+          <BaseSelect.Positioner className={s.selectPositioner} sideOffset={6}>
             <BaseSelect.Popup className={s.selectPopup}>
               {placeholder && (
                 <BaseSelect.Item className={s.selectItem} value={null}>

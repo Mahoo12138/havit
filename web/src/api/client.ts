@@ -106,6 +106,19 @@ export interface Item {
   updated_at: number;
 }
 
+export interface Attachment {
+  id: string;
+  item_id: string;
+  type: 'photo' | string;
+  filename: string;
+  path: string;
+  size: number;
+  content_type?: string;
+  url: string;
+  is_ai_source: boolean;
+  created_at: number;
+}
+
 export interface Location {
   id: string;
   parent_id?: string;
@@ -126,6 +139,13 @@ export const itemsApi = {
   update: (id: string, body: Partial<Item>) =>
     api.patch(`items/${id}`, { json: body }).json<Item>(),
   archive: (id: string) => api.delete(`items/${id}`),
+  attachments: (id: string) =>
+    api.get(`items/${id}/attachments`).json<{ attachments: Attachment[] }>(),
+  uploadPhoto: (id: string, file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api.post(`items/${id}/photos`, { body }).json<Attachment>();
+  },
 };
 
 export const locationsApi = {

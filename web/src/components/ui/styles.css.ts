@@ -170,6 +170,10 @@ export const selectPopup = style({
   padding: '0.35rem',
 });
 
+export const selectPositioner = style({
+  zIndex: 90,
+});
+
 export const selectItem = style({
   borderRadius: '6px',
   cursor: 'pointer',
@@ -446,6 +450,71 @@ export const code = style({
 
 export const textCenter = style({
   textAlign: 'center',
+});
+
+export const photoPanel = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(14rem, 0.9fr) minmax(0, 1.1fr)',
+  gap: '1rem',
+  alignItems: 'stretch',
+  '@media': {
+    '(max-width: 56em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const photoPreview = style({
+  display: 'grid',
+  minHeight: '18rem',
+  overflow: 'hidden',
+  placeItems: 'center',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '10px',
+  background: `linear-gradient(180deg, color-mix(in srgb, ${themeVars.panel} 92%, ${themeVars.bgSoft}), ${themeVars.bgSoft})`,
+});
+
+export const photoImage = style({
+  width: '100%',
+  height: '100%',
+  maxHeight: '28rem',
+  objectFit: 'contain',
+});
+
+export const photoEmpty = style({
+  maxWidth: '22rem',
+  padding: '2rem',
+  color: themeVars.muted,
+  lineHeight: 1.7,
+  textAlign: 'center',
+});
+
+export const photoList = style({
+  display: 'grid',
+  gap: '0.65rem',
+});
+
+export const photoListItem = style({
+  display: 'grid',
+  gridTemplateColumns: '3rem minmax(0, 1fr)',
+  gap: '0.7rem',
+  alignItems: 'center',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '8px',
+  background: `color-mix(in srgb, ${themeVars.panel} 92%, transparent)`,
+  padding: '0.45rem',
+});
+
+export const photoThumb = style({
+  width: '3rem',
+  height: '3rem',
+  borderRadius: '6px',
+  objectFit: 'cover',
+  background: themeVars.bgSoft,
+});
+
+export const hiddenFileInput = style({
+  display: 'none',
 });
 
 export const bannerOffset = style({
