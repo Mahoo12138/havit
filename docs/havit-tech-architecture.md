@@ -1,6 +1,6 @@
 # Havit — 技术架构规划
 
-**版本** v0.3  
+**版本** v0.4  
 **关联文档** havit-product-design.md v0.4
 
 ---
@@ -17,7 +17,7 @@
 | 附件存储 | 本地文件系统（multipart 流式写入） | 无外部依赖，Docker volume 挂载，杜绝 OOM |
 | 自然语言搜索 | FTS5 并发先出 + LLM 异步刷新（无向量库） | 体感即时，LLM 结果异步补全，零额外依赖 |
 | 前端框架 | React 18 + Vite | 生态最大，组件库丰富 |
-| UI 组件库 | Mantine v7 | 内置表单/日期/上传/通知，无需再选配 |
+| UI 原语层 | Base UI（MUI） | 无样式 headless 原语，与 VE 配合实现完全自主的设计系统 |
 | 数据请求 | TanStack Query v5 | 缓存、乐观更新、后台刷新 |
 | 路由 | TanStack Router v1 | 类型安全，与 TanStack Query 天然配合 |
 | 样式 | Vanilla Extract | 零运行时 CSS-in-TS，编译时类型安全 |
@@ -745,11 +745,11 @@ func (s *BackupService) StartScheduler(ctx context.Context) {
 |---|---|
 | 构建工具 | Vite 5 |
 | UI 框架 | React 18 |
-| 组件库 | Mantine v7 |
+| UI 原语层 | Base UI（MUI） |
 | 路由 | TanStack Router v1 |
 | 数据请求 | TanStack Query v5 |
 | 样式 | Vanilla Extract |
-| 图标 | Tabler Icons（@tabler/icons-react） |
+| 图标 | Lucide React |
 | 条码扫描 | @zxing/browser（纯前端） |
 | HTTP 客户端 | ky |
 | PWA | vite-plugin-pwa |
@@ -784,8 +784,9 @@ web/
 │   │   ├── locations.ts
 │   │   └── search.ts              # streamSearch（SSE）
 │   ├── styles/
-│   │   ├── theme.css.ts           # Mantine token → VE CSS 变量
-│   │   └── global.css.ts
+│   │   ├── tokens.css.ts          # Design token 定义（色彩、间距、圆角、阴影）
+│   │   ├── global.css.ts          # 全局 reset 与基础样式
+│   │   └── sprinkles.css.ts       # 原子化工具类（可选）
 │   └── utils/
 ├── public/manifest.json
 ├── vite.config.ts
@@ -846,28 +847,175 @@ const isOnline = useNetworkStatus();
 </Button>
 ```
 
-### 7.4 Vanilla Extract 与 Mantine 协同
+### 7.4 设计系统：Base UI + Vanilla Extract
 
-VE 负责自定义组件和布局样式，Mantine 内部样式不干预，通过 CSS 变量共享 design token：
+Base UI 提供无样式的行为原语（可访问性、键盘交互、ARIA 属性），Vanilla Extract 负责全部视觉样式。两者分工明确，共同构成 Havit 自有的设计系统。
+
+**Design Token 定义（styles/tokens.css.ts）：**
 
 ```typescript
-// styles/theme.css.ts
-export const card = style({
-    background: 'var(--mantine-color-default)',
-    borderRadius: 'var(--mantine-radius-md)',
-    padding: 'var(--mantine-spacing-md)',
-    border: '1px solid var(--mantine-color-default-border)',
-    transition: 'box-shadow 0.15s ease',
-    ':hover': { boxShadow: 'var(--mantine-shadow-sm)' },
-});
+// styles/tokens.css.ts
+import { createGlobalTheme } from '@vanilla-extract/css';
 
-export const statusBadge = styleVariants({
-    in_stock:  { background: 'var(--mantine-color-green-1)'  },
-    borrowed:  { background: 'var(--mantine-color-yellow-1)' },
-    lost:      { background: 'var(--mantine-color-red-1)'    },
-    archived:  { background: 'var(--mantine-color-gray-1)'   },
+export const vars = createGlobalTheme(':root', {
+    color: {
+        primary:       '#3B6DEA',
+        primaryHover:  '#2F5DC9',
+        surface:       '#FFFFFF',
+        surfaceRaised: '#F8F7F4',
+        border:        '#E2E0D8',
+        borderStrong:  '#C8C6BC',
+        textPrimary:   '#1A1917',
+        textSecondary: '#6B6964',
+        textTertiary:  '#9C9A94',
+        success:       '#2D7D46',
+        successBg:     '#EAF4ED',
+        warning:       '#A05C00',
+        warningBg:     '#FEF3E2',
+        danger:        '#C53030',
+        dangerBg:      '#FDECEA',
+        info:          '#1D6FA4',
+        infoBg:        '#E6F1FB',
+    },
+    space: {
+        '1': '4px',  '2': '8px',  '3': '12px', '4': '16px',
+        '5': '20px', '6': '24px', '8': '32px', '10': '40px',
+    },
+    radius: {
+        sm: '6px', md: '8px', lg: '12px', full: '9999px',
+    },
+    shadow: {
+        sm: '0 1px 3px rgba(0,0,0,0.08)',
+        md: '0 4px 12px rgba(0,0,0,0.10)',
+        lg: '0 8px 24px rgba(0,0,0,0.12)',
+    },
+    font: {
+        sans: 'system-ui, -apple-system, sans-serif',
+        mono: 'ui-monospace, monospace',
+        sm:   '13px', base: '14px', md: '15px', lg: '16px', xl: '20px',
+    },
 });
 ```
+
+**自定义组件示例（components/Button/Button.css.ts）：**
+
+```typescript
+import { style, styleVariants } from '@vanilla-extract/css';
+import { vars } from '../../styles/tokens.css';
+
+const base = style({
+    display:        'inline-flex',
+    alignItems:     'center',
+    gap:            vars.space['2'],
+    padding:        `${vars.space['2']} ${vars.space['4']}`,
+    borderRadius:   vars.radius.md,
+    fontSize:       vars.font.base,
+    fontWeight:     500,
+    border:         'none',
+    cursor:         'pointer',
+    transition:     'background 0.15s, box-shadow 0.15s',
+    ':disabled': {
+        opacity: 0.45,
+        cursor:  'not-allowed',
+    },
+});
+
+export const button = styleVariants({
+    primary: [base, {
+        background: vars.color.primary,
+        color:      '#fff',
+        ':hover':   { background: vars.color.primaryHover },
+    }],
+    secondary: [base, {
+        background: vars.color.surfaceRaised,
+        color:      vars.color.textPrimary,
+        border:     `1px solid ${vars.color.border}`,
+        ':hover':   { background: vars.color.border },
+    }],
+    ghost: [base, {
+        background: 'transparent',
+        color:      vars.color.textSecondary,
+        ':hover':   { background: vars.color.surfaceRaised },
+    }],
+    danger: [base, {
+        background: vars.color.danger,
+        color:      '#fff',
+        ':hover':   { filter: 'brightness(0.92)' },
+    }],
+});
+```
+
+**Base UI 原语封装示例（Select 组件）：**
+
+```typescript
+// components/Select/Select.tsx
+import * as BaseSelect from '@base-ui-components/react/select';
+import * as styles from './Select.css';
+
+interface SelectProps {
+    value:       string;
+    onChange:    (v: string) => void;
+    options:     { label: string; value: string }[];
+    placeholder?: string;
+}
+
+export function Select({ value, onChange, options, placeholder }: SelectProps) {
+    return (
+        // Base UI 处理：键盘导航、ARIA、焦点管理
+        // Vanilla Extract 处理：全部视觉样式
+        <BaseSelect.Root value={value} onValueChange={onChange}>
+            <BaseSelect.Trigger className={styles.trigger}>
+                <BaseSelect.Value placeholder={placeholder} />
+                <BaseSelect.Icon className={styles.icon} />
+            </BaseSelect.Trigger>
+            <BaseSelect.Positioner>
+                <BaseSelect.Popup className={styles.popup}>
+                    {options.map(opt => (
+                        <BaseSelect.Item
+                            key={opt.value}
+                            value={opt.value}
+                            className={styles.item}
+                        >
+                            <BaseSelect.ItemText>{opt.label}</BaseSelect.ItemText>
+                        </BaseSelect.Item>
+                    ))}
+                </BaseSelect.Popup>
+            </BaseSelect.Positioner>
+        </BaseSelect.Root>
+    );
+}
+```
+
+**状态徽章示例（复用 statusBadge）：**
+
+```typescript
+// components/StatusBadge/StatusBadge.css.ts
+import { styleVariants } from '@vanilla-extract/css';
+import { vars } from '../../styles/tokens.css';
+
+export const badge = styleVariants({
+    in_stock: { background: vars.color.successBg, color: vars.color.success },
+    borrowed: { background: vars.color.warningBg, color: vars.color.warning },
+    lost:     { background: vars.color.dangerBg,  color: vars.color.danger  },
+    archived: { background: vars.color.surfaceRaised, color: vars.color.textTertiary },
+});
+```
+
+**需要自建的组件清单（M1 阶段完成）：**
+
+- `Button`（variant: primary / secondary / ghost / danger）
+- `Input` / `Textarea`（含 label、error state）
+- `Select`（Base UI Select 封装）
+- `Dialog` / `Modal`（Base UI Dialog 封装）
+- `Tooltip`（Base UI Tooltip 封装）
+- `Badge` / `StatusBadge`
+- `Card`
+- `Spinner` / `Skeleton`
+- `Alert`（info / warning / danger / success）
+- `Tabs`（Base UI Tabs 封装）
+- `Toast` / `Notification`（Base UI Toast 封装）
+
+这些组件复用 tokens.css.ts 中的 design token，保证视觉一致性。
 
 ### 7.5 embed 进 Go 二进制
 
