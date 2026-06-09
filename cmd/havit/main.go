@@ -64,6 +64,7 @@ func main() {
 		state.MarkInitialized,
 	)
 	itemSvc := service.NewItemService(database)
+	tagSvc := service.NewTagService(database)
 	locSvc := service.NewLocationService(database)
 	importSvc := service.NewImportService(database)
 	attachmentSvc := service.NewAttachmentService(database, cfg.Data.Dir)
@@ -78,6 +79,7 @@ func main() {
 	systemH := handler.NewSystemHandler(state)
 	authH := handler.NewAuthHandler(authSvc, state)
 	itemH := handler.NewItemHandler(itemSvc)
+	tagH := handler.NewTagHandler(tagSvc)
 	locH := handler.NewLocationHandler(locSvc)
 	importH := handler.NewImportHandler(importSvc)
 	attachmentH := handler.NewAttachmentHandler(attachmentSvc, cfg.Storage.MaxPhotoSizeMB)
@@ -94,6 +96,7 @@ func main() {
 		r.Group(func(r chi.Router) {
 			r.Use(authmw.Auth(authSvc))
 			authH.MountProtected(r)
+			tagH.Mount(r)
 			// Import gets its own larger body limit set in handler.
 			importH.Mount(r)
 			// Attachment upload gets its own body limit and streams to disk.

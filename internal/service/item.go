@@ -117,6 +117,9 @@ func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
 		return nil, err
 	}
 	it.IsPrivate = isPrivate != 0
+	if err := s.loadTags(ctx, &it); err != nil {
+		return nil, err
+	}
 	return &it, nil
 }
 
@@ -125,6 +128,7 @@ type ItemListFilter struct {
 	Status   string
 	Type     string
 	Location string
+	Tag      string
 	Limit    int
 	Offset   int
 }
@@ -155,6 +159,13 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 	if f.Location != "" {
 		where += ` AND location_id = ?`
 		args = append(args, f.Location)
+	}
+	if f.Tag != "" {
+		where += ` AND EXISTS (
+			SELECT 1 FROM item_tags
+			WHERE item_tags.item_id = items.id AND item_tags.tag_id = ?
+		)`
+		args = append(args, f.Tag)
 	}
 
 	args = append(args, f.Limit, f.Offset)
@@ -191,7 +202,13 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 		it.IsPrivate = isPrivate != 0
 		out = append(out, &it)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if err := s.loadTagsForItems(ctx, out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput) (*model.Item, error) {
@@ -286,6 +303,45 @@ func (s *ItemService) Archive(ctx context.Context, id string) error {
 	return nil
 }
 
+func (s *ItemService) ReplaceTags(ctx context.Context, id string, tagIDs []string) (*model.Item, error) {
+	if _, err := s.Get(ctx, id); err != nil {
+		return nil, err
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx, `DELETE FROM item_tags WHERE item_id = ?`, id); err != nil {
+		return nil, err
+	}
+
+	seen := map[string]bool{}
+	for _, tagID := range tagIDs {
+		if tagID == "" || seen[tagID] {
+			continue
+		}
+		seen[tagID] = true
+		if _, err := tx.ExecContext(ctx,
+			`INSERT INTO item_tags (item_id, tag_id) VALUES (?, ?)`,
+			id, tagID,
+		); err != nil {
+			return nil, err
+		}
+	}
+
+	now := time.Now().Unix()
+	if _, err := tx.ExecContext(ctx, `UPDATE items SET updated_at = ? WHERE id = ?`, now, id); err != nil {
+		return nil, err
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return s.Get(ctx, id)
+}
+
 func derefStr(p *string) string {
 	if p == nil {
 		return ""
@@ -301,4 +357,45 @@ func validItemStatus(s model.ItemStatus) bool {
 		return true
 	}
 	return false
+}
+
+func (s *ItemService) loadTags(ctx context.Context, item *model.Item) error {
+	tags, err := s.tagsForItem(ctx, item.ID)
+	if err != nil {
+		return err
+	}
+	item.Tags = tags
+	return nil
+}
+
+func (s *ItemService) loadTagsForItems(ctx context.Context, items []*model.Item) error {
+	for _, item := range items {
+		if err := s.loadTags(ctx, item); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *ItemService) tagsForItem(ctx context.Context, itemID string) ([]*model.Tag, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT tags.id, tags.name, tags.color
+		FROM tags
+		JOIN item_tags ON item_tags.tag_id = tags.id
+		WHERE item_tags.item_id = ?
+		ORDER BY tags.name ASC`, itemID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []*model.Tag{}
+	for rows.Next() {
+		tag, err := scanTag(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, tag)
+	}
+	return out, rows.Err()
 }

@@ -54,6 +54,13 @@ type Item struct {
 	OwnerID   *string `json:"owner_id,omitempty"`
 	CreatedAt int64   `json:"created_at"`
 	UpdatedAt int64   `json:"updated_at"`
+	Tags      []*Tag  `json:"tags,omitempty"`
+}
+
+type Tag struct {
+	ID    string  `json:"id"`
+	Name  string  `json:"name"`
+	Color *string `json:"color,omitempty"`
 }
 
 type Attachment struct {

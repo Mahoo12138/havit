@@ -26,6 +26,7 @@ func (h *ItemHandler) Mount(r chi.Router) {
 		r.Get("/{id}", h.get)
 		r.Patch("/{id}", h.update)
 		r.Delete("/{id}", h.archive)
+		r.Put("/{id}/tags", h.replaceTags)
 	})
 }
 
@@ -39,6 +40,7 @@ func (h *ItemHandler) list(w http.ResponseWriter, r *http.Request) {
 		Status:   q.Get("status"),
 		Type:     q.Get("type"),
 		Location: q.Get("location"),
+		Tag:      q.Get("tag"),
 		Limit:    limit,
 		Offset:   offset,
 	})
@@ -107,4 +109,25 @@ func (h *ItemHandler) archive(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ItemHandler) replaceTags(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var in struct {
+		TagIDs []string `json:"tag_ids"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	item, err := h.svc.ReplaceTags(r.Context(), id, in.TagIDs)
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, item)
 }
