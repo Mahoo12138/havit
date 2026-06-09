@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Card, Row, RowBetween, Stack, StackTight, uiStyles } from '../components/ui';
+import { Card, Row, StackTight, uiStyles } from '../components/ui';
 import { itemsApi, locationsApi } from '../api/client';
 
 export const Route = createFileRoute('/')({
@@ -32,9 +32,9 @@ function Dashboard() {
   });
 
   return (
-    <Stack>
-      <Card className="surface-card">
-        <RowBetween>
+    <div className={uiStyles.stackLoose}>
+      <div className={uiStyles.dashboardSummary}>
+        <div className={uiStyles.heroPanel}>
           <StackTight>
             <h2 className="page-heading">家庭资产总览</h2>
             <p className="page-kicker">
@@ -42,23 +42,23 @@ function Dashboard() {
             </p>
           </StackTight>
           <span className={uiStyles.help}>M1 ledger view</span>
-        </RowBetween>
-      </Card>
-      <div className={uiStyles.grid3}>
-        <StatCard label="物品总数" value={items.data?.items.length ?? '加载中'} />
-        <StatCard
-          label="位置节点"
-          value={locs.data ? countLocations(locs.data.tree) : '加载中'}
-        />
-        <StatCard
-          label="在库物品"
-          value={
-            items.data?.items.filter((i) => i.status === 'in_stock').length ??
-            '加载中'
-          }
-        />
+        </div>
+        <div className={uiStyles.dashboardStats}>
+          <StatCard label="物品总数" value={items.data?.items.length ?? '加载中'} />
+          <StatCard
+            label="位置节点"
+            value={locs.data ? countLocations(locs.data.tree) : '加载中'}
+          />
+          <StatCard
+            label="在库物品"
+            value={
+              items.data?.items.filter((i) => i.status === 'in_stock').length ??
+              '加载中'
+            }
+          />
+        </div>
       </div>
-    </Stack>
+    </div>
   );
 }
 

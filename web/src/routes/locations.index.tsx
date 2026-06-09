@@ -74,22 +74,24 @@ function LocationsPage() {
 
   return (
     <Stack>
-      <RowBetween>
+      <div className={uiStyles.pageHeader}>
         <StackTight>
           <h2 className="page-heading">位置</h2>
           <p className="page-kicker">
             用树形位置描述家、房间、柜子和收纳容器。
           </p>
         </StackTight>
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={() => setOpened(true)}
-          disabled={!isOnline}
-          title={!isOnline ? '离线模式下无法新增位置' : undefined}
-        >
-          新增
-        </Button>
-      </RowBetween>
+        <div className={uiStyles.pageActions}>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => setOpened(true)}
+            disabled={!isOnline}
+            title={!isOnline ? '离线模式下无法新增位置' : undefined}
+          >
+            新增
+          </Button>
+        </div>
+      </div>
 
       <Card className="surface-card">
         {tree.data && tree.data.tree.length > 0 ? (
@@ -126,7 +128,7 @@ function LocationsPage() {
               setForm({ ...form, parent_id: e.currentTarget.value })
             }
           />
-          <RowBetween>
+          <div className={uiStyles.formActions}>
             <Button variant="quiet" onClick={() => setOpened(false)}>
               取消
             </Button>
@@ -137,7 +139,7 @@ function LocationsPage() {
             >
               {create.isPending ? '保存中...' : '保存'}
             </Button>
-          </RowBetween>
+          </div>
         </Stack>
       </Dialog>
     </Stack>

@@ -7,7 +7,6 @@ import {
   Button,
   Card,
   Dialog,
-  RowBetween,
   SelectField,
   Stack,
   StackTight,
@@ -16,7 +15,7 @@ import {
   uiStyles,
   useToast,
 } from '../components/ui';
-import { itemsApi, locationsApi, type Location } from '../api/client';
+import { itemsApi, locationsApi, tagsApi, type Location } from '../api/client';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
 
 export const Route = createFileRoute('/items/')({
@@ -47,20 +46,32 @@ const itemTypeOptions = [
 
 function ItemsPage() {
   const [q, setQ] = useState('');
+  const [tagID, setTagID] = useState('');
   const [opened, setOpened] = useState(false);
   const qc = useQueryClient();
   const toast = useToast();
   const isOnline = useNetworkStatus();
 
   const items = useQuery({
-    queryKey: ['items', q],
-    queryFn: () => itemsApi.list(q ? { q } : {}),
+    queryKey: ['items', q, tagID],
+    queryFn: () => itemsApi.list({
+      ...(q ? { q } : {}),
+      ...(tagID ? { tag: tagID } : {}),
+    }),
   });
   const locs = useQuery({
     queryKey: ['locations'],
     queryFn: () => locationsApi.tree(),
   });
+  const tags = useQuery({
+    queryKey: ['tags'],
+    queryFn: () => tagsApi.list(),
+  });
   const locOptions = flatten(locs.data?.tree);
+  const tagOptions = (tags.data?.tags ?? []).map((tag) => ({
+    value: tag.id,
+    label: tag.name,
+  }));
 
   const [form, setForm] = useState({
     name: '',
@@ -96,38 +107,49 @@ function ItemsPage() {
 
   return (
     <Stack>
-      <RowBetween>
+      <div className={uiStyles.pageHeader}>
         <StackTight>
           <h2 className="page-heading">物品</h2>
           <p className="page-kicker">
             记录耐用品、消耗品、EDC 和买断制虚拟资产。
           </p>
         </StackTight>
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={() => setOpened(true)}
-          disabled={!isOnline}
-          title={!isOnline ? '离线模式下无法录入' : undefined}
-        >
-          新增
-        </Button>
-      </RowBetween>
+        <div className={uiStyles.pageActions}>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => setOpened(true)}
+            disabled={!isOnline}
+            title={!isOnline ? '离线模式下无法录入' : undefined}
+          >
+            新增
+          </Button>
+        </div>
+      </div>
 
-      <label className={uiStyles.field}>
-        <span className={uiStyles.label}>搜索</span>
-        <span className={uiStyles.searchControl}>
-          <IconSearch
-            size={16}
-            className={uiStyles.searchIcon}
-          />
-          <input
-            className={[uiStyles.input, uiStyles.searchInput].join(' ')}
-            placeholder="搜索物品（>=3 个字符）"
-            value={q}
-            onChange={(e) => setQ(e.currentTarget.value)}
-          />
-        </span>
-      </label>
+      <div className={uiStyles.toolbar}>
+        <label className={uiStyles.field}>
+          <span className={uiStyles.label}>搜索</span>
+          <span className={uiStyles.searchControl}>
+            <IconSearch
+              size={16}
+              className={uiStyles.searchIcon}
+            />
+            <input
+              className={[uiStyles.input, uiStyles.searchInput].join(' ')}
+              placeholder="搜索物品（>=3 个字符）"
+              value={q}
+              onChange={(e) => setQ(e.currentTarget.value)}
+            />
+          </span>
+        </label>
+        <SelectField
+          label="标签筛选"
+          options={tagOptions}
+          placeholder="全部标签"
+          value={tagID}
+          onChange={(e) => setTagID(e.currentTarget.value)}
+        />
+      </div>
 
       <Card className="surface-card table-card" padded={false}>
         <div className={uiStyles.tableWrap}>
@@ -138,11 +160,12 @@ function ItemsPage() {
                 <th className={uiStyles.th}>类型</th>
                 <th className={uiStyles.th}>状态</th>
                 <th className={uiStyles.th}>分类</th>
+                <th className={uiStyles.th}>标签</th>
               </tr>
             </thead>
             <tbody>
               {items.data?.items.map((it) => (
-                <tr key={it.id}>
+                <tr className={uiStyles.tableRow} key={it.id}>
                   <td className={uiStyles.td}>
                     <Link to="/items/$itemId" params={{ itemId: it.id }}>
                       {it.name}
@@ -153,11 +176,24 @@ function ItemsPage() {
                     <Badge>{it.status}</Badge>
                   </td>
                   <td className={uiStyles.td}>{it.category ?? '未填写'}</td>
+                  <td className={uiStyles.td}>
+                    {it.tags && it.tags.length > 0 ? (
+                      <div className={uiStyles.tagList}>
+                        {it.tags.map((tag) => (
+                          <span className={uiStyles.tagChip} key={tag.id}>
+                            {tag.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className={uiStyles.muted}>未添加</span>
+                    )}
+                  </td>
                 </tr>
               ))}
               {items.data && items.data.items.length === 0 && (
                 <tr>
-                  <td className={uiStyles.td} colSpan={4}>
+                  <td className={uiStyles.td} colSpan={5}>
                     <div className="empty-state">
                       暂无物品。先新增一件常用设备，或从 CSV / JSON 批量导入。
                     </div>
@@ -211,7 +247,7 @@ function ItemsPage() {
               setForm({ ...form, description: e.currentTarget.value })
             }
           />
-          <RowBetween>
+          <div className={uiStyles.formActions}>
             <Button variant="quiet" onClick={() => setOpened(false)}>
               取消
             </Button>
@@ -222,7 +258,7 @@ function ItemsPage() {
             >
               {create.isPending ? '保存中...' : '保存'}
             </Button>
-          </RowBetween>
+          </div>
         </Stack>
       </Dialog>
     </Stack>

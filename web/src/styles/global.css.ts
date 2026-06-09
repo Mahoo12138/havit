@@ -18,7 +18,7 @@ globalStyle('body', {
   margin: 0,
   minWidth: '320px',
   background:
-    `radial-gradient(circle at 16% -8%, rgba(15, 111, 100, 0.12), transparent 30rem), linear-gradient(180deg, ${themeVars.bgSoft}, ${themeVars.bg})`,
+    `radial-gradient(circle at 18% -12%, rgba(18, 108, 96, 0.09), transparent 28rem), linear-gradient(180deg, ${themeVars.bgSoft}, ${themeVars.bg})`,
   color: themeVars.text,
   fontFamily:
     '"Segoe UI Variable", Aptos, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
@@ -31,11 +31,11 @@ globalStyle('body::before', {
   inset: 0,
   zIndex: -1,
   pointerEvents: 'none',
-  opacity: 0.42,
+  opacity: 0.28,
   backgroundImage:
-    'linear-gradient(rgba(24, 33, 30, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(24, 33, 30, 0.035) 1px, transparent 1px)',
-  backgroundSize: '28px 28px',
-  maskImage: 'linear-gradient(to bottom, black, transparent 78%)',
+    'linear-gradient(rgba(24, 33, 30, 0.026) 1px, transparent 1px), linear-gradient(90deg, rgba(24, 33, 30, 0.022) 1px, transparent 1px)',
+  backgroundSize: '32px 32px',
+  maskImage: 'linear-gradient(to bottom, black, transparent 68%)',
 });
 
 globalStyle('a', {
@@ -71,12 +71,13 @@ globalStyle('.brand-lockup', {
 
 globalStyle('.brand-mark', {
   display: 'grid',
-  width: '2.25rem',
-  height: '2.25rem',
+  width: '2.35rem',
+  height: '2.35rem',
   placeItems: 'center',
   border: `1px solid ${themeVars.line}`,
-  borderRadius: '7px',
-  background: `linear-gradient(180deg, ${themeVars.panel}, ${themeVars.accentSoft})`,
+  borderRadius: '9px',
+  background:
+    `linear-gradient(180deg, color-mix(in srgb, ${themeVars.panel} 86%, white), ${themeVars.accentSoft})`,
   color: themeVars.accent,
 });
 
@@ -96,16 +97,17 @@ globalStyle('.shell-main', {
 });
 
 globalStyle('.page-shell', {
-  width: 'min(100%, 1240px)',
+  width: 'min(100%, 1220px)',
   margin: '0 auto',
-  paddingBlock: 'clamp(1rem, 2vw, 1.75rem) clamp(2.5rem, 6vw, 4rem)',
+  paddingBlock: 'clamp(1.15rem, 2vw, 1.85rem) clamp(2.75rem, 6vw, 4.25rem)',
 });
 
 globalStyle('.page-heading', {
   letterSpacing: 0,
   color: themeVars.text,
-  fontSize: 'clamp(1.65rem, 2.4vw, 2.35rem)',
-  lineHeight: 1.05,
+  fontSize: 'clamp(1.72rem, 2.35vw, 2.4rem)',
+  fontWeight: 780,
+  lineHeight: 1.03,
   margin: 0,
   textWrap: 'balance',
 });
@@ -119,8 +121,8 @@ globalStyle('.page-kicker', {
 
 globalStyle('.surface-card', {
   border: `1px solid ${themeVars.line}`,
-  borderRadius: '10px',
-  background: `color-mix(in srgb, ${themeVars.panel} 97%, transparent)`,
+  borderRadius: '12px',
+  background: `color-mix(in srgb, ${themeVars.panel} 98%, transparent)`,
   boxShadow: themeVars.shadow,
 });
 
@@ -129,7 +131,7 @@ globalStyle('.surface-card, .auth-card', {
 });
 
 globalStyle('.surface-card:hover', {
-  borderColor: `color-mix(in srgb, ${themeVars.accent} 30%, ${themeVars.line})`,
+  borderColor: `color-mix(in srgb, ${themeVars.accent} 22%, ${themeVars.line})`,
 });
 
 globalStyle('.stat-card', {
@@ -141,9 +143,9 @@ globalStyle('.stat-card::before', {
   content: "''",
   position: 'absolute',
   inset: '0 auto 0 0',
-  width: '3px',
+  width: '2px',
   background: themeVars.accent,
-  opacity: 0.8,
+  opacity: 0.72,
 });
 
 globalStyle('.table-card', {
@@ -151,7 +153,7 @@ globalStyle('.table-card', {
 });
 
 globalStyle('.empty-state', {
-  padding: 'clamp(2rem, 8vw, 4rem)',
+  padding: 'clamp(2.25rem, 8vw, 4.25rem)',
   textAlign: 'center',
   color: themeVars.muted,
   lineHeight: 1.7,
@@ -168,12 +170,12 @@ globalStyle('.tree-row:hover', {
 });
 
 globalStyle('.nav-link', {
-  borderRadius: '8px',
+  borderRadius: '9px',
   color: themeVars.text,
 });
 
 globalStyle(".nav-link[data-active='true']", {
-  background: themeVars.accentSoft,
+  background: `color-mix(in srgb, ${themeVars.accentSoft} 78%, ${themeVars.panel})`,
   color: themeVars.accent,
   fontWeight: 650,
 });
@@ -187,7 +189,7 @@ globalStyle('.detail-row', {
   display: 'grid',
   gridTemplateColumns: 'minmax(8rem, 0.45fr) minmax(0, 1fr)',
   gap: '1rem',
-  padding: '0.95rem 0',
+  padding: '1rem 0',
   borderBottom: `1px solid ${themeVars.line}`,
 });
 

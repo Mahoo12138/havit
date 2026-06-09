@@ -12,8 +12,13 @@ import {
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import { Select as BaseSelect } from '@base-ui/react/select';
 import { Toast as BaseToast } from '@base-ui/react/toast';
+import { IconChevronDown, IconX } from '@tabler/icons-react';
 
 import * as s from './styles.css';
+
+function cx(...classes: Array<string | undefined>) {
+  return classes.filter(Boolean).join(' ');
+}
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: keyof typeof s.buttonVariant;
@@ -29,7 +34,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={[s.buttonVariant[variant], className].filter(Boolean).join(' ')}
+      className={cx(s.buttonVariant[variant], className)}
       {...props}
     >
       {leftSection}
@@ -45,9 +50,7 @@ export function Card({
 }: HTMLAttributes<HTMLDivElement> & { padded?: boolean }) {
   return (
     <div
-      className={[padded ? s.cardPadded : s.card, className]
-        .filter(Boolean)
-        .join(' ')}
+      className={cx(padded ? s.cardPadded : s.card, className)}
       {...props}
     />
   );
@@ -106,7 +109,9 @@ export function SelectField({
         <BaseSelect.Label className={s.label}>{label}</BaseSelect.Label>
         <BaseSelect.Trigger className={s.selectTrigger}>
           <BaseSelect.Value placeholder={placeholder ?? '请选择'} />
-          <BaseSelect.Icon>⌄</BaseSelect.Icon>
+          <BaseSelect.Icon className={s.selectIcon}>
+            <IconChevronDown size={16} />
+          </BaseSelect.Icon>
         </BaseSelect.Trigger>
         <BaseSelect.Portal>
           <BaseSelect.Positioner className={s.selectPositioner} sideOffset={6}>
@@ -166,8 +171,8 @@ export function Dialog({
           <BaseDialog.Popup className={s.dialog}>
             <RowBetween>
               <BaseDialog.Title className={s.heading}>{title}</BaseDialog.Title>
-              <BaseDialog.Close className={s.buttonVariant.subtle}>
-                关闭
+              <BaseDialog.Close className={s.iconButton} aria-label="关闭">
+                <IconX size={17} />
               </BaseDialog.Close>
             </RowBetween>
             <div className={s.dialogBody}>{children}</div>
@@ -182,20 +187,20 @@ export function Code({ children }: { children: ReactNode }) {
   return <code className={s.code}>{children}</code>;
 }
 
-export function Stack(props: HTMLAttributes<HTMLDivElement>) {
-  return <div className={s.stack} {...props} />;
+export function Stack({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx(s.stack, className)} {...props} />;
 }
 
-export function StackTight(props: HTMLAttributes<HTMLDivElement>) {
-  return <div className={s.stackTight} {...props} />;
+export function StackTight({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx(s.stackTight, className)} {...props} />;
 }
 
-export function Row(props: HTMLAttributes<HTMLDivElement>) {
-  return <div className={s.row} {...props} />;
+export function Row({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx(s.row, className)} {...props} />;
 }
 
-export function RowBetween(props: HTMLAttributes<HTMLDivElement>) {
-  return <div className={s.rowBetween} {...props} />;
+export function RowBetween({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div className={cx(s.rowBetween, className)} {...props} />;
 }
 
 export function Alert({ icon, children }: { icon?: ReactNode; children: ReactNode }) {

@@ -45,12 +45,14 @@ function ImportPage() {
 
   return (
     <Stack>
-      <StackTight>
-        <h2 className="page-heading">批量导入</h2>
-        <p className="page-kicker">
-          从旧表格或 JSON 备份迁移资产，合法行会独立写入。
-        </p>
-      </StackTight>
+      <div className={uiStyles.pageHeader}>
+        <StackTight>
+          <h2 className="page-heading">批量导入</h2>
+          <p className="page-kicker">
+            从旧表格或 JSON 备份迁移资产，合法行会独立写入。
+          </p>
+        </StackTight>
+      </div>
 
       <Alert icon={<IconInfoCircle size={18} />}>
         <div>

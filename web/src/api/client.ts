@@ -104,6 +104,13 @@ export interface Item {
   serial_number?: string;
   created_at: number;
   updated_at: number;
+  tags?: Tag[];
+}
+
+export interface Tag {
+  id: string;
+  name: string;
+  color?: string;
 }
 
 export interface Attachment {
@@ -132,13 +139,15 @@ export interface Location {
 }
 
 export const itemsApi = {
-  list: (params: { q?: string; status?: string; type?: string; location?: string } = {}) =>
+  list: (params: { q?: string; status?: string; type?: string; location?: string; tag?: string } = {}) =>
     api.get('items/', { searchParams: params as Record<string, string> }).json<{ items: Item[] }>(),
   get: (id: string) => api.get(`items/${id}`).json<Item>(),
   create: (body: Partial<Item>) => api.post('items/', { json: body }).json<Item>(),
   update: (id: string, body: Partial<Item>) =>
     api.patch(`items/${id}`, { json: body }).json<Item>(),
   archive: (id: string) => api.delete(`items/${id}`),
+  replaceTags: (id: string, tagIds: string[]) =>
+    api.put(`items/${id}/tags`, { json: { tag_ids: tagIds } }).json<Item>(),
   attachments: (id: string) =>
     api.get(`items/${id}/attachments`).json<{ attachments: Attachment[] }>(),
   uploadPhoto: (id: string, file: File) => {
@@ -146,6 +155,11 @@ export const itemsApi = {
     body.append('file', file);
     return api.post(`items/${id}/photos`, { body }).json<Attachment>();
   },
+};
+
+export const tagsApi = {
+  list: () => api.get('tags/').json<{ tags: Tag[] }>(),
+  create: (body: { name: string; color?: string }) => api.post('tags/', { json: body }).json<Tag>(),
 };
 
 export const locationsApi = {
