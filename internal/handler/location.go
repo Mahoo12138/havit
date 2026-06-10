@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	authmw "github.com/mahoo12138/havit/internal/middleware"
 	"github.com/mahoo12138/havit/internal/service"
 )
 
@@ -44,6 +45,9 @@ func (h *LocationHandler) create(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		writeError(w, http.StatusBadRequest, err)
 		return
+	}
+	if claims, ok := authmw.ClaimsFrom(r.Context()); ok && in.OwnerID == nil {
+		in.OwnerID = &claims.UserID
 	}
 	loc, err := h.svc.Create(r.Context(), in)
 	if err != nil {

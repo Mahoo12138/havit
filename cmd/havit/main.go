@@ -15,6 +15,7 @@ import (
 	chimiddleware "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/mahoo12138/havit/internal/config"
+	havitcrypto "github.com/mahoo12138/havit/internal/crypto"
 	"github.com/mahoo12138/havit/internal/db"
 	"github.com/mahoo12138/havit/internal/handler"
 	authmw "github.com/mahoo12138/havit/internal/middleware"
@@ -69,10 +70,17 @@ func main() {
 	itemSvc := service.NewItemService(database)
 	tagSvc := service.NewTagService(database)
 	locSvc := service.NewLocationService(database)
+
+	fieldCrypto, err := havitcrypto.New(cfg.Auth.JWTSecret)
+	if err != nil {
+		slog.Error("init field encryption", "err", err)
+		os.Exit(1)
+	}
+
 	importSvc := service.NewImportService(database)
-	exportSvc := service.NewExportService(database)
+	exportSvc := service.NewExportService(database, fieldCrypto)
 	loanSvc := service.NewLoanService(database)
-	virtualAssetSvc := service.NewVirtualAssetService(database)
+	virtualAssetSvc := service.NewVirtualAssetService(database, fieldCrypto)
 	reminderSvc := service.NewReminderService(database)
 	notifyGateway := service.NewHTTPNotifyGateway(service.HTTPNotifyGatewayConfig{
 		WebhookURL: cfg.Notify.WebhookURL,
@@ -129,12 +137,14 @@ func main() {
 		systemH.Mount(r)
 		authH.MountPublic(r)
 
+		// Standard JSON routes — 4 MB body limit applies.
 		r.Group(func(r chi.Router) {
 			r.Use(authmw.Auth(authSvc))
+			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
 			authH.MountProtected(r)
+			itemH.Mount(r)
 			tagH.Mount(r)
-			// Import gets its own larger body limit set in handler.
-			importH.Mount(r)
+			locH.Mount(r)
 			exportH.Mount(r)
 			loanH.Mount(r)
 			virtualAssetH.Mount(r)
@@ -144,15 +154,14 @@ func main() {
 			searchH.Mount(r)
 			barcodeH.Mount(r)
 			aiH.Mount(r)
-			// Attachment upload gets its own body limit and streams to disk.
-			attachmentH.Mount(r)
 		})
 
+		// Routes that set their own per-route body limits (import 16 MB, attachment streams to disk).
+		// Mounted in a separate group so the global 4 MB RequestSize does not apply.
 		r.Group(func(r chi.Router) {
 			r.Use(authmw.Auth(authSvc))
-			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
-			itemH.Mount(r)
-			locH.Mount(r)
+			importH.Mount(r)
+			attachmentH.Mount(r)
 		})
 	})
 

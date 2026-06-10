@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	havitcrypto "github.com/mahoo12138/havit/internal/crypto"
 	"github.com/mahoo12138/havit/internal/db"
 	authmw "github.com/mahoo12138/havit/internal/middleware"
 	"github.com/mahoo12138/havit/internal/service"
@@ -34,6 +35,15 @@ func newAuthTestDB(t *testing.T) *sql.DB {
 	}
 
 	return database
+}
+
+func testFieldCrypto(t *testing.T) *havitcrypto.AESCrypto {
+	t.Helper()
+	c, err := havitcrypto.New("test-secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
 }
 
 func newAuthTestRouter(t *testing.T) http.Handler {
@@ -59,9 +69,9 @@ func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookUR
 	tagSvc := service.NewTagService(database)
 	locationSvc := service.NewLocationService(database)
 	importSvc := service.NewImportService(database)
-	exportSvc := service.NewExportService(database)
+	exportSvc := service.NewExportService(database, testFieldCrypto(t))
 	loanSvc := service.NewLoanService(database)
-	virtualAssetSvc := service.NewVirtualAssetService(database)
+	virtualAssetSvc := service.NewVirtualAssetService(database, testFieldCrypto(t))
 	reminderSvc := service.NewReminderService(database)
 	notifySvc := service.NewNotifyService(reminderSvc, service.NewHTTPNotifyGateway(service.HTTPNotifyGatewayConfig{
 		WebhookURL: notifyWebhookURL,

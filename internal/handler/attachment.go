@@ -25,6 +25,7 @@ func (h *AttachmentHandler) Mount(r chi.Router) {
 	r.Get("/items/{itemID}/attachments", h.listItemAttachments)
 	r.Post("/items/{itemID}/photos", h.uploadPhoto)
 	r.Get("/attachments/{attachmentID}/content", h.readContent)
+	r.Delete("/attachments/{attachmentID}", h.delete)
 }
 
 func (h *AttachmentHandler) listItemAttachments(w http.ResponseWriter, r *http.Request) {
@@ -95,6 +96,23 @@ func (h *AttachmentHandler) readContent(w http.ResponseWriter, r *http.Request) 
 	}
 	w.Header().Set("Content-Disposition", `inline; filename="`+strings.ReplaceAll(att.Filename, `"`, "")+`"`)
 	http.ServeContent(w, r, att.Filename, timeFromUnix(att.CreatedAt), file)
+}
+
+func (h *AttachmentHandler) delete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "attachmentID")
+	if err := h.svc.Delete(r.Context(), id); err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		if errors.Is(err, service.ErrAISourceProtected) {
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": err.Error()})
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func timeFromUnix(ts int64) time.Time {

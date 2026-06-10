@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sort"
 	"strings"
 	"time"
@@ -44,6 +45,8 @@ type ItemCreateInput struct {
 	MinStockThreshold  *int           `json:"min_stock_threshold,omitempty"`
 	LifespanDays       *int           `json:"lifespan_days,omitempty"`
 	InUseSince         *int64         `json:"in_use_since,omitempty"`
+	IsPrivate          bool           `json:"is_private,omitempty"`
+	OwnerID            *string        `json:"owner_id,omitempty"`
 }
 
 type ItemUpdateInput struct {
@@ -137,13 +140,14 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 			purchase_price, purchase_currency, purchase_date,
 			purchase_platform, serial_number, warranty_expires_at, warranty_contact,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
-			is_private, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, 'in_stock', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+			is_private, owner_id, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, 'in_stock', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, in.Name, in.Description, in.Category, in.Type,
 		in.LocationID, in.HomeBaseLocationID, in.CurrentStatusTag,
 		in.PurchasePrice, in.PurchaseCurrency, in.PurchaseDate,
 		in.PurchasePlatform, in.SerialNumber, in.WarrantyExpiresAt, in.WarrantyContact,
 		in.CurrentStock, in.MinStockThreshold, in.LifespanDays, in.InUseSince,
+		in.IsPrivate, in.OwnerID,
 		now, now,
 	)
 	if err != nil {
@@ -160,6 +164,8 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 	); err != nil {
 		return nil, fmt.Errorf("insert fts: %w", err)
 	}
+
+	s.logEvent(ctx, id, "created", nil)
 
 	return s.Get(ctx, id)
 }
@@ -570,6 +576,8 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 		return nil, err
 	}
 
+	s.logEvent(ctx, id, "updated", nil)
+
 	cur.UpdatedAt = now
 	applyConsumableDerivedFields(cur)
 	return cur, nil
@@ -597,6 +605,7 @@ func (s *ItemService) SetEDCStatus(ctx context.Context, id string, in EDCStatusI
 	if err != nil {
 		return nil, err
 	}
+	s.logEvent(ctx, id, "edc_status_changed", nil)
 	return s.Get(ctx, id)
 }
 
@@ -622,6 +631,7 @@ func (s *ItemService) ReturnEDCHome(ctx context.Context, id string) (*model.Item
 	if err != nil {
 		return nil, err
 	}
+	s.logEvent(ctx, id, "edc_returned_home", nil)
 	return s.Get(ctx, id)
 }
 
@@ -659,6 +669,10 @@ func (s *ItemService) Exit(ctx context.Context, id string, in ItemExitInput) (*m
 	if n, _ := res.RowsAffected(); n == 0 {
 		return nil, ErrNotFound
 	}
+	// Remove from FTS index so exited items are not searchable.
+	_, _ = s.db.ExecContext(ctx, `DELETE FROM items_fts WHERE item_id = ?`, id)
+	payload := fmt.Sprintf(`{"exit_type":%q}`, in.ExitType)
+	s.logEvent(ctx, id, "exited", &payload)
 	return s.Get(ctx, id)
 }
 
@@ -716,6 +730,7 @@ func (s *ItemService) UseOne(ctx context.Context, id string) (*model.Item, error
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
+	s.logEvent(ctx, id, "used_one", nil)
 	return s.Get(ctx, id)
 }
 
@@ -960,6 +975,9 @@ func (s *ItemService) Archive(ctx context.Context, id string) error {
 	if n == 0 {
 		return ErrNotFound
 	}
+	// Remove from FTS index so archived items are not searchable.
+	_, _ = s.db.ExecContext(ctx, `DELETE FROM items_fts WHERE item_id = ?`, id)
+	s.logEvent(ctx, id, "archived", nil)
 	return nil
 }
 
@@ -1007,6 +1025,43 @@ func derefStr(p *string) string {
 		return ""
 	}
 	return *p
+}
+
+// logEvent writes an audit event to item_events. Errors are logged but not returned.
+func (s *ItemService) logEvent(ctx context.Context, itemID, eventType string, payload *string) {
+	eventID := ulid.Make().String()
+	if _, err := s.db.ExecContext(ctx,
+		`INSERT INTO item_events (id, item_id, event_type, payload, created_at)
+		 VALUES (?, ?, ?, ?, ?)`,
+		eventID, itemID, eventType, payload, time.Now().Unix(),
+	); err != nil {
+		slog.Error("log item event", "item", itemID, "type", eventType, "err", err)
+	}
+}
+
+func (s *ItemService) ListEvents(ctx context.Context, itemID string) ([]*model.ItemEvent, error) {
+	if _, err := s.Get(ctx, itemID); err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, item_id, actor_id, event_type, payload, created_at
+		FROM item_events
+		WHERE item_id = ?
+		ORDER BY created_at DESC, id DESC`, itemID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []*model.ItemEvent{}
+	for rows.Next() {
+		var ev model.ItemEvent
+		if err := rows.Scan(&ev.ID, &ev.ItemID, &ev.ActorID, &ev.EventType, &ev.Payload, &ev.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, &ev)
+	}
+	return out, rows.Err()
 }
 
 func validItemStatus(s model.ItemStatus) bool {

@@ -171,3 +171,12 @@ type LocationScanResult struct {
 	Location *Location `json:"location"`
 	Items    []*Item   `json:"items"`
 }
+
+type ItemEvent struct {
+	ID        string  `json:"id"`
+	ItemID    string  `json:"item_id"`
+	ActorID   *string `json:"actor_id,omitempty"`
+	EventType string  `json:"event_type"`
+	Payload   *string `json:"payload,omitempty"`
+	CreatedAt int64   `json:"created_at"`
+}

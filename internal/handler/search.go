@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 
@@ -28,23 +29,48 @@ func (h *SearchHandler) search(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("X-Accel-Buffering", "no")
 
-	results, err := h.svc.FTS(r.Context(), r.URL.Query().Get("q"))
-	if err != nil {
-		writeSSEEvent(w, "error", map[string]string{"error": err.Error()})
-		writeSSEEvent(w, "done", map[string]any{})
-		return
+	q := r.URL.Query().Get("q")
+	ctx := r.Context()
+
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+	safeWrite := func(event string, data any) {
+		mu.Lock()
+		defer mu.Unlock()
+		writeSSEEvent(w, event, data)
 	}
-	writeSSEEvent(w, "fts_results", results)
-	if h.provider != nil {
-		filter, err := h.provider.ParseSearchQuery(r.Context(), r.URL.Query().Get("q"))
-		if err == nil && filter != nil {
-			refined, err := h.svc.Filter(r.Context(), *filter)
-			if err == nil {
-				writeSSEEvent(w, "llm_results", refined)
-			}
+
+	// FTS goroutine — fast local full-text search.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		results, err := h.svc.FTS(ctx, q)
+		if err != nil {
+			safeWrite("error", map[string]string{"error": err.Error()})
+			return
 		}
+		safeWrite("fts_results", results)
+	}()
+
+	// LLM goroutine — parse query with AI then run structured filter.
+	if h.provider != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			filter, err := h.provider.ParseSearchQuery(ctx, q)
+			if err != nil || filter == nil {
+				return
+			}
+			refined, err := h.svc.Filter(ctx, *filter)
+			if err != nil {
+				return
+			}
+			safeWrite("llm_results", refined)
+		}()
 	}
-	writeSSEEvent(w, "done", map[string]any{})
+
+	wg.Wait()
+	safeWrite("done", map[string]any{})
 }
 
 func writeSSEEvent(w http.ResponseWriter, event string, data any) {

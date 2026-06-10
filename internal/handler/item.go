@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	authmw "github.com/mahoo12138/havit/internal/middleware"
 	"github.com/mahoo12138/havit/internal/service"
 )
 
@@ -39,6 +40,7 @@ func (h *ItemHandler) Mount(r chi.Router) {
 		r.Get("/{id}/calibration-events", h.listCalibrationEvents)
 		r.Post("/{id}/calibration-events", h.createCalibrationEvent)
 		r.Put("/{id}/tags", h.replaceTags)
+		r.Get("/{id}/events", h.listEvents)
 	})
 }
 
@@ -113,6 +115,9 @@ func (h *ItemHandler) create(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		writeError(w, http.StatusBadRequest, err)
 		return
+	}
+	if claims, ok := authmw.ClaimsFrom(r.Context()); ok && in.OwnerID == nil {
+		in.OwnerID = &claims.UserID
 	}
 	item, err := h.svc.Create(r.Context(), in)
 	if err != nil {
@@ -324,6 +329,20 @@ func (h *ItemHandler) replaceTags(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, item)
+}
+
+func (h *ItemHandler) listEvents(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	events, err := h.svc.ListEvents(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"events": events})
 }
 
 func (h *ItemHandler) writeItemActionError(w http.ResponseWriter, err error) {

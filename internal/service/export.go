@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	havitcrypto "github.com/mahoo12138/havit/internal/crypto"
 	"github.com/mahoo12138/havit/internal/model"
 )
 
@@ -20,11 +21,12 @@ const (
 )
 
 type ExportService struct {
-	db *sql.DB
+	db     *sql.DB
+	crypto *havitcrypto.AESCrypto
 }
 
-func NewExportService(db *sql.DB) *ExportService {
-	return &ExportService{db: db}
+func NewExportService(db *sql.DB, crypto *havitcrypto.AESCrypto) *ExportService {
+	return &ExportService{db: db, crypto: crypto}
 }
 
 type ItemsExport struct {
@@ -375,6 +377,13 @@ func (s *ExportService) virtualCredentials(ctx context.Context) ([]*model.Virtua
 		credential, err := scanVirtualCredential(rows)
 		if err != nil {
 			return nil, err
+		}
+		if credential.LicenseKey != nil && *credential.LicenseKey != "" {
+			plain, err := s.crypto.Decrypt(*credential.LicenseKey)
+			if err != nil {
+				return nil, fmt.Errorf("decrypt license_key for credential %s: %w", credential.ID, err)
+			}
+			credential.LicenseKey = &plain
 		}
 		credentials = append(credentials, credential)
 	}

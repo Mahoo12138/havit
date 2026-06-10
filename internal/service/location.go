@@ -22,9 +22,11 @@ func NewLocationService(db *sql.DB) *LocationService {
 }
 
 type LocationCreateInput struct {
-	Name     string  `json:"name"`
-	ParentID *string `json:"parent_id,omitempty"`
-	Type     string  `json:"type,omitempty"`
+	Name      string  `json:"name"`
+	ParentID  *string `json:"parent_id,omitempty"`
+	Type      string  `json:"type,omitempty"`
+	IsPrivate bool    `json:"is_private,omitempty"`
+	OwnerID   *string `json:"owner_id,omitempty"`
 }
 
 type LocationUpdateInput struct {
@@ -45,9 +47,9 @@ func (s *LocationService) Create(ctx context.Context, in LocationCreateInput) (*
 	id := ulid.Make().String()
 
 	_, err := s.db.ExecContext(ctx, `
-		INSERT INTO locations (id, parent_id, name, type, sort_order, is_private, created_at, updated_at)
-		VALUES (?, ?, ?, ?, 0, 0, ?, ?)`,
-		id, in.ParentID, in.Name, in.Type, now, now,
+		INSERT INTO locations (id, parent_id, name, type, sort_order, is_private, owner_id, created_at, updated_at)
+		VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+		id, in.ParentID, in.Name, in.Type, in.IsPrivate, in.OwnerID, now, now,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("insert location: %w", err)

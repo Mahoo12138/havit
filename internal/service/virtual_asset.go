@@ -8,15 +8,17 @@ import (
 
 	"github.com/oklog/ulid/v2"
 
+	havitcrypto "github.com/mahoo12138/havit/internal/crypto"
 	"github.com/mahoo12138/havit/internal/model"
 )
 
 type VirtualAssetService struct {
-	db *sql.DB
+	db    *sql.DB
+	crypto *havitcrypto.AESCrypto
 }
 
-func NewVirtualAssetService(db *sql.DB) *VirtualAssetService {
-	return &VirtualAssetService{db: db}
+func NewVirtualAssetService(db *sql.DB, crypto *havitcrypto.AESCrypto) *VirtualAssetService {
+	return &VirtualAssetService{db: db, crypto: crypto}
 }
 
 type VirtualCredentialInput struct {
@@ -47,20 +49,32 @@ func (s *VirtualAssetService) CreateCredential(ctx context.Context, itemID strin
 
 	now := time.Now().Unix()
 	id := ulid.Make().String()
+	var encKey *string
+	if in.LicenseKey != nil {
+		enc, err := s.crypto.Encrypt(*in.LicenseKey)
+		if err != nil {
+			return nil, err
+		}
+		encKey = &enc
+	}
 	if _, err := s.db.ExecContext(ctx, `
 		INSERT INTO virtual_credentials (
 			id, item_id, platform, account, order_id,
 			license_key, purchased_at, price, currency
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, itemID, in.Platform, in.Account, in.OrderID,
-		in.LicenseKey, in.PurchasedAt, in.Price, in.Currency,
+		encKey, in.PurchasedAt, in.Price, in.Currency,
 	); err != nil {
 		return nil, err
 	}
 	if _, err := s.db.ExecContext(ctx, `UPDATE items SET updated_at = ? WHERE id = ?`, now, itemID); err != nil {
 		return nil, err
 	}
-	return s.getCredential(ctx, id)
+	cred, err := s.getCredential(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.decryptCredential(cred)
 }
 
 func (s *VirtualAssetService) ListCredentials(ctx context.Context, itemID string) ([]*model.VirtualCredential, error) {
@@ -85,7 +99,10 @@ func (s *VirtualAssetService) ListCredentials(ctx context.Context, itemID string
 		}
 		out = append(out, credential)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return s.decryptCredentials(out)
 }
 
 func (s *VirtualAssetService) CreateAddon(ctx context.Context, itemID string, in VirtualAddonInput) (*model.VirtualAddonPurchase, error) {
@@ -182,6 +199,28 @@ func scanVirtualCredential(row virtualCredentialScanner) (*model.VirtualCredenti
 		return nil, err
 	}
 	return &credential, nil
+}
+
+// decryptCredential decrypts the license_key in-place. Returns the same pointer for convenience.
+func (s *VirtualAssetService) decryptCredential(c *model.VirtualCredential) (*model.VirtualCredential, error) {
+	if c.LicenseKey == nil || *c.LicenseKey == "" {
+		return c, nil
+	}
+	plain, err := s.crypto.Decrypt(*c.LicenseKey)
+	if err != nil {
+		return nil, err
+	}
+	c.LicenseKey = &plain
+	return c, nil
+}
+
+func (s *VirtualAssetService) decryptCredentials(list []*model.VirtualCredential) ([]*model.VirtualCredential, error) {
+	for _, c := range list {
+		if _, err := s.decryptCredential(c); err != nil {
+			return nil, err
+		}
+	}
+	return list, nil
 }
 
 type virtualAddonScanner interface {

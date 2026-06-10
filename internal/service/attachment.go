@@ -16,6 +16,8 @@ import (
 	"github.com/mahoo12138/havit/internal/model"
 )
 
+var ErrAISourceProtected = errors.New("AI source attachment cannot be deleted")
+
 type AttachmentService struct {
 	db      *sql.DB
 	dataDir string
@@ -156,6 +158,26 @@ func scanAttachment(row attachmentScanner) (*model.Attachment, error) {
 	att.URL = "/api/v1/attachments/" + att.ID + "/content"
 	att.IsAISource = isAI != 0
 	return &att, nil
+}
+
+func (s *AttachmentService) Delete(ctx context.Context, id string) error {
+	att, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	if att.IsAISource {
+		return ErrAISourceProtected
+	}
+
+	// Remove file from disk.
+	if err := os.Remove(filepath.Join(s.dataDir, filepath.FromSlash(att.Path))); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove attachment file: %w", err)
+	}
+
+	if _, err := s.db.ExecContext(ctx, `DELETE FROM attachments WHERE id = ?`, id); err != nil {
+		return fmt.Errorf("delete attachment record: %w", err)
+	}
+	return nil
 }
 
 func cleanFilename(name string) string {
