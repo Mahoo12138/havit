@@ -14,7 +14,6 @@ RUN corepack enable \
 COPY web/ ./
 # vite.config.ts outputs to ../internal/static/dist, so we need the parent dir to exist.
 RUN mkdir -p /app/internal/static \
- && pnpm exec tsr generate \
  && pnpm build
 
 # ============================================================
