@@ -91,3 +91,53 @@ func TestLocationDeleteRemovesEmptyLocation(t *testing.T) {
 		t.Fatalf("expected deleted location to be missing, got %v", err)
 	}
 }
+
+func TestLocationQRCodeCanBeGeneratedAndScannedForContainedItems(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	locations := NewLocationService(database)
+	items := NewItemService(database)
+
+	root, err := locations.Create(ctx, LocationCreateInput{Name: "储藏室"})
+	if err != nil {
+		t.Fatalf("create root location: %v", err)
+	}
+	box, err := locations.Create(ctx, LocationCreateInput{Name: "收纳盒 3", ParentID: &root.ID})
+	if err != nil {
+		t.Fatalf("create child location: %v", err)
+	}
+	if _, err := items.Create(ctx, ItemCreateInput{
+		Name:       "备用 HDMI 线",
+		Type:       model.ItemTypeDurable,
+		LocationID: &box.ID,
+	}); err != nil {
+		t.Fatalf("create contained item: %v", err)
+	}
+
+	withCode, err := locations.GenerateQRCode(ctx, root.ID)
+	if err != nil {
+		t.Fatalf("generate qr code: %v", err)
+	}
+	if withCode.QRCode == nil || *withCode.QRCode == "" {
+		t.Fatalf("expected qr code on location, got %#v", withCode.QRCode)
+	}
+
+	again, err := locations.GenerateQRCode(ctx, root.ID)
+	if err != nil {
+		t.Fatalf("generate qr code again: %v", err)
+	}
+	if again.QRCode == nil || *again.QRCode != *withCode.QRCode {
+		t.Fatalf("expected qr code generation to be idempotent, got %#v then %#v", withCode.QRCode, again.QRCode)
+	}
+
+	scanned, err := locations.ScanQRCode(ctx, *withCode.QRCode)
+	if err != nil {
+		t.Fatalf("scan qr code: %v", err)
+	}
+	if scanned.Location.ID != root.ID {
+		t.Fatalf("expected scanned root location %s, got %s", root.ID, scanned.Location.ID)
+	}
+	if len(scanned.Items) != 1 || scanned.Items[0].Name != "备用 HDMI 线" {
+		t.Fatalf("expected contained item in scan result, got %#v", scanned.Items)
+	}
+}

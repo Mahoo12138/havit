@@ -18,6 +18,8 @@ type Config struct {
 	AI      AIConfig
 	Storage StorageConfig
 	Backup  BackupConfig
+	Notify  NotifyConfig
+	Barcode BarcodeConfig
 }
 
 type ServerConfig struct {
@@ -55,6 +57,18 @@ type BackupConfig struct {
 	KeepDays int `mapstructure:"keep_days"`
 }
 
+type NotifyConfig struct {
+	Enabled    bool
+	AppriseURL string `mapstructure:"apprise_url"`
+	NtfyURL    string `mapstructure:"ntfy_url"`
+	WebhookURL string `mapstructure:"webhook_url"`
+}
+
+type BarcodeConfig struct {
+	OpenFoodFacts bool   `mapstructure:"open_food_facts"`
+	LookupAPIKey  string `mapstructure:"lookup_api_key"`
+}
+
 func Load() *Config {
 	return LoadFrom([]string{"/data", "."})
 }
@@ -78,6 +92,12 @@ func LoadFrom(configPaths []string) *Config {
 	v.SetDefault("backup.enabled", true)
 	v.SetDefault("backup.cron", "0 3 * * *")
 	v.SetDefault("backup.keep_days", 30)
+	v.SetDefault("notify.enabled", false)
+	v.SetDefault("notify.apprise_url", "")
+	v.SetDefault("notify.ntfy_url", "")
+	v.SetDefault("notify.webhook_url", "")
+	v.SetDefault("barcode.open_food_facts", true)
+	v.SetDefault("barcode.lookup_api_key", "")
 
 	v.SetConfigName("config")
 	v.SetConfigType("yaml")

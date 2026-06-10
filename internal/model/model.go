@@ -49,6 +49,20 @@ type Item struct {
 
 	WarrantyExpiresAt *int64  `json:"warranty_expires_at,omitempty"`
 	SerialNumber      *string `json:"serial_number,omitempty"`
+	WarrantyContact   *string `json:"warranty_contact,omitempty"`
+
+	ExitType     *string  `json:"exit_type,omitempty"`
+	ExitDate     *int64   `json:"exit_date,omitempty"`
+	ExitPrice    *float64 `json:"exit_price,omitempty"`
+	ExitCurrency *string  `json:"exit_currency,omitempty"`
+	ExitNotes    *string  `json:"exit_notes,omitempty"`
+
+	CurrentStock      *int   `json:"current_stock,omitempty"`
+	MinStockThreshold *int   `json:"min_stock_threshold,omitempty"`
+	LifespanDays      *int   `json:"lifespan_days,omitempty"`
+	InUseSince        *int64 `json:"in_use_since,omitempty"`
+	NeedsRestock      bool   `json:"needs_restock"`
+	LifeExpiresAt     *int64 `json:"life_expires_at,omitempty"`
 
 	IsPrivate bool    `json:"is_private"`
 	OwnerID   *string `json:"owner_id,omitempty"`
@@ -76,6 +90,68 @@ type Attachment struct {
 	CreatedAt   int64          `json:"created_at"`
 }
 
+type PurchaseEvent struct {
+	ID          string   `json:"id"`
+	ItemID      string   `json:"item_id"`
+	Quantity    int      `json:"quantity"`
+	Price       *float64 `json:"price,omitempty"`
+	Currency    *string  `json:"currency,omitempty"`
+	PurchasedAt int64    `json:"purchased_at"`
+	Notes       *string  `json:"notes,omitempty"`
+}
+
+type CalibrationEvent struct {
+	ID        string `json:"id"`
+	ItemID    string `json:"item_id"`
+	Signal    string `json:"signal"`
+	CreatedAt int64  `json:"created_at"`
+}
+
+type Loan struct {
+	ID                   string   `json:"id"`
+	ItemID               string   `json:"item_id"`
+	BorrowerName         string   `json:"borrower_name"`
+	BorrowerContact      *string  `json:"borrower_contact,omitempty"`
+	LoanedAt             int64    `json:"loaned_at"`
+	DueAt                *int64   `json:"due_at,omitempty"`
+	ReturnedAt           *int64   `json:"returned_at,omitempty"`
+	Status               string   `json:"status"`
+	Compensation         *float64 `json:"compensation,omitempty"`
+	CompensationCurrency *string  `json:"compensation_currency,omitempty"`
+	Notes                *string  `json:"notes,omitempty"`
+}
+
+type VirtualCredential struct {
+	ID          string   `json:"id"`
+	ItemID      string   `json:"item_id"`
+	Platform    string   `json:"platform"`
+	Account     *string  `json:"account,omitempty"`
+	OrderID     *string  `json:"order_id,omitempty"`
+	LicenseKey  *string  `json:"license_key,omitempty"`
+	PurchasedAt *int64   `json:"purchased_at,omitempty"`
+	Price       *float64 `json:"price,omitempty"`
+	Currency    *string  `json:"currency,omitempty"`
+}
+
+type VirtualAddonPurchase struct {
+	ID          string   `json:"id"`
+	ItemID      string   `json:"item_id"`
+	Name        string   `json:"name"`
+	Platform    *string  `json:"platform,omitempty"`
+	Price       *float64 `json:"price,omitempty"`
+	Currency    *string  `json:"currency,omitempty"`
+	PurchasedAt int64    `json:"purchased_at"`
+}
+
+type Reminder struct {
+	ID          string `json:"id"`
+	ItemID      string `json:"item_id"`
+	Type        string `json:"type"`
+	TriggerAt   int64  `json:"trigger_at"`
+	SentAt      *int64 `json:"sent_at,omitempty"`
+	IsDismissed bool   `json:"is_dismissed"`
+}
+
 type Location struct {
 	ID        string  `json:"id"`
 	ParentID  *string `json:"parent_id,omitempty"`
@@ -89,4 +165,9 @@ type Location struct {
 	UpdatedAt int64   `json:"updated_at"`
 
 	Children []*Location `json:"children,omitempty"`
+}
+
+type LocationScanResult struct {
+	Location *Location `json:"location"`
+	Items    []*Item   `json:"items"`
 }

@@ -39,6 +39,18 @@ func newAuthTestDB(t *testing.T) *sql.DB {
 func newAuthTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 
+	return newAuthTestRouterWithExternalURLs(t, "", "")
+}
+
+func newAuthTestRouterWithBarcode(t *testing.T, barcodeURL string) http.Handler {
+	t.Helper()
+
+	return newAuthTestRouterWithExternalURLs(t, barcodeURL, "")
+}
+
+func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookURL string) http.Handler {
+	t.Helper()
+
 	dataDir := t.TempDir()
 	database := newAuthTestDB(t)
 	state := system.NewState("release", database)
@@ -47,7 +59,18 @@ func newAuthTestRouter(t *testing.T) http.Handler {
 	tagSvc := service.NewTagService(database)
 	locationSvc := service.NewLocationService(database)
 	importSvc := service.NewImportService(database)
+	exportSvc := service.NewExportService(database)
+	loanSvc := service.NewLoanService(database)
+	virtualAssetSvc := service.NewVirtualAssetService(database)
+	reminderSvc := service.NewReminderService(database)
+	notifySvc := service.NewNotifyService(reminderSvc, service.NewHTTPNotifyGateway(service.HTTPNotifyGatewayConfig{
+		WebhookURL: notifyWebhookURL,
+	}))
+	backupSvc := service.NewBackupService(database, dataDir, 30)
+	searchSvc := service.NewSearchService(database)
+	barcodeSvc := service.NewBarcodeService(barcodeURL)
 	attachmentSvc := service.NewAttachmentService(database, dataDir)
+	aiRecognitionSvc := service.NewAIRecognitionService(attachmentSvc, nil)
 
 	r := chi.NewRouter()
 	r.Route("/api/v1", func(r chi.Router) {
@@ -62,6 +85,15 @@ func newAuthTestRouter(t *testing.T) http.Handler {
 			NewTagHandler(tagSvc).Mount(r)
 			NewLocationHandler(locationSvc).Mount(r)
 			NewImportHandler(importSvc).Mount(r)
+			NewExportHandler(exportSvc).Mount(r)
+			NewLoanHandler(loanSvc).Mount(r)
+			NewVirtualAssetHandler(virtualAssetSvc).Mount(r)
+			NewReminderHandler(reminderSvc).Mount(r)
+			NewNotifyHandler(notifySvc).Mount(r)
+			NewBackupHandler(backupSvc).Mount(r)
+			NewSearchHandler(searchSvc, nil).Mount(r)
+			NewBarcodeHandler(barcodeSvc).Mount(r)
+			NewAIHandler(aiRecognitionSvc, 20).Mount(r)
 			NewAttachmentHandler(attachmentSvc, 20).Mount(r)
 		})
 	})

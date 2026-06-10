@@ -24,6 +24,9 @@ import (
 )
 
 func main() {
+	appCtx, stopApp := context.WithCancel(context.Background())
+	defer stopApp()
+
 	cfg := config.Load()
 
 	if err := os.MkdirAll(cfg.Data.Dir, 0o755); err != nil {
@@ -67,7 +70,31 @@ func main() {
 	tagSvc := service.NewTagService(database)
 	locSvc := service.NewLocationService(database)
 	importSvc := service.NewImportService(database)
+	exportSvc := service.NewExportService(database)
+	loanSvc := service.NewLoanService(database)
+	virtualAssetSvc := service.NewVirtualAssetService(database)
+	reminderSvc := service.NewReminderService(database)
+	notifyGateway := service.NewHTTPNotifyGateway(service.HTTPNotifyGatewayConfig{
+		WebhookURL: cfg.Notify.WebhookURL,
+		NtfyURL:    cfg.Notify.NtfyURL,
+		AppriseURL: cfg.Notify.AppriseURL,
+	})
+	notifySvc := service.NewNotifyService(reminderSvc, notifyGateway)
+	backupSvc := service.NewBackupService(database, cfg.Data.Dir, cfg.Backup.KeepDays)
+	searchSvc := service.NewSearchService(database)
+	barcodeSvc := service.NewBarcodeService("")
 	attachmentSvc := service.NewAttachmentService(database, cfg.Data.Dir)
+	var aiProvider service.AIProvider
+	if cfg.AI.Enabled {
+		aiProvider = service.NewOpenAIProvider(service.OpenAIProviderConfig{
+			BaseURL:        cfg.AI.BaseURL,
+			APIKey:         cfg.AI.APIKey,
+			Model:          cfg.AI.Model,
+			VisionModel:    cfg.AI.VisionModel,
+			TimeoutSeconds: cfg.AI.TimeoutSeconds,
+		})
+	}
+	aiRecognitionSvc := service.NewAIRecognitionService(attachmentSvc, aiProvider)
 
 	r := chi.NewRouter()
 	r.Use(chimiddleware.RequestID)
@@ -82,7 +109,16 @@ func main() {
 	tagH := handler.NewTagHandler(tagSvc)
 	locH := handler.NewLocationHandler(locSvc)
 	importH := handler.NewImportHandler(importSvc)
+	exportH := handler.NewExportHandler(exportSvc)
+	loanH := handler.NewLoanHandler(loanSvc)
+	virtualAssetH := handler.NewVirtualAssetHandler(virtualAssetSvc)
+	reminderH := handler.NewReminderHandler(reminderSvc)
+	notifyH := handler.NewNotifyHandler(notifySvc)
+	backupH := handler.NewBackupHandler(backupSvc)
+	searchH := handler.NewSearchHandler(searchSvc, aiProvider)
+	barcodeH := handler.NewBarcodeHandler(barcodeSvc)
 	attachmentH := handler.NewAttachmentHandler(attachmentSvc, cfg.Storage.MaxPhotoSizeMB)
+	aiH := handler.NewAIHandler(aiRecognitionSvc, cfg.Storage.MaxPhotoSizeMB)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/healthz", func(w http.ResponseWriter, _ *http.Request) {
@@ -99,6 +135,15 @@ func main() {
 			tagH.Mount(r)
 			// Import gets its own larger body limit set in handler.
 			importH.Mount(r)
+			exportH.Mount(r)
+			loanH.Mount(r)
+			virtualAssetH.Mount(r)
+			reminderH.Mount(r)
+			notifyH.Mount(r)
+			backupH.Mount(r)
+			searchH.Mount(r)
+			barcodeH.Mount(r)
+			aiH.Mount(r)
 			// Attachment upload gets its own body limit and streams to disk.
 			attachmentH.Mount(r)
 		})
@@ -112,6 +157,13 @@ func main() {
 	})
 
 	static.Mount(r)
+
+	if cfg.Notify.Enabled {
+		notifySvc.StartScheduler(appCtx, 15*time.Minute)
+	}
+	if cfg.Backup.Enabled {
+		backupSvc.StartScheduler(appCtx, cfg.Backup.Cron)
+	}
 
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Server.Port),
@@ -131,6 +183,7 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 	slog.Info("shutting down")
+	stopApp()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

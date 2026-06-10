@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -175,4 +176,157 @@ func (s *LocationService) Delete(ctx context.Context, id string) error {
 		return ErrNotFound
 	}
 	return nil
+}
+
+func (s *LocationService) GenerateQRCode(ctx context.Context, id string) (*model.Location, error) {
+	loc, err := s.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if loc.QRCode != nil && *loc.QRCode != "" {
+		return loc, nil
+	}
+
+	now := time.Now().Unix()
+	for {
+		code := "LOC-" + strings.ToUpper(ulid.Make().String()[16:])
+		res, err := s.db.ExecContext(ctx, `
+			UPDATE locations
+			SET qr_code = ?, updated_at = ?
+			WHERE id = ? AND qr_code IS NULL`,
+			code, now, id,
+		)
+		if err != nil {
+			if strings.Contains(err.Error(), "UNIQUE") {
+				continue
+			}
+			return nil, err
+		}
+		if n, _ := res.RowsAffected(); n > 0 {
+			return s.Get(ctx, id)
+		}
+		return s.Get(ctx, id)
+	}
+}
+
+func (s *LocationService) ScanQRCode(ctx context.Context, code string) (*model.LocationScanResult, error) {
+	code = strings.TrimSpace(code)
+	if code == "" {
+		return nil, errors.New("qr_code required")
+	}
+
+	row := s.db.QueryRowContext(ctx, `SELECT id FROM locations WHERE qr_code = ?`, code)
+	var locationID string
+	if err := row.Scan(&locationID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+
+	loc, err := s.Get(ctx, locationID)
+	if err != nil {
+		return nil, err
+	}
+	locationIDs, err := s.descendantIDs(ctx, locationID)
+	if err != nil {
+		return nil, err
+	}
+	items, err := s.itemsInLocations(ctx, locationIDs)
+	if err != nil {
+		return nil, err
+	}
+	return &model.LocationScanResult{Location: loc, Items: items}, nil
+}
+
+func (s *LocationService) descendantIDs(ctx context.Context, rootID string) ([]string, error) {
+	rows, err := s.db.QueryContext(ctx, `SELECT id, parent_id FROM locations`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	children := map[string][]string{}
+	for rows.Next() {
+		var id string
+		var parentID *string
+		if err := rows.Scan(&id, &parentID); err != nil {
+			return nil, err
+		}
+		if parentID != nil {
+			children[*parentID] = append(children[*parentID], id)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	out := []string{}
+	var walk func(string)
+	walk = func(id string) {
+		out = append(out, id)
+		for _, childID := range children[id] {
+			walk(childID)
+		}
+	}
+	walk(rootID)
+	return out, nil
+}
+
+func (s *LocationService) itemsInLocations(ctx context.Context, locationIDs []string) ([]*model.Item, error) {
+	if len(locationIDs) == 0 {
+		return []*model.Item{}, nil
+	}
+	placeholders := strings.TrimRight(strings.Repeat("?,", len(locationIDs)), ",")
+	args := make([]any, 0, len(locationIDs))
+	for _, id := range locationIDs {
+		args = append(args, id)
+	}
+
+	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
+		SELECT id, name, description, category, type, status,
+			location_id, home_base_location_id, current_status_tag,
+			purchase_price, purchase_currency, purchase_date, purchase_platform,
+			warranty_expires_at, serial_number, warranty_contact,
+			current_stock, min_stock_threshold, lifespan_days, in_use_since,
+			is_private, owner_id, created_at, updated_at
+		FROM items
+		WHERE status != ? AND location_id IN (%s)
+		ORDER BY updated_at DESC, name ASC`, placeholders),
+		append([]any{model.StatusArchived}, args...)...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := []*model.Item{}
+	for rows.Next() {
+		var it model.Item
+		var isPrivate int
+		if err := rows.Scan(
+			&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
+			&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag,
+			&it.PurchasePrice, &it.PurchaseCurrency, &it.PurchaseDate, &it.PurchasePlatform,
+			&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
+			&it.CurrentStock, &it.MinStockThreshold, &it.LifespanDays, &it.InUseSince,
+			&isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		it.IsPrivate = isPrivate != 0
+		applyConsumableDerivedFields(&it)
+		items = append(items, &it)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	itemSvc := NewItemService(s.db)
+	if err := itemSvc.loadTagsForItems(ctx, items); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

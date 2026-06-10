@@ -25,6 +25,8 @@ func (h *LocationHandler) Mount(r chi.Router) {
 		r.Get("/{id}", h.get)
 		r.Patch("/{id}", h.update)
 		r.Delete("/{id}", h.delete)
+		r.Post("/{id}/qr-code", h.generateQRCode)
+		r.Get("/scan/{code}", h.scanQRCode)
 	})
 }
 
@@ -95,4 +97,32 @@ func (h *LocationHandler) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *LocationHandler) generateQRCode(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	loc, err := h.svc.GenerateQRCode(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, loc)
+}
+
+func (h *LocationHandler) scanQRCode(w http.ResponseWriter, r *http.Request) {
+	code := chi.URLParam(r, "code")
+	result, err := h.svc.ScanQRCode(r.Context(), code)
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
 }
