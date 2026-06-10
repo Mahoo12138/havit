@@ -496,6 +496,7 @@ func TestLocationQRCodeHTTPFlowScansContainedItems(t *testing.T) {
 	createBox := postAuthedJSON(t, router, "/api/v1/locations/", token, map[string]string{
 		"name":      "收纳盒 3",
 		"parent_id": root.ID,
+		"type":      "container",
 	})
 	var box struct {
 		ID string `json:"id"`

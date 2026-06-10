@@ -25,7 +25,7 @@ func TestBackupRunCreatesConsistentSnapshotArchiveAndRemovesTempDB(t *testing.T)
 	}
 	if _, err := database.ExecContext(ctx,
 		`INSERT INTO locations (id, name, type, sort_order, is_private, created_at, updated_at)
-		 VALUES ('loc-1', '书房', 'physical', 0, 0, 1, 1)`); err != nil {
+		 VALUES ('loc-1', '书房', 'room', 0, 0, 1, 1)`); err != nil {
 		t.Fatalf("insert location: %v", err)
 	}
 	attachmentDir := filepath.Join(dataDir, "attachments", "item-1")

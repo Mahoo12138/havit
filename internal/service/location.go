@@ -21,6 +21,35 @@ func NewLocationService(db *sql.DB) *LocationService {
 	return &LocationService{db: db}
 }
 
+// Semantic location types reflecting real-world physical hierarchy.
+// property → room → furniture → container
+// virtual nodes are exempt from hierarchy constraints.
+var validLocationTypes = map[string]bool{
+	"property":  true,
+	"room":      true,
+	"furniture": true,
+	"container": true,
+	"virtual":   true,
+}
+
+// locationTypeRank defines the allowed nesting order.
+// A child must have a higher rank than its parent (deeper nesting).
+// virtual (-1) is exempt from this check.
+var locationTypeRank = map[string]int{
+	"property":  0,
+	"room":      1,
+	"furniture": 2,
+	"container": 3,
+	"virtual":   -1,
+}
+
+func validLocationType(t string) bool {
+	return validLocationTypes[t]
+}
+
+var ErrInvalidLocationType = errors.New("invalid location type: must be property, room, furniture, container, or virtual")
+var ErrLocationHierarchy = errors.New("location hierarchy violation: child type cannot be shallower than parent type")
+
 type LocationCreateInput struct {
 	Name      string  `json:"name"`
 	ParentID  *string `json:"parent_id,omitempty"`
@@ -40,7 +69,21 @@ func (s *LocationService) Create(ctx context.Context, in LocationCreateInput) (*
 		return nil, errors.New("name required")
 	}
 	if in.Type == "" {
-		in.Type = "physical"
+		in.Type = "room"
+	}
+	if !validLocationType(in.Type) {
+		return nil, ErrInvalidLocationType
+	}
+
+	// Enforce hierarchy: child type must be deeper than parent type.
+	if in.ParentID != nil && *in.ParentID != "" {
+		parent, err := s.Get(ctx, *in.ParentID)
+		if err != nil {
+			return nil, fmt.Errorf("parent location: %w", err)
+		}
+		if err := checkLocationHierarchy(parent.Type, in.Type); err != nil {
+			return nil, err
+		}
 	}
 
 	now := time.Now().Unix()
@@ -138,7 +181,23 @@ func (s *LocationService) Update(ctx context.Context, id string, in LocationUpda
 		cur.ParentID = in.ParentID
 	}
 	if in.Type != nil {
+		if !validLocationType(*in.Type) {
+			return nil, ErrInvalidLocationType
+		}
 		cur.Type = *in.Type
+	}
+
+	// Re-validate hierarchy if type or parent changed.
+	if in.Type != nil || in.ParentID != nil {
+		if cur.ParentID != nil && *cur.ParentID != "" {
+			parent, err := s.Get(ctx, *cur.ParentID)
+			if err != nil {
+				return nil, fmt.Errorf("parent location: %w", err)
+			}
+			if err := checkLocationHierarchy(parent.Type, cur.Type); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	now := time.Now().Unix()
@@ -151,6 +210,21 @@ func (s *LocationService) Update(ctx context.Context, id string, in LocationUpda
 	}
 	cur.UpdatedAt = now
 	return cur, nil
+}
+
+// checkLocationHierarchy ensures childType nests deeper than parentType.
+// virtual nodes (rank -1) are exempt from this check.
+func checkLocationHierarchy(parentType, childType string) error {
+	pRank := locationTypeRank[parentType]
+	cRank := locationTypeRank[childType]
+	if pRank < 0 || cRank < 0 {
+		// virtual nodes: no hierarchy constraint
+		return nil
+	}
+	if cRank <= pRank {
+		return fmt.Errorf("%w: parent=%s, child=%s", ErrLocationHierarchy, parentType, childType)
+	}
+	return nil
 }
 
 func (s *LocationService) Delete(ctx context.Context, id string) error {

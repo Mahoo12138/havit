@@ -214,11 +214,21 @@ CREATE TABLE users (
 );
 
 -- 位置节点（树形，自引用）
+-- type 使用现实语义类型，而非抽象的 physical/virtual：
+--   property  — 大资产/房产（别墅、公寓、房车、公司）
+--   room      — 独立房间（客厅、主卧、地下储藏室）
+--   furniture — 固定家具/大型载具（衣柜、书架、冰箱、防潮箱）
+--   container — 移动容器/最小寻址单元（收纳盒、摄影包、医药箱）
+--   virtual   — 虚拟动态节点（@随身、@出差中）
+-- 层级约束（由业务层强制，不在 DB 层做 CHECK 以保持灵活性）：
+--   property → room → furniture → container
+--   virtual 节点无父子约束，可挂任意层级
 CREATE TABLE locations (
     id          TEXT PRIMARY KEY,
     parent_id   TEXT REFERENCES locations(id),
     name        TEXT NOT NULL,
-    type        TEXT NOT NULL DEFAULT 'physical', -- 'physical' | 'virtual' | 'container'
+    type        TEXT NOT NULL DEFAULT 'room',
+    -- 'property' | 'room' | 'furniture' | 'container' | 'virtual'
     qr_code     TEXT UNIQUE,
     is_private  INTEGER NOT NULL DEFAULT 0,
     owner_id    TEXT REFERENCES users(id),
@@ -531,16 +541,26 @@ function SearchBar() {
 
 ### 3.4 LLM 解析 Prompt
 
+位置节点携带语义类型，给 LLM 提供物理常识约束上下文，避免解析出"把冰箱放进收纳盒"这类违反常识的路径。
+
 ```
 你是家庭物品管理系统 Havit 的搜索解析器。
 将用户的自然语言查询解析为以下 JSON，严格输出 JSON，不输出任何其他内容。
 无法确定的字段填 null。
 
+位置节点的语义类型层级（从大到小）：
+  property（房产/大资产）→ room（房间）→ furniture（家具）→ container（容器）
+  virtual（虚拟节点，如 @随身）不受层级约束
+解析位置时请遵守物理常识：容器不能包含房间，家具不能包含房产。
+
 {
   "keywords": [],
   "status": null,           // in_stock|borrowed|idle|lost|stolen|archived
   "type": null,             // durable|consumable_a|consumable_b|edc|virtual
-  "location_hint": null,
+  "location_hint": {
+    "name": null,           // 位置名称关键词
+    "semantic_type": null   // property|room|furniture|container|virtual
+  },
   "tags": [],
   "time_filter": {
     "field": null,          // purchase_date|exit_date|created_at
@@ -949,7 +969,7 @@ export const button = styleVariants({
 
 ```typescript
 // components/Select/Select.tsx
-import { Select as BaseSelect } from '@base-ui/react/select';
+import * as BaseSelect from '@base-ui-components/react/select';
 import * as styles from './Select.css';
 
 interface SelectProps {
@@ -1085,9 +1105,9 @@ func (s *NotifyService) StartScheduler(ctx context.Context) {
 FROM node:22-alpine AS frontend
 WORKDIR /app/web
 COPY web/package*.json ./
-RUN corepack enable && corepack prepare pnpm@10.22.0 --activate && pnpm install --frozen-lockfile
+RUN npm ci
 COPY web/ .
-RUN pnpm build             # 输出到 ../static
+RUN npm run build          # 输出到 ../static
 
 # 阶段二：构建后端
 FROM golang:1.23-alpine AS backend
@@ -1164,7 +1184,7 @@ sqlc generate
 air
 
 # 前端开发（代理 /api 到 :3000）
-cd web && pnpm dev
+cd web && npm run dev
 ```
 
 **.air.toml：**
@@ -1190,7 +1210,7 @@ cd web && pnpm dev
 | LLM 搜索体感延迟 | 并发赛跑：FTS5 先出结果，LLM 结果 SSE 异步刷新，用户感知瞬时响应 |
 | SQLite 备份文件损坏 | 三步原子流程：`VACUUM INTO` 先建一致性快照，再打包，绝不直接 tar 运行中的 db 文件 |
 | PWA 离线写冲突 | M3 前明确不做离线写，网络断开时置灰所有写操作按钮 |
-| Headless UI 视觉一致性不足 | Base UI 只提供行为，自有组件层必须统一封装表单、弹层、Toast 与导航样式 |
+| Vanilla Extract 与 Mantine 样式冲突 | VE 只负责自定义组件，Mantine 内部样式不干预，通过 CSS 变量共享 token |
 | 单二进制体积 | 前端 tree-shaking + `-ldflags="-s -w"`，预计 < 35MB |
 
 ---
@@ -1201,7 +1221,7 @@ cd web && pnpm dev
 
 Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 + 全量 Schema + FTS5（trigram）+ 物品 CRUD + 位置树 CRUD + JWT 认证 + CSV/JSON 批量导入 + Docker 多阶段构建
 
-前端：React + Vite + Base UI + TanStack Router/Query + Vanilla Extract 骨架 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
+前端：React + Vite + Mantine + TanStack Router/Query + Vanilla Extract 骨架 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
 
 **M2（P1，约 8~10 周）**
 

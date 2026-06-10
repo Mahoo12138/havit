@@ -8,13 +8,13 @@ INSERT INTO users (id, username, password, role, created_at)
 VALUES ('01DEMO0000USER000001', 'admin@havit.local',
         '__DEMO_PASSWORD_HASH__', 'owner', 1717770000);
 
--- 2. 位置节点 (先父后子)
+-- 2. 位置节点 (先父后子，语义类型: property → room → furniture → container / virtual)
 INSERT INTO locations (id, parent_id, name, type, sort_order, is_private, created_at, updated_at) VALUES
-('01DEMO000LOC0000001', NULL,                  '我的家',   'physical', 0, 0, 1717770000, 1717770000),
-('01DEMO000LOC0000002', '01DEMO000LOC0000001', '客厅',     'physical', 0, 0, 1717770000, 1717770000),
-('01DEMO000LOC0000003', '01DEMO000LOC0000002', '电视柜',   'physical', 0, 0, 1717770000, 1717770000),
-('01DEMO000LOC0000004', '01DEMO000LOC0000001', '卧室',     'physical', 1, 0, 1717770000, 1717770000),
-('01DEMO000LOC0000005', '01DEMO000LOC0000004', '书桌',     'physical', 0, 0, 1717770000, 1717770000),
+('01DEMO000LOC0000001', NULL,                  '我的家',   'property', 0, 0, 1717770000, 1717770000),
+('01DEMO000LOC0000002', '01DEMO000LOC0000001', '客厅',     'room',     0, 0, 1717770000, 1717770000),
+('01DEMO000LOC0000003', '01DEMO000LOC0000002', '电视柜',   'furniture', 0, 0, 1717770000, 1717770000),
+('01DEMO000LOC0000004', '01DEMO000LOC0000001', '卧室',     'room',     1, 0, 1717770000, 1717770000),
+('01DEMO000LOC0000005', '01DEMO000LOC0000004', '书桌',     'furniture', 0, 0, 1717770000, 1717770000),
 ('01DEMO000LOC0000006', NULL,                  '@随身',    'virtual',  9, 0, 1717770000, 1717770000);
 
 -- 3. 标签

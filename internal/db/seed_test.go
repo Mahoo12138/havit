@@ -32,7 +32,7 @@ func TestInitDemoDataRejectsDatabaseWithExistingLocations(t *testing.T) {
 
 	if _, err := database.ExecContext(ctx, `
 		INSERT INTO locations (id, name, type, created_at, updated_at)
-		VALUES ('01PRODLOC000000000001', '生产位置', 'physical', 1717770000, 1717770000)
+		VALUES ('01PRODLOC000000000001', '生产位置', 'room', 1717770000, 1717770000)
 	`); err != nil {
 		t.Fatalf("insert existing location: %v", err)
 	}

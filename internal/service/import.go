@@ -276,7 +276,7 @@ func ensureLocationPath(ctx context.Context, tx *sql.Tx, path string, cache map[
 			id = ulid.Make().String()
 			if _, err := tx.ExecContext(ctx,
 				`INSERT INTO locations (id, parent_id, name, type, sort_order, is_private, created_at, updated_at)
-				 VALUES (?, ?, ?, 'physical', 0, 0, ?, ?)`,
+				 VALUES (?, ?, ?, 'room', 0, 0, ?, ?)`,
 				id, parentID, name, now, now,
 			); err != nil {
 				return "", err

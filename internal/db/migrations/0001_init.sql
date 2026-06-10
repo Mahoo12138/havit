@@ -12,7 +12,7 @@ CREATE TABLE locations (
     id          TEXT PRIMARY KEY,
     parent_id   TEXT REFERENCES locations(id),
     name        TEXT NOT NULL,
-    type        TEXT NOT NULL DEFAULT 'physical',
+    type        TEXT NOT NULL DEFAULT 'room',
     qr_code     TEXT UNIQUE,
     is_private  INTEGER NOT NULL DEFAULT 0,
     owner_id    TEXT REFERENCES users(id),

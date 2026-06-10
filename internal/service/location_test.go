@@ -12,15 +12,15 @@ func TestLocationTreeBuildsNestedLocations(t *testing.T) {
 	ctx := context.Background()
 	svc := NewLocationService(newTestDB(t))
 
-	root, err := svc.Create(ctx, LocationCreateInput{Name: "书房"})
+	root, err := svc.Create(ctx, LocationCreateInput{Name: "书房", Type: "room"})
 	if err != nil {
 		t.Fatalf("create root location: %v", err)
 	}
-	child, err := svc.Create(ctx, LocationCreateInput{Name: "书桌", ParentID: &root.ID})
+	child, err := svc.Create(ctx, LocationCreateInput{Name: "书桌", Type: "furniture", ParentID: &root.ID})
 	if err != nil {
 		t.Fatalf("create child location: %v", err)
 	}
-	_, err = svc.Create(ctx, LocationCreateInput{Name: "抽屉", ParentID: &child.ID})
+	_, err = svc.Create(ctx, LocationCreateInput{Name: "抽屉", Type: "container", ParentID: &child.ID})
 	if err != nil {
 		t.Fatalf("create grandchild location: %v", err)
 	}
@@ -98,11 +98,11 @@ func TestLocationQRCodeCanBeGeneratedAndScannedForContainedItems(t *testing.T) {
 	locations := NewLocationService(database)
 	items := NewItemService(database)
 
-	root, err := locations.Create(ctx, LocationCreateInput{Name: "储藏室"})
+	root, err := locations.Create(ctx, LocationCreateInput{Name: "储藏室", Type: "room"})
 	if err != nil {
 		t.Fatalf("create root location: %v", err)
 	}
-	box, err := locations.Create(ctx, LocationCreateInput{Name: "收纳盒 3", ParentID: &root.ID})
+	box, err := locations.Create(ctx, LocationCreateInput{Name: "收纳盒 3", Type: "container", ParentID: &root.ID})
 	if err != nil {
 		t.Fatalf("create child location: %v", err)
 	}

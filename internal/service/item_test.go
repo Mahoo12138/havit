@@ -43,7 +43,7 @@ func createTestLocation(t *testing.T, ctx context.Context, database *sql.DB, nam
 	id := "loc-" + name
 	if _, err := database.ExecContext(ctx,
 		`INSERT INTO locations (id, name, type, sort_order, is_private, created_at, updated_at)
-		 VALUES (?, ?, 'physical', 0, 0, 1, 1)`,
+		 VALUES (?, ?, 'room', 0, 0, 1, 1)`,
 		id, name,
 	); err != nil {
 		t.Fatalf("create test location: %v", err)
