@@ -6,6 +6,10 @@ globalStyle(':root', { colorScheme: 'light' });
 
 globalStyle('[data-color-scheme="dark"]', { colorScheme: 'dark' });
 
+globalStyle('*, *::before, *::after', {
+  boxSizing: 'border-box',
+});
+
 globalStyle('#root', {
   isolation: 'isolate',
 });
@@ -17,25 +21,13 @@ globalStyle('html', {
 globalStyle('body', {
   margin: 0,
   minWidth: '320px',
-  background:
-    `radial-gradient(circle at 18% -12%, rgba(18, 108, 96, 0.09), transparent 28rem), linear-gradient(180deg, ${themeVars.bgSoft}, ${themeVars.bg})`,
+  background: themeVars.bg,
   color: themeVars.text,
-  fontFamily:
-    '"Segoe UI Variable", Aptos, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif',
-  fontVariantNumeric: 'tabular-nums',
-});
-
-globalStyle('body::before', {
-  content: "''",
-  position: 'fixed',
-  inset: 0,
-  zIndex: -1,
-  pointerEvents: 'none',
-  opacity: 0.28,
-  backgroundImage:
-    'linear-gradient(rgba(24, 33, 30, 0.026) 1px, transparent 1px), linear-gradient(90deg, rgba(24, 33, 30, 0.022) 1px, transparent 1px)',
-  backgroundSize: '32px 32px',
-  maskImage: 'linear-gradient(to bottom, black, transparent 68%)',
+  fontFamily: themeVars.fontSans,
+  fontFeatureSettings: '"cv11", "ss01"',
+  letterSpacing: '-0.005em',
+  WebkitFontSmoothing: 'antialiased',
+  MozOsxFontSmoothing: 'grayscale',
 });
 
 globalStyle('a', {
@@ -44,108 +36,96 @@ globalStyle('a', {
 });
 
 globalStyle('a:hover', {
-  textDecoration: 'underline',
+  color: themeVars.accentHover,
 });
 
 globalStyle('.auth-screen', {
   minHeight: '100dvh',
   padding: 'clamp(1rem, 4vw, 3rem)',
   background:
-    `radial-gradient(circle at 50% -10%, rgba(15, 111, 100, 0.13), transparent 28rem)`,
+    `radial-gradient(ellipse 70% 50% at 50% 0%, rgba(13, 148, 136, 0.10), transparent 60%), ${themeVars.bg}`,
 });
 
 globalStyle('.auth-card', {
   width: 'min(100%, 440px)',
   border: `1px solid ${themeVars.line}`,
-  background: `color-mix(in srgb, ${themeVars.panel} 95%, transparent)`,
+  background: themeVars.panel,
+  borderRadius: themeVars.radius3,
   boxShadow: themeVars.shadow,
 });
 
 globalStyle('.brand-lockup', {
-  color: themeVars.text,
-  letterSpacing: 0,
-  fontSize: '1rem',
-  fontWeight: 760,
+  color: themeVars.ink,
+  fontFamily: themeVars.fontSans,
+  fontSize: '1.05rem',
+  fontWeight: 700,
+  letterSpacing: '-0.01em',
+  lineHeight: 1,
   margin: 0,
 });
 
 globalStyle('.brand-mark', {
   display: 'grid',
-  width: '2.35rem',
-  height: '2.35rem',
+  width: '2.1rem',
+  height: '2.1rem',
   placeItems: 'center',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: '9px',
+  borderRadius: themeVars.radius2,
   background:
-    `linear-gradient(180deg, color-mix(in srgb, ${themeVars.panel} 86%, white), ${themeVars.accentSoft})`,
-  color: themeVars.accent,
+    `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
+  color: themeVars.onAccent,
+  fontWeight: 700,
+  boxShadow: `0 4px 12px rgba(13, 148, 136, 0.25)`,
 });
 
 globalStyle('.shell-header', {
   borderBottom: `1px solid ${themeVars.line}`,
-  background: `color-mix(in srgb, ${themeVars.panel} 88%, transparent)`,
-  backdropFilter: 'blur(14px)',
-});
-
-globalStyle('.shell-navbar', {
-  borderRight: `1px solid ${themeVars.line}`,
-  background: `color-mix(in srgb, ${themeVars.panel} 92%, transparent)`,
+  background: themeVars.panel,
 });
 
 globalStyle('.shell-main', {
-  background: 'transparent',
+  background: themeVars.bg,
 });
 
 globalStyle('.page-shell', {
-  width: 'min(100%, 1220px)',
+  width: `min(100%, ${themeVars.pageMaxW})`,
   margin: '0 auto',
-  paddingBlock: 'clamp(1.15rem, 2vw, 1.85rem) clamp(2.75rem, 6vw, 4.25rem)',
+  paddingBlock: `clamp(${themeVars.space4}, 2vw, ${themeVars.space5}) clamp(${themeVars.space6}, 4vw, ${themeVars.space7})`,
 });
 
 globalStyle('.page-heading', {
-  letterSpacing: 0,
-  color: themeVars.text,
-  fontSize: 'clamp(1.72rem, 2.35vw, 2.4rem)',
-  fontWeight: 780,
-  lineHeight: 1.03,
+  fontFamily: themeVars.fontSans,
+  fontSize: 'clamp(1.5rem, 2.2vw, 1.875rem)',
+  fontWeight: 700,
+  letterSpacing: '-0.018em',
+  lineHeight: 1.15,
+  color: themeVars.ink,
   margin: 0,
   textWrap: 'balance',
 });
 
 globalStyle('.page-kicker', {
-  maxWidth: '58ch',
+  maxWidth: '60ch',
   color: themeVars.muted,
-  lineHeight: 1.65,
+  fontSize: '0.95rem',
+  lineHeight: 1.55,
   margin: 0,
+  textWrap: 'pretty',
 });
 
 globalStyle('.surface-card', {
   border: `1px solid ${themeVars.line}`,
-  borderRadius: '12px',
-  background: `color-mix(in srgb, ${themeVars.panel} 98%, transparent)`,
-  boxShadow: themeVars.shadow,
-});
-
-globalStyle('.surface-card, .auth-card', {
-  transition: 'border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease',
+  borderRadius: themeVars.radius3,
+  background: themeVars.panel,
+  boxShadow: themeVars.shadowSoft,
+  transition: 'border-color 200ms ease, box-shadow 200ms ease',
 });
 
 globalStyle('.surface-card:hover', {
-  borderColor: `color-mix(in srgb, ${themeVars.accent} 22%, ${themeVars.line})`,
+  borderColor: `color-mix(in srgb, ${themeVars.accent} 25%, ${themeVars.line})`,
 });
 
 globalStyle('.stat-card', {
   position: 'relative',
-  overflow: 'hidden',
-});
-
-globalStyle('.stat-card::before', {
-  content: "''",
-  position: 'absolute',
-  inset: '0 auto 0 0',
-  width: '1px',
-  background: themeVars.accent,
-  opacity: 0.72,
 });
 
 globalStyle('.table-card', {
@@ -153,31 +133,31 @@ globalStyle('.table-card', {
 });
 
 globalStyle('.empty-state', {
-  padding: 'clamp(2.25rem, 8vw, 4.25rem)',
+  padding: `clamp(${themeVars.space6}, 8vw, ${themeVars.space8})`,
   textAlign: 'center',
   color: themeVars.muted,
-  lineHeight: 1.7,
+  lineHeight: 1.65,
 });
 
 globalStyle('.tree-row', {
-  minHeight: '2.5rem',
-  borderRadius: '7px',
-  transition: 'background-color 160ms ease, transform 160ms ease',
+  minHeight: '2.25rem',
+  borderRadius: themeVars.radius1,
+  transition: 'background-color 160ms ease',
 });
 
 globalStyle('.tree-row:hover', {
-  background: `color-mix(in srgb, ${themeVars.accentSoft} 64%, transparent)`,
+  background: `color-mix(in srgb, ${themeVars.accent} 8%, transparent)`,
 });
 
 globalStyle('.nav-link', {
-  borderRadius: '9px',
+  borderRadius: themeVars.radius1,
   color: themeVars.text,
 });
 
 globalStyle(".nav-link[data-active='true']", {
-  background: `color-mix(in srgb, ${themeVars.accentSoft} 78%, ${themeVars.panel})`,
-  color: themeVars.accent,
-  fontWeight: 650,
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
+  fontWeight: 600,
 });
 
 globalStyle('.detail-grid', {
@@ -187,10 +167,10 @@ globalStyle('.detail-grid', {
 
 globalStyle('.detail-row', {
   display: 'grid',
-  gridTemplateColumns: 'minmax(8rem, 0.45fr) minmax(0, 1fr)',
-  gap: '1rem',
-  padding: '1rem 0',
-  borderBottom: `1px solid ${themeVars.line}`,
+  gridTemplateColumns: 'minmax(8rem, 0.42fr) minmax(0, 1fr)',
+  gap: themeVars.space4,
+  padding: `${themeVars.space3} 0`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
 });
 
 globalStyle('.detail-row:last-child', {
@@ -199,45 +179,56 @@ globalStyle('.detail-row:last-child', {
 
 globalStyle('.compact-detail-row', {
   gridTemplateColumns: 'minmax(6rem, 0.42fr) minmax(0, 1fr)',
-  padding: '0.55rem 0',
+  padding: `${themeVars.space2} 0`,
 });
 
 globalStyle('.status-pill', {
   display: 'inline-flex',
   alignItems: 'center',
-  border: `1px solid ${themeVars.line}`,
+  gap: '0.32rem',
   borderRadius: '999px',
-  background: `color-mix(in srgb, ${themeVars.panel} 92%, ${themeVars.bgSoft})`,
+  background: themeVars.lineSoft,
   color: themeVars.text,
-  fontSize: '0.78rem',
-  fontWeight: 720,
-  padding: '0.2rem 0.52rem',
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  letterSpacing: '0.005em',
+  padding: '0.18rem 0.55rem',
 });
 
 globalStyle('.status-pill-warning', {
-  borderColor: `color-mix(in srgb, ${themeVars.warningText} 24%, ${themeVars.line})`,
   background: themeVars.warningSoft,
   color: themeVars.warningText,
 });
 
 globalStyle('.status-pill-danger', {
-  borderColor: `color-mix(in srgb, ${themeVars.danger} 24%, ${themeVars.line})`,
-  background: `color-mix(in srgb, ${themeVars.danger} 9%, ${themeVars.panel})`,
+  background: themeVars.dangerSoft,
   color: themeVars.danger,
 });
 
 globalStyle('.stat-unit', {
-  marginLeft: '0.28rem',
+  marginLeft: '0.3rem',
   color: themeVars.muted,
-  fontSize: '0.95rem',
-  fontWeight: 680,
+  fontSize: '0.85rem',
+  fontWeight: 500,
 });
 
 globalStyle('.export-row', {
   justifyContent: 'space-between',
   border: `1px solid ${themeVars.line}`,
-  borderRadius: '10px',
-  padding: '0.8rem',
+  borderRadius: themeVars.radius2,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  background: themeVars.panel,
+});
+
+globalStyle('h1, h2, h3, h4', {
+  color: themeVars.ink,
+  fontWeight: 700,
+  letterSpacing: '-0.01em',
+});
+
+globalStyle('::selection', {
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
 });
 
 globalStyle('@media (max-width: 48em) .auth-card', {

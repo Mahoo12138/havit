@@ -132,10 +132,17 @@ export interface Location {
   name: string;
   type: string;
   qr_code?: string;
+  is_private?: boolean;
+  owner_id?: string;
   sort_order: number;
   created_at: number;
   updated_at: number;
   children?: Location[];
+}
+
+export interface LocationScanResult {
+  location: Location;
+  items: Item[];
 }
 
 export const itemsApi = {
@@ -164,9 +171,18 @@ export const tagsApi = {
 
 export const locationsApi = {
   tree: () => api.get('locations/').json<{ tree: Location[] }>(),
-  create: (body: { name: string; parent_id?: string; type?: string }) =>
-    api.post('locations/', { json: body }).json<Location>(),
+  get: (id: string) => api.get(`locations/${id}`).json<Location>(),
+  create: (body: {
+    name: string;
+    parent_id?: string;
+    type?: string;
+    is_private?: boolean;
+  }) => api.post('locations/', { json: body }).json<Location>(),
   update: (id: string, body: Partial<Location>) =>
     api.patch(`locations/${id}`, { json: body }).json<Location>(),
   delete: (id: string) => api.delete(`locations/${id}`),
+  generateQRCode: (id: string) =>
+    api.post(`locations/${id}/qr-code`).json<Location>(),
+  scan: (code: string) =>
+    api.get(`locations/scan/${encodeURIComponent(code)}`).json<LocationScanResult>(),
 };
