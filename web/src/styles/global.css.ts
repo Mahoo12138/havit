@@ -143,7 +143,7 @@ globalStyle('.stat-card::before', {
   content: "''",
   position: 'absolute',
   inset: '0 auto 0 0',
-  width: '2px',
+  width: '1px',
   background: themeVars.accent,
   opacity: 0.72,
 });
@@ -195,6 +195,49 @@ globalStyle('.detail-row', {
 
 globalStyle('.detail-row:last-child', {
   borderBottom: 0,
+});
+
+globalStyle('.compact-detail-row', {
+  gridTemplateColumns: 'minmax(6rem, 0.42fr) minmax(0, 1fr)',
+  padding: '0.55rem 0',
+});
+
+globalStyle('.status-pill', {
+  display: 'inline-flex',
+  alignItems: 'center',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '999px',
+  background: `color-mix(in srgb, ${themeVars.panel} 92%, ${themeVars.bgSoft})`,
+  color: themeVars.text,
+  fontSize: '0.78rem',
+  fontWeight: 720,
+  padding: '0.2rem 0.52rem',
+});
+
+globalStyle('.status-pill-warning', {
+  borderColor: `color-mix(in srgb, ${themeVars.warningText} 24%, ${themeVars.line})`,
+  background: themeVars.warningSoft,
+  color: themeVars.warningText,
+});
+
+globalStyle('.status-pill-danger', {
+  borderColor: `color-mix(in srgb, ${themeVars.danger} 24%, ${themeVars.line})`,
+  background: `color-mix(in srgb, ${themeVars.danger} 9%, ${themeVars.panel})`,
+  color: themeVars.danger,
+});
+
+globalStyle('.stat-unit', {
+  marginLeft: '0.28rem',
+  color: themeVars.muted,
+  fontSize: '0.95rem',
+  fontWeight: 680,
+});
+
+globalStyle('.export-row', {
+  justifyContent: 'space-between',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '10px',
+  padding: '0.8rem',
 });
 
 globalStyle('@media (max-width: 48em) .auth-card', {

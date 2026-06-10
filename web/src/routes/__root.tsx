@@ -7,13 +7,21 @@ import {
 } from '@tanstack/react-router';
 import { type QueryClient } from '@tanstack/react-query';
 import {
+  IconBarcode,
   IconBox,
+  IconBriefcase,
+  IconClipboardList,
+  IconDatabaseExport,
   IconFileImport,
+  IconHistory,
   IconInfoCircle,
   IconLogout,
   IconMap2,
   IconHome,
   IconMenu2,
+  IconReceipt,
+  IconSearch,
+  IconShoppingBag,
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
@@ -43,6 +51,14 @@ const navItems = [
   { to: '/', label: '仪表盘', icon: IconHome },
   { to: '/items', label: '物品', icon: IconBox },
   { to: '/locations', label: '位置', icon: IconMap2 },
+  { to: '/capture', label: '录入增强', icon: IconBarcode },
+  { to: '/search', label: '搜索', icon: IconSearch },
+  { to: '/consumables', label: '消耗品', icon: IconShoppingBag },
+  { to: '/edc', label: 'EDC', icon: IconBriefcase },
+  { to: '/credentials', label: '凭证保修', icon: IconReceipt },
+  { to: '/loans', label: '借出', icon: IconClipboardList },
+  { to: '/lifecycle', label: '退场归档', icon: IconHistory },
+  { to: '/operations', label: '运维导出', icon: IconDatabaseExport },
   { to: '/import', label: '批量导入', icon: IconFileImport },
 ] as const;
 

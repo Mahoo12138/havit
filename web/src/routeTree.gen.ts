@@ -10,8 +10,16 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LoansRouteImport } from './routes/loans'
+import { Route as LifecycleRouteImport } from './routes/lifecycle'
 import { Route as ImportRouteImport } from './routes/import'
+import { Route as EdcRouteImport } from './routes/edc'
+import { Route as CredentialsRouteImport } from './routes/credentials'
+import { Route as ConsumablesRouteImport } from './routes/consumables'
+import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocationsIndexRouteImport } from './routes/locations.index'
 import { Route as ItemsIndexRouteImport } from './routes/items.index'
@@ -22,14 +30,54 @@ const SetupRoute = SetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperationsRoute = OperationsRouteImport.update({
+  id: '/operations',
+  path: '/operations',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoansRoute = LoansRouteImport.update({
+  id: '/loans',
+  path: '/loans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LifecycleRoute = LifecycleRouteImport.update({
+  id: '/lifecycle',
+  path: '/lifecycle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ImportRoute = ImportRouteImport.update({
   id: '/import',
   path: '/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EdcRoute = EdcRouteImport.update({
+  id: '/edc',
+  path: '/edc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CredentialsRoute = CredentialsRouteImport.update({
+  id: '/credentials',
+  path: '/credentials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsumablesRoute = ConsumablesRouteImport.update({
+  id: '/consumables',
+  path: '/consumables',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaptureRoute = CaptureRouteImport.update({
+  id: '/capture',
+  path: '/capture',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -55,8 +103,16 @@ const ItemsItemIdRoute = ItemsItemIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/capture': typeof CaptureRoute
+  '/consumables': typeof ConsumablesRoute
+  '/credentials': typeof CredentialsRoute
+  '/edc': typeof EdcRoute
   '/import': typeof ImportRoute
+  '/lifecycle': typeof LifecycleRoute
+  '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
+  '/operations': typeof OperationsRoute
+  '/search': typeof SearchRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/items/': typeof ItemsIndexRoute
@@ -64,8 +120,16 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/capture': typeof CaptureRoute
+  '/consumables': typeof ConsumablesRoute
+  '/credentials': typeof CredentialsRoute
+  '/edc': typeof EdcRoute
   '/import': typeof ImportRoute
+  '/lifecycle': typeof LifecycleRoute
+  '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
+  '/operations': typeof OperationsRoute
+  '/search': typeof SearchRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/items': typeof ItemsIndexRoute
@@ -74,8 +138,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/capture': typeof CaptureRoute
+  '/consumables': typeof ConsumablesRoute
+  '/credentials': typeof CredentialsRoute
+  '/edc': typeof EdcRoute
   '/import': typeof ImportRoute
+  '/lifecycle': typeof LifecycleRoute
+  '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
+  '/operations': typeof OperationsRoute
+  '/search': typeof SearchRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/items/': typeof ItemsIndexRoute
@@ -85,8 +157,16 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/capture'
+    | '/consumables'
+    | '/credentials'
+    | '/edc'
     | '/import'
+    | '/lifecycle'
+    | '/loans'
     | '/login'
+    | '/operations'
+    | '/search'
     | '/setup'
     | '/items/$itemId'
     | '/items/'
@@ -94,8 +174,16 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/capture'
+    | '/consumables'
+    | '/credentials'
+    | '/edc'
     | '/import'
+    | '/lifecycle'
+    | '/loans'
     | '/login'
+    | '/operations'
+    | '/search'
     | '/setup'
     | '/items/$itemId'
     | '/items'
@@ -103,8 +191,16 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/capture'
+    | '/consumables'
+    | '/credentials'
+    | '/edc'
     | '/import'
+    | '/lifecycle'
+    | '/loans'
     | '/login'
+    | '/operations'
+    | '/search'
     | '/setup'
     | '/items/$itemId'
     | '/items/'
@@ -113,8 +209,16 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CaptureRoute: typeof CaptureRoute
+  ConsumablesRoute: typeof ConsumablesRoute
+  CredentialsRoute: typeof CredentialsRoute
+  EdcRoute: typeof EdcRoute
   ImportRoute: typeof ImportRoute
+  LifecycleRoute: typeof LifecycleRoute
+  LoansRoute: typeof LoansRoute
   LoginRoute: typeof LoginRoute
+  OperationsRoute: typeof OperationsRoute
+  SearchRoute: typeof SearchRoute
   SetupRoute: typeof SetupRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
   ItemsIndexRoute: typeof ItemsIndexRoute
@@ -130,6 +234,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operations': {
+      id: '/operations'
+      path: '/operations'
+      fullPath: '/operations'
+      preLoaderRoute: typeof OperationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -137,11 +255,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loans': {
+      id: '/loans'
+      path: '/loans'
+      fullPath: '/loans'
+      preLoaderRoute: typeof LoansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lifecycle': {
+      id: '/lifecycle'
+      path: '/lifecycle'
+      fullPath: '/lifecycle'
+      preLoaderRoute: typeof LifecycleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/import': {
       id: '/import'
       path: '/import'
       fullPath: '/import'
       preLoaderRoute: typeof ImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/edc': {
+      id: '/edc'
+      path: '/edc'
+      fullPath: '/edc'
+      preLoaderRoute: typeof EdcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credentials': {
+      id: '/credentials'
+      path: '/credentials'
+      fullPath: '/credentials'
+      preLoaderRoute: typeof CredentialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consumables': {
+      id: '/consumables'
+      path: '/consumables'
+      fullPath: '/consumables'
+      preLoaderRoute: typeof ConsumablesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capture': {
+      id: '/capture'
+      path: '/capture'
+      fullPath: '/capture'
+      preLoaderRoute: typeof CaptureRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -177,8 +337,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CaptureRoute: CaptureRoute,
+  ConsumablesRoute: ConsumablesRoute,
+  CredentialsRoute: CredentialsRoute,
+  EdcRoute: EdcRoute,
   ImportRoute: ImportRoute,
+  LifecycleRoute: LifecycleRoute,
+  LoansRoute: LoansRoute,
   LoginRoute: LoginRoute,
+  OperationsRoute: OperationsRoute,
+  SearchRoute: SearchRoute,
   SetupRoute: SetupRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,
   ItemsIndexRoute: ItemsIndexRoute,

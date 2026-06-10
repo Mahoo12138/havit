@@ -437,6 +437,65 @@ export const grid3 = style({
   gap: '0.9rem',
 });
 
+export const featureGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(16rem, 1fr))',
+  gap: '0.9rem',
+});
+
+export const cardGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))',
+  gap: '0.9rem',
+});
+
+export const twoColumn = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+  gap: '0.9rem',
+  alignItems: 'start',
+  '@media': {
+    '(max-width: 58em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const iconTile = style({
+  display: 'inline-grid',
+  width: '2.1rem',
+  height: '2.1rem',
+  placeItems: 'center',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '9px',
+  background: `color-mix(in srgb, ${themeVars.accentSoft} 62%, ${themeVars.panel})`,
+  color: themeVars.accent,
+});
+
+export const previewImage = style({
+  width: '100%',
+  aspectRatio: '16 / 10',
+  borderRadius: '10px',
+  objectFit: 'cover',
+  background: themeVars.bgSoft,
+});
+
+export const qrMock = style({
+  display: 'grid',
+  aspectRatio: '1',
+  minHeight: '9rem',
+  placeItems: 'center',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '10px',
+  background:
+    `linear-gradient(90deg, ${themeVars.text} 12px, transparent 12px) 0 0 / 26px 26px, ` +
+    `linear-gradient(${themeVars.text} 12px, transparent 12px) 0 0 / 26px 26px, ` +
+    themeVars.panel,
+  color: themeVars.panel,
+  fontWeight: 780,
+  textShadow: `0 1px 2px ${themeVars.text}`,
+});
+
 export const dashboardStats = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
