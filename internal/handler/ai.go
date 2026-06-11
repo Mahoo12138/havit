@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	apperr "github.com/mahoo12138/havit/internal/errors"
 	"github.com/mahoo12138/havit/internal/service"
 )
 
@@ -33,7 +34,7 @@ func (h *AIHandler) recognizeItemPhoto(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "file required"})
+		writeError(w, 0, apperr.ErrFileRequired)
 		return
 	}
 	defer file.Close()
@@ -43,7 +44,7 @@ func (h *AIHandler) recognizeItemPhoto(w http.ResponseWriter, r *http.Request) {
 		contentType = "application/octet-stream"
 	}
 	if !strings.HasPrefix(strings.ToLower(contentType), "image/") {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "photo must be an image"})
+		writeError(w, 0, apperr.ErrImageRequired)
 		return
 	}
 

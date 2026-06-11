@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/mahoo12138/havit/internal/model"
+
+	apperr "github.com/mahoo12138/havit/internal/errors"
 )
 
-var ErrInvalidItemStatus = errors.New("invalid item status")
+var ErrInvalidItemStatus = apperr.ErrInvalidItemStatus
 
 type ClaimPDF struct {
 	Filename string

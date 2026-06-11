@@ -10,12 +10,14 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/oklog/ulid/v2"
 	"golang.org/x/crypto/bcrypt"
+
+	apperr "github.com/mahoo12138/havit/internal/errors"
 )
 
 var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrSetupClosed        = errors.New("setup already completed")
-	ErrUserExists         = errors.New("user exists")
+	ErrInvalidCredentials = apperr.ErrInvalidCredentials
+	ErrSetupClosed        = apperr.ErrSetupClosed
+	ErrUserExists         = apperr.ErrUserExists
 )
 
 type AuthService struct {

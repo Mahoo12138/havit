@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	apperr "github.com/mahoo12138/havit/internal/errors"
 	"github.com/mahoo12138/havit/internal/service"
 )
 
@@ -28,7 +29,7 @@ func (h *ExportHandler) exportItems(w http.ResponseWriter, r *http.Request) {
 		format = service.ExportJSON
 	}
 	if format != service.ExportJSON && format != service.ExportCSV {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unsupported format"})
+		writeError(w, 0, apperr.ErrUnsupportedFormat)
 		return
 	}
 

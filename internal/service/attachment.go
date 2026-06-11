@@ -14,9 +14,11 @@ import (
 	"github.com/oklog/ulid/v2"
 
 	"github.com/mahoo12138/havit/internal/model"
+
+	apperr "github.com/mahoo12138/havit/internal/errors"
 )
 
-var ErrAISourceProtected = errors.New("AI source attachment cannot be deleted")
+var ErrAISourceProtected = apperr.ErrAISourceProtected
 
 type AttachmentService struct {
 	db      *sql.DB

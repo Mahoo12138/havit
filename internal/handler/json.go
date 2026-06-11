@@ -2,8 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
+
+	apperr "github.com/mahoo12138/havit/internal/errors"
 )
 
 func writeJSON(w http.ResponseWriter, status int, body any) {
@@ -15,5 +18,14 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 }
 
 func writeError(w http.ResponseWriter, status int, err error) {
-	writeJSON(w, status, map[string]string{"error": err.Error()})
+	var ae *apperr.AppError
+	if errors.As(err, &ae) {
+		writeJSON(w, ae.Status, ae)
+		return
+	}
+	writeJSON(w, status, &apperr.AppError{
+		Code:    apperr.CodeInternal,
+		Message: err.Error(),
+		Status:  status,
+	})
 }

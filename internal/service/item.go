@@ -13,10 +13,12 @@ import (
 	"github.com/oklog/ulid/v2"
 
 	"github.com/mahoo12138/havit/internal/model"
+
+	apperr "github.com/mahoo12138/havit/internal/errors"
 )
 
-var ErrNotFound = errors.New("not found")
-var ErrInvalidItemType = errors.New("invalid item type")
+var ErrNotFound = apperr.ErrNotFound
+var ErrInvalidItemType = apperr.ErrInvalidItemType
 
 type ItemService struct {
 	db *sql.DB

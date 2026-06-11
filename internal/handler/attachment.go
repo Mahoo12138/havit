@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	apperr "github.com/mahoo12138/havit/internal/errors"
 	"github.com/mahoo12138/havit/internal/model"
 	"github.com/mahoo12138/havit/internal/service"
 )
@@ -47,7 +48,7 @@ func (h *AttachmentHandler) uploadPhoto(w http.ResponseWriter, r *http.Request) 
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "file required"})
+		writeError(w, 0, apperr.ErrFileRequired)
 		return
 	}
 	defer file.Close()
@@ -57,7 +58,7 @@ func (h *AttachmentHandler) uploadPhoto(w http.ResponseWriter, r *http.Request) 
 		contentType = "application/octet-stream"
 	}
 	if !strings.HasPrefix(strings.ToLower(contentType), "image/") {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "photo must be an image"})
+		writeError(w, 0, apperr.ErrImageRequired)
 		return
 	}
 
@@ -102,11 +103,11 @@ func (h *AttachmentHandler) delete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "attachmentID")
 	if err := h.svc.Delete(r.Context(), id); err != nil {
 		if errors.Is(err, service.ErrNotFound) {
-			writeError(w, http.StatusNotFound, err)
+			writeError(w, 0, err)
 			return
 		}
 		if errors.Is(err, service.ErrAISourceProtected) {
-			writeJSON(w, http.StatusForbidden, map[string]string{"error": err.Error()})
+			writeError(w, 0, err)
 			return
 		}
 		writeError(w, http.StatusInternalServerError, err)

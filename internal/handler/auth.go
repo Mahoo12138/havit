@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	apperr "github.com/mahoo12138/havit/internal/errors"
 	"github.com/mahoo12138/havit/internal/middleware"
 	"github.com/mahoo12138/havit/internal/service"
 	"github.com/mahoo12138/havit/internal/system"
@@ -41,7 +42,7 @@ type credentials struct {
 
 func (h *AuthHandler) setup(w http.ResponseWriter, r *http.Request) {
 	if !h.state.NeedsSetup() {
-		writeJSON(w, http.StatusGone, map[string]string{"error": "setup already completed"})
+		writeError(w, 0, apperr.ErrSetupClosed)
 		return
 	}
 	var in credentials
@@ -52,7 +53,7 @@ func (h *AuthHandler) setup(w http.ResponseWriter, r *http.Request) {
 	u, token, err := h.svc.Setup(r.Context(), in.Username, in.Password)
 	if err != nil {
 		if errors.Is(err, service.ErrSetupClosed) {
-			writeJSON(w, http.StatusGone, map[string]string{"error": err.Error()})
+			writeError(w, 0, err)
 			return
 		}
 		writeError(w, http.StatusBadRequest, err)
@@ -70,7 +71,7 @@ func (h *AuthHandler) login(w http.ResponseWriter, r *http.Request) {
 	}
 	u, token, err := h.svc.Login(r.Context(), in.Username, in.Password)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid credentials"})
+		writeError(w, 0, apperr.ErrInvalidCredentials)
 		return
 	}
 	setSessionCookie(w, token, h.svc)
@@ -92,13 +93,13 @@ func (h *AuthHandler) logout(w http.ResponseWriter, _ *http.Request) {
 func (h *AuthHandler) me(w http.ResponseWriter, r *http.Request) {
 	claims, ok := middleware.ClaimsFrom(r.Context())
 	if !ok {
-		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+		writeError(w, 0, apperr.New(apperr.CodeInternal, "unauthorized", http.StatusUnauthorized))
 		return
 	}
 	u, err := h.svc.GetUser(r.Context(), claims.UserID)
 	if err != nil {
 		if errors.Is(err, service.ErrNotFound) {
-			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "unauthorized"})
+			writeError(w, 0, apperr.New(apperr.CodeInternal, "unauthorized", http.StatusUnauthorized))
 			return
 		}
 		writeError(w, http.StatusInternalServerError, err)

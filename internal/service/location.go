@@ -11,6 +11,8 @@ import (
 	"github.com/oklog/ulid/v2"
 
 	"github.com/mahoo12138/havit/internal/model"
+
+	apperr "github.com/mahoo12138/havit/internal/errors"
 )
 
 type LocationService struct {
@@ -47,8 +49,8 @@ func validLocationType(t string) bool {
 	return validLocationTypes[t]
 }
 
-var ErrInvalidLocationType = errors.New("invalid location type: must be property, room, furniture, container, or virtual")
-var ErrLocationHierarchy = errors.New("location hierarchy violation: child type cannot be shallower than parent type")
+var ErrInvalidLocationType = apperr.ErrInvalidLocationType
+var ErrLocationHierarchy = apperr.ErrLocationHierarchy
 
 type LocationCreateInput struct {
 	Name      string  `json:"name"`

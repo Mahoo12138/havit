@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	apperr "github.com/mahoo12138/havit/internal/errors"
 	"github.com/mahoo12138/havit/internal/middleware"
 	"github.com/mahoo12138/havit/internal/service"
 )
@@ -32,15 +33,13 @@ func (h *ImportHandler) importItems(w http.ResponseWriter, r *http.Request) {
 		case strings.Contains(ct, "csv"), strings.Contains(ct, "text/plain"):
 			format = service.ImportCSV
 		default:
-			writeJSON(w, http.StatusBadRequest, map[string]string{
-				"error": "specify ?format=csv|json or set Content-Type",
-			})
+			writeError(w, 0, apperr.New(apperr.CodeValidationFailed, "specify ?format=csv|json or set Content-Type", http.StatusBadRequest))
 			return
 		}
 	}
 
 	if format != service.ImportCSV && format != service.ImportJSON {
-		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unsupported format"})
+		writeError(w, 0, apperr.ErrUnsupportedFormat)
 		return
 	}
 
