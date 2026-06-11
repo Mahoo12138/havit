@@ -22,6 +22,7 @@ import {
   IconLogout,
   IconMap2,
   IconMenu2,
+  IconPrinter,
   IconReceipt,
   IconSearch,
   IconShoppingBag,
@@ -78,6 +79,7 @@ const navSections = [
     items: [
       { to: '/capture', label: '录入增强', icon: IconBarcode },
       { to: '/import', label: '批量导入', icon: IconFileImport },
+      { to: '/qr-print', label: 'QR 标签打印', icon: IconPrinter },
       { to: '/operations', label: '运维导出', icon: IconDatabaseExport },
     ],
   },

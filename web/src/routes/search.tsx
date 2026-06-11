@@ -1,14 +1,68 @@
+import { useCallback, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { IconSparkles } from '@tabler/icons-react';
-import { Badge, Card, Row, Stack, TextField, uiStyles } from '../components/ui';
+import { IconSearch, IconSparkles } from '@tabler/icons-react';
+import { Card, Row, Spinner, Stack, StatusBadge, TextField, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
-import { searchResults } from '../features/m2/mockData';
+import type { SearchResult } from '../api/client';
 
 export const Route = createFileRoute('/search')({
   component: SearchPage,
 });
 
 function SearchPage() {
+  const [query, setQuery] = useState('');
+  const [ftsResults, setFtsResults] = useState<SearchResult[]>([]);
+  const [llmResults, setLlmResults] = useState<SearchResult[]>([]);
+  const [isRefining, setIsRefining] = useState(false);
+  const [esRef, setEsRef] = useState<EventSource | null>(null);
+
+  const handleSearch = useCallback(
+    (q: string) => {
+      setQuery(q);
+      esRef?.close();
+      setFtsResults([]);
+      setLlmResults([]);
+      setIsRefining(false);
+
+      if (!q.trim()) return;
+
+      const token = localStorage.getItem('havit_token');
+      const url = new URL('/api/v1/search', window.location.origin);
+      url.searchParams.set('q', q);
+      const init: RequestInit = {};
+      if (token) {
+        init.headers = { Authorization: `Bearer ${token}` };
+      }
+
+      const es = new EventSource(url.toString());
+      setEsRef(es);
+
+      es.addEventListener('fts_results', ((e: MessageEvent) => {
+        const data = JSON.parse(e.data);
+        setFtsResults(data ?? []);
+        setIsRefining(true);
+      }) as EventListener);
+
+      es.addEventListener('llm_results', ((e: MessageEvent) => {
+        const data = JSON.parse(e.data);
+        setLlmResults(data ?? []);
+      }) as EventListener);
+
+      es.addEventListener('done', () => {
+        setIsRefining(false);
+        es.close();
+      });
+
+      es.onerror = () => {
+        setIsRefining(false);
+        es.close();
+      };
+    },
+    [esRef],
+  );
+
+  const results = llmResults.length > 0 ? llmResults : ftsResults;
+
   return (
     <Stack>
       <FeatureHeader
@@ -21,50 +75,70 @@ function SearchPage() {
         <Stack>
           <TextField
             label="查询"
-            defaultValue="家里有哪些闲置超过半年的数码产品"
+            placeholder="例如：家里有哪些闲置超过半年的数码产品"
+            value={query}
+            onChange={(e) => handleSearch(e.target.value)}
           />
           <Row>
-            <Badge>FTS 已返回</Badge>
-            <Badge>AI 优化中</Badge>
-            <span className={uiStyles.muted}>mock SSE refresh</span>
+            {ftsResults.length > 0 && <StatusBadge status="in_stock" />}
+            {isRefining && (
+              <Row>
+                <Spinner />
+                <span className={uiStyles.muted}>AI 优化中…</span>
+              </Row>
+            )}
+            {!isRefining && ftsResults.length > 0 && llmResults.length === 0 && (
+              <span className={uiStyles.muted}>FTS 结果已返回</span>
+            )}
           </Row>
         </Stack>
       </Card>
 
       <MetricStrip
         metrics={[
-          { label: '结果', value: searchResults.length },
+          { label: '结果', value: results.length },
           {
-            label: '动态状态提示',
-            value: searchResults.filter((result) => result.status !== 'in_stock').length,
+            label: '异常状态',
+            value: results.filter((r) => r.status !== 'in_stock').length,
           },
-          { label: '平均首屏响应', value: '即时', note: '本页为前端骨架' },
+          {
+            label: '搜索源',
+            value: llmResults.length > 0 ? 'LLM 精排' : ftsResults.length > 0 ? 'FTS5' : '—',
+          },
         ]}
       />
 
-      <DataCard title="搜索结果">
-        <div className={uiStyles.cardGrid}>
-          {searchResults.map((result) => (
-            <Card className="surface-card" key={result.itemName}>
-              <Stack>
-                <Row>
-                  <IconSparkles size={16} />
-                  <h3 className={uiStyles.heading}>{result.itemName}</h3>
-                </Row>
-                <span>{result.locationPath}</span>
-                <p className={uiStyles.help}>{result.hint}</p>
-                <div className={uiStyles.tagList}>
-                  {result.tags.map((tag) => (
-                    <span className={uiStyles.tagChip} key={tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </Stack>
-            </Card>
-          ))}
-        </div>
-      </DataCard>
+      {results.length > 0 && (
+        <DataCard title="搜索结果">
+          <div className={uiStyles.cardGrid}>
+            {results.map((result) => (
+              <Card className="surface-card" key={result.id}>
+                <Stack>
+                  <Row>
+                    <IconSparkles size={16} />
+                    <h3 className={uiStyles.heading}>{result.name}</h3>
+                  </Row>
+                  {result.location_path && <span>{result.location_path}</span>}
+                  {result.edc_hint && <p className={uiStyles.help}>{result.edc_hint}</p>}
+                  <Row>
+                    <StatusBadge status={result.status} />
+                    <span className={uiStyles.muted}>{result.type}</span>
+                  </Row>
+                </Stack>
+              </Card>
+            ))}
+          </div>
+        </DataCard>
+      )}
+
+      {query && !isRefining && results.length === 0 && (
+        <Card className="surface-card">
+          <Row>
+            <IconSearch size={16} />
+            <span className={uiStyles.muted}>未找到匹配结果</span>
+          </Row>
+        </Card>
+      )}
     </Stack>
   );
 }

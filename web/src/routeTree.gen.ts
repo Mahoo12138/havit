@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as QrPrintRouteImport } from './routes/qr-print'
 import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LoansRouteImport } from './routes/loans'
@@ -33,6 +34,11 @@ const SetupRoute = SetupRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QrPrintRoute = QrPrintRouteImport.update({
+  id: '/qr-print',
+  path: '/qr-print',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperationsRoute = OperationsRouteImport.update({
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/qr-print': typeof QrPrintRoute
   '/search': typeof SearchRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/qr-print': typeof QrPrintRoute
   '/search': typeof SearchRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/loans': typeof LoansRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
+  '/qr-print': typeof QrPrintRoute
   '/search': typeof SearchRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/loans'
     | '/login'
     | '/operations'
+    | '/qr-print'
     | '/search'
     | '/setup'
     | '/items/$itemId'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
     | '/loans'
     | '/login'
     | '/operations'
+    | '/qr-print'
     | '/search'
     | '/setup'
     | '/items/$itemId'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/loans'
     | '/login'
     | '/operations'
+    | '/qr-print'
     | '/search'
     | '/setup'
     | '/items/$itemId'
@@ -218,6 +230,7 @@ export interface RootRouteChildren {
   LoansRoute: typeof LoansRoute
   LoginRoute: typeof LoginRoute
   OperationsRoute: typeof OperationsRoute
+  QrPrintRoute: typeof QrPrintRoute
   SearchRoute: typeof SearchRoute
   SetupRoute: typeof SetupRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qr-print': {
+      id: '/qr-print'
+      path: '/qr-print'
+      fullPath: '/qr-print'
+      preLoaderRoute: typeof QrPrintRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operations': {
@@ -346,6 +366,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoansRoute: LoansRoute,
   LoginRoute: LoginRoute,
   OperationsRoute: OperationsRoute,
+  QrPrintRoute: QrPrintRoute,
   SearchRoute: SearchRoute,
   SetupRoute: SetupRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,

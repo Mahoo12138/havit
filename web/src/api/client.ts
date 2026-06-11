@@ -98,10 +98,20 @@ export interface Item {
   type: string;
   status: string;
   location_id?: string;
+  home_base_location_id?: string;
+  current_status_tag?: string;
   purchase_price?: number;
   purchase_currency?: string;
   purchase_date?: number;
   serial_number?: string;
+  warranty_expires_at?: number;
+  warranty_contact?: string;
+  current_stock?: number;
+  min_stock_threshold?: number;
+  lifespan_days?: number;
+  in_use_since?: number;
+  is_private: boolean;
+  owner_id?: string;
   created_at: number;
   updated_at: number;
   tags?: Tag[];
@@ -185,4 +195,267 @@ export const locationsApi = {
     api.post(`locations/${id}/qr-code`).json<Location>(),
   scan: (code: string) =>
     api.get(`locations/scan/${encodeURIComponent(code)}`).json<LocationScanResult>(),
+};
+
+export interface Loan {
+  id: string;
+  item_id: string;
+  borrower_name: string;
+  borrower_contact?: string;
+  loaned_at: number;
+  due_at?: number;
+  returned_at?: number;
+  status: string;
+  compensation?: number;
+  compensation_currency?: string;
+  notes?: string;
+}
+
+export interface PurchaseEvent {
+  id: string;
+  item_id: string;
+  quantity: number;
+  price?: number;
+  currency?: string;
+  purchased_at: number;
+  notes?: string;
+}
+
+export interface CalibrationEvent {
+  id: string;
+  item_id: string;
+  signal: string;
+  created_at: number;
+}
+
+export interface ItemEvent {
+  id: string;
+  item_id: string;
+  actor_id?: string;
+  event_type: string;
+  payload?: string;
+  created_at: number;
+}
+
+export interface LossRecord {
+  item_id: string;
+  name: string;
+  status: string;
+  loss_date: number;
+  exit_type?: string;
+  exit_notes?: string;
+}
+
+export interface Reminder {
+  id: string;
+  item_id: string;
+  type: string;
+  trigger_at: number;
+  sent_at?: number;
+  is_dismissed: boolean;
+}
+
+export interface NotifyProcessResult {
+  processed: number;
+  sent: number;
+  failed: number;
+}
+
+export interface BackupResult {
+  path: string;
+  size: number;
+  created_at: number;
+}
+
+export interface SearchResult {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  location_id?: string;
+  location_path?: string;
+  edc_hint?: string;
+}
+
+export interface BarcodeLookupResult {
+  barcode: string;
+  found: boolean;
+  fallback?: string;
+  draft?: {
+    name?: string;
+    category?: string;
+    description?: string;
+  };
+  source?: string;
+}
+
+export interface VirtualCredential {
+  id: string;
+  item_id: string;
+  platform: string;
+  account?: string;
+  order_id?: string;
+  license_key?: string;
+  purchased_at?: number;
+  price?: number;
+  currency?: string;
+}
+
+export interface VirtualAddonPurchase {
+  id: string;
+  item_id: string;
+  name: string;
+  platform?: string;
+  price?: number;
+  currency?: string;
+  purchased_at: number;
+}
+
+export interface RecognizeItemResult {
+  draft?: {
+    name?: string;
+    category?: string;
+    description?: string;
+  };
+  source_attachment?: Attachment;
+  fallback?: string;
+}
+
+export const itemsExtendedApi = {
+  warranty: (expiringDays?: number) => {
+    const params: Record<string, string> = {};
+    if (expiringDays) params.expiring_days = String(expiringDays);
+    return api.get('items/warranty', { searchParams: params }).json<{ items: Item[] }>();
+  },
+  graveyard: () => api.get('items/graveyard').json<{ items: Item[] }>(),
+  lossRecords: (from?: number, to?: number) => {
+    const params: Record<string, string> = {};
+    if (from !== undefined) params.from = String(from);
+    if (to !== undefined) params.to = String(to);
+    return api.get('items/loss-records', { searchParams: params }).json<{ loss_records: LossRecord[] }>();
+  },
+  exit: (id: string, body: {
+    exit_type: string;
+    status?: string;
+    exit_date?: number;
+    exit_price?: number;
+    exit_currency?: string;
+    exit_notes?: string;
+  }) => api.post(`items/${id}/exit`, { json: body }).json<Item>(),
+  claimPdf: (id: string) =>
+    api.get(`items/${id}/claim-pdf`).blob(),
+  useOne: (id: string) => api.post(`items/${id}/use-one`).json<Item>(),
+  setEdcStatus: (id: string, body: { current_status_tag: string; location_id?: string }) =>
+    api.post(`items/${id}/edc-status`, { json: body }).json<Item>(),
+  returnHome: (id: string) => api.post(`items/${id}/return-home`).json<Item>(),
+  listPurchaseEvents: (id: string) =>
+    api.get(`items/${id}/purchase-events`).json<{ purchase_events: PurchaseEvent[]; next_purchase_at?: number }>(),
+  createPurchaseEvent: (id: string, body: {
+    quantity: number;
+    price?: number;
+    currency?: string;
+    purchased_at?: number;
+    notes?: string;
+  }) => api.post(`items/${id}/purchase-events`, { json: body }).json<PurchaseEvent>(),
+  listCalibrationEvents: (id: string) =>
+    api.get(`items/${id}/calibration-events`).json<{ calibration_events: CalibrationEvent[] }>(),
+  createCalibrationEvent: (id: string, body: { signal: string }) =>
+    api.post(`items/${id}/calibration-events`, { json: body }).json<CalibrationEvent>(),
+  listEvents: (id: string) =>
+    api.get(`items/${id}/events`).json<{ events: ItemEvent[] }>(),
+};
+
+export const loansApi = {
+  create: (itemId: string, body: {
+    borrower_name: string;
+    borrower_contact?: string;
+    loaned_at?: number;
+    due_at?: number;
+    notes?: string;
+  }) => api.post(`items/${itemId}/loans`, { json: body }).json<Loan>(),
+  listForItem: (itemId: string) =>
+    api.get(`items/${itemId}/loans`).json<{ loans: Loan[] }>(),
+  returnLoan: (id: string, body?: { returned_at?: number }) =>
+    api.post(`loans/${id}/return`, { json: body ?? {} }).json<Loan>(),
+  markUnreturned: (id: string, body?: {
+    compensation?: number;
+    compensation_currency?: string;
+    notes?: string;
+  }) => api.post(`loans/${id}/unreturned`, { json: body ?? {} }).json<Loan>(),
+};
+
+export const virtualAssetsApi = {
+  createCredential: (itemId: string, body: {
+    platform: string;
+    account?: string;
+    order_id?: string;
+    license_key?: string;
+    purchased_at?: number;
+    price?: number;
+    currency?: string;
+  }) => api.post(`items/${itemId}/virtual-credentials`, { json: body }).json<VirtualCredential>(),
+  listCredentials: (itemId: string) =>
+    api.get(`items/${itemId}/virtual-credentials`).json<{ credentials: VirtualCredential[] }>(),
+  createAddon: (itemId: string, body: {
+    name: string;
+    platform?: string;
+    price?: number;
+    currency?: string;
+    purchased_at?: number;
+  }) => api.post(`items/${itemId}/virtual-addons`, { json: body }).json<VirtualAddonPurchase>(),
+  listAddons: (itemId: string) =>
+    api.get(`items/${itemId}/virtual-addons`).json<{ addons: VirtualAddonPurchase[] }>(),
+};
+
+export const remindersApi = {
+  list: (dueOnly?: boolean) => {
+    const params: Record<string, string> = {};
+    if (dueOnly) params.due_only = 'true';
+    return api.get('reminders', { searchParams: params }).json<{ reminders: Reminder[] }>();
+  },
+  markSent: (id: string, body?: { sent_at?: number }) =>
+    api.post(`reminders/${id}/sent`, { json: body ?? {} }).json<Reminder>(),
+  dismiss: (id: string) => api.post(`reminders/${id}/dismiss`).json<Reminder>(),
+};
+
+export const notifyApi = {
+  processDue: (now?: number) => {
+    const body = now !== undefined ? { now } : {};
+    return api.post('notify/process-due', { json: body }).json<NotifyProcessResult>();
+  },
+};
+
+export const backupApi = {
+  run: () => api.post('backups/run').json<BackupResult>(),
+};
+
+export const searchApi = {
+  search: (q: string): EventSource => {
+    const token = getToken();
+    const url = new URL('/api/v1/search', window.location.origin);
+    url.searchParams.set('q', q);
+    const init: RequestInit = {};
+    if (token) {
+      init.headers = { Authorization: `Bearer ${token}` };
+    }
+    return new EventSource(url.toString());
+  },
+};
+
+export const barcodeApi = {
+  lookup: (code: string) =>
+    api.get(`barcode/${encodeURIComponent(code)}`).json<BarcodeLookupResult>(),
+};
+
+export const aiApi = {
+  recognizePhoto: (itemId: string, file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api.post(`items/${itemId}/ai-recognize-photo`, { body }).json<RecognizeItemResult>();
+  },
+};
+
+export const exportApi = {
+  items: (format: 'json' | 'csv' = 'json') =>
+    api.get('export/items', { searchParams: { format } }).blob(),
 };

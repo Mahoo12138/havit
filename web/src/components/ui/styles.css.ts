@@ -1,4 +1,4 @@
-import { style, styleVariants } from '@vanilla-extract/css';
+import { style, styleVariants, keyframes } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
@@ -313,6 +313,65 @@ export const badge = style({
   letterSpacing: '0.06em',
   textTransform: 'uppercase',
   padding: `${themeVars.space1} ${themeVars.space2}`,
+});
+
+export const statusBadge = styleVariants({
+  in_stock: { background: themeVars.successSoft, color: themeVars.success },
+  borrowed: { background: themeVars.warningSoft, color: themeVars.warning },
+  idle: { background: themeVars.lineSoft, color: themeVars.muted },
+  for_sale: { background: themeVars.infoSoft, color: themeVars.info },
+  sold: { background: themeVars.lineSoft, color: themeVars.muted },
+  given_away: { background: themeVars.lineSoft, color: themeVars.muted },
+  lost: { background: themeVars.dangerSoft, color: themeVars.danger },
+  stolen: { background: themeVars.dangerSoft, color: themeVars.danger },
+  unreturned: { background: themeVars.warningSoft, color: themeVars.warning },
+  damaged: { background: themeVars.dangerSoft, color: themeVars.danger },
+  archived: { background: themeVars.lineSoft, color: themeVars.muted },
+});
+
+const spinAnimation = keyframes({
+  '0%': { transform: 'rotate(0deg)' },
+  '100%': { transform: 'rotate(360deg)' },
+});
+
+export const spinner = style({
+  display: 'inline-block',
+  width: '1.2rem',
+  height: '1.2rem',
+  border: `2px solid ${themeVars.line}`,
+  borderTopColor: themeVars.accent,
+  borderRadius: '999px',
+  animation: `${spinAnimation} 0.6s linear infinite`,
+});
+
+export const tabsList = style({
+  display: 'flex',
+  gap: themeVars.space1,
+  borderBottom: `1px solid ${themeVars.line}`,
+  marginBottom: themeVars.space4,
+});
+
+export const tab = style({
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  background: 'transparent',
+  border: 0,
+  borderBottom: '2px solid transparent',
+  color: themeVars.muted,
+  fontSize: '0.88rem',
+  fontWeight: 500,
+  cursor: 'pointer',
+  marginBottom: '-1px',
+  transition: 'color 160ms ease, border-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      color: themeVars.text,
+    },
+    '&[data-selected]': {
+      color: themeVars.accent,
+      borderBottomColor: themeVars.accent,
+      fontWeight: 600,
+    },
+  },
 });
 
 export const shell = style({
@@ -811,6 +870,61 @@ export const qrMock = style({
   color: themeVars.panel,
   fontWeight: 700,
   textShadow: `0 1px 2px ${themeVars.ink}`,
+});
+
+export const qrPrintGrid = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: themeVars.space3,
+});
+
+export const qrPrintLabel = style({
+  width: '14rem',
+  height: '8.5rem',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: themeVars.space1,
+  pageBreakInside: 'avoid',
+});
+
+export const qrPrintQr = style({
+  display: 'grid',
+  placeItems: 'center',
+  width: '4rem',
+  height: '4rem',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius1,
+  background: themeVars.muted,
+});
+
+export const qrPrintCode = style({
+  fontFamily: 'monospace',
+  fontSize: '0.55rem',
+  color: themeVars.ink,
+  textAlign: 'center',
+  wordBreak: 'break-all',
+  lineHeight: 1.2,
+});
+
+export const qrPrintNoCode = style({
+  color: themeVars.muted,
+  fontSize: '0.75rem',
+});
+
+export const qrPrintName = style({
+  fontWeight: 600,
+  fontSize: '0.85rem',
+  color: themeVars.ink,
+});
+
+export const qrPrintPath = style({
+  fontSize: '0.7rem',
+  color: themeVars.muted,
 });
 
 export const dashboardLayout = style({

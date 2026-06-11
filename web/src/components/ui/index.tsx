@@ -183,6 +183,37 @@ export function Dialog({
   );
 }
 
+export function Spinner({ className }: { className?: string }) {
+  return <span className={cx(s.spinner, className)} aria-label="加载中" />;
+}
+
+export function Tabs({
+  value,
+  onChange,
+  tabs,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  tabs: Array<{ key: string; label: string }>;
+}) {
+  return (
+    <div className={s.tabsList} role="tablist">
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          role="tab"
+          className={s.tab}
+          data-selected={value === t.key || undefined}
+          aria-selected={value === t.key}
+          onClick={() => onChange(t.key)}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function Code({ children }: { children: ReactNode }) {
   return <code className={s.code}>{children}</code>;
 }
@@ -214,6 +245,25 @@ export function Alert({ icon, children }: { icon?: ReactNode; children: ReactNod
 
 export function Badge({ children }: { children: ReactNode }) {
   return <span className={s.badge}>{children}</span>;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  in_stock: '在库',
+  borrowed: '借出中',
+  idle: '闲置',
+  for_sale: '待售',
+  sold: '已售',
+  given_away: '已赠',
+  lost: '遗失',
+  stolen: '被盗',
+  unreturned: '未归还',
+  damaged: '损坏',
+  archived: '已归档',
+};
+
+export function StatusBadge({ status }: { status: string }) {
+  const variant = s.statusBadge[status as keyof typeof s.statusBadge] ?? s.statusBadge.idle;
+  return <span className={variant}>{STATUS_LABELS[status] ?? status}</span>;
 }
 
 type ToastContextValue = {

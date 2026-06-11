@@ -1,13 +1,33 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Badge, Card, Stack, uiStyles } from '../components/ui';
-import { DataCard, FeatureHeader, KeyValueGrid, MetricStrip } from '../features/m2/components';
-import { lifecycleRecords } from '../features/m2/mockData';
+import { Card, Spinner, Stack, StatusBadge, Tabs, uiStyles } from '../components/ui';
+import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
+import { itemsExtendedApi } from '../api/client';
 
 export const Route = createFileRoute('/lifecycle')({
   component: LifecyclePage,
 });
 
 function LifecyclePage() {
+  const [tab, setTab] = useState<'graveyard' | 'loss'>('graveyard');
+
+  const { data: graveyardData, isLoading: graveyardLoading } = useQuery({
+    queryKey: ['items', 'graveyard'],
+    queryFn: () => itemsExtendedApi.graveyard(),
+    enabled: tab === 'graveyard',
+  });
+
+  const { data: lossData, isLoading: lossLoading } = useQuery({
+    queryKey: ['items', 'loss-records'],
+    queryFn: () => itemsExtendedApi.lossRecords(),
+    enabled: tab === 'loss',
+  });
+
+  const graveyardItems = graveyardData?.items ?? [];
+  const lossRecords = lossData?.loss_records ?? [];
+  const isLoading = tab === 'graveyard' ? graveyardLoading : lossLoading;
+
   return (
     <Stack>
       <FeatureHeader
@@ -16,45 +36,67 @@ function LifecyclePage() {
         meta="item graveyard"
       />
 
-      <MetricStrip
-        metrics={[
-          { label: '归档资产', value: lifecycleRecords.length },
-          {
-            label: '异常退场',
-            value: lifecycleRecords.filter((record) =>
-              ['damaged', 'lost', 'stolen'].includes(record.status),
-            ).length,
-          },
-          {
-            label: '回收金额',
-            value: `${lifecycleRecords.reduce((total, record) => total + (record.amount ?? 0), 0)} CNY`,
-          },
+      <Tabs
+        value={tab}
+        onChange={(v) => setTab(v as 'graveyard' | 'loss')}
+        tabs={[
+          { key: 'graveyard', label: '物品墓地' },
+          { key: 'loss', label: '损耗记录' },
         ]}
       />
 
-      <DataCard title="物品墓地">
-        <div className={uiStyles.cardGrid}>
-          {lifecycleRecords.map((record) => (
-            <Card className="surface-card" key={record.id}>
-              <KeyValueGrid
-                rows={[
-                  { label: '物品', value: record.itemName },
-                  { label: '状态', value: <Badge>{record.status}</Badge> },
-                  { label: '日期', value: record.date },
-                  {
-                    label: '金额',
-                    value:
-                      record.amount != null
-                        ? `${record.amount} ${record.currency ?? ''}`
-                        : '无',
-                  },
-                  { label: '备注', value: record.note },
-                ]}
-              />
-            </Card>
-          ))}
-        </div>
-      </DataCard>
+      {isLoading ? (
+        <Spinner />
+      ) : tab === 'graveyard' ? (
+        <>
+          <MetricStrip
+            metrics={[
+              { label: '归档资产', value: graveyardItems.length },
+              {
+                label: '异常退场',
+                value: graveyardItems.filter((i) =>
+                  ['lost', 'stolen', 'damaged'].includes(i.status),
+                ).length,
+              },
+            ]}
+          />
+          <DataCard title="物品墓地">
+            <div className={uiStyles.cardGrid}>
+              {graveyardItems.map((item) => (
+                <Card className="surface-card" key={item.id}>
+                  <Stack>
+                    <h3 className={uiStyles.heading}>{item.name}</h3>
+                    <StatusBadge status={item.status} />
+                  </Stack>
+                </Card>
+              ))}
+            </div>
+          </DataCard>
+        </>
+      ) : (
+        <>
+          <MetricStrip
+            metrics={[
+              { label: '损耗记录', value: lossRecords.length },
+            ]}
+          />
+          <DataCard title="损耗记录">
+            <div className={uiStyles.cardGrid}>
+              {lossRecords.map((record) => (
+                <Card className="surface-card" key={record.item_id}>
+                  <Stack>
+                    <h3 className={uiStyles.heading}>{record.name}</h3>
+                    <StatusBadge status={record.status} />
+                    {record.exit_notes && (
+                      <span className={uiStyles.muted}>{record.exit_notes}</span>
+                    )}
+                  </Stack>
+                </Card>
+              ))}
+            </div>
+          </DataCard>
+        </>
+      )}
     </Stack>
   );
 }

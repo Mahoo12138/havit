@@ -1,13 +1,30 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { Badge, Card, Row, Stack, StackTight, uiStyles } from '../components/ui';
+import { IconHome } from '@tabler/icons-react';
+import { Badge, Button, Spinner, Stack, StackTight, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
-import { edcAssets } from '../features/m2/mockData';
+import { itemsApi, itemsExtendedApi } from '../api/client';
 
 export const Route = createFileRoute('/edc')({
   component: EDCPage,
 });
 
 function EDCPage() {
+  const queryClient = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['items', 'edc'],
+    queryFn: () => itemsApi.list({ type: 'edc' }),
+  });
+
+  const returnHomeMutation = useMutation({
+    mutationFn: (id: string) => itemsExtendedApi.returnHome(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['items', 'edc'] }),
+  });
+
+  const items = data?.items ?? [];
+  const awayItems = items.filter((i) => i.location_id !== i.home_base_location_id);
+
   return (
     <Stack>
       <FeatureHeader
@@ -16,55 +33,62 @@ function EDCPage() {
         meta="baseline + state"
       />
 
-      <MetricStrip
-        metrics={[
-          { label: 'EDC 物品', value: edcAssets.length },
-          {
-            label: '当前随身',
-            value: edcAssets.filter((item) => item.dynamicState !== '@home').length,
-          },
-          { label: '可归位', value: edcAssets.filter((item) => item.dynamicState === '@travel_bag').length },
-        ]}
-      />
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <>
+          <MetricStrip
+            metrics={[
+              { label: 'EDC 物品', value: items.length },
+              { label: '当前随身', value: awayItems.length },
+              { label: '可归位', value: items.filter((i) => i.location_id !== i.home_base_location_id).length },
+            ]}
+          />
 
-      <DataCard title="出门检查清单">
-        <div className={uiStyles.tableWrap}>
-          <table className={uiStyles.table}>
-            <thead>
-              <tr>
-                <th className={uiStyles.th}>物品</th>
-                <th className={uiStyles.th}>基准位置</th>
-                <th className={uiStyles.th}>动态状态</th>
-                <th className={uiStyles.th}>搜索提示</th>
-              </tr>
-            </thead>
-            <tbody>
-              {edcAssets.map((item) => (
-                <tr className={uiStyles.tableRow} key={item.id}>
-                  <td className={uiStyles.td}>
-                    <StackTight>
-                      <strong>{item.name}</strong>
-                      <span className={uiStyles.muted}>{item.lastConfirmedAt}</span>
-                    </StackTight>
-                  </td>
-                  <td className={uiStyles.td}>{item.baselineLocation}</td>
-                  <td className={uiStyles.td}>
-                    <Badge>{item.dynamicState}</Badge>
-                  </td>
-                  <td className={uiStyles.td}>{item.searchHint}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DataCard>
-
-      <Card className="surface-card">
-        <Row>
-          <Badge>mock action</Badge>
-          <span>一键打包和全部归位按钮位于此区域，后端状态机完成后接入。</span>
-        </Row>
-      </Card>
+          <DataCard title="出门检查清单">
+            <div className={uiStyles.tableWrap}>
+              <table className={uiStyles.table}>
+                <thead>
+                  <tr>
+                    <th className={uiStyles.th}>物品</th>
+                    <th className={uiStyles.th}>基准位置</th>
+                    <th className={uiStyles.th}>当前状态</th>
+                    <th className={uiStyles.th}>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr className={uiStyles.tableRow} key={item.id}>
+                      <td className={uiStyles.td}>
+                        <StackTight>
+                          <strong>{item.name}</strong>
+                          <span className={uiStyles.muted}>{item.category}</span>
+                        </StackTight>
+                      </td>
+                      <td className={uiStyles.td}>{item.home_base_location_id ?? '—'}</td>
+                      <td className={uiStyles.td}>
+                        <Badge>{item.status}</Badge>
+                      </td>
+                      <td className={uiStyles.td}>
+                        {item.location_id !== item.home_base_location_id && (
+                          <Button
+                            variant="quiet"
+                            leftSection={<IconHome size={14} />}
+                            disabled={returnHomeMutation.isPending}
+                            onClick={() => returnHomeMutation.mutate(item.id)}
+                          >
+                            归位
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </DataCard>
+        </>
+      )}
     </Stack>
   );
 }

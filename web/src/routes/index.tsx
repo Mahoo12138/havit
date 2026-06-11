@@ -17,8 +17,8 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { useMemo } from 'react';
-import { uiStyles } from '../components/ui';
-import { authApi, itemsApi, locationsApi, type Item, type Location } from '../api/client';
+import { Badge, uiStyles } from '../components/ui';
+import { authApi, itemsApi, locationsApi, remindersApi, type Item, type Location } from '../api/client';
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
@@ -103,6 +103,10 @@ function Dashboard() {
   const locs = useQuery({
     queryKey: ['locations'],
     queryFn: () => locationsApi.tree(),
+  });
+  const reminders = useQuery({
+    queryKey: ['reminders'],
+    queryFn: () => remindersApi.list(true),
   });
 
   const allItems = items.data?.items ?? [];
@@ -199,7 +203,7 @@ function Dashboard() {
 
       <aside className={uiStyles.dashboardRail}>
         <QuickActionsCard />
-        <RemindersCard />
+        <RemindersCard reminders={reminders.data?.reminders ?? []} loading={reminders.isPending} />
         <LocationsCard tree={locs.data?.tree ?? []} loading={locs.isPending} />
       </aside>
     </div>
@@ -380,16 +384,31 @@ function QuickActionsCard() {
   );
 }
 
-function RemindersCard() {
+function RemindersCard({ reminders, loading }: { reminders: any[]; loading: boolean }) {
   return (
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>待办提醒</h2>
-        <Link to="/loans" className={uiStyles.sectionLink}>
+        <Link to="/operations" className={uiStyles.sectionLink}>
           管理 <IconArrowRight size={14} />
         </Link>
       </header>
-      <div className={uiStyles.reminderEmpty}>暂无待办，一切井井有条。</div>
+      <div className={uiStyles.sectionBody}>
+        {loading ? (
+          <div className={uiStyles.reminderEmpty}>加载中…</div>
+        ) : reminders.length === 0 ? (
+          <div className={uiStyles.reminderEmpty}>暂无待办，一切井井有条。</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {reminders.slice(0, 5).map((r) => (
+              <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{r.type} — {r.item_id}</span>
+                <Badge>{r.is_dismissed ? '已忽略' : r.sent_at ? '已发送' : '待处理'}</Badge>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
