@@ -110,6 +110,9 @@ func main() {
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
 	r.Use(chimiddleware.Timeout(30 * time.Second))
+	if cfg.Server.CORSOrigins != "" {
+		r.Use(authmw.CORS(cfg.Server.CORSOrigins))
+	}
 
 	systemH := handler.NewSystemHandler(state)
 	authH := handler.NewAuthHandler(authSvc, state)

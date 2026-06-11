@@ -23,8 +23,9 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port    int
-	BaseURL string `mapstructure:"base_url"`
+	Port       int
+	BaseURL    string `mapstructure:"base_url"`
+	CORSOrigins string `mapstructure:"cors_origins"`
 }
 
 type DataConfig struct {
@@ -79,6 +80,7 @@ func LoadFrom(configPaths []string) *Config {
 	v.SetDefault("mode", "release")
 	v.SetDefault("server.port", 3000)
 	v.SetDefault("server.base_url", "http://localhost:3000")
+	v.SetDefault("server.cors_origins", "")
 	v.SetDefault("data.dir", "./data")
 	v.SetDefault("auth.session_expire_hours", 720)
 	v.SetDefault("ai.enabled", false)
