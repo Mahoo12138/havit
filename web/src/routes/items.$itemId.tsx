@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconPhotoPlus, IconPlus, IconX } from '@tabler/icons-react';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
@@ -34,28 +35,8 @@ export const Route = createFileRoute('/items/$itemId')({
   component: ItemDetail,
 });
 
-const statusOptions = [
-  { value: 'in_stock', label: '在库' },
-  { value: 'borrowed', label: '借出' },
-  { value: 'idle', label: '闲置' },
-  { value: 'for_sale', label: '计划出售' },
-  { value: 'sold', label: '已售出' },
-  { value: 'given_away', label: '已赠出' },
-  { value: 'damaged', label: '已报废' },
-  { value: 'lost', label: '已丢失' },
-  { value: 'stolen', label: '被盗' },
-];
-
-const detailTabs = [
-  { key: 'info', label: '基本信息' },
-  { key: 'warranty', label: '保修与凭证' },
-  { key: 'loans', label: '借出记录' },
-  { key: 'consumable', label: '消耗品' },
-  { key: 'virtual', label: '虚拟资产' },
-  { key: 'events', label: '事件日志' },
-];
-
 function ItemDetail() {
+  const { t } = useTranslation();
   const { itemId } = Route.useParams();
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -65,6 +46,27 @@ function ItemDetail() {
   const [tagName, setTagName] = useState('');
   const [selectedTagID, setSelectedTagID] = useState('');
   const [activeTab, setActiveTab] = useState('info');
+
+  const statusOptions = [
+    { value: 'in_stock', label: t('status.in_stock') },
+    { value: 'borrowed', label: t('status.borrowed') },
+    { value: 'idle', label: t('status.idle') },
+    { value: 'for_sale', label: t('status.for_sale') },
+    { value: 'sold', label: t('status.sold') },
+    { value: 'given_away', label: t('status.given_away') },
+    { value: 'damaged', label: t('status.damaged') },
+    { value: 'lost', label: t('status.lost') },
+    { value: 'stolen', label: t('status.stolen') },
+  ];
+
+  const detailTabs = [
+    { key: 'info', label: t('itemDetail.basicInfo') },
+    { key: 'warranty', label: t('itemDetail.warranty') },
+    { key: 'loans', label: t('itemDetail.loans') },
+    { key: 'consumable', label: t('itemDetail.consumable') },
+    { key: 'virtual', label: t('itemDetail.virtual') },
+    { key: 'events', label: t('itemDetail.events') },
+  ];
 
   const item = useQuery({
     queryKey: ['item', itemId],
@@ -86,7 +88,7 @@ function ItemDetail() {
   const archive = useMutation({
     mutationFn: () => itemsApi.archive(itemId),
     onSuccess: () => {
-      toast.show('已归档');
+      toast.show(t('items.archived'));
       qc.invalidateQueries({ queryKey: ['items'] });
       nav({ to: '/items' });
     },
@@ -94,28 +96,28 @@ function ItemDetail() {
   const updateStatus = useMutation({
     mutationFn: (status: string) => itemsApi.update(itemId, { status }),
     onSuccess: (next) => {
-      toast.show('状态已更新');
+      toast.show(t('items.statusUpdated'));
       qc.setQueryData(['item', itemId], next);
       qc.invalidateQueries({ queryKey: ['items'] });
     },
-    onError: (e: Error) => toast.show(`状态更新失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('items.statusUpdateFailed', { error: e.message })),
   });
   const uploadPhoto = useMutation({
     mutationFn: (file: File) => itemsApi.uploadPhoto(itemId, file),
     onSuccess: () => {
-      toast.show('照片已上传');
+      toast.show(t('items.photoUploaded'));
       qc.invalidateQueries({ queryKey: ['item', itemId, 'attachments'] });
     },
-    onError: (e: Error) => toast.show(`照片上传失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('items.photoUploadFailed', { error: e.message })),
   });
   const replaceTags = useMutation({
     mutationFn: (tagIds: string[]) => itemsApi.replaceTags(itemId, tagIds),
     onSuccess: (next) => {
       qc.setQueryData(['item', itemId], next);
       qc.invalidateQueries({ queryKey: ['items'] });
-      toast.show('标签已更新');
+      toast.show(t('items.tagsUpdated'));
     },
-    onError: (e: Error) => toast.show(`标签更新失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('items.tagsUpdateFailed', { error: e.message })),
   });
   const createTag = useMutation({
     mutationFn: (name: string) => tagsApi.create({ name }),
@@ -124,12 +126,12 @@ function ItemDetail() {
       addTag(tag);
       setTagName('');
     },
-    onError: (e: Error) => toast.show(`标签创建失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('items.tagCreateFailed', { error: e.message })),
   });
 
   if (item.isLoading) return <Spinner />;
   if (item.error || !item.data) {
-    return <p className={uiStyles.errorText}>未找到</p>;
+    return <p className={uiStyles.errorText}>{t('errors.not_found')}</p>;
   }
 
   const it = item.data;
@@ -148,15 +150,15 @@ function ItemDetail() {
     label: tag.name,
   }));
   const photoStatus = attachments.isError
-    ? '照片读取失败'
+    ? t('items.photoReadFailed')
     : photos.length > 0
-      ? `${photos.length} 张已上传`
-      : '还没有照片';
+      ? t('items.photoCount', { count: photos.length })
+      : t('items.noPhotos');
 
   function handlePhotoPick(file: File | undefined) {
     if (!file) return;
     if (file.type && !file.type.startsWith('image/')) {
-      toast.show('请选择图片文件');
+      toast.show(t('items.selectImageFile'));
       return;
     }
     uploadPhoto.mutate(file);
@@ -186,9 +188,9 @@ function ItemDetail() {
             variant="quiet"
             onClick={() => archive.mutate()}
             disabled={!isOnline}
-            title={!isOnline ? '离线模式下无法归档' : undefined}
+            title={!isOnline ? t('items.cannotArchiveOffline') : undefined}
           >
-            归档
+            {t('items.archive')}
           </Button>
         </div>
       </div>
@@ -204,9 +206,9 @@ function ItemDetail() {
               />
             ) : (
               <div className={uiStyles.photoEmpty}>
-                <strong>暂无照片</strong>
+                <strong>{t('items.noPhotoYet')}</strong>
                 <br />
-                上传一张照片作为这件物品的视觉存证。
+                {t('items.uploadPhotoHint')}
               </div>
             )}
           </div>
@@ -214,16 +216,16 @@ function ItemDetail() {
           <Stack>
             <RowBetween>
               <StackTight>
-                <h3 className={uiStyles.heading}>照片</h3>
+                <h3 className={uiStyles.heading}>{t('items.photos')}</h3>
                 <span className={uiStyles.muted}>{photoStatus}</span>
               </StackTight>
               <Button
                 leftSection={<IconPhotoPlus size={16} />}
                 onClick={() => fileInputRef.current?.click()}
                 disabled={!isOnline || uploadPhoto.isPending}
-                title={!isOnline ? '离线模式下无法上传照片' : undefined}
+                title={!isOnline ? t('items.cannotUploadOffline') : undefined}
               >
-                {uploadPhoto.isPending ? '上传中...' : '上传'}
+                {uploadPhoto.isPending ? t('items.uploading') : t('common.upload')}
               </Button>
             </RowBetween>
 
@@ -243,7 +245,7 @@ function ItemDetail() {
                 <PhotoListItem key={photo.id} itemName={it.name} photo={photo} />
               ))}
               {photos.length === 0 && !attachments.isLoading && !attachments.isError && (
-                <span className={uiStyles.muted}>暂无照片附件</span>
+                <span className={uiStyles.muted}>{t('items.noPhotoAttachments')}</span>
               )}
             </div>
           </Stack>
@@ -255,12 +257,12 @@ function ItemDetail() {
       {activeTab === 'info' && (
         <Card className="surface-card">
           <div className="detail-grid">
-            <DetailRow label="类型">{it.type}</DetailRow>
-            <DetailRow label="状态">
+            <DetailRow label={t('items.type')}>{it.type}</DetailRow>
+            <DetailRow label={t('items.status')}>
               <StackTight>
                 <Badge>{it.status}</Badge>
                 <SelectField
-                  label="切换状态"
+                  label={t('items.switchStatus')}
                   options={statusOptions}
                   value={it.status}
                   disabled={!isOnline || updateStatus.isPending}
@@ -268,8 +270,8 @@ function ItemDetail() {
                 />
               </StackTight>
             </DetailRow>
-            <DetailRow label="位置">{locationPath ?? '未填写'}</DetailRow>
-            <DetailRow label="标签">
+            <DetailRow label={t('items.location')}>{locationPath ?? t('common.notSet')}</DetailRow>
+            <DetailRow label={t('items.tags')}>
               <StackTight>
                 <div className={uiStyles.tagList}>
                   {currentTags.map((tag) => (
@@ -280,21 +282,21 @@ function ItemDetail() {
                         type="button"
                         onClick={() => removeTag(tag.id)}
                         disabled={!isOnline || replaceTags.isPending}
-                        title="移除标签"
+                        title={t('items.removeTag')}
                       >
                         <IconX size={13} />
                       </button>
                     </span>
                   ))}
                   {currentTags.length === 0 && (
-                    <span className={uiStyles.muted}>未添加标签</span>
+                    <span className={uiStyles.muted}>{t('items.noTags')}</span>
                   )}
                 </div>
                 <div className={uiStyles.tagEditor}>
                   <SelectField
-                    label="添加已有标签"
+                    label={t('items.selectTag')}
                     options={tagOptions}
-                    placeholder={tags.isLoading ? '标签加载中' : '选择标签'}
+                    placeholder={tags.isLoading ? t('items.tagsLoading') : t('items.selectTagPlaceholder')}
                     value={selectedTagID}
                     disabled={!isOnline || replaceTags.isPending || tagOptions.length === 0}
                     onChange={(e) => {
@@ -306,7 +308,7 @@ function ItemDetail() {
                   />
                   <div className={uiStyles.inlineForm}>
                     <TextField
-                      label="新标签"
+                      label={t('items.newTag')}
                       value={tagName}
                       onChange={(e) => setTagName(e.currentTarget.value)}
                       disabled={!isOnline || createTag.isPending}
@@ -316,21 +318,21 @@ function ItemDetail() {
                       disabled={!isOnline || !tagName.trim() || createTag.isPending}
                       onClick={() => createTag.mutate(tagName)}
                     >
-                      添加
+                      {t('items.createTag')}
                     </Button>
                   </div>
                 </div>
               </StackTight>
             </DetailRow>
-            <DetailRow label="分类">{it.category ?? '未填写'}</DetailRow>
-            <DetailRow label="购入价">
+            <DetailRow label={t('items.category')}>{it.category ?? t('common.notSet')}</DetailRow>
+            <DetailRow label={t('items.purchasePrice')}>
               {it.purchase_price != null
                 ? `${it.purchase_price} ${it.purchase_currency ?? ''}`
-                : '未填写'}
+                : t('common.notSet')}
             </DetailRow>
-            <DetailRow label="序列号">{it.serial_number ?? '未填写'}</DetailRow>
-            <DetailRow label="备注">{it.description ?? '未填写'}</DetailRow>
-            <DetailRow label="创建">
+            <DetailRow label={t('items.serialNumber')}>{it.serial_number ?? t('common.notSet')}</DetailRow>
+            <DetailRow label={t('items.description')}>{it.description ?? t('common.notSet')}</DetailRow>
+            <DetailRow label="Created">
               {new Date(it.created_at * 1000).toLocaleString()}
             </DetailRow>
           </div>
@@ -347,21 +349,23 @@ function ItemDetail() {
 }
 
 function WarrantyTab({ item }: { item: any }) {
+  const { t } = useTranslation();
   return (
     <Card className="surface-card">
       <div className="detail-grid">
-        <DetailRow label="保修到期">
+        <DetailRow label={t('itemDetail.warrantyExpiry')}>
           {item.warranty_expires_at
             ? new Date(item.warranty_expires_at * 1000).toLocaleDateString()
-            : '未填写'}
+            : t('common.notSet')}
         </DetailRow>
-        <DetailRow label="保修联系方式">{item.warranty_contact ?? '未填写'}</DetailRow>
+        <DetailRow label={t('itemDetail.warrantyContact')}>{item.warranty_contact ?? t('common.notSet')}</DetailRow>
       </div>
     </Card>
   );
 }
 
 function LoansTab({ itemId }: { itemId: string }) {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ['item', itemId, 'loans'],
     queryFn: () => loansApi.listForItem(itemId),
@@ -372,7 +376,7 @@ function LoansTab({ itemId }: { itemId: string }) {
   return (
     <Card className="surface-card">
       {loans.length === 0 ? (
-        <span className={uiStyles.muted}>暂无借出记录</span>
+        <span className={uiStyles.muted}>{t('itemDetail.noLoans')}</span>
       ) : (
         <div className={uiStyles.cardGrid}>
           {loans.map((loan) => (
@@ -381,14 +385,14 @@ function LoansTab({ itemId }: { itemId: string }) {
                 <h3 className={uiStyles.heading}>{loan.borrower_name}</h3>
                 <Badge>{loan.status}</Badge>
                 {loan.borrower_contact && (
-                  <span className={uiStyles.muted}>联系方式：{loan.borrower_contact}</span>
+                  <span className={uiStyles.muted}>{t('itemDetail.contactInfo')}{loan.borrower_contact}</span>
                 )}
                 <span className={uiStyles.muted}>
-                  借出：{new Date(loan.loaned_at * 1000).toLocaleDateString()}
+                  {t('itemDetail.loanDate')}{new Date(loan.loaned_at * 1000).toLocaleDateString()}
                 </span>
                 {loan.due_at && (
                   <span className={uiStyles.muted}>
-                    预计归还：{new Date(loan.due_at * 1000).toLocaleDateString()}
+                    {t('itemDetail.expectedReturn')}{new Date(loan.due_at * 1000).toLocaleDateString()}
                   </span>
                 )}
               </Stack>
@@ -401,6 +405,7 @@ function LoansTab({ itemId }: { itemId: string }) {
 }
 
 function ConsumableTab({ itemId, item }: { itemId: string; item: any }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const useOneMutation = useMutation({
     mutationFn: () => itemsExtendedApi.useOne(itemId),
@@ -415,11 +420,11 @@ function ConsumableTab({ itemId, item }: { itemId: string; item: any }) {
   return (
     <Card className="surface-card">
       <div className="detail-grid">
-        <DetailRow label="当前库存">
+        <DetailRow label={t('itemDetail.currentStock')}>
           <strong className={uiStyles.statValue}>{item.current_stock ?? '—'}</strong>
         </DetailRow>
-        <DetailRow label="最低阈值">{item.min_stock_threshold ?? '—'}</DetailRow>
-        <DetailRow label="寿命天数">{item.lifespan_days ?? '—'}</DetailRow>
+        <DetailRow label={t('itemDetail.minStock')}>{item.min_stock_threshold ?? '—'}</DetailRow>
+        <DetailRow label={t('itemDetail.lifespanDays')}>{item.lifespan_days ?? '—'}</DetailRow>
       </div>
       {item.type === 'consumable_b' && (
         <Button
@@ -427,7 +432,7 @@ function ConsumableTab({ itemId, item }: { itemId: string; item: any }) {
           disabled={useOneMutation.isPending}
           style={{ marginTop: '1rem' }}
         >
-          使用一个
+          {t('itemDetail.useOne')}
         </Button>
       )}
     </Card>
@@ -435,6 +440,7 @@ function ConsumableTab({ itemId, item }: { itemId: string; item: any }) {
 }
 
 function VirtualTab({ itemId }: { itemId: string }) {
+  const { t } = useTranslation();
   const { data: credData, isLoading: credLoading } = useQuery({
     queryKey: ['item', itemId, 'credentials'],
     queryFn: () => virtualAssetsApi.listCredentials(itemId),
@@ -451,17 +457,17 @@ function VirtualTab({ itemId }: { itemId: string }) {
   return (
     <Stack>
       <Card className="surface-card">
-        <h3 className={uiStyles.heading}>平台凭证</h3>
+        <h3 className={uiStyles.heading}>{t('itemDetail.platformCredentials')}</h3>
         {credentials.length === 0 ? (
-          <span className={uiStyles.muted}>暂无凭证</span>
+          <span className={uiStyles.muted}>{t('itemDetail.noCredentials')}</span>
         ) : (
           <div className={uiStyles.cardGrid}>
             {credentials.map((c) => (
               <Card className="surface-card" key={c.id}>
                 <Stack>
                   <h4 className={uiStyles.heading}>{c.platform}</h4>
-                  {c.account && <span className={uiStyles.muted}>账号：{c.account}</span>}
-                  {c.order_id && <span className={uiStyles.muted}>订单：{c.order_id}</span>}
+                  {c.account && <span className={uiStyles.muted}>{t('itemDetail.accountLabel')}{c.account}</span>}
+                  {c.order_id && <span className={uiStyles.muted}>{t('itemDetail.orderLabel')}{c.order_id}</span>}
                 </Stack>
               </Card>
             ))}
@@ -470,7 +476,7 @@ function VirtualTab({ itemId }: { itemId: string }) {
       </Card>
       {addons.length > 0 && (
         <Card className="surface-card">
-          <h3 className={uiStyles.heading}>增补购买</h3>
+          <h3 className={uiStyles.heading}>{t('itemDetail.addonPurchases')}</h3>
           <div className={uiStyles.cardGrid}>
             {addons.map((a) => (
               <Card className="surface-card" key={a.id}>
@@ -490,6 +496,7 @@ function VirtualTab({ itemId }: { itemId: string }) {
 }
 
 function EventsTab({ itemId }: { itemId: string }) {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ['item', itemId, 'events'],
     queryFn: () => itemsExtendedApi.listEvents(itemId),
@@ -501,7 +508,7 @@ function EventsTab({ itemId }: { itemId: string }) {
   return (
     <Card className="surface-card">
       {events.length === 0 ? (
-        <span className={uiStyles.muted}>暂无事件记录</span>
+        <span className={uiStyles.muted}>{t('itemDetail.noEvents')}</span>
       ) : (
         <div className={uiStyles.cardGrid}>
           {events.map((ev) => (
@@ -535,7 +542,7 @@ function PhotoPreviewImage({
   if (failed) {
     return (
       <div className={uiStyles.photoEmpty}>
-        <strong>照片无法显示</strong>
+        <strong>Photo unavailable</strong>
         <br />
         {photo.filename}
       </div>
@@ -546,7 +553,7 @@ function PhotoPreviewImage({
     <img
       className={uiStyles.photoImage}
       src={photo.url}
-      alt={`${itemName} 的照片`}
+      alt={`${itemName} photo`}
       onError={() => setFailed(true)}
     />
   );
@@ -561,7 +568,7 @@ function PhotoListItem({
 }) {
   return (
     <a className={uiStyles.photoListItem} href={photo.url} target="_blank" rel="noreferrer">
-      <img className={uiStyles.photoThumb} src={photo.url} alt={`${itemName} 缩略图`} />
+      <img className={uiStyles.photoThumb} src={photo.url} alt={`${itemName} thumbnail`} />
       <StackTight className={uiStyles.photoMeta}>
         <span className={uiStyles.photoFilename}>{photo.filename}</span>
         <span className={uiStyles.muted}>

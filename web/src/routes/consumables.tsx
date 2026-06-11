@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Badge, Button, Card, Dialog, Spinner, Stack, StackTight, TextField, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
 import { itemsApi, itemsExtendedApi } from '../api/client';
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/consumables')({
 });
 
 function ConsumablesPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showCalibrate, setShowCalibrate] = useState<string | null>(null);
   const [signal, setSignal] = useState('');
@@ -48,8 +50,8 @@ function ConsumablesPage() {
   return (
     <Stack>
       <FeatureHeader
-        title="消耗品"
-        description="类型 A 用购买事件预测库存，类型 B 用一键计数和寿命倒计时。"
+        title={t('consumables.title')}
+        description={t('consumables.description')}
         meta="A/B model"
       />
 
@@ -59,23 +61,23 @@ function ConsumablesPage() {
         <>
           <MetricStrip
             metrics={[
-              { label: '追踪项', value: items.length },
-              { label: '低于阈值', value: warnings.length },
+              { label: t('consumables.tracked'), value: items.length },
+              { label: t('consumables.belowThreshold'), value: warnings.length },
               {
-                label: '类型 A',
+                label: t('consumables.typeA'),
                 value: items.filter((i) => i.type === 'consumable_a').length,
               },
             ]}
           />
 
-          <DataCard title="库存管理">
+          <DataCard title={t('consumables.stock')}>
             <div className={uiStyles.cardGrid}>
               {items.map((item) => (
                 <Card className="surface-card" key={item.id}>
                   <Stack>
                     <StackTight>
                       <Row>
-                        <Badge>{item.type === 'consumable_a' ? '类型 A' : '类型 B'}</Badge>
+                        <Badge>{item.type === 'consumable_a' ? t('consumables.typeA') : t('consumables.typeB')}</Badge>
                         <h3 className={uiStyles.heading}>{item.name}</h3>
                       </Row>
                     </StackTight>
@@ -84,7 +86,7 @@ function ConsumablesPage() {
                         {item.current_stock ?? '—'}
                       </strong>
                       {item.min_stock_threshold != null && (
-                        <span className={uiStyles.muted}>阈值 {item.min_stock_threshold}</span>
+                        <span className={uiStyles.muted}>{t('consumables.threshold')} {item.min_stock_threshold}</span>
                       )}
                     </StackTight>
                     {item.type === 'consumable_b' && (
@@ -93,7 +95,7 @@ function ConsumablesPage() {
                         disabled={useOneMutation.isPending}
                         onClick={() => useOneMutation.mutate(item.id)}
                       >
-                        使用一个
+                        {t('consumables.useOne')}
                       </Button>
                     )}
                     {item.type === 'consumable_a' && (
@@ -104,7 +106,7 @@ function ConsumablesPage() {
                           setSignal('');
                         }}
                       >
-                        校准
+                        {t('consumables.calibrate')}
                       </Button>
                     )}
                   </Stack>
@@ -116,11 +118,11 @@ function ConsumablesPage() {
       )}
 
       {showCalibrate && (
-        <Dialog open title="校准消耗速度" onClose={() => setShowCalibrate(null)}>
+        <Dialog open title={t('consumables.calibrateTitle')} onClose={() => setShowCalibrate(null)}>
           <Stack>
             <TextField
-              label="信号"
-              placeholder="例如：plenty_left 或 almost_empty"
+              label={t('consumables.signal')}
+              placeholder={t('consumables.signalPlaceholder')}
               value={signal}
               onChange={(e) => setSignal(e.target.value)}
             />
@@ -130,7 +132,7 @@ function ConsumablesPage() {
               }
               disabled={calibrateMutation.isPending}
             >
-              提交校准
+              {t('consumables.submitCalibration')}
             </Button>
           </Stack>
         </Dialog>

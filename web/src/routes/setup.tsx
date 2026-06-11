@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { IconShieldCheck } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
@@ -19,6 +20,7 @@ export const Route = createFileRoute('/setup')({
 });
 
 function SetupPage() {
+  const { t } = useTranslation();
   const nav = useNavigate();
   const toast = useToast();
   const [username, setUsername] = useState('');
@@ -29,10 +31,10 @@ function SetupPage() {
     mutationFn: () => authApi.setup({ username, password }),
     onSuccess: (data) => {
       setToken(data.token);
-      toast.show('初始化完成');
+      toast.show(t('auth.setupSuccess'));
       nav({ to: '/' });
     },
-    onError: (e: Error) => toast.show(`初始化失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('auth.setupFailed', { error: e.message })),
   });
 
   const passwordMismatch = confirm !== '' && password !== confirm;
@@ -44,42 +46,42 @@ function SetupPage() {
       <Card className="auth-card">
         <Stack>
           <StackTight className={uiStyles.textCenter}>
-            <h1 className={`${uiStyles.heading} page-heading`}>初始化 Havit</h1>
+            <h1 className={`${uiStyles.heading} page-heading`}>{t('auth.setupTitle')}</h1>
             <p className={uiStyles.muted}>
-              欢迎首次部署。请创建 Owner 账户，之后即可登录使用。
+              {t('auth.setupWelcome')}
             </p>
           </StackTight>
 
           <Alert icon={<IconShieldCheck size={18} />}>
-            第一个账户自动获得 Owner 角色，可管理系统配置。
+            {t('auth.setupOwnerHint')}
           </Alert>
 
           <TextField
-            label="用户名"
+            label={t('auth.username')}
             value={username}
             onChange={(e) => setUsername(e.currentTarget.value)}
             required
           />
           <TextField
-            label="密码 (>=6 位)"
+            label={t('auth.password')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
             required
           />
           <TextField
-            label="确认密码"
+            label={t('auth.confirmPassword')}
             type="password"
             value={confirm}
             onChange={(e) => setConfirm(e.currentTarget.value)}
-            error={passwordMismatch ? '两次输入不一致' : null}
+            error={passwordMismatch ? t('auth.passwordMismatch') : null}
             required
           />
           <Button
             disabled={!canSubmit || setup.isPending}
             onClick={() => setup.mutate()}
           >
-            {setup.isPending ? '创建中...' : '创建账户并登录'}
+            {setup.isPending ? t('auth.creating') : t('auth.setupButton')}
           </Button>
         </Stack>
       </Card>

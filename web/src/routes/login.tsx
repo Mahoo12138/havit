@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
@@ -22,6 +23,7 @@ export const Route = createFileRoute('/login')({
 });
 
 function LoginPage() {
+  const { t } = useTranslation();
   const { systemStatus } = Route.useRouteContext();
   const { redirect } = Route.useSearch();
   const nav = useNavigate();
@@ -37,7 +39,7 @@ function LoginPage() {
       setToken(data.token);
       nav({ to: redirect ?? '/' });
     },
-    onError: () => toast.show('用户名或密码错误'),
+    onError: () => toast.show(t('auth.loginFailed')),
   });
 
   return (
@@ -45,26 +47,26 @@ function LoginPage() {
       <Card className="auth-card">
         <Stack>
           <StackTight className={uiStyles.textCenter}>
-            <h1 className={`${uiStyles.heading} page-heading`}>登录 Havit</h1>
+            <h1 className={`${uiStyles.heading} page-heading`}>{t('auth.login')} Havit</h1>
             <p className={`${uiStyles.muted} page-kicker`}>
-              个人与家庭的全资产台账
+              {t('auth.loginSubtitle')}
             </p>
           </StackTight>
 
           {isDemo && (
             <Alert icon={<IconInfoCircle size={18} />}>
-              当前为演示模式，已为你预填测试账号。
+              {t('auth.demoHint')}
             </Alert>
           )}
 
           <TextField
-            label="用户名"
+            label={t('auth.username')}
             value={username}
             onChange={(e) => setUsername(e.currentTarget.value)}
             required
           />
           <TextField
-            label="密码"
+            label={t('auth.password')}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.currentTarget.value)}
@@ -74,7 +76,7 @@ function LoginPage() {
             disabled={!username || !password || login.isPending}
             onClick={() => login.mutate()}
           >
-            {login.isPending ? '登录中...' : '登录'}
+            {login.isPending ? t('auth.loggingIn') : t('auth.login')}
           </Button>
         </Stack>
       </Card>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Card, Spinner, Stack, StatusBadge, Tabs, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
 import { itemsExtendedApi } from '../api/client';
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/lifecycle')({
 });
 
 function LifecyclePage() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<'graveyard' | 'loss'>('graveyard');
 
   const { data: graveyardData, isLoading: graveyardLoading } = useQuery({
@@ -31,8 +33,8 @@ function LifecyclePage() {
   return (
     <Stack>
       <FeatureHeader
-        title="资产退场"
-        description="售出、赠出、报废、丢失和被盗都进入归档台账，主搜索默认隐藏。"
+        title={t('lifecycle.title')}
+        description={t('lifecycle.description')}
         meta="item graveyard"
       />
 
@@ -40,8 +42,8 @@ function LifecyclePage() {
         value={tab}
         onChange={(v) => setTab(v as 'graveyard' | 'loss')}
         tabs={[
-          { key: 'graveyard', label: '物品墓地' },
-          { key: 'loss', label: '损耗记录' },
+          { key: 'graveyard', label: t('lifecycle.graveyard') },
+          { key: 'loss', label: t('lifecycle.lossRecords') },
         ]}
       />
 
@@ -51,16 +53,16 @@ function LifecyclePage() {
         <>
           <MetricStrip
             metrics={[
-              { label: '归档资产', value: graveyardItems.length },
+              { label: t('lifecycle.archivedAssets'), value: graveyardItems.length },
               {
-                label: '异常退场',
+                label: t('lifecycle.abnormalExit'),
                 value: graveyardItems.filter((i) =>
                   ['lost', 'stolen', 'damaged'].includes(i.status),
                 ).length,
               },
             ]}
           />
-          <DataCard title="物品墓地">
+          <DataCard title={t('lifecycle.itemGraveyard')}>
             <div className={uiStyles.cardGrid}>
               {graveyardItems.map((item) => (
                 <Card className="surface-card" key={item.id}>
@@ -77,10 +79,10 @@ function LifecyclePage() {
         <>
           <MetricStrip
             metrics={[
-              { label: '损耗记录', value: lossRecords.length },
+              { label: t('lifecycle.lossRecords'), value: lossRecords.length },
             ]}
           />
-          <DataCard title="损耗记录">
+          <DataCard title={t('lifecycle.lossRecords')}>
             <div className={uiStyles.cardGrid}>
               {lossRecords.map((record) => (
                 <Card className="surface-card" key={record.item_id}>

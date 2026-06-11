@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { IconSearch, IconSparkles } from '@tabler/icons-react';
 import { Card, Row, Spinner, Stack, StatusBadge, TextField, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/search')({
 });
 
 function SearchPage() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [ftsResults, setFtsResults] = useState<SearchResult[]>([]);
   const [llmResults, setLlmResults] = useState<SearchResult[]>([]);
@@ -66,16 +68,16 @@ function SearchPage() {
   return (
     <Stack>
       <FeatureHeader
-        title="自然语言搜索"
-        description="先返回 FTS5 命中，再用异步精排结果补充解释和降级提示。"
+        title={t('search.title')}
+        description={t('search.description')}
         meta="FTS5 + SSE"
       />
 
       <Card className="surface-card">
         <Stack>
           <TextField
-            label="查询"
-            placeholder="例如：家里有哪些闲置超过半年的数码产品"
+            label={t('search.query')}
+            placeholder={t('search.queryPlaceholder')}
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
           />
@@ -84,11 +86,11 @@ function SearchPage() {
             {isRefining && (
               <Row>
                 <Spinner />
-                <span className={uiStyles.muted}>AI 优化中…</span>
+                <span className={uiStyles.muted}>{t('search.aiRefining')}</span>
               </Row>
             )}
             {!isRefining && ftsResults.length > 0 && llmResults.length === 0 && (
-              <span className={uiStyles.muted}>FTS 结果已返回</span>
+              <span className={uiStyles.muted}>{t('search.ftsReturned')}</span>
             )}
           </Row>
         </Stack>
@@ -96,20 +98,20 @@ function SearchPage() {
 
       <MetricStrip
         metrics={[
-          { label: '结果', value: results.length },
+          { label: t('search.results'), value: results.length },
           {
-            label: '异常状态',
+            label: t('search.abnormalStatus'),
             value: results.filter((r) => r.status !== 'in_stock').length,
           },
           {
-            label: '搜索源',
-            value: llmResults.length > 0 ? 'LLM 精排' : ftsResults.length > 0 ? 'FTS5' : '—',
+            label: t('search.searchSource'),
+            value: llmResults.length > 0 ? t('search.llmRefined') : ftsResults.length > 0 ? 'FTS5' : '—',
           },
         ]}
       />
 
       {results.length > 0 && (
-        <DataCard title="搜索结果">
+        <DataCard title={t('search.searchResults')}>
           <div className={uiStyles.cardGrid}>
             {results.map((result) => (
               <Card className="surface-card" key={result.id}>
@@ -135,7 +137,7 @@ function SearchPage() {
         <Card className="surface-card">
           <Row>
             <IconSearch size={16} />
-            <span className={uiStyles.muted}>未找到匹配结果</span>
+            <span className={uiStyles.muted}>{t('search.noResults')}</span>
           </Row>
         </Card>
       )}

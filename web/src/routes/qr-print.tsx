@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { IconPrinter } from '@tabler/icons-react';
 import { Button, uiStyles } from '../components/ui';
 import { FeatureHeader } from '../features/m2/components';
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/qr-print')({
 });
 
 function QrPrintPage() {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ['locations'],
     queryFn: () => locationsApi.tree(),
@@ -24,8 +26,8 @@ function QrPrintPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <FeatureHeader
-        title="位置标签打印"
-        description="选择要打印标签的位置，生成可裁剪的 QR 标签。"
+        title={t('qrPrint.title')}
+        description={t('qrPrint.description')}
         meta="ops"
       />
 
@@ -34,13 +36,13 @@ function QrPrintPage() {
         onClick={handlePrint}
         style={{ alignSelf: 'flex-start' }}
       >
-        打印
+        {t('qrPrint.print')}
       </Button>
 
       {isLoading ? (
-        <div className={uiStyles.muted}>加载中…</div>
+        <div className={uiStyles.muted}>{t('common.loading')}</div>
       ) : locations.length === 0 ? (
-        <div className={uiStyles.muted}>暂无位置数据</div>
+        <div className={uiStyles.muted}>{t('qrPrint.noLocations')}</div>
       ) : (
         <div className={uiStyles.qrPrintGrid}>
           {locations.map((loc) => (

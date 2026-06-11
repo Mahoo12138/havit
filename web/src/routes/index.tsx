@@ -17,6 +17,7 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Badge, uiStyles } from '../components/ui';
 import { authApi, itemsApi, locationsApi, remindersApi, type Item, type Location } from '../api/client';
 
@@ -34,17 +35,17 @@ function countLocations(nodes: Location[] | undefined): number {
   return n;
 }
 
-function formatGreeting(): string {
+function formatGreeting(t: (key: string) => string): string {
   const hour = new Date().getHours();
-  if (hour < 5) return '夜深了';
-  if (hour < 11) return '早上好';
-  if (hour < 13) return '中午好';
-  if (hour < 18) return '下午好';
-  return '晚上好';
+  if (hour < 5) return t('greeting.night');
+  if (hour < 11) return t('greeting.morning');
+  if (hour < 13) return t('greeting.noon');
+  if (hour < 18) return t('greeting.afternoon');
+  return t('greeting.evening');
 }
 
-function formatPrice(value: number): string {
-  if (value >= 10000) return `${(value / 10000).toFixed(1)}万`;
+function formatPrice(value: number, t: (key: string, opts?: any) => string): string {
+  if (value >= 10000) return t('common.wan', { value: (value / 10000).toFixed(1) });
   return value.toLocaleString('zh-CN');
 }
 
@@ -57,15 +58,6 @@ function formatDateShort(ts: number): string {
 
 const CATEGORY_PALETTE = ['teal', 'info', 'warning', 'violet', 'amber', 'danger'] as const;
 
-const STATUS_LABEL: Record<string, string> = {
-  in_stock: '在库',
-  in_use: '在用',
-  loaned: '借出',
-  archived: '归档',
-  consumed: '耗尽',
-  lost: '遗失',
-};
-
 const STATUS_VARIANT: Record<string, 'neutral' | 'info' | 'warning' | 'danger'> = {
   in_stock: 'info',
   in_use: 'neutral',
@@ -77,19 +69,20 @@ const STATUS_VARIANT: Record<string, 'neutral' | 'info' | 'warning' | 'danger'> 
 
 const quickActions: Array<{
   to: string;
-  label: string;
+  translationKey: string;
   icon: Icon;
   tone: 'teal' | 'info' | 'warning' | 'violet' | 'amber' | 'success';
 }> = [
-  { to: '/items', label: '新增物品', icon: IconPlus, tone: 'teal' },
-  { to: '/capture', label: '扫码录入', icon: IconBarcode, tone: 'info' },
-  { to: '/locations', label: '管理位置', icon: IconMap2, tone: 'violet' },
-  { to: '/loans', label: '借出登记', icon: IconClipboardList, tone: 'warning' },
-  { to: '/import', label: '批量导入', icon: IconFileImport, tone: 'amber' },
-  { to: '/operations', label: '运维导出', icon: IconDatabaseExport, tone: 'success' },
+  { to: '/items', translationKey: 'quickAction.newItem', icon: IconPlus, tone: 'teal' },
+  { to: '/capture', translationKey: 'quickAction.scan', icon: IconBarcode, tone: 'info' },
+  { to: '/locations', translationKey: 'quickAction.manageLocations', icon: IconMap2, tone: 'violet' },
+  { to: '/loans', translationKey: 'quickAction.registerLoan', icon: IconClipboardList, tone: 'warning' },
+  { to: '/import', translationKey: 'quickAction.batchImport', icon: IconFileImport, tone: 'amber' },
+  { to: '/operations', translationKey: 'quickAction.export', icon: IconDatabaseExport, tone: 'success' },
 ];
 
 function Dashboard() {
+  const { t } = useTranslation();
   const me = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: () => authApi.me(),
@@ -135,13 +128,13 @@ function Dashboard() {
   const categoryBreakdown = useMemo(() => {
     const groups = new Map<string, number>();
     for (const it of allItems) {
-      const key = (it.category && it.category.trim()) || '未分类';
+      const key = (it.category && it.category.trim()) || t('common.uncategorized');
       groups.set(key, (groups.get(key) ?? 0) + 1);
     }
     return Array.from(groups.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 6);
-  }, [allItems]);
+  }, [allItems, t]);
 
   const recent = useMemo(() => {
     return [...allItems]
@@ -159,37 +152,37 @@ function Dashboard() {
         <div className={uiStyles.kpiStrip}>
           <Kpi
             icon={IconPackage}
-            label="物品总数"
+            label={t('kpi.totalItems')}
             value={totals.totalItems}
             tone="teal"
             loading={items.isPending}
           />
           <Kpi
             icon={IconCoin}
-            label="总价值"
+            label={t('kpi.totalValue')}
             value={
-              totals.totalValue > 0 ? `¥${formatPrice(totals.totalValue)}` : '—'
+              totals.totalValue > 0 ? `¥${formatPrice(totals.totalValue, t)}` : '—'
             }
             tone="warning"
             loading={items.isPending}
           />
           <Kpi
             icon={IconCategory2}
-            label="类别"
+            label={t('kpi.categories')}
             value={totals.categoryCount}
             tone="info"
             loading={items.isPending}
           />
           <Kpi
             icon={IconBox}
-            label="在库"
+            label={t('kpi.inStock')}
             value={totals.inStock}
             tone="violet"
             loading={items.isPending}
           />
           <Kpi
             icon={IconBuildingWarehouse}
-            label="位置"
+            label={t('kpi.locations')}
             value={locationTotal ?? '—'}
             tone="danger"
             loading={locs.isPending}
@@ -211,13 +204,14 @@ function Dashboard() {
 }
 
 function Greeting({ username }: { username: string | undefined }) {
+  const { t } = useTranslation();
   return (
     <div className={uiStyles.greetingRow}>
       <div>
         <h1 className="page-heading">
-          {formatGreeting()}，{username ?? '伙计'} <span aria-hidden>👋</span>
+          {formatGreeting(t)}，{username ?? t('common.friend')} <span aria-hidden>👋</span>
         </h1>
-        <p className="page-kicker">看看今天家里都有什么动静。</p>
+        <p className="page-kicker">{t('dashboard.subtitle')}</p>
       </div>
     </div>
   );
@@ -256,20 +250,21 @@ function CategoryOverview({
   categories: Array<[string, number]>;
   empty: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
-        <h2 className={uiStyles.sectionTitle}>资产概览</h2>
+        <h2 className={uiStyles.sectionTitle}>{t('dashboard.assetOverview')}</h2>
         <Link to="/items" className={uiStyles.sectionLink}>
-          全部 <IconArrowRight size={14} />
+          {t('common.all')} <IconArrowRight size={14} />
         </Link>
       </header>
       <div className={uiStyles.sectionBody}>
         {empty ? (
           <EmptyHint
             icon={<IconCategory2 size={20} />}
-            title="还没有分类的物品"
-            sub="添加几件物品后会自动按类别归集。"
+            title={t('dashboard.noCategories')}
+            sub={t('dashboard.noCategoriesHint')}
           />
         ) : (
           <div className={uiStyles.categoryRow}>
@@ -286,7 +281,7 @@ function CategoryOverview({
                     <IconPhoto size={22} />
                   </div>
                   <span className={uiStyles.categoryName}>{name}</span>
-                  <span className={uiStyles.categoryCount}>{count} 件</span>
+                  <span className={uiStyles.categoryCount}>{count} {t('common.items')}</span>
                 </Link>
               );
             })}
@@ -298,20 +293,27 @@ function CategoryOverview({
 }
 
 function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
+  const { t } = useTranslation();
+  const statusLabel = (status: string): string => {
+    const key = `status.${status}`;
+    const translated = t(key);
+    return translated === key ? status : translated;
+  };
+
   return (
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
-        <h2 className={uiStyles.sectionTitle}>最近添加</h2>
+        <h2 className={uiStyles.sectionTitle}>{t('dashboard.recentAdditions')}</h2>
         <Link to="/items" className={uiStyles.sectionLink}>
-          查看全部 <IconArrowRight size={14} />
+          {t('dashboard.viewAll')} <IconArrowRight size={14} />
         </Link>
       </header>
       {empty ? (
         <div className={uiStyles.sectionBody}>
           <EmptyHint
             icon={<IconPackage size={20} />}
-            title="还没有添加任何物品"
-            sub="去 物品 页或者扫码录入开始记录。"
+            title={t('dashboard.noItems')}
+            sub={t('dashboard.noItemsHint')}
           />
         </div>
       ) : (
@@ -339,16 +341,16 @@ function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
                 <div className={uiStyles.recentMeta}>
                   <span className={uiStyles.recentName}>{it.name}</span>
                   <span className={uiStyles.recentSub}>
-                    {it.category ?? '未分类'} · 添加于 {formatDateShort(it.created_at)}
+                    {it.category ?? t('common.uncategorized')} · {formatDateShort(it.created_at)}
                   </span>
                 </div>
                 <div className={uiStyles.recentTags}>
                   <span className={variantClass}>
-                    {STATUS_LABEL[it.status] ?? it.status}
+                    {statusLabel(it.status)}
                   </span>
                 </div>
                 <span className={uiStyles.recentPrice}>
-                  {it.purchase_price ? `¥${formatPrice(it.purchase_price)}` : '—'}
+                  {it.purchase_price ? `¥${formatPrice(it.purchase_price, t)}` : '—'}
                 </span>
               </Link>
             );
@@ -360,10 +362,11 @@ function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
 }
 
 function QuickActionsCard() {
+  const { t } = useTranslation();
   return (
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
-        <h2 className={uiStyles.sectionTitle}>快捷操作</h2>
+        <h2 className={uiStyles.sectionTitle}>{t('dashboard.quickActions')}</h2>
       </header>
       <div className={uiStyles.sectionBody}>
         <div className={uiStyles.quickActionsGrid}>
@@ -374,7 +377,7 @@ function QuickActionsCard() {
                 <span className={uiStyles.quickActionIcon[qa.tone]}>
                   <Icon size={18} />
                 </span>
-                {qa.label}
+                {t(qa.translationKey)}
               </Link>
             );
           })}
@@ -385,25 +388,26 @@ function QuickActionsCard() {
 }
 
 function RemindersCard({ reminders, loading }: { reminders: any[]; loading: boolean }) {
+  const { t } = useTranslation();
   return (
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
-        <h2 className={uiStyles.sectionTitle}>待办提醒</h2>
+        <h2 className={uiStyles.sectionTitle}>{t('dashboard.reminders')}</h2>
         <Link to="/operations" className={uiStyles.sectionLink}>
-          管理 <IconArrowRight size={14} />
+          {t('dashboard.manage')} <IconArrowRight size={14} />
         </Link>
       </header>
       <div className={uiStyles.sectionBody}>
         {loading ? (
-          <div className={uiStyles.reminderEmpty}>加载中…</div>
+          <div className={uiStyles.reminderEmpty}>{t('common.loading')}</div>
         ) : reminders.length === 0 ? (
-          <div className={uiStyles.reminderEmpty}>暂无待办，一切井井有条。</div>
+          <div className={uiStyles.reminderEmpty}>{t('dashboard.noReminders')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {reminders.slice(0, 5).map((r) => (
               <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>{r.type} — {r.item_id}</span>
-                <Badge>{r.is_dismissed ? '已忽略' : r.sent_at ? '已发送' : '待处理'}</Badge>
+                <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
               </div>
             ))}
           </div>
@@ -420,19 +424,20 @@ function LocationsCard({
   tree: Location[];
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
-        <h2 className={uiStyles.sectionTitle}>位置</h2>
+        <h2 className={uiStyles.sectionTitle}>{t('dashboard.locations')}</h2>
         <Link to="/locations" className={uiStyles.sectionLink}>
-          管理 <IconArrowRight size={14} />
+          {t('dashboard.manage')} <IconArrowRight size={14} />
         </Link>
       </header>
       <div className={uiStyles.locationTreeWrap}>
         {loading ? (
-          <div className={uiStyles.reminderEmpty}>加载中…</div>
+          <div className={uiStyles.reminderEmpty}>{t('common.loading')}</div>
         ) : tree.length === 0 ? (
-          <div className={uiStyles.reminderEmpty}>还没创建位置。</div>
+          <div className={uiStyles.reminderEmpty}>{t('dashboard.noLocations')}</div>
         ) : (
           tree.slice(0, 8).map((node) => (
             <div key={node.id} className={uiStyles.locationNode}>

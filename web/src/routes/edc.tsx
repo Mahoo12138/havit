@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { IconHome } from '@tabler/icons-react';
 import { Badge, Button, Spinner, Stack, StackTight, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/edc')({
 });
 
 function EDCPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -28,8 +30,8 @@ function EDCPage() {
   return (
     <Stack>
       <FeatureHeader
-        title="EDC 双轨模型"
-        description="保留基准位置，同时用动态状态表达随身、出差包和未知状态。"
+        title={t('edc.title')}
+        description={t('edc.description')}
         meta="baseline + state"
       />
 
@@ -39,21 +41,21 @@ function EDCPage() {
         <>
           <MetricStrip
             metrics={[
-              { label: 'EDC 物品', value: items.length },
-              { label: '当前随身', value: awayItems.length },
-              { label: '可归位', value: items.filter((i) => i.location_id !== i.home_base_location_id).length },
+              { label: t('edc.edcItems'), value: items.length },
+              { label: t('edc.currentlyWithYou'), value: awayItems.length },
+              { label: t('edc.canReturn'), value: items.filter((i) => i.location_id !== i.home_base_location_id).length },
             ]}
           />
 
-          <DataCard title="出门检查清单">
+          <DataCard title={t('edc.checklist')}>
             <div className={uiStyles.tableWrap}>
               <table className={uiStyles.table}>
                 <thead>
                   <tr>
-                    <th className={uiStyles.th}>物品</th>
-                    <th className={uiStyles.th}>基准位置</th>
-                    <th className={uiStyles.th}>当前状态</th>
-                    <th className={uiStyles.th}>操作</th>
+                    <th className={uiStyles.th}>{t('edc.item')}</th>
+                    <th className={uiStyles.th}>{t('edc.homeBase')}</th>
+                    <th className={uiStyles.th}>{t('edc.currentStatus')}</th>
+                    <th className={uiStyles.th}>{t('edc.action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -77,7 +79,7 @@ function EDCPage() {
                             disabled={returnHomeMutation.isPending}
                             onClick={() => returnHomeMutation.mutate(item.id)}
                           >
-                            归位
+                            {t('edc.returnHome')}
                           </Button>
                         )}
                       </td>

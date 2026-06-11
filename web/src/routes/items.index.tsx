@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconPlus, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Button,
@@ -36,15 +37,15 @@ function flatten(
   return out;
 }
 
-const itemTypeOptions = [
-  { value: 'durable', label: '耐用品' },
-  { value: 'consumable_a', label: '消耗品 A（高频流动）' },
-  { value: 'consumable_b', label: '消耗品 B（低频长周期）' },
-  { value: 'edc', label: 'EDC（随身物品）' },
-  { value: 'virtual', label: '虚拟资产（买断）' },
-];
-
 function ItemsPage() {
+  const { t } = useTranslation();
+  const itemTypeOptions = [
+    { value: 'durable', label: t('items.durable') },
+    { value: 'consumable_a', label: t('items.consumable_a') },
+    { value: 'consumable_b', label: t('items.consumable_b') },
+    { value: 'edc', label: t('nav.edc') },
+    { value: 'virtual', label: t('items.virtual_asset') },
+  ];
   const [q, setQ] = useState('');
   const [tagID, setTagID] = useState('');
   const [opened, setOpened] = useState(false);
@@ -91,7 +92,7 @@ function ItemsPage() {
         location_id: form.location_id || undefined,
       }),
     onSuccess: () => {
-      toast.show('物品已创建');
+      toast.show(t('items.created'));
       qc.invalidateQueries({ queryKey: ['items'] });
       setForm({
         name: '',
@@ -102,16 +103,16 @@ function ItemsPage() {
       });
       setOpened(false);
     },
-    onError: (e: Error) => toast.show(`创建失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('items.createFailed', { error: e.message })),
   });
 
   return (
     <Stack>
       <div className={uiStyles.pageHeader}>
         <StackTight>
-          <h2 className="page-heading">物品</h2>
+          <h2 className="page-heading">{t('items.title')}</h2>
           <p className="page-kicker">
-            记录耐用品、消耗品、EDC 和买断制虚拟资产。
+            {t('items.description')}
           </p>
         </StackTight>
         <div className={uiStyles.pageActions}>
@@ -119,16 +120,16 @@ function ItemsPage() {
             leftSection={<IconPlus size={16} />}
             onClick={() => setOpened(true)}
             disabled={!isOnline}
-            title={!isOnline ? '离线模式下无法录入' : undefined}
+            title={!isOnline ? t('items.offlineWarning') : undefined}
           >
-            新增
+            {t('items.create')}
           </Button>
         </div>
       </div>
 
       <div className={uiStyles.toolbar}>
         <label className={uiStyles.field}>
-          <span className={uiStyles.label}>搜索</span>
+          <span className={uiStyles.label}>{t('common.search')}</span>
           <span className={uiStyles.searchControl}>
             <IconSearch
               size={16}
@@ -136,16 +137,16 @@ function ItemsPage() {
             />
             <input
               className={[uiStyles.input, uiStyles.searchInput].join(' ')}
-              placeholder="搜索物品（>=3 个字符）"
+              placeholder={t('search.placeholder')}
               value={q}
               onChange={(e) => setQ(e.currentTarget.value)}
             />
           </span>
         </label>
         <SelectField
-          label="标签筛选"
+          label={t('common.filter')}
           options={tagOptions}
-          placeholder="全部标签"
+          placeholder={t('common.all')}
           value={tagID}
           onChange={(e) => setTagID(e.currentTarget.value)}
         />
@@ -156,11 +157,11 @@ function ItemsPage() {
           <table className={uiStyles.table}>
             <thead>
               <tr>
-                <th className={uiStyles.th}>名称</th>
-                <th className={uiStyles.th}>类型</th>
-                <th className={uiStyles.th}>状态</th>
-                <th className={uiStyles.th}>分类</th>
-                <th className={uiStyles.th}>标签</th>
+                <th className={uiStyles.th}>{t('items.name')}</th>
+                <th className={uiStyles.th}>{t('items.type')}</th>
+                <th className={uiStyles.th}>{t('items.status')}</th>
+                <th className={uiStyles.th}>{t('items.category')}</th>
+                <th className={uiStyles.th}>{t('items.tags')}</th>
               </tr>
             </thead>
             <tbody>
@@ -175,7 +176,7 @@ function ItemsPage() {
                   <td className={uiStyles.td}>
                     <Badge>{it.status}</Badge>
                   </td>
-                  <td className={uiStyles.td}>{it.category ?? '未填写'}</td>
+                  <td className={uiStyles.td}>{it.category ?? t('common.notSet')}</td>
                   <td className={uiStyles.td}>
                     {it.tags && it.tags.length > 0 ? (
                       <div className={uiStyles.tagList}>
@@ -186,7 +187,7 @@ function ItemsPage() {
                         ))}
                       </div>
                     ) : (
-                      <span className={uiStyles.muted}>未添加</span>
+                      <span className={uiStyles.muted}>{t('items.noTags')}</span>
                     )}
                   </td>
                 </tr>
@@ -195,7 +196,7 @@ function ItemsPage() {
                 <tr>
                   <td className={uiStyles.td} colSpan={5}>
                     <div className="empty-state">
-                      暂无物品。先新增一件常用设备，或从 CSV / JSON 批量导入。
+                      {t('items.noItemsHint')}
                     </div>
                   </td>
                 </tr>
@@ -208,32 +209,32 @@ function ItemsPage() {
       <Dialog
         open={opened}
         onClose={() => setOpened(false)}
-        title="新增物品"
+        title={t('items.create')}
       >
         <Stack>
           <TextField
-            label="名称"
+            label={t('items.name')}
             required
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.currentTarget.value })}
           />
           <SelectField
-            label="类型"
+            label={t('items.type')}
             options={itemTypeOptions}
             value={form.type}
             onChange={(e) => setForm({ ...form, type: e.currentTarget.value })}
           />
           <TextField
-            label="分类"
+            label={t('items.category')}
             value={form.category}
             onChange={(e) =>
               setForm({ ...form, category: e.currentTarget.value })
             }
           />
           <SelectField
-            label="位置"
+            label={t('items.location')}
             options={locOptions}
-            placeholder="未选择"
+            placeholder={t('items.selectLocation')}
             required
             value={form.location_id}
             onChange={(e) =>
@@ -241,7 +242,7 @@ function ItemsPage() {
             }
           />
           <TextareaField
-            label="备注"
+            label={t('items.description')}
             value={form.description}
             onChange={(e) =>
               setForm({ ...form, description: e.currentTarget.value })
@@ -249,14 +250,14 @@ function ItemsPage() {
           />
           <div className={uiStyles.formActions}>
             <Button variant="quiet" onClick={() => setOpened(false)}>
-              取消
+              {t('common.cancel')}
             </Button>
             <Button
               disabled={!form.name || !form.location_id || !isOnline || create.isPending}
-              title={!isOnline ? '离线模式下无法保存' : undefined}
+              title={!isOnline ? t('items.offlineWarning') : undefined}
               onClick={() => create.mutate()}
             >
-              {create.isPending ? '保存中...' : '保存'}
+              {create.isPending ? t('common.loading') : t('common.save')}
             </Button>
           </div>
         </Stack>

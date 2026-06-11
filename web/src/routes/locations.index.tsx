@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   IconChevronRight,
@@ -31,6 +32,28 @@ import {
   type LocationType,
 } from '../features/locations/types';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
+
+function locationTypeLabel(type: string, t: (key: string) => string): string {
+  const map: Record<string, string> = {
+    property: t('locationType.property'),
+    room: t('locationType.room'),
+    furniture: t('locationType.furniture'),
+    container: t('locationType.container'),
+    virtual: t('locationType.virtual'),
+  };
+  return map[type] ?? type;
+}
+
+function locationTypeDesc(type: string, t: (key: string) => string): string {
+  const map: Record<string, string> = {
+    property: t('locationType.propertyDesc'),
+    room: t('locationType.roomDesc'),
+    furniture: t('locationType.furnitureDesc'),
+    container: t('locationType.containerDesc'),
+    virtual: t('locationType.virtualDesc'),
+  };
+  return map[type] ?? '';
+}
 
 export const Route = createFileRoute('/locations/')({
   component: LocationsPage,
@@ -85,8 +108,8 @@ function collectSubtreeIds(index: LocationIndex, id: string): string[] {
   return out;
 }
 
-function formatPrice(value: number): string {
-  if (value >= 10000) return `¥${(value / 10000).toFixed(1)}万`;
+function formatPrice(value: number, t: (key: string, opts?: any) => string): string {
+  if (value >= 10000) return `¥${t('common.wan', { value: (value / 10000).toFixed(1) })}`;
   return `¥${value.toLocaleString('zh-CN')}`;
 }
 
@@ -101,6 +124,7 @@ interface EditDialogState {
 }
 
 function LocationsPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const toast = useToast();
   const isOnline = useNetworkStatus();
@@ -186,7 +210,7 @@ function LocationsPage() {
         is_private: body.is_private,
       }),
     onSuccess: (created) => {
-      toast.show('位置已创建');
+      toast.show(t('locations.created'));
       qc.invalidateQueries({ queryKey: ['locations'] });
       setCreateDialog({ open: false, parent: null });
       if (created.parent_id) {
@@ -194,24 +218,24 @@ function LocationsPage() {
       }
       setSelectedId(created.id);
     },
-    onError: (e: Error) => toast.show(`创建失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('locations.createFailed', { error: e.message })),
   });
 
   const editMutation = useMutation({
     mutationFn: (body: { id: string; name: string; type: LocationType }) =>
       locationsApi.update(body.id, { name: body.name, type: body.type }),
     onSuccess: () => {
-      toast.show('已更新');
+      toast.show(t('locations.updated'));
       qc.invalidateQueries({ queryKey: ['locations'] });
       setEditDialog({ open: false, location: null });
     },
-    onError: (e: Error) => toast.show(`更新失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('locations.updateFailed', { error: e.message })),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => locationsApi.delete(id),
     onSuccess: (_data, id) => {
-      toast.show('已删除');
+      toast.show(t('locations.deleted'));
       qc.invalidateQueries({ queryKey: ['locations'] });
       setPendingDelete(null);
       if (selectedId === id) {
@@ -219,25 +243,25 @@ function LocationsPage() {
         setSelectedId(parentId ?? null);
       }
     },
-    onError: (e: Error) => toast.show(`删除失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('locations.deleteFailed', { error: e.message })),
   });
 
   const qrMutation = useMutation({
     mutationFn: (id: string) => locationsApi.generateQRCode(id),
     onSuccess: () => {
-      toast.show('已生成二维码');
+      toast.show(t('locations.qrGenerated'));
       qc.invalidateQueries({ queryKey: ['locations'] });
     },
-    onError: (e: Error) => toast.show(`生成失败：${e.message}`),
+    onError: (e: Error) => toast.show(t('locations.qrGenerateFailed', { error: e.message })),
   });
 
   return (
     <Stack>
       <div className={uiStyles.pageHeader}>
         <StackTight>
-          <h2 className="page-heading">位置管理</h2>
+          <h2 className="page-heading">{t('locations.title')}</h2>
           <p className="page-kicker">
-            房产 → 房间 → 家具 → 容器，按物理层级管理藏品归处。虚拟节点用于描述动态位置。
+            {t('locations.description')}
           </p>
         </StackTight>
         <div className={uiStyles.pageActions}>
@@ -246,9 +270,9 @@ function LocationsPage() {
             leftSection={<IconPlus size={15} />}
             onClick={() => setCreateDialog({ open: true, parent: null })}
             disabled={!isOnline}
-            title={!isOnline ? '离线模式下无法新增位置' : undefined}
+            title={!isOnline ? t('locations.offlineDisabled') : undefined}
           >
-            添加根位置
+            {t('locations.addRoot')}
           </Button>
         </div>
       </div>
@@ -256,23 +280,23 @@ function LocationsPage() {
       <div className={uiStyles.locationLayout}>
         <aside className={uiStyles.locationTreePane}>
           <div className={uiStyles.locationTreeHead}>
-            <span className={uiStyles.locationTreeHeadTitle}>位置树</span>
+            <span className={uiStyles.locationTreeHeadTitle}>{t('locations.tree')}</span>
             <span className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>
-              共 {index.byId.size} 个节点
+              {t('locations.nodeCount', { count: index.byId.size })}
             </span>
           </div>
           <div className={uiStyles.locationTreeBody}>
             {tree.isPending ? (
-              <div className={uiStyles.reminderEmpty}>加载中…</div>
+              <div className={uiStyles.reminderEmpty}>{t('locations.loading')}</div>
             ) : index.roots.length === 0 ? (
               <div className={uiStyles.reminderEmpty}>
-                还没有位置节点，先创建一个吧。
+                {t('locations.noLocationsHint')}
               </div>
             ) : (
               <>
                 {physicalRoots.length > 0 && (
                   <TreeSection
-                    label="实物位置"
+                    label={t('locations.physicalPositions')}
                     nodes={physicalRoots}
                     index={index}
                     expanded={expanded}
@@ -284,7 +308,7 @@ function LocationsPage() {
                 )}
                 {virtualRoots.length > 0 && (
                   <TreeSection
-                    label="虚拟位置"
+                    label={t('locations.virtualPositions')}
                     nodes={virtualRoots}
                     index={index}
                     expanded={expanded}
@@ -463,13 +487,14 @@ function TreeNode({
 }
 
 function DetailEmpty() {
+  const { t } = useTranslation();
   return (
     <div className={uiStyles.detailEmpty}>
       <span className={uiStyles.detailEmptyIcon}>
         <IconMapPin size={22} />
       </span>
-      <strong style={{ color: 'var(--havit-ink)' }}>选择左侧的一个位置开始</strong>
-      <span>或者点击「添加根位置」来创建第一个节点。</span>
+      <strong style={{ color: 'var(--havit-ink)' }}>{t('locations.selectToStart')}</strong>
+      <span>{t('locations.addFirstChild')}</span>
     </div>
   );
 }
@@ -503,6 +528,7 @@ function LocationDetail({
   qrPending: boolean;
   subtreeCount: (id: string) => number;
 }) {
+  const { t } = useTranslation();
   const meta = getLocationTypeMeta(location.type);
   const Icon = meta.icon;
   const canHaveChildren = allowedChildTypes(location.type).length > 0;
@@ -519,7 +545,7 @@ function LocationDetail({
               onClick={onAddChild}
               disabled={!isOnline}
             >
-              添加子位置
+              {t('locations.addChild')}
             </Button>
           )}
           <Button
@@ -527,9 +553,9 @@ function LocationDetail({
             leftSection={<IconQrcode size={15} />}
             onClick={onGenerateQr}
             disabled={!isOnline || qrPending}
-            title={location.qr_code ? '已有二维码' : '生成二维码'}
+            title={location.qr_code ? t('locations.hasQR') : t('locations.generateQR')}
           >
-            {location.qr_code ? '查看二维码' : qrPending ? '生成中…' : '二维码'}
+            {location.qr_code ? t('locations.viewQR') : qrPending ? t('locations.generating') : t('locations.qrCode')}
           </Button>
           <Button
             variant="quiet"
@@ -537,7 +563,7 @@ function LocationDetail({
             onClick={onEdit}
             disabled={!isOnline}
           >
-            编辑
+            {t('locations.edit')}
           </Button>
           <Button
             variant="subtle"
@@ -545,7 +571,7 @@ function LocationDetail({
             onClick={onDelete}
             disabled={!isOnline}
           >
-            删除
+            {t('locations.delete')}
           </Button>
         </div>
       </header>
@@ -559,7 +585,7 @@ function LocationDetail({
           <Row>
             <span className={uiStyles.typeBadge[meta.tone]}>
               <Icon size={11} />
-              {meta.label}
+              {locationTypeLabel(location.type, t)}
             </span>
             {location.qr_code && (
               <span className={uiStyles.qrChip}>
@@ -568,23 +594,23 @@ function LocationDetail({
               </span>
             )}
             {location.is_private && (
-              <span className={uiStyles.tagChipWarning}>仅自己可见</span>
+              <span className={uiStyles.tagChipWarning}>{t('locations.privateOnly')}</span>
             )}
           </Row>
-          <span className={uiStyles.locationHeroSub}>{meta.desc}</span>
+          <span className={uiStyles.locationHeroSub}>{locationTypeDesc(location.type, t)}</span>
         </div>
       </div>
 
       <div className={uiStyles.metaGrid}>
-        <MetaChip label="本节点物品" value={directItems.length} />
-        <MetaChip label="子节点" value={children.length} />
-        <MetaChip label="子树共计" value={subtreeCount(location.id)} />
+        <MetaChip label={t('locations.directItems')} value={directItems.length} />
+        <MetaChip label={t('locations.childCount')} value={children.length} />
+        <MetaChip label={t('locations.subtreeTotal')} value={subtreeCount(location.id)} />
       </div>
 
       {children.length > 0 && (
         <div className={uiStyles.detailBody}>
           <div className={uiStyles.subsection}>
-            <span className={uiStyles.subsectionTitle}>子位置 ({children.length})</span>
+            <span className={uiStyles.subsectionTitle}>{t('locations.children')} ({children.length})</span>
           </div>
           <div className={uiStyles.childrenStrip}>
             {children.map((c) => {
@@ -614,10 +640,10 @@ function LocationDetail({
 
       <div className={uiStyles.detailBody}>
         <div className={uiStyles.subsection}>
-          <span className={uiStyles.subsectionTitle}>本节点物品</span>
+          <span className={uiStyles.subsectionTitle}>{t('locations.directItems')}</span>
           {childrenTotalItems > 0 && (
             <span className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>
-              子位置还有 {childrenTotalItems} 件
+              {t('locations.childrenHaveItems', { count: childrenTotalItems })}
             </span>
           )}
         </div>
@@ -626,7 +652,7 @@ function LocationDetail({
             <span className={uiStyles.detailEmptyIcon}>
               <IconPackage size={20} />
             </span>
-            <span>这里还没有物品。</span>
+            <span>{t('locations.noItems')}</span>
           </div>
         ) : (
           <div className={uiStyles.detailItemList}>
@@ -643,20 +669,20 @@ function LocationDetail({
                 <div className={uiStyles.recentMeta}>
                   <span className={uiStyles.recentName}>{it.name}</span>
                   <span className={uiStyles.recentSub}>
-                    {it.category ?? '未分类'} · {it.status}
+                    {it.category ?? t('locations.uncategorized')} · {it.status}
                   </span>
                 </div>
                 {it.tags && it.tags.length > 0 && (
                   <div className={uiStyles.recentTags}>
-                    {it.tags.slice(0, 2).map((t) => (
-                      <span key={t.id} className={uiStyles.tagChipNeutral}>
-                        {t.name}
+                    {it.tags.slice(0, 2).map((tag) => (
+                      <span key={tag.id} className={uiStyles.tagChipNeutral}>
+                        {tag.name}
                       </span>
                     ))}
                   </div>
                 )}
                 <span className={uiStyles.detailItemPrice}>
-                  {it.purchase_price ? formatPrice(it.purchase_price) : '—'}
+                  {it.purchase_price ? formatPrice(it.purchase_price, t) : '—'}
                 </span>
               </Link>
             ))}
@@ -713,6 +739,7 @@ function CreateLocationDialog({
   pending: boolean;
   isOnline: boolean;
 }) {
+  const { t } = useTranslation();
   const allowed = allowedChildTypes(state.parent?.type ?? null);
   const [name, setName] = useState('');
   const [type, setType] = useState<LocationType>(allowed[0] ?? 'room');
@@ -727,8 +754,8 @@ function CreateLocationDialog({
   }, [state.open, state.parent?.id]);
 
   const title = state.parent
-    ? `在「${state.parent.name}」下添加子位置`
-    : '添加根位置';
+    ? t('locations.addChildTo', { name: state.parent.name })
+    : t('locations.addRoot');
 
   function handleSubmit() {
     if (!name.trim()) return;
@@ -749,27 +776,27 @@ function CreateLocationDialog({
           parentType={state.parent?.type ?? null}
         />
         <TextField
-          label="名称"
+          label={t('locations.name')}
           required
           value={name}
           onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="例如：主卧 / 防潮箱 / 摄影包"
+          placeholder={t('locations.namePlaceholder')}
         />
         <SwitchRow
-          label="私密位置"
-          hint="仅自己可见，其他家庭成员不可访问。"
+          label={t('locations.privatePosition')}
+          hint={t('locations.privateHint')}
           checked={isPrivate}
           onChange={setIsPrivate}
         />
         <div className={uiStyles.formActions}>
           <Button variant="quiet" onClick={onClose}>
-            取消
+            {t('locations.cancel')}
           </Button>
           <Button
             disabled={!name.trim() || !isOnline || pending}
             onClick={handleSubmit}
           >
-            {pending ? '保存中…' : '保存'}
+            {pending ? t('locations.saving') : t('locations.save')}
           </Button>
         </div>
       </Stack>
@@ -792,6 +819,7 @@ function EditLocationDialog({
   pending: boolean;
   isOnline: boolean;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [type, setType] = useState<LocationType>('room');
 
@@ -812,24 +840,24 @@ function EditLocationDialog({
   }
 
   return (
-    <Dialog open={state.open} onClose={onClose} title={`编辑「${state.location.name}」`}>
+    <Dialog open={state.open} onClose={onClose} title={t('locations.editTitle', { name: state.location.name })}>
       <Stack>
         <TypeChoiceGrid value={type} onChange={setType} parentType={parentType} />
         <TextField
-          label="名称"
+          label={t('locations.name')}
           required
           value={name}
           onChange={(e) => setName(e.currentTarget.value)}
         />
         <div className={uiStyles.formActions}>
           <Button variant="quiet" onClick={onClose}>
-            取消
+            {t('locations.cancel')}
           </Button>
           <Button
             disabled={!name.trim() || !isOnline || pending}
             onClick={handleSubmit}
           >
-            {pending ? '保存中…' : '保存'}
+            {pending ? t('locations.saving') : t('locations.save')}
           </Button>
         </div>
       </Stack>
@@ -846,27 +874,28 @@ function TypeChoiceGrid({
   onChange: (t: LocationType) => void;
   parentType: string | null;
 }) {
+  const { t } = useTranslation();
   return (
     <div>
       <span className={uiStyles.label} style={{ display: 'block', marginBottom: '0.5rem' }}>
-        类型
+        {t('locations.type')}
       </span>
       <div className={uiStyles.typeChoiceGrid}>
-        {LOCATION_TYPES.map((t) => {
-          const Icon = t.icon;
-          const disabled = parentType !== null && !canNestUnder(parentType, t.value);
-          const active = value === t.value;
+        {LOCATION_TYPES.map((locationType) => {
+          const Icon = locationType.icon;
+          const disabled = parentType !== null && !canNestUnder(parentType, locationType.value);
+          const active = value === locationType.value;
           return (
             <button
-              key={t.value}
+              key={locationType.value}
               type="button"
               className={uiStyles.typeChoiceCard}
               data-active={active}
               disabled={disabled}
-              onClick={() => onChange(t.value)}
+              onClick={() => onChange(locationType.value)}
               title={
                 disabled
-                  ? `不能在 ${getLocationTypeMeta(parentType ?? '').label} 下创建 ${t.label}`
+                  ? t('locations.cannotNest', { parent: locationTypeLabel(getLocationTypeMeta(parentType ?? '').value, t), child: locationTypeLabel(locationType.value, t) })
                   : undefined
               }
             >
@@ -874,8 +903,8 @@ function TypeChoiceGrid({
                 <Icon size={16} />
               </span>
               <span className={uiStyles.typeChoiceBody}>
-                <span className={uiStyles.typeChoiceLabel}>{t.label}</span>
-                <span className={uiStyles.typeChoiceDesc}>{t.desc}</span>
+                <span className={uiStyles.typeChoiceLabel}>{locationTypeLabel(locationType.value, t)}</span>
+                <span className={uiStyles.typeChoiceDesc}>{locationTypeDesc(locationType.value, t)}</span>
               </span>
             </button>
           );
@@ -933,25 +962,26 @@ function ConfirmDeleteDialog({
   onConfirm: (id: string) => void;
   pending: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <Dialog
       open={!!target}
       onClose={onCancel}
-      title={target ? `删除「${target.name}」？` : '删除位置'}
+      title={target ? t('locations.confirmDeleteTitle', { name: target.name }) : t('locations.deleteLocation')}
     >
       <Stack>
         <p style={{ margin: 0, lineHeight: 1.55 }}>
-          位置下若有子节点或物品，删除会失败。请先清空或迁移它们。
+          {t('locations.deleteWarning')}
         </p>
         <div className={uiStyles.formActions}>
           <Button variant="quiet" onClick={onCancel}>
-            取消
+            {t('locations.cancel')}
           </Button>
           <Button
             disabled={!target || pending}
             onClick={() => target && onConfirm(target.id)}
           >
-            {pending ? '删除中…' : '确认删除'}
+            {pending ? t('locations.deleting') : t('locations.confirmDelete')}
           </Button>
         </div>
       </Stack>

@@ -9,6 +9,7 @@ import {
   useContext,
   useMemo,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
 import { Select as BaseSelect } from '@base-ui/react/select';
 import { Toast as BaseToast } from '@base-ui/react/toast';
@@ -93,6 +94,7 @@ export function SelectField({
   disabled,
   required,
 }: SelectFieldProps) {
+  const { t } = useTranslation();
   const inputId = id ?? label;
   return (
     <div className={s.field}>
@@ -108,7 +110,7 @@ export function SelectField({
       >
         <BaseSelect.Label className={s.label}>{label}</BaseSelect.Label>
         <BaseSelect.Trigger className={s.selectTrigger}>
-          <BaseSelect.Value placeholder={placeholder ?? '请选择'} />
+          <BaseSelect.Value placeholder={placeholder ?? t('common.selectPlaceholder')} />
           <BaseSelect.Icon className={s.selectIcon}>
             <IconChevronDown size={16} />
           </BaseSelect.Icon>
@@ -163,6 +165,7 @@ export function Dialog({
   children: ReactNode;
   onClose: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <BaseDialog.Root open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
       <BaseDialog.Portal>
@@ -171,7 +174,7 @@ export function Dialog({
           <BaseDialog.Popup className={s.dialog}>
             <RowBetween>
               <BaseDialog.Title className={s.heading}>{title}</BaseDialog.Title>
-              <BaseDialog.Close className={s.iconButton} aria-label="关闭">
+              <BaseDialog.Close className={s.iconButton} aria-label={t('common.close')}>
                 <IconX size={17} />
               </BaseDialog.Close>
             </RowBetween>
@@ -184,7 +187,8 @@ export function Dialog({
 }
 
 export function Spinner({ className }: { className?: string }) {
-  return <span className={cx(s.spinner, className)} aria-label="加载中" />;
+  const { t } = useTranslation();
+  return <span className={cx(s.spinner, className)} aria-label={t('common.loading')} />;
 }
 
 export function Tabs({
@@ -247,23 +251,11 @@ export function Badge({ children }: { children: ReactNode }) {
   return <span className={s.badge}>{children}</span>;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  in_stock: '在库',
-  borrowed: '借出中',
-  idle: '闲置',
-  for_sale: '待售',
-  sold: '已售',
-  given_away: '已赠',
-  lost: '遗失',
-  stolen: '被盗',
-  unreturned: '未归还',
-  damaged: '损坏',
-  archived: '已归档',
-};
-
 export function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation();
   const variant = s.statusBadge[status as keyof typeof s.statusBadge] ?? s.statusBadge.idle;
-  return <span className={variant}>{STATUS_LABELS[status] ?? status}</span>;
+  const label = t(`status.${status}`, status);
+  return <span className={variant}>{label}</span>;
 }
 
 type ToastContextValue = {

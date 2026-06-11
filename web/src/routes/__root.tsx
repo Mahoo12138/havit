@@ -26,9 +26,11 @@ import {
   IconReceipt,
   IconSearch,
   IconShoppingBag,
+  IconWorld,
   IconX,
 } from '@tabler/icons-react';
 import { type FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Badge,
@@ -48,42 +50,6 @@ interface RouterContext {
 }
 
 const PUBLIC_PATHS = new Set(['/login', '/setup']);
-
-const navSections = [
-  {
-    label: '总览',
-    items: [
-      { to: '/', label: '仪表盘', icon: IconLayoutDashboard },
-      { to: '/search', label: '搜索', icon: IconSearch },
-    ],
-  },
-  {
-    label: '资产',
-    items: [
-      { to: '/items', label: '物品', icon: IconBox },
-      { to: '/locations', label: '位置', icon: IconMap2 },
-      { to: '/consumables', label: '消耗品', icon: IconShoppingBag },
-      { to: '/edc', label: 'EDC', icon: IconBriefcase },
-      { to: '/credentials', label: '凭证保修', icon: IconReceipt },
-    ],
-  },
-  {
-    label: '流转',
-    items: [
-      { to: '/loans', label: '借出', icon: IconClipboardList },
-      { to: '/lifecycle', label: '退场归档', icon: IconHistory },
-    ],
-  },
-  {
-    label: '录入与维护',
-    items: [
-      { to: '/capture', label: '录入增强', icon: IconBarcode },
-      { to: '/import', label: '批量导入', icon: IconFileImport },
-      { to: '/qr-print', label: 'QR 标签打印', icon: IconPrinter },
-      { to: '/operations', label: '运维导出', icon: IconDatabaseExport },
-    ],
-  },
-] as const;
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
@@ -116,6 +82,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootLayout() {
+  const { t } = useTranslation();
   const { systemStatus } = Route.useRouteContext();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isAuthShell = PUBLIC_PATHS.has(path);
@@ -133,7 +100,43 @@ function RootLayout() {
     return <Outlet />;
   }
 
-  const username = me.data?.username ?? '用户';
+  const navSections = [
+    {
+      label: t('navSection.overview'),
+      items: [
+        { to: '/', label: t('nav.dashboard'), icon: IconLayoutDashboard },
+        { to: '/search', label: t('nav.search'), icon: IconSearch },
+      ],
+    },
+    {
+      label: t('navSection.assets'),
+      items: [
+        { to: '/items', label: t('nav.items'), icon: IconBox },
+        { to: '/locations', label: t('nav.locations'), icon: IconMap2 },
+        { to: '/consumables', label: t('nav.consumables'), icon: IconShoppingBag },
+        { to: '/edc', label: t('nav.edc'), icon: IconBriefcase },
+        { to: '/credentials', label: t('nav.credentials'), icon: IconReceipt },
+      ],
+    },
+    {
+      label: t('navSection.flow'),
+      items: [
+        { to: '/loans', label: t('nav.loans'), icon: IconClipboardList },
+        { to: '/lifecycle', label: t('nav.lifecycle'), icon: IconHistory },
+      ],
+    },
+    {
+      label: t('navSection.maintenance'),
+      items: [
+        { to: '/capture', label: t('nav.capture'), icon: IconBarcode },
+        { to: '/import', label: t('nav.import'), icon: IconFileImport },
+        { to: '/qr-print', label: t('nav.qrPrint'), icon: IconPrinter },
+        { to: '/operations', label: t('nav.operations'), icon: IconDatabaseExport },
+      ],
+    },
+  ];
+
+  const username = me.data?.username ?? t('common.user');
   const initials = username.slice(0, 1).toUpperCase();
 
   async function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
@@ -179,7 +182,7 @@ function RootLayout() {
           <button
             type="button"
             className={uiStyles.sidebarBrandClose}
-            aria-label="关闭导航"
+            aria-label={t('common.close')}
             onClick={() => setOpened(false)}
           >
             <IconX size={16} />
@@ -219,6 +222,7 @@ function RootLayout() {
         </div>
 
         <div className={uiStyles.sidebarFooter}>
+          <LanguageSwitcher />
           <div className={uiStyles.sidebarUser}>
             <span className={uiStyles.sidebarUserAvatar}>{initials}</span>
             <div className={uiStyles.sidebarUserMeta}>
@@ -230,7 +234,7 @@ function RootLayout() {
             <button
               type="button"
               className={uiStyles.sidebarLogout}
-              aria-label="退出登录"
+              aria-label={t('auth.logout')}
               onClick={handleLogout}
             >
               <IconLogout size={16} />
@@ -244,7 +248,7 @@ function RootLayout() {
           <button
             type="button"
             className={uiStyles.burger}
-            aria-label="切换导航"
+            aria-label={t('common.toggleNav')}
             aria-expanded={opened}
             onClick={() => setOpened((value) => !value)}
           >
@@ -259,15 +263,15 @@ function RootLayout() {
               className={uiStyles.headerSearchInput}
               name="q"
               type="search"
-              placeholder="搜索物品、位置、标签…"
-              aria-label="搜索"
+              placeholder={t('search.placeholder')}
+              aria-label={t('common.search')}
             />
           </form>
 
           <div className={uiStyles.headerActions}>
             {systemStatus.mode === 'demo' && <Badge>DEMO</Badge>}
-            <span className={uiStyles.shellHeaderDate}>{formatToday()}</span>
-            <button type="button" className={uiStyles.headerIconBtn} aria-label="通知">
+            <span className={uiStyles.shellHeaderDate}>{formatToday(t)}</span>
+            <button type="button" className={uiStyles.headerIconBtn} aria-label={t('common.notifications')}>
               <IconBell size={18} />
               <span className={uiStyles.headerIconDot} aria-hidden />
             </button>
@@ -291,23 +295,67 @@ function RootLayout() {
 }
 
 function DemoBanner({ status }: { status: SystemStatus }) {
+  const { t } = useTranslation();
   return (
     <div className={uiStyles.bannerOffset}>
       <Alert icon={<IconInfoCircle size={18} />}>
         <RowBetween>
-          <strong>演示模式</strong>
-          <span>版本 {status.version}</span>
+          <strong>{t('demo.mode')}</strong>
+          <span>{t('demo.version')} {status.version}</span>
         </RowBetween>
-        <div>当前为演示模式，数据仅供体验，可能在任何时刻被重置。</div>
+        <div>{t('demo.description')}</div>
       </Alert>
     </div>
   );
 }
 
-function formatToday() {
+function formatToday(t: ReturnType<typeof useTranslation>['t']) {
   const now = new Date();
-  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const weekdayKeys = [
+    'date.weekday_sun', 'date.weekday_mon', 'date.weekday_tue',
+    'date.weekday_wed', 'date.weekday_thu', 'date.weekday_fri',
+    'date.weekday_sat',
+  ] as const;
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
-  return `${weekdays[now.getDay()]} · ${m}/${d}`;
+  return `${t(weekdayKeys[now.getDay()])} · ${m}/${d}`;
+}
+
+function LanguageSwitcher() {
+  const { i18n, t } = useTranslation();
+
+  const languages = [
+    { code: 'en', label: 'English' },
+    { code: 'zh-CN', label: '简体中文' },
+  ];
+
+  return (
+    <div style={{ padding: '0.5rem 0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--sidebar-muted, #7b8497)', fontSize: '0.75rem' }}>
+        <IconWorld size={14} />
+        <span>{t('settings.language')}</span>
+      </div>
+      <select
+        value={i18n.language}
+        onChange={(e) => i18n.changeLanguage(e.target.value)}
+        style={{
+          width: '100%',
+          marginTop: '0.25rem',
+          padding: '0.25rem 0.5rem',
+          background: 'var(--sidebar-panel, #212a3d)',
+          color: 'var(--sidebar-text, #cbd2dc)',
+          border: '1px solid var(--sidebar-line, rgba(255,255,255,0.06))',
+          borderRadius: '0.375rem',
+          fontSize: '0.8rem',
+          cursor: 'pointer',
+        }}
+      >
+        {languages.map((lang) => (
+          <option key={lang.code} value={lang.code}>
+            {lang.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }

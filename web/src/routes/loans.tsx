@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { Badge, Button, Card, Dialog, Spinner, Stack, StackTight, TextField, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
 import { itemsApi, loansApi } from '../api/client';
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/loans')({
 });
 
 function LoansPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [itemId, setItemId] = useState('');
@@ -44,8 +46,8 @@ function LoansPage() {
   return (
     <Stack>
       <FeatureHeader
-        title="借出追踪"
-        description="记录借给谁、预计归还时间和责任交割信息。"
+        title={t('loans.title')}
+        description={t('loans.description')}
         meta="handoff"
       />
 
@@ -55,17 +57,17 @@ function LoansPage() {
         <>
           <MetricStrip
             metrics={[
-              { label: '借出中', value: borrowedItems.length },
+              { label: t('loans.currentlyBorrowed'), value: borrowedItems.length },
             ]}
           />
 
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button leftSection={<IconPlus size={15} />} onClick={() => setShowCreate(true)}>
-              登记借出
+              {t('loans.registerLoan')}
             </Button>
           </div>
 
-          <DataCard title="借出列表">
+          <DataCard title={t('loans.loanList')}>
             <div className={uiStyles.cardGrid}>
               {borrowedItems.map((item) => (
                 <Card className="surface-card" key={item.id}>
@@ -81,17 +83,17 @@ function LoansPage() {
       )}
 
       {showCreate && (
-        <Dialog open title="登记借出" onClose={() => setShowCreate(false)}>
+        <Dialog open title={t('loans.registerLoan')} onClose={() => setShowCreate(false)}>
           <Stack>
-            <TextField label="物品 ID" value={itemId} onChange={(e) => setItemId(e.target.value)} />
-            <TextField label="借用人" value={borrowerName} onChange={(e) => setBorrowerName(e.target.value)} />
-            <TextField label="联系方式" value={borrowerContact} onChange={(e) => setBorrowerContact(e.target.value)} />
-            <TextField label="预计归还" type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+            <TextField label={t('loans.itemId')} value={itemId} onChange={(e) => setItemId(e.target.value)} />
+            <TextField label={t('loans.borrowerName')} value={borrowerName} onChange={(e) => setBorrowerName(e.target.value)} />
+            <TextField label={t('loans.borrowerContact')} value={borrowerContact} onChange={(e) => setBorrowerContact(e.target.value)} />
+            <TextField label={t('loans.dueDate')} type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
             <Button
               onClick={() => createMutation.mutate()}
               disabled={!itemId || !borrowerName || createMutation.isPending}
             >
-              确认借出
+              {t('loans.registerLoan')}
             </Button>
           </Stack>
         </Dialog>

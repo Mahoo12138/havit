@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { createFileRoute } from '@tanstack/react-router';
@@ -13,6 +14,7 @@ export const Route = createFileRoute('/capture')({
 });
 
 function CapturePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [barcode, setBarcode] = useState('');
@@ -63,31 +65,31 @@ function CapturePage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <FeatureHeader
-        title="录入增强"
-        description="条码扫描、AI 拍照识别和手动兜底共用一套确认队列。"
+        title={t('capture.title')}
+        description={t('capture.description')}
         meta="P1 capture"
       />
 
       <div className={uiStyles.featureGrid}>
         <ActionCard
           icon={<IconBarcode size={18} />}
-          title="条码扫描"
-          body="输入商品条码，从 Open Food Facts 查询商品信息。"
+          title={t('capture.barcode')}
+          body={t('capture.barcodeDesc')}
         />
         <ActionCard
           icon={<IconCamera size={18} />}
-          title="AI 拍照识别"
-          body="上传物品照片，AI 自动识别名称和分类。"
+          title={t('capture.aiPhoto')}
+          body={t('capture.aiPhotoDesc')}
         />
         <ActionCard
           icon={<IconEdit size={18} />}
-          title="手动录入"
-          body="直接填写物品信息，快速完成录入。"
+          title={t('capture.manualEntry')}
+          body={t('capture.manualEntryDesc')}
         />
       </div>
 
       <div className={uiStyles.twoColumn}>
-        <DataCard title="条码查询">
+        <DataCard title={t('capture.barcode')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <CameraScanner
               onDetected={(code) => {
@@ -98,12 +100,12 @@ function CapturePage() {
             />
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <div style={{ flex: 1, height: '1px', background: 'var(--line, #e2e0d8)' }} />
-              <span className={uiStyles.muted}>或手动输入</span>
+              <span className={uiStyles.muted}>{t('capture.orManual')}</span>
               <div style={{ flex: 1, height: '1px', background: 'var(--line, #e2e0d8)' }} />
             </div>
             <TextField
-              label="条码号"
-              placeholder="输入商品条码"
+              label={t('capture.barcodeInput')}
+              placeholder={t('capture.barcodePlaceholder')}
               value={barcode}
               onChange={(e) => setBarcode(e.target.value)}
             />
@@ -111,15 +113,15 @@ function CapturePage() {
               onClick={() => barcodeMutation.mutate(barcode)}
               disabled={!barcode || barcodeMutation.isPending}
             >
-              查询条码
+              {t('capture.queryBarcode')}
             </Button>
             {barcodeMutation.isError && (
-              <span style={{ color: 'var(--danger, #c53030)' }}>查询失败</span>
+              <span style={{ color: 'var(--danger, #c53030)' }}>{t('capture.queryFailed')}</span>
             )}
           </div>
         </DataCard>
 
-        <DataCard title="AI 拍照识别">
+        <DataCard title={t('capture.aiPhoto')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <input
               ref={fileInputRef}
@@ -137,27 +139,27 @@ function CapturePage() {
               onClick={() => fileInputRef.current?.click()}
               disabled={aiMutation.isPending}
             >
-              {aiMutation.isPending ? '识别中…' : '拍照识别'}
+              {aiMutation.isPending ? t('capture.recognizing') : t('capture.recognize')}
             </Button>
             {aiMutation.isError && (
-              <span style={{ color: 'var(--danger, #c53030)' }}>识别失败</span>
+              <span style={{ color: 'var(--danger, #c53030)' }}>{t('capture.recognizeFailed')}</span>
             )}
           </div>
         </DataCard>
       </div>
 
       {(result || resultType) && (
-        <DataCard title="确认并保存">
+        <DataCard title={t('capture.confirmAndSave')}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <Badge>{resultType === 'barcode' ? '条码' : 'AI 识别'}</Badge>
-            <TextField label="名称" value={draftName} onChange={(e) => setDraftName(e.target.value)} />
-            <TextField label="分类" value={draftCategory} onChange={(e) => setDraftCategory(e.target.value)} />
-            <TextField label="描述" value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} />
+            <Badge>{resultType === 'barcode' ? t('capture.barcodeResult') : t('capture.aiResult')}</Badge>
+            <TextField label={t('capture.name')} value={draftName} onChange={(e) => setDraftName(e.target.value)} />
+            <TextField label={t('capture.category')} value={draftCategory} onChange={(e) => setDraftCategory(e.target.value)} />
+            <TextField label={t('capture.descriptionField')} value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} />
             <Button
               onClick={() => createMutation.mutate()}
               disabled={!draftName || createMutation.isPending}
             >
-              {createMutation.isPending ? '保存中…' : '保存物品'}
+              {createMutation.isPending ? t('capture.saving') : t('capture.saveItem')}
             </Button>
           </div>
         </DataCard>
@@ -195,6 +197,7 @@ function CameraScanner({
   onDetected: (code: string) => void;
   scanning: boolean;
 }) {
+  const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [active, setActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -216,7 +219,7 @@ function CameraScanner({
 
       const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
       if (videoInputDevices.length === 0) {
-        setError('未检测到摄像头');
+        setError(t('capture.cameraError'));
         return;
       }
 
@@ -235,7 +238,7 @@ function CameraScanner({
       );
       controlsRef.current = controls;
     } catch {
-      setError('加载扫码模块失败，请使用手动输入');
+      setError(t('capture.cameraLoadError'));
       setActive(false);
     }
   }
@@ -283,7 +286,7 @@ function CameraScanner({
             onClick={startScanning}
             disabled={scanning}
           >
-            开启摄像头扫码
+            {t('capture.openCamera')}
           </Button>
         ) : (
           <Button
@@ -291,7 +294,7 @@ function CameraScanner({
             leftSection={<IconPlayerStop size={15} />}
             onClick={stopScanning}
           >
-            停止
+            {t('capture.stopCamera')}
           </Button>
         )}
       </div>
@@ -301,7 +304,7 @@ function CameraScanner({
       )}
 
       {active && (
-        <span className={uiStyles.muted}>对准条码，自动识别中…</span>
+        <span className={uiStyles.muted}>{t('capture.scanning')}</span>
       )}
     </div>
   );

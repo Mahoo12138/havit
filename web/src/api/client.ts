@@ -14,6 +14,11 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+export interface AppError {
+  error: string;
+  message: string;
+}
+
 export const api = ky.create({
   prefixUrl: '/api/v1',
   timeout: 30_000,
