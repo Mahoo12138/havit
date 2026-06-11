@@ -12,6 +12,7 @@
     "capture": "录入增强",
     "import": "批量导入",
     "qrPrint": "QR 标签打印",
+    "locationScan": "扫码查位置",
     "operations": "运维导出"
   },
   "navSection": {
@@ -139,7 +140,15 @@
     "noItems": "未找到物品",
     "noItemsHint": "尝试调整筛选条件或添加新物品。",
     "description": "记录耐用品、消耗品、EDC 和买断制虚拟资产。",
-    "offlineWarning": "离线模式下无法录入"
+    "offlineWarning": "离线模式下无法录入",
+    "noPhotoYet": "暂无照片",
+    "uploadPhotoHint": "上传第一张照片来记录这件物品。",
+    "cannotArchiveOffline": "离线状态下无法归档",
+    "cannotUploadOffline": "离线状态下无法上传",
+    "switchStatus": "切换状态",
+    "tagsLoading": "标签加载中…",
+    "selectTagPlaceholder": "选择已有标签",
+    "photoReadFailed": "照片加载失败"
   },
   "itemDetail": {
     "basicInfo": "基本信息",
@@ -166,7 +175,22 @@
     "returnedStatus": "已归还",
     "platformCredentials": "平台凭证",
     "addonPurchases": "增补购买",
-    "eventTime": "事件时间"
+    "eventTime": "事件时间",
+    "purchasedAt": "购入日期",
+    "timestamps": "时间记录",
+    "createdAt": "创建于",
+    "updatedAt": "更新于",
+    "statusAndLocation": "状态与位置",
+    "warrantyActive": "保修中",
+    "warrantyExpiring": "即将到期",
+    "warrantyExpired": "已过期",
+    "daysLeft": "剩余",
+    "daysCount": "{{count}} 天",
+    "belowThreshold": "低于阈值",
+    "expectedReturn": "预计归还",
+    "contactInfo": "联系方式",
+    "accountLabel": "账号",
+    "orderLabel": "订单"
   },
   "locations": {
     "title": "位置",
@@ -182,7 +206,14 @@
     "items": "物品",
     "qrCode": "二维码",
     "generateQR": "生成二维码",
+    "viewQR": "查看二维码",
+    "hasQR": "已生成位置编号，点击查看",
+    "generating": "生成中…",
     "qrGenerated": "二维码已生成",
+    "qrDialogTitle": "{{name}} 的位置标签",
+    "qrDialogHint": "打印后贴在收纳盒上，扫码可查看内部物品清单。",
+    "printLabel": "去打印",
+    "close": "关闭",
     "created": "位置已创建",
     "updated": "已更新",
     "deleted": "已删除",
@@ -353,9 +384,35 @@
   },
   "qrPrint": {
     "title": "位置标签打印",
-    "description": "选择要打印标签的位置，生成可裁剪的 QR 标签。",
-    "print": "打印",
-    "noLocations": "暂无位置数据"
+    "description": "勾选位置、批量生成编号，打印可裁剪的 QR 标签贴在收纳盒上。",
+    "print": "打印 {{count}} 个标签",
+    "noLocations": "暂无位置数据",
+    "noPrintable": "请先勾选已有编号的位置，或为选中项生成编号",
+    "noCodeYet": "未生成",
+    "generated": "编号已生成",
+    "generateFailed": "生成失败：{{error}}",
+    "generating": "生成中…",
+    "generateMissing": "为 {{count}} 个位置生成编号",
+    "selectAll": "全选当前列表",
+    "clearSelection": "清空选择",
+    "filter": {
+      "all": "全部",
+      "withCode": "已有编号",
+      "withoutCode": "待生成"
+    }
+  },
+  "locationScan": {
+    "title": "扫码查位置",
+    "description": "扫描收纳盒上的位置标签，立即查看该位置及子位置内的物品。",
+    "codeInput": "位置编号",
+    "codePlaceholder": "例如：LOC-XXXXXXXX",
+    "lookup": "查询",
+    "lookupPending": "查询中…",
+    "lookupFailed": "查询失败",
+    "invalidCode": "无效的位置编号",
+    "emptyHint": "扫描或输入位置编号开始查询",
+    "containedItems": "包含物品（{{count}}）",
+    "noItems": "该位置下暂无物品"
   },
   "search": {
     "title": "搜索",

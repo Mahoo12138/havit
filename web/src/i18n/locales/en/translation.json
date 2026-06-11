@@ -12,6 +12,7 @@
     "capture": "Capture",
     "import": "Import",
     "qrPrint": "QR Print",
+    "locationScan": "Scan Location",
     "operations": "Operations"
   },
   "navSection": {
@@ -139,7 +140,15 @@
     "noItems": "No items found",
     "noItemsHint": "Try adjusting your filters or add a new item.",
     "description": "Track durable goods, consumables, EDC, virtual assets, and more.",
-    "offlineWarning": "Cannot create while offline"
+    "offlineWarning": "Cannot create while offline",
+    "noPhotoYet": "No photo yet",
+    "uploadPhotoHint": "Upload your first photo to document this item.",
+    "cannotArchiveOffline": "Cannot archive while offline",
+    "cannotUploadOffline": "Cannot upload while offline",
+    "switchStatus": "Switch status",
+    "tagsLoading": "Loading tags…",
+    "selectTagPlaceholder": "Select an existing tag",
+    "photoReadFailed": "Photo unavailable"
   },
   "itemDetail": {
     "basicInfo": "Basic Info",
@@ -166,7 +175,23 @@
     "returnedStatus": "Returned",
     "platformCredentials": "Platform Credentials",
     "addonPurchases": "Addon Purchases",
-    "eventTime": "Event Time"
+    "eventTime": "Event Time",
+    "purchasedAt": "Purchased",
+    "timestamps": "Timestamps",
+    "createdAt": "Created",
+    "updatedAt": "Updated",
+    "statusAndLocation": "Status & Location",
+    "warrantyActive": "Active",
+    "warrantyExpiring": "Expiring soon",
+    "warrantyExpired": "Expired",
+    "daysLeft": "Days left",
+    "daysCount": "{{count}} day",
+    "daysCount_other": "{{count}} days",
+    "belowThreshold": "Below threshold",
+    "expectedReturn": "Due back",
+    "contactInfo": "Contact",
+    "accountLabel": "Account",
+    "orderLabel": "Order"
   },
   "locations": {
     "title": "Locations",
@@ -182,7 +207,14 @@
     "items": "Items",
     "qrCode": "QR Code",
     "generateQR": "Generate QR",
+    "viewQR": "View QR",
+    "hasQR": "Location code assigned — tap to view",
+    "generating": "Generating…",
     "qrGenerated": "QR code generated",
+    "qrDialogTitle": "Label for {{name}}",
+    "qrDialogHint": "Print and attach to a container; scan to see what's inside.",
+    "printLabel": "Print labels",
+    "close": "Close",
     "created": "Location created",
     "updated": "Location updated",
     "deleted": "Location deleted",
@@ -353,9 +385,35 @@
   },
   "qrPrint": {
     "title": "Location Label Printing",
-    "description": "Select locations to print cuttable QR labels.",
-    "print": "Print",
-    "noLocations": "No location data"
+    "description": "Select locations, generate codes in bulk, and print cuttable QR labels.",
+    "print": "Print {{count}} labels",
+    "noLocations": "No location data",
+    "noPrintable": "Select locations with codes, or generate codes for the selection first",
+    "noCodeYet": "Not generated",
+    "generated": "Codes generated",
+    "generateFailed": "Generation failed: {{error}}",
+    "generating": "Generating…",
+    "generateMissing": "Generate codes for {{count}} locations",
+    "selectAll": "Select all in list",
+    "clearSelection": "Clear selection",
+    "filter": {
+      "all": "All",
+      "withCode": "Has code",
+      "withoutCode": "Needs code"
+    }
+  },
+  "locationScan": {
+    "title": "Scan Location",
+    "description": "Scan a container label to see items in that location and its children.",
+    "codeInput": "Location code",
+    "codePlaceholder": "e.g. LOC-XXXXXXXX",
+    "lookup": "Look up",
+    "lookupPending": "Looking up…",
+    "lookupFailed": "Lookup failed",
+    "invalidCode": "Invalid location code",
+    "emptyHint": "Scan or enter a location code to start",
+    "containedItems": "Items ({{count}})",
+    "noItems": "No items in this location"
   },
   "search": {
     "title": "Search",

@@ -5,6 +5,8 @@ import { IconDownload, IconRefresh } from '@tabler/icons-react';
 import { Badge, Button, Card, Spinner, Stack, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
 import { backupApi, exportApi, remindersApi, locationsApi } from '../api/client';
+import { LocationQrCode } from '../features/qr/QrCode';
+import { flattenLocationTree } from '../features/qr/locationQr';
 
 export const Route = createFileRoute('/operations')({
   component: OperationsPage,
@@ -36,7 +38,7 @@ function OperationsPage() {
     onSuccess: (blob) => downloadBlob(blob, 'havit-items.csv'),
   });
 
-  const locations = flattenTree(locationsData?.tree ?? []);
+  const locations = flattenLocationTree(locationsData?.tree ?? []);
   const reminders = remindersData?.reminders ?? [];
 
   return (
@@ -63,14 +65,19 @@ function OperationsPage() {
             {locations.filter((l) => l.qr_code).map((loc) => (
               <Card className="surface-card" key={loc.id}>
                 <Stack>
-                  <div className={uiStyles.qrMock}>{loc.qr_code}</div>
+                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <LocationQrCode code={loc.qr_code!} size={120} alt={loc.name} />
+                  </div>
                   <h3 className={uiStyles.heading}>{loc.name}</h3>
-                  <span className={uiStyles.muted}>QR: {loc.qr_code}</span>
+                  <span className={uiStyles.muted}>{loc.qr_code}</span>
                 </Stack>
               </Card>
             ))}
             <Link to="/qr-print" className={uiStyles.sectionLink}>
               {t('operations.printLabels')}
+            </Link>
+            <Link to="/location-scan" className={uiStyles.sectionLink}>
+              {t('nav.locationScan')}
             </Link>
           </div>
         </DataCard>
@@ -141,13 +148,3 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-function flattenTree(tree: any[]): Array<{ id: string; name: string; qr_code?: string }> {
-  const result: Array<{ id: string; name: string; qr_code?: string }> = [];
-  for (const node of tree) {
-    result.push({ id: node.id, name: node.name, qr_code: node.qr_code });
-    if (node.children) {
-      result.push(...flattenTree(node.children));
-    }
-  }
-  return result;
-}

@@ -9,6 +9,7 @@ import {
   IconPackage,
   IconPhoto,
   IconPlus,
+  IconPrinter,
   IconQrcode,
   IconTrash,
 } from '@tabler/icons-react';
@@ -32,6 +33,7 @@ import {
   type LocationType,
 } from '../features/locations/types';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
+import { LocationQrCode } from '../features/qr/QrCode';
 
 function locationTypeLabel(type: string, t: (key: string) => string): string {
   const map: Record<string, string> = {
@@ -139,6 +141,7 @@ function LocationsPage() {
     location: null,
   });
   const [pendingDelete, setPendingDelete] = useState<Location | null>(null);
+  const [qrViewLocation, setQrViewLocation] = useState<Location | null>(null);
 
   const tree = useQuery({
     queryKey: ['locations'],
@@ -341,7 +344,15 @@ function LocationsPage() {
                 setEditDialog({ open: true, location: selected })
               }
               onDelete={() => setPendingDelete(selected)}
-              onGenerateQr={() => qrMutation.mutate(selected.id)}
+              onGenerateQr={() => {
+                if (selected.qr_code) {
+                  setQrViewLocation(selected);
+                  return;
+                }
+                qrMutation.mutate(selected.id, {
+                  onSuccess: (loc) => setQrViewLocation(loc),
+                });
+              }}
               onSelectChild={setSelectedId}
               qrPending={qrMutation.isPending}
               subtreeCount={subtreeItemCount}
@@ -365,6 +376,11 @@ function LocationsPage() {
         onSubmit={(payload) => editMutation.mutate(payload)}
         pending={editMutation.isPending}
         isOnline={isOnline}
+      />
+
+      <LocationQrDialog
+        location={qrViewLocation}
+        onClose={() => setQrViewLocation(null)}
       />
 
       <ConfirmDeleteDialog
@@ -985,6 +1001,49 @@ function ConfirmDeleteDialog({
           </Button>
         </div>
       </Stack>
+    </Dialog>
+  );
+}
+
+function LocationQrDialog({
+  location,
+  onClose,
+}: {
+  location: Location | null;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <Dialog
+      open={!!location?.qr_code}
+      onClose={onClose}
+      title={location ? t('locations.qrDialogTitle', { name: location.name }) : t('locations.qrCode')}
+    >
+      {location?.qr_code && (
+        <Stack>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <LocationQrCode code={location.qr_code} size={180} alt={location.name} />
+          </div>
+          <span className={uiStyles.qrChip} style={{ alignSelf: 'center' }}>
+            <IconQrcode size={13} />
+            {location.qr_code}
+          </span>
+          <p className={uiStyles.muted} style={{ margin: 0, textAlign: 'center' }}>
+            {t('locations.qrDialogHint')}
+          </p>
+          <div className={uiStyles.formActions}>
+            <Button variant="quiet" onClick={onClose}>
+              {t('locations.close')}
+            </Button>
+            <Link to="/qr-print">
+              <Button variant="quiet" leftSection={<IconPrinter size={15} />}>
+                {t('locations.printLabel')}
+              </Button>
+            </Link>
+          </div>
+        </Stack>
+      )}
     </Dialog>
   );
 }

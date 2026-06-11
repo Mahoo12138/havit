@@ -899,7 +899,13 @@ export const qrPrintQr = style({
   height: '4rem',
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius1,
-  background: themeVars.muted,
+  background: themeVars.panel,
+  overflow: 'hidden',
+});
+
+export const qrCodeImage = style({
+  display: 'block',
+  objectFit: 'contain',
 });
 
 export const qrPrintCode = style({
@@ -2483,3 +2489,569 @@ export const typeChoiceDesc = style({
   color: themeVars.muted,
   lineHeight: 1.4,
 });
+
+/* ---------- Item Detail page ---------- */
+
+export const itemHero = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1.05fr) minmax(0, 1fr)',
+  gap: themeVars.space5,
+  '@media': {
+    '(max-width: 60em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const itemGallery = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+  minWidth: 0,
+});
+
+export const itemMainPhoto = style({
+  position: 'relative',
+  display: 'grid',
+  placeItems: 'center',
+  aspectRatio: '4 / 3',
+  borderRadius: themeVars.radius3,
+  border: `1px solid ${themeVars.lineSoft}`,
+  background: themeVars.bgSoft,
+  overflow: 'hidden',
+});
+
+export const itemMainPhotoImg = style({
+  width: '100%',
+  height: '100%',
+  objectFit: 'contain',
+  padding: themeVars.space4,
+});
+
+export const itemPhotoEmpty = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  padding: themeVars.space5,
+  color: themeVars.muted,
+  textAlign: 'center',
+  lineHeight: 1.5,
+});
+
+export const itemPhotoCount = style({
+  position: 'absolute',
+  top: themeVars.space3,
+  right: themeVars.space3,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  padding: `${themeVars.space1} ${themeVars.space2}`,
+  borderRadius: '999px',
+  background: 'rgba(15, 23, 42, 0.55)',
+  color: '#fff',
+  fontSize: '0.72rem',
+  fontWeight: 600,
+});
+
+export const itemThumbStrip = style({
+  display: 'grid',
+  gridAutoFlow: 'column',
+  gridAutoColumns: 'minmax(64px, 1fr)',
+  gap: themeVars.space2,
+  overflowX: 'auto',
+  paddingBottom: themeVars.space1,
+});
+
+export const itemThumb = style({
+  aspectRatio: '1',
+  border: `1px solid ${themeVars.lineSoft}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.bgSoft,
+  overflow: 'hidden',
+  cursor: 'pointer',
+  padding: 0,
+  transition: 'border-color 160ms ease, box-shadow 160ms ease',
+  selectors: {
+    '&:hover': {
+      borderColor: `color-mix(in srgb, ${themeVars.accent} 40%, ${themeVars.line})`,
+    },
+    '&[data-active="true"]': {
+      borderColor: themeVars.accent,
+      boxShadow: `0 0 0 2px ${themeVars.focusRing}`,
+    },
+  },
+});
+
+export const itemThumbImg = style({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  display: 'block',
+});
+
+export const itemThumbAdd = style({
+  display: 'grid',
+  placeItems: 'center',
+  aspectRatio: '1',
+  border: `1px dashed ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.bgSoft,
+  color: themeVars.muted,
+  cursor: 'pointer',
+  transition: 'border-color 160ms ease, color 160ms ease, background-color 160ms ease',
+  selectors: {
+    '&:hover:not(:disabled)': {
+      borderColor: themeVars.accent,
+      color: themeVars.accent,
+      background: themeVars.accentSoft,
+    },
+    '&:disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+    },
+  },
+});
+
+export const itemSpec = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space4,
+  minWidth: 0,
+});
+
+export const itemSpecHead = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+});
+
+export const itemSpecBadges = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: themeVars.space2,
+});
+
+export const itemSpecType = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  padding: `2px ${themeVars.space2}`,
+  borderRadius: '999px',
+  background: themeVars.lineSoft,
+  color: themeVars.text,
+  fontSize: '0.74rem',
+  fontWeight: 600,
+});
+
+export const itemSpecCategory = style({
+  color: themeVars.muted,
+  fontSize: '0.82rem',
+});
+
+export const itemSpecGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: themeVars.space2,
+  '@media': {
+    '(max-width: 36em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const itemSpecCell = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  padding: themeVars.space3,
+  borderRadius: themeVars.radius2,
+  border: `1px solid ${themeVars.lineSoft}`,
+  background: themeVars.bgSoft,
+  minWidth: 0,
+});
+
+export const itemSpecCellLabel = style({
+  color: themeVars.muted,
+  fontSize: '0.7rem',
+  fontWeight: 600,
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+});
+
+export const itemSpecCellValue = style({
+  color: themeVars.ink,
+  fontSize: '0.95rem',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  letterSpacing: '-0.005em',
+});
+
+export const itemSpecCellMuted = style({
+  color: themeVars.muted,
+  fontWeight: 500,
+});
+
+export const itemNote = style({
+  margin: 0,
+  color: themeVars.text,
+  fontSize: '0.9rem',
+  lineHeight: 1.55,
+});
+
+export const itemDashboard = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) 20rem',
+  gap: themeVars.space5,
+  alignItems: 'start',
+  '@media': {
+    '(max-width: 64em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const itemMain = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space4,
+  minWidth: 0,
+});
+
+export const itemRail = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space4,
+  minWidth: 0,
+});
+
+export const itemSectionGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))',
+  gap: themeVars.space4,
+});
+
+export const itemSection = style({
+  display: 'flex',
+  flexDirection: 'column',
+  background: themeVars.panel,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  boxShadow: themeVars.shadowSoft,
+  overflow: 'hidden',
+  minWidth: 0,
+});
+
+export const itemSectionHead = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: themeVars.space2,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+});
+
+export const itemSectionTitle = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  fontSize: '0.92rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  letterSpacing: '-0.005em',
+  margin: 0,
+});
+
+export const itemSectionTitleIcon = style({
+  display: 'inline-grid',
+  width: '1.6rem',
+  height: '1.6rem',
+  placeItems: 'center',
+  borderRadius: themeVars.radius1,
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
+});
+
+export const itemSectionHint = style({
+  color: themeVars.muted,
+  fontSize: '0.78rem',
+});
+
+export const itemSectionBody = style({
+  padding: themeVars.space4,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+});
+
+export const itemSectionBodyTight = style({
+  padding: 0,
+});
+
+export const itemSectionEmpty = style({
+  padding: `${themeVars.space4} ${themeVars.space4} ${themeVars.space5}`,
+  color: themeVars.muted,
+  fontSize: '0.85rem',
+  textAlign: 'center',
+});
+
+export const itemKvList = style({
+  display: 'flex',
+  flexDirection: 'column',
+});
+
+export const itemKvRow = style({
+  display: 'flex',
+  alignItems: 'baseline',
+  justifyContent: 'space-between',
+  gap: themeVars.space3,
+  padding: `${themeVars.space2} 0`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  fontSize: '0.86rem',
+  selectors: {
+    '&:first-child': {
+      paddingTop: 0,
+    },
+    '&:last-child': {
+      borderBottom: 0,
+      paddingBottom: 0,
+    },
+  },
+});
+
+export const itemKvLabel = style({
+  color: themeVars.muted,
+  flex: '0 0 auto',
+});
+
+export const itemKvValue = style({
+  color: themeVars.ink,
+  fontWeight: 500,
+  textAlign: 'right',
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const itemStockHero = style({
+  display: 'flex',
+  alignItems: 'baseline',
+  gap: themeVars.space2,
+});
+
+export const itemStockValue = style({
+  color: themeVars.ink,
+  fontSize: '2.2rem',
+  fontWeight: 700,
+  letterSpacing: '-0.025em',
+  lineHeight: 1,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const itemStockUnit = style({
+  color: themeVars.muted,
+  fontSize: '0.85rem',
+});
+
+export const itemStockLow = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  padding: `2px ${themeVars.space2}`,
+  borderRadius: '999px',
+  background: themeVars.warningSoft,
+  color: themeVars.warningText,
+  fontSize: '0.72rem',
+  fontWeight: 600,
+});
+
+export const itemTimeline = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  position: 'relative',
+});
+
+export const itemTimelineRow = style({
+  position: 'relative',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  paddingLeft: '1.4rem',
+  paddingBottom: themeVars.space3,
+  selectors: {
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      left: '0.45rem',
+      top: '0.55rem',
+      bottom: 0,
+      width: '1px',
+      background: themeVars.lineSoft,
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      left: '0.25rem',
+      top: '0.35rem',
+      width: '0.5rem',
+      height: '0.5rem',
+      borderRadius: '999px',
+      background: themeVars.accent,
+      boxShadow: `0 0 0 3px ${themeVars.accentSoft}`,
+    },
+    '&:last-child': {
+      paddingBottom: 0,
+    },
+    '&:last-child::before': {
+      display: 'none',
+    },
+  },
+});
+
+export const itemTimelineTitle = style({
+  color: themeVars.ink,
+  fontSize: '0.88rem',
+  fontWeight: 600,
+});
+
+export const itemTimelineMeta = style({
+  color: themeVars.muted,
+  fontSize: '0.76rem',
+});
+
+export const itemTimelinePayload = style({
+  marginTop: '4px',
+  padding: `${themeVars.space1} ${themeVars.space2}`,
+  borderRadius: themeVars.radius1,
+  background: themeVars.bgSoft,
+  border: `1px solid ${themeVars.lineSoft}`,
+  color: themeVars.text,
+  fontSize: '0.78rem',
+  fontFamily: themeVars.fontMono,
+  wordBreak: 'break-all',
+});
+
+export const itemLoanCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  padding: themeVars.space3,
+  borderRadius: themeVars.radius2,
+  border: `1px solid ${themeVars.lineSoft}`,
+  background: themeVars.bgSoft,
+});
+
+export const itemLoanHead = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: themeVars.space2,
+});
+
+export const itemLoanName = style({
+  color: themeVars.ink,
+  fontSize: '0.95rem',
+  fontWeight: 600,
+});
+
+export const itemLoanMeta = style({
+  color: themeVars.muted,
+  fontSize: '0.78rem',
+});
+
+export const itemRailField = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+});
+
+export const itemRailFieldLabel = style({
+  color: themeVars.muted,
+  fontSize: '0.74rem',
+  fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+});
+
+export const itemRailLocation = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderRadius: themeVars.radius2,
+  border: `1px solid ${themeVars.lineSoft}`,
+  background: themeVars.bgSoft,
+  color: themeVars.text,
+  fontSize: '0.85rem',
+  lineHeight: 1.4,
+});
+
+export const itemRailDivider = style({
+  height: '1px',
+  background: themeVars.lineSoft,
+});
+
+export const itemCredentialCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+  padding: themeVars.space3,
+  borderRadius: themeVars.radius2,
+  border: `1px solid ${themeVars.lineSoft}`,
+  background: themeVars.bgSoft,
+});
+
+export const itemCredentialTitle = style({
+  color: themeVars.ink,
+  fontSize: '0.9rem',
+  fontWeight: 600,
+});
+
+export const itemCredentialMeta = style({
+  color: themeVars.muted,
+  fontSize: '0.78rem',
+});
+
+export const itemAddonRow = style({
+  display: 'flex',
+  alignItems: 'baseline',
+  justifyContent: 'space-between',
+  gap: themeVars.space2,
+  padding: `${themeVars.space2} 0`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  selectors: {
+    '&:last-child': {
+      borderBottom: 0,
+    },
+  },
+});
+
+export const itemAddonName = style({
+  color: themeVars.ink,
+  fontSize: '0.86rem',
+  fontWeight: 500,
+});
+
+export const itemAddonPrice = style({
+  color: themeVars.accentInk,
+  fontSize: '0.86rem',
+  fontWeight: 600,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const itemSectionFoot = style({
+  padding: `${themeVars.space2} ${themeVars.space4} ${themeVars.space3}`,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+  background: themeVars.bgSoft,
+  display: 'flex',
+  justifyContent: 'flex-end',
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+});
+

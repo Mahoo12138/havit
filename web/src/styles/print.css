@@ -1,0 +1,71 @@
+@media print {
+  .no-print,
+  nav,
+  header,
+  aside,
+  [class*='shellNav'],
+  [class*='shellTop'],
+  [class*='shellNavScrim'] {
+    display: none !important;
+  }
+
+  body {
+    margin: 0;
+    background: #fff;
+  }
+
+  .qr-print-page {
+    padding: 0;
+  }
+
+  [class*='qrPrintGrid'] {
+    display: grid !important;
+    grid-template-columns: repeat(3, 50mm);
+    gap: 4mm;
+    justify-content: start;
+  }
+
+  [class*='qrPrintLabel'] {
+    width: 50mm !important;
+    height: 30mm !important;
+    border: 0.5pt solid #ccc !important;
+    border-radius: 0 !important;
+    padding: 2mm !important;
+    page-break-inside: avoid;
+  }
+
+  [class*='qrPrintQr'] {
+    width: 16mm !important;
+    height: 16mm !important;
+    border: none !important;
+    background: transparent !important;
+  }
+
+  [class*='qrCodeImage'] {
+    width: 16mm !important;
+    height: 16mm !important;
+  }
+
+  [class*='qrPrintCode'] {
+    font-size: 6pt !important;
+  }
+
+  [class*='qrPrintName'] {
+    font-size: 7pt !important;
+    line-height: 1.1;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [class*='qrPrintPath'] {
+    font-size: 5pt !important;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

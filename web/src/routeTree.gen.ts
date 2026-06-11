@@ -14,6 +14,7 @@ import { Route as SearchRouteImport } from './routes/search'
 import { Route as QrPrintRouteImport } from './routes/qr-print'
 import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LocationScanRouteImport } from './routes/location-scan'
 import { Route as LoansRouteImport } from './routes/loans'
 import { Route as LifecycleRouteImport } from './routes/lifecycle'
 import { Route as ImportRouteImport } from './routes/import'
@@ -49,6 +50,11 @@ const OperationsRoute = OperationsRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationScanRoute = LocationScanRouteImport.update({
+  id: '/location-scan',
+  path: '/location-scan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoansRoute = LoansRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/import': typeof ImportRoute
   '/lifecycle': typeof LifecycleRoute
   '/loans': typeof LoansRoute
+  '/location-scan': typeof LocationScanRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
@@ -134,6 +141,7 @@ export interface FileRoutesByTo {
   '/import': typeof ImportRoute
   '/lifecycle': typeof LifecycleRoute
   '/loans': typeof LoansRoute
+  '/location-scan': typeof LocationScanRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
@@ -153,6 +161,7 @@ export interface FileRoutesById {
   '/import': typeof ImportRoute
   '/lifecycle': typeof LifecycleRoute
   '/loans': typeof LoansRoute
+  '/location-scan': typeof LocationScanRoute
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
@@ -173,6 +182,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/lifecycle'
     | '/loans'
+    | '/location-scan'
     | '/login'
     | '/operations'
     | '/qr-print'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/lifecycle'
     | '/loans'
+    | '/location-scan'
     | '/login'
     | '/operations'
     | '/qr-print'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/import'
     | '/lifecycle'
     | '/loans'
+    | '/location-scan'
     | '/login'
     | '/operations'
     | '/qr-print'
@@ -228,6 +240,7 @@ export interface RootRouteChildren {
   ImportRoute: typeof ImportRoute
   LifecycleRoute: typeof LifecycleRoute
   LoansRoute: typeof LoansRoute
+  LocationScanRoute: typeof LocationScanRoute
   LoginRoute: typeof LoginRoute
   OperationsRoute: typeof OperationsRoute
   QrPrintRoute: typeof QrPrintRoute
@@ -273,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/location-scan': {
+      id: '/location-scan'
+      path: '/location-scan'
+      fullPath: '/location-scan'
+      preLoaderRoute: typeof LocationScanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loans': {
@@ -364,6 +384,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImportRoute: ImportRoute,
   LifecycleRoute: LifecycleRoute,
   LoansRoute: LoansRoute,
+  LocationScanRoute: LocationScanRoute,
   LoginRoute: LoginRoute,
   OperationsRoute: OperationsRoute,
   QrPrintRoute: QrPrintRoute,
