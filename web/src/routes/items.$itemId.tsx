@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   IconAlertTriangle,
@@ -57,7 +57,6 @@ type TFunc = ReturnType<typeof useTranslation>['t'];
 function ItemDetail() {
   const { t } = useTranslation();
   const { itemId } = Route.useParams();
-  const nav = useNavigate();
   const qc = useQueryClient();
   const toast = useToast();
   const isOnline = useNetworkStatus();
@@ -88,7 +87,7 @@ function ItemDetail() {
     onSuccess: () => {
       toast.show(t('items.archived'));
       qc.invalidateQueries({ queryKey: ['items'] });
-      nav({ to: '/items' });
+      window.history.back();
     },
   });
   const updateStatus = useMutation({

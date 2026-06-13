@@ -74,7 +74,7 @@ const quickActions: Array<{
   icon: Icon;
   tone: 'teal' | 'info' | 'warning' | 'violet' | 'amber' | 'success';
 }> = [
-  { to: '/items', translationKey: 'quickAction.newItem', icon: IconPlus, tone: 'teal' },
+  { to: '/assets', translationKey: 'quickAction.newItem', icon: IconPlus, tone: 'teal' },
   { to: '/capture', translationKey: 'quickAction.scan', icon: IconBarcode, tone: 'info' },
   { to: '/locations', translationKey: 'quickAction.manageLocations', icon: IconMap2, tone: 'violet' },
   { to: '/loans', translationKey: 'quickAction.registerLoan', icon: IconClipboardList, tone: 'warning' },
@@ -256,7 +256,7 @@ function CategoryOverview({
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.assetOverview')}</h2>
-        <Link to="/items" className={uiStyles.sectionLink}>
+        <Link to="/assets" className={uiStyles.sectionLink}>
           {t('common.all')} <IconArrowRight size={14} />
         </Link>
       </header>
@@ -275,7 +275,7 @@ function CategoryOverview({
                 <Link
                   key={name}
                   className={uiStyles.categoryTile}
-                  to="/items"
+                  to="/assets"
                   search={{ category: name } as never}
                 >
                   <div className={uiStyles.categoryThumb[tone]}>
@@ -305,7 +305,7 @@ function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.recentAdditions')}</h2>
-        <Link to="/items" className={uiStyles.sectionLink}>
+        <Link to="/assets" className={uiStyles.sectionLink}>
           {t('dashboard.viewAll')} <IconArrowRight size={14} />
         </Link>
       </header>

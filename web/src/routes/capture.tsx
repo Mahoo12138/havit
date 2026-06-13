@@ -58,7 +58,7 @@ function CapturePage() {
         type: 'durable',
       }),
     onSuccess: () => {
-      navigate({ to: '/items' });
+      navigate({ to: '/assets' });
     },
   });
 

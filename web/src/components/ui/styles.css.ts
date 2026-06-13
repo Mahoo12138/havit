@@ -4391,3 +4391,424 @@ export const consumableChartChangePos = style([
   { color: themeVars.danger },
 ]);
 
+/* ---------- Virtual Assets Page ---------- */
+
+export const vaKpiStrip = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  gap: themeVars.space4,
+  '@media': {
+    '(max-width: 72em)': {
+      gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
+    },
+    '(max-width: 40em)': {
+      gridTemplateColumns: '1fr 1fr',
+    },
+  },
+});
+
+export const vaKpiTile = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  padding: themeVars.space4,
+  background: themeVars.panel,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  boxShadow: themeVars.shadowSoft,
+  minWidth: 0,
+});
+
+export const vaKpiIcon = styleVariants({
+  blue: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.5rem',
+    height: '2.5rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+  },
+  teal: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.5rem',
+    height: '2.5rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.accentSoft,
+    color: themeVars.accentInk,
+  },
+  green: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.5rem',
+    height: '2.5rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.successSoft,
+    color: themeVars.success,
+  },
+  orange: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.5rem',
+    height: '2.5rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+  },
+  red: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.5rem',
+    height: '2.5rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
+  },
+});
+
+export const vaKpiMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+});
+
+export const vaKpiLabel = style({
+  color: themeVars.muted,
+  fontSize: '0.75rem',
+  fontWeight: 500,
+});
+
+export const vaKpiValue = style({
+  color: themeVars.ink,
+  fontSize: '1.5rem',
+  fontWeight: 700,
+  letterSpacing: '-0.02em',
+  lineHeight: 1.1,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const vaKpiNote = style({
+  color: themeVars.muted,
+  fontSize: '0.72rem',
+});
+
+export const vaFilterRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  flexWrap: 'wrap',
+  '@media': {
+    '(max-width: 48em)': {
+      gap: themeVars.space2,
+    },
+  },
+});
+
+export const vaFilterRowLeft = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  flex: '1 1 auto',
+  minWidth: 0,
+  flexWrap: 'wrap',
+});
+
+export const vaFilterRowRight = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  flexShrink: 0,
+});
+
+export const vaFilterSelect = style({
+  padding: '5px 8px',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  fontSize: '0.82rem',
+  color: themeVars.text,
+  minWidth: '7rem',
+  cursor: 'pointer',
+  outline: 'none',
+  transition: 'border-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      borderColor: `color-mix(in srgb, ${themeVars.accent} 22%, ${themeVars.line})`,
+    },
+    '&:focus': {
+      borderColor: themeVars.accent,
+    },
+  },
+});
+
+export const vaViewToggle = style({
+  display: 'inline-flex',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  overflow: 'hidden',
+});
+
+export const vaViewToggleBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: themeVars.space1,
+  padding: `${themeVars.space1} ${themeVars.space3}`,
+  border: 0,
+  background: 'transparent',
+  color: themeVars.muted,
+  fontSize: '0.82rem',
+  fontWeight: 500,
+  cursor: 'pointer',
+  transition: 'background-color 140ms ease, color 140ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+      color: themeVars.text,
+    },
+    '&[data-active="true"]': {
+      background: themeVars.accentSoft,
+      color: themeVars.accentInk,
+    },
+  },
+});
+
+export const vaItemRow = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.2fr) auto',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+  color: themeVars.text,
+  textDecoration: 'none',
+  transition: 'background-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+      textDecoration: 'none',
+    },
+    '&:first-child': {
+      borderTop: 0,
+    },
+  },
+});
+
+export const vaItemInfo = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  minWidth: 0,
+});
+
+export const vaItemThumb = style({
+  width: '2.5rem',
+  height: '2.5rem',
+  borderRadius: themeVars.radius2,
+  background: themeVars.lineSoft,
+  display: 'grid',
+  placeItems: 'center',
+  color: themeVars.muted,
+  flex: '0 0 auto',
+  overflow: 'hidden',
+});
+
+export const vaItemName = style({
+  fontSize: '0.88rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const vaItemCategory = style({
+  fontSize: '0.75rem',
+  color: themeVars.muted,
+});
+
+export const vaPlatformBadge = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  padding: '2px 8px',
+  borderRadius: '999px',
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  background: themeVars.bgSoft,
+  color: themeVars.text,
+  border: `1px solid ${themeVars.line}`,
+});
+
+export const vaPlatformBadgeSteam = style([
+  vaPlatformBadge,
+  {
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+  },
+]);
+
+export const vaPlatformBadgeAppStore = style([
+  vaPlatformBadge,
+  {
+    background: themeVars.lineSoft,
+    color: themeVars.text,
+  },
+]);
+
+export const vaPlatformBadgeKindle = style([
+  vaPlatformBadge,
+  {
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+  },
+]);
+
+export const vaDlcBadge = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '1px 6px',
+  borderRadius: '999px',
+  fontSize: '0.68rem',
+  fontWeight: 600,
+  background: themeVars.warningSoft,
+  color: themeVars.warningText,
+});
+
+export const vaDlcBadgeMulti = style([
+  vaDlcBadge,
+  {
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+  },
+]);
+
+export const vaTableHead = style({
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  color: themeVars.muted,
+  letterSpacing: '0.02em',
+  textTransform: 'uppercase',
+  textAlign: 'left',
+  padding: `${themeVars.space2} ${themeVars.space4}`,
+  borderBottom: `1px solid ${themeVars.line}`,
+  background: themeVars.bgSoft,
+});
+
+export const vaTableCell = style({
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  fontSize: '0.88rem',
+  verticalAlign: 'middle',
+});
+
+export const vaTable = style({
+  width: '100%',
+  borderCollapse: 'separate',
+  borderSpacing: 0,
+});
+
+export const vaTableRow = style({
+  transition: 'background-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+    },
+  },
+});
+
+export const vaBottomCards = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  gap: themeVars.space5,
+  '@media': {
+    '(max-width: 72em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const vaBottomCard = style({
+  padding: themeVars.space5,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  background: themeVars.panel,
+});
+
+export const vaBottomCardTitle = style({
+  margin: 0,
+  fontSize: '0.88rem',
+  fontWeight: 700,
+  color: themeVars.muted,
+  letterSpacing: '-0.01em',
+  marginBottom: themeVars.space4,
+});
+
+export const vaBottomStatLabel = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+  fontWeight: 500,
+});
+
+export const vaBottomStatValue = style({
+  fontSize: '1.25rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  fontVariantNumeric: 'tabular-nums',
+  lineHeight: 1.2,
+});
+
+export const vaBottomStatNote = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+});
+
+export const vaMobileCard = style({
+  padding: themeVars.space4,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  background: themeVars.panel,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+});
+
+export const vaMobileCardHeader = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+});
+
+export const vaMobileCardMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+  flex: '1 1 auto',
+});
+
+export const vaMobileCardPrice = style({
+  fontSize: '0.88rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const vaMobileCardDate = style({
+  fontSize: '0.75rem',
+  color: themeVars.muted,
+});
+
+export const vaMobileCardBadges = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: themeVars.space1,
+});
+

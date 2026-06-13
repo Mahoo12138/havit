@@ -13,6 +13,7 @@ import {
   IconBox,
   IconBriefcase,
   IconClipboardList,
+  IconCloudDownload,
   IconDatabaseExport,
   IconFileImport,
   IconHistory,
@@ -114,7 +115,8 @@ function RootLayout() {
     {
       label: t('navSection.assets'),
       items: [
-        { to: '/items', label: t('nav.items'), icon: IconBox },
+        { to: '/assets', label: t('nav.assets'), icon: IconBox },
+        { to: '/virtual-assets', label: t('nav.virtualAssets'), icon: IconCloudDownload },
         { to: '/locations', label: t('nav.locations'), icon: IconMap2 },
         { to: '/consumables', label: t('nav.consumables'), icon: IconShoppingBag },
         { to: '/edc', label: t('nav.edc'), icon: IconBriefcase },

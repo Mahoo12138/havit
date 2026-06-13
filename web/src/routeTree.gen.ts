@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VirtualAssetsRouteImport } from './routes/virtual-assets'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
@@ -23,11 +24,16 @@ import { Route as EdcRouteImport } from './routes/edc'
 import { Route as CredentialsRouteImport } from './routes/credentials'
 import { Route as ConsumablesRouteImport } from './routes/consumables'
 import { Route as CaptureRouteImport } from './routes/capture'
+import { Route as AssetsRouteImport } from './routes/assets'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocationsIndexRouteImport } from './routes/locations.index'
-import { Route as ItemsIndexRouteImport } from './routes/items.index'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 
+const VirtualAssetsRoute = VirtualAssetsRouteImport.update({
+  id: '/virtual-assets',
+  path: '/virtual-assets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
@@ -98,6 +104,11 @@ const CaptureRoute = CaptureRouteImport.update({
   path: '/capture',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssetsRoute = AssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -108,11 +119,6 @@ const LocationsIndexRoute = LocationsIndexRouteImport.update({
   path: '/locations/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ItemsIndexRoute = ItemsIndexRouteImport.update({
-  id: '/items/',
-  path: '/items/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ItemsItemIdRoute = ItemsItemIdRouteImport.update({
   id: '/items/$itemId',
   path: '/items/$itemId',
@@ -121,6 +127,7 @@ const ItemsItemIdRoute = ItemsItemIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
@@ -135,12 +142,13 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
+  '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
-  '/items/': typeof ItemsIndexRoute
   '/locations/': typeof LocationsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
@@ -155,13 +163,14 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
+  '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
-  '/items': typeof ItemsIndexRoute
   '/locations': typeof LocationsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
@@ -176,14 +185,15 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
+  '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
-  '/items/': typeof ItemsIndexRoute
   '/locations/': typeof LocationsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/assets'
     | '/capture'
     | '/consumables'
     | '/credentials'
@@ -198,12 +208,13 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/setup'
+    | '/virtual-assets'
     | '/items/$itemId'
-    | '/items/'
     | '/locations/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/assets'
     | '/capture'
     | '/consumables'
     | '/credentials'
@@ -218,12 +229,13 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/setup'
+    | '/virtual-assets'
     | '/items/$itemId'
-    | '/items'
     | '/locations'
   id:
     | '__root__'
     | '/'
+    | '/assets'
     | '/capture'
     | '/consumables'
     | '/credentials'
@@ -238,13 +250,14 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/setup'
+    | '/virtual-assets'
     | '/items/$itemId'
-    | '/items/'
     | '/locations/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssetsRoute: typeof AssetsRoute
   CaptureRoute: typeof CaptureRoute
   ConsumablesRoute: typeof ConsumablesRoute
   CredentialsRoute: typeof CredentialsRoute
@@ -259,13 +272,20 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
+  VirtualAssetsRoute: typeof VirtualAssetsRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
-  ItemsIndexRoute: typeof ItemsIndexRoute
   LocationsIndexRoute: typeof LocationsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/virtual-assets': {
+      id: '/virtual-assets'
+      path: '/virtual-assets'
+      fullPath: '/virtual-assets'
+      preLoaderRoute: typeof VirtualAssetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup': {
       id: '/setup'
       path: '/setup'
@@ -364,6 +384,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CaptureRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assets': {
+      id: '/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AssetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -378,13 +405,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/items/': {
-      id: '/items/'
-      path: '/items'
-      fullPath: '/items/'
-      preLoaderRoute: typeof ItemsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/items/$itemId': {
       id: '/items/$itemId'
       path: '/items/$itemId'
@@ -397,6 +417,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssetsRoute: AssetsRoute,
   CaptureRoute: CaptureRoute,
   ConsumablesRoute: ConsumablesRoute,
   CredentialsRoute: CredentialsRoute,
@@ -411,8 +432,8 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
+  VirtualAssetsRoute: VirtualAssetsRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,
-  ItemsIndexRoute: ItemsIndexRoute,
   LocationsIndexRoute: LocationsIndexRoute,
 }
 export const routeTree = rootRouteImport
