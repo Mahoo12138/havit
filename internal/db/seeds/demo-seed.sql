@@ -36,7 +36,9 @@ INSERT INTO items (id, name, category, type, status,
 ('01DEMO000ITEM000004', '埃塞俄比亚咖啡豆',      '食品',     'consumable_a', 'in_stock',
  '01DEMO000LOC0000002', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
 ('01DEMO000ITEM000005', '净水器滤芯',            '家庭用品', 'consumable_b', 'in_stock',
- '01DEMO000LOC0000002', 0,    1,    0, '01DEMO0000USER000001', 1717770000, 1717770000);
+ '01DEMO000LOC0000002', 0,    1,    0, '01DEMO0000USER000001', 1717770000, 1717770000),
+('01DEMO000ITEM000006', 'Adobe 创意云摄影计划',  '软件订阅', 'virtual',     'in_stock',
+ NULL,                NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000);
 
 -- 5. items_fts 同步 (content='items' 模式下需要手动 rebuild,这里逐行插入更直观)
 INSERT INTO items_fts (item_id, name, description, category, serial_number) VALUES
@@ -44,7 +46,8 @@ INSERT INTO items_fts (item_id, name, description, category, serial_number) VALU
 ('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头',  NULL, '数码电子', NULL),
 ('01DEMO000ITEM000003', 'AirPods Pro 2',         NULL, '数码电子', NULL),
 ('01DEMO000ITEM000004', '埃塞俄比亚咖啡豆',      NULL, '食品',     NULL),
-('01DEMO000ITEM000005', '净水器滤芯',            NULL, '家庭用品', NULL);
+('01DEMO000ITEM000005', '净水器滤芯',            NULL, '家庭用品', NULL),
+('01DEMO000ITEM000006', 'Adobe 创意云摄影计划',  NULL, '软件订阅', NULL);
 
 -- 6. 物品-标签关联
 INSERT INTO item_tags (item_id, tag_id) VALUES
@@ -59,7 +62,17 @@ INSERT INTO purchase_events (id, item_id, quantity, purchased_at) VALUES
 ('01DEMO000EVT0000002', '01DEMO000ITEM000004', 1, 1712678400),
 ('01DEMO000EVT0000003', '01DEMO000ITEM000004', 1, 1715270400);
 
--- 8. 借出记录 (due_at 已过期,演示逾期未还)
+-- 8. 虚拟资产凭证 (演示 Adobe 摄影计划账号)
+INSERT INTO virtual_credentials (id, item_id, platform, account, order_id, purchased_at, price, currency) VALUES
+('01DEMO000VRC0000001', '01DEMO000ITEM000006', 'Adobe', 'photo@example.com', 'ADOBE-2024-001',
+ 1700000000, 1188.00, 'CNY');
+
+-- 9. 虚拟资产增补购买 (演示 Lightroom 预设包)
+INSERT INTO virtual_addon_purchases (id, item_id, name, platform, price, currency, purchased_at) VALUES
+('01DEMO000ADP0000001', '01DEMO000ITEM000006', 'Lightroom 高级预设包', 'Adobe', 199.00, 'CNY', 1710000000),
+('01DEMO000ADP0000002', '01DEMO000ITEM000006', 'Photoshop 笔刷扩展',  'Adobe', 89.00,  'CNY', 1712600000);
+
+-- 10. 借出记录 (due_at 已过期,演示逾期未还)
 INSERT INTO loans (id, item_id, borrower_name, borrower_contact,
                    loaned_at, due_at, status) VALUES
 ('01DEMO000LOAN000001', '01DEMO000ITEM000002', '小王', 'xiaowang@example.com',
