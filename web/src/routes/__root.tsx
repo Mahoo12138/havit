@@ -26,6 +26,7 @@ import {
   IconQrcode,
   IconReceipt,
   IconSearch,
+  IconSettings,
   IconShoppingBag,
   IconWorld,
   IconX,
@@ -134,6 +135,7 @@ function RootLayout() {
         { to: '/qr-print', label: t('nav.qrPrint'), icon: IconPrinter },
         { to: '/location-scan', label: t('nav.locationScan'), icon: IconQrcode },
         { to: '/operations', label: t('nav.operations'), icon: IconDatabaseExport },
+        { to: '/settings', label: t('nav.settings'), icon: IconSettings },
       ],
     },
   ];

@@ -13,7 +13,8 @@
     "import": "批量导入",
     "qrPrint": "QR 标签打印",
     "locationScan": "扫码查位置",
-    "operations": "运维导出"
+    "operations": "运维导出",
+    "settings": "设置"
   },
   "navSection": {
     "overview": "总览",
@@ -148,7 +149,8 @@
     "switchStatus": "切换状态",
     "tagsLoading": "标签加载中…",
     "selectTagPlaceholder": "选择已有标签",
-    "photoReadFailed": "照片加载失败"
+    "photoReadFailed": "照片加载失败",
+    "downloadClaim": "下载理赔凭证 PDF"
   },
   "itemDetail": {
     "basicInfo": "基本信息",
@@ -157,6 +159,8 @@
     "consumable": "消耗品",
     "virtual": "虚拟资产",
     "events": "事件日志",
+    "contents": "容器内容物",
+    "removeFromContainer": "移出",
     "warrantyExpiry": "保修到期",
     "warrantyContact": "保修联系方式",
     "currentStock": "当前库存",
@@ -285,7 +289,14 @@
     "item": "物品",
     "homeBase": "基准位置",
     "currentStatus": "当前状态",
-    "action": "操作"
+    "action": "操作",
+    "returnAll": "全部归位",
+    "returnedAll": "已归位 {{count}} 件",
+    "packAll": "一键打包",
+    "packedAll": "已打包 {{count}} 件",
+    "packDestination": "打包目标位置",
+    "selectLocation": "选择位置",
+    "packConfirm": "确认打包"
   },
   "credentials": {
     "title": "凭证保修",
@@ -434,10 +445,28 @@
   },
   "settings": {
     "title": "设置",
+    "description": "管理家庭成员账号与系统配置。",
     "language": "语言",
     "theme": "主题",
     "darkMode": "深色模式",
-    "lightMode": "浅色模式"
+    "lightMode": "浅色模式",
+    "users": "家庭成员",
+    "addMember": "添加成员",
+    "username": "用户名",
+    "password": "密码",
+    "role": "角色",
+    "actions": "操作",
+    "you": "你",
+    "ownerOnly": "仅 Owner 可管理家庭成员账号。",
+    "promoteToOwner": "提升为 Owner",
+    "demoteToMember": "降为 Member",
+    "createUser": "创建账号",
+    "userCreated": "账号已创建",
+    "userCreateFailed": "创建失败",
+    "userDeleted": "账号已删除",
+    "userDeleteFailed": "删除失败",
+    "roleUpdated": "角色已更新",
+    "roleUpdateFailed": "角色更新失败"
   },
   "auth": {
     "login": "登录",
@@ -508,7 +537,8 @@
     "notifications": "通知",
     "wan": "{{value}}万",
     "friend": "伙计",
-    "selectPlaceholder": "请选择"
+    "selectPlaceholder": "请选择",
+    "name": "名称"
   },
   "demo": {
     "mode": "演示模式",

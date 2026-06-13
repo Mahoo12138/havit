@@ -105,6 +105,7 @@ export interface Item {
   location_id?: string;
   home_base_location_id?: string;
   current_status_tag?: string;
+  parent_item_id?: string;
   purchase_price?: number;
   purchase_currency?: string;
   purchase_date?: number;
@@ -463,4 +464,36 @@ export const aiApi = {
 export const exportApi = {
   items: (format: 'json' | 'csv' = 'json') =>
     api.get('export/items', { searchParams: { format } }).blob(),
+};
+
+export interface User {
+  id: string;
+  username: string;
+  role: string;
+  created_at: number;
+}
+
+export const usersApi = {
+  list: () => api.get('users/').json<{ users: User[] }>(),
+  create: (body: { username: string; password: string }) =>
+    api.post('users/', { json: body }).json<User>(),
+  delete: (id: string) => api.delete(`users/${id}`),
+  updateRole: (id: string, role: string) =>
+    api.patch(`users/${id}/role`, { json: { role } }).json<User>(),
+};
+
+export const containerApi = {
+  listContents: (id: string) =>
+    api.get(`items/${id}/contents`).json<{ items: Item[] }>(),
+  putInto: (containerId: string, itemId: string) =>
+    api.post(`items/${containerId}/contents`, { json: { item_id: itemId } }),
+  remove: (containerId: string, childId: string) =>
+    api.delete(`items/${containerId}/contents/${childId}`),
+};
+
+export const edcBulkApi = {
+  packAll: (locationId: string) =>
+    api.post('items/edc/pack-all', { json: { location_id: locationId } }).json<{ moved: number }>(),
+  returnAll: () =>
+    api.post('items/edc/return-all').json<{ moved: number }>(),
 };

@@ -17,7 +17,7 @@
 | 附件存储 | 本地文件系统（multipart 流式写入） | 无外部依赖，Docker volume 挂载，杜绝 OOM |
 | 自然语言搜索 | FTS5 并发先出 + LLM 异步刷新（无向量库） | 体感即时，LLM 结果异步补全，零额外依赖 |
 | 前端框架 | React 18 + Vite | 生态最大，组件库丰富 |
-| UI 原语层 | Base UI（MUI） | 无样式 headless 原语，与 VE 配合实现完全自主的设计系统 |
+| UI 原语层 | Base UI | 无样式 headless 原语，与 VE 配合实现完全自主的设计系统 |
 | 数据请求 | TanStack Query v5 | 缓存、乐观更新、后台刷新 |
 | 路由 | TanStack Router v1 | 类型安全，与 TanStack Query 天然配合 |
 | 样式 | Vanilla Extract | 零运行时 CSS-in-TS，编译时类型安全 |
@@ -41,24 +41,34 @@ havit/
 │   │   └── config.go            # Viper 配置结构体与加载逻辑
 │   ├── db/
 │   │   ├── migrations/          # Goose SQL 迁移文件
-│   │   ├── query/               # sqlc 原始 .sql 查询文件
-│   │   └── sqlc/                # sqlc 生成的 Go 代码（不手写）
-│   ├── handler/
-│   │   ├── item.go
-│   │   ├── location.go
-│   │   ├── consumable.go
-│   │   ├── attachment.go        # multipart 流式上传，禁止 Base64-in-JSON
-│   │   ├── search.go            # 并发赛跑：FTS5 先出 + LLM 异步刷新
-│   │   └── auth.go
-│   ├── service/
-│   │   ├── item.go
-│   │   ├── search.go            # Race 搜索实现
-│   │   ├── ai.go                # AI 识别 + LLM query 解析
-│   │   ├── notify.go            # 提醒调度器
-│   │   └── backup.go            # 三步原子备份（VACUUM INTO）
-│   ├── model/
+│   │   ├── seeds/               # demo 模式种子数据
+│   │   ├── db.go                # SQLite 初始化（WAL pragma、连接池）
+│   │   └── seed.go              # 种子数据注入逻辑
+│   ├── handler/                 # Chi 路由处理器（每个文件一个资源）
+│   │   ├── system.go            # /system/status
+│   │   ├── auth.go              # JWT 认证、初始设置
+│   │   ├── item.go              # 物品 CRUD + EDC + 消耗品 + 退场 + 墓地
+│   │   ├── location.go          # 位置树 CRUD + QR 码
+│   │   ├── attachment.go        # multipart 流式上传
+│   │   ├── tag.go               # 标签管理
+│   │   ├── search.go            # 并发赛跑搜索（SSE）
+│   │   ├── barcode.go           # 条码查询（Open Food Facts）
+│   │   ├── ai.go                # AI 拍照识别
+│   │   ├── loan.go              # 借出追踪
+│   │   ├── virtual_asset.go     # 虚拟资产凭证
+│   │   ├── reminder.go          # 提醒管理
+│   │   ├── notify.go            # 通知渠道配置
+│   │   ├── backup.go            # 备份触发 & 管理
+│   │   ├── import.go            # CSV/JSON 导入
+│   │   └── export.go            # CSV/JSON 导出
+│   ├── service/                 # 业务逻辑层
+│   ├── model/                   # 数据模型结构体
 │   ├── middleware/
-│   └── storage/                 # 附件流式写入抽象
+│   │   ├── auth.go              # JWT 鉴权中间件
+│   │   └── cors.go
+│   ├── crypto/                  # AES-256-GCM 加密
+│   ├── errors/                  # 类型化错误码
+│   └── system/                  # 应用运行时状态
 ├── web/                         # 前端源码（React + Vite）
 ├── static/                      # 前端编译产物（go:embed）
 ├── Dockerfile
@@ -484,59 +494,28 @@ func writeSSEEvent(w http.ResponseWriter, event string, data any) {
 
 ### 3.3 前端消费 SSE
 
+SSE 消费逻辑在 `routes/search.tsx` 中内联实现，没有抽取为独立模块（仅单页面使用）。核心流程：
+
 ```typescript
-// api/search.ts
-export function streamSearch(
-    query: string,
-    onFTSResults: (items: Item[]) => void,
-    onLLMResults: (items: Item[]) => void,
-) {
-    const url = `/api/v1/search?q=${encodeURIComponent(query)}`;
-    const es = new EventSource(url);
+// routes/search.tsx — 使用 EventSource 消费 SSE 流
+const es = new EventSource(`/api/v1/search?q=${encodeURIComponent(query)}`);
 
-    es.addEventListener('fts_results', (e) => {
-        onFTSResults(JSON.parse(e.data));
-    });
-    es.addEventListener('llm_results', (e) => {
-        onLLMResults(JSON.parse(e.data));
-    });
-    es.addEventListener('done', () => es.close());
-    es.onerror = () => es.close();
+es.addEventListener('fts_results', (e: MessageEvent) => {
+    setFtsResults(JSON.parse(e.data));   // 即时展示 FTS 结果
+    setIsRefining(true);                 // 显示"AI 优化中…"
+});
 
-    return () => es.close(); // 返回清理函数
-}
+es.addEventListener('llm_results', (e: MessageEvent) => {
+    setLlmResults(JSON.parse(e.data));   // 静默替换为 LLM 精细结果
+});
 
-// routes/items/index.tsx（搜索框）
-function SearchBar() {
-    const [items, setItems] = useState<Item[]>([]);
-    const [isRefining, setIsRefining] = useState(false);
+es.addEventListener('done', () => {
+    setIsRefining(false);
+    es.close();
+});
 
-    const handleSearch = (query: string) => {
-        const cleanup = streamSearch(
-            query,
-            (ftsItems) => {
-                setItems(ftsItems);          // 立即展示 FTS 结果
-                setIsRefining(true);         // 显示"AI 优化中…"提示
-            },
-            (llmItems) => {
-                setItems(llmItems);          // 静默替换为 LLM 精细结果
-                setIsRefining(false);
-            },
-        );
-        return cleanup;
-    };
-
-    return (
-        <TextInput
-            placeholder="搜索物品…"
-            rightSection={isRefining
-                ? <Loader size="xs" />
-                : <IconSearch size={16} />
-            }
-            onChange={(e) => handleSearch(e.target.value)}
-        />
-    );
-}
+// 最终展示：优先 LLM 结果，FTS 结果作为回退
+const results = llmResults.length > 0 ? llmResults : ftsResults;
 ```
 
 ### 3.4 LLM 解析 Prompt
@@ -769,7 +748,7 @@ func (s *BackupService) StartScheduler(ctx context.Context) {
 | 路由 | TanStack Router v1 |
 | 数据请求 | TanStack Query v5 |
 | 样式 | Vanilla Extract |
-| 图标 | Lucide React |
+| 图标 | @tabler/icons-react |
 | 条码扫描 | @zxing/browser（纯前端） |
 | HTTP 客户端 | ky |
 | PWA | vite-plugin-pwa |
@@ -780,34 +759,40 @@ func (s *BackupService) StartScheduler(ctx context.Context) {
 web/
 ├── src/
 │   ├── routes/
-│   │   ├── __root.tsx
+│   │   ├── __root.tsx             # 根布局、导航栏、路由守卫（beforeLoad）
 │   │   ├── index.tsx              # Dashboard
-│   │   ├── items/
-│   │   │   ├── index.tsx          # 物品列表
-│   │   │   ├── $itemId.tsx        # 物品详情
-│   │   │   └── new.tsx            # 录入（拍照/扫码/手动）
-│   │   ├── locations/index.tsx
-│   │   ├── consumables/index.tsx
-│   │   ├── loans/index.tsx
-│   │   ├── archive/index.tsx      # 物品墓地
-│   │   └── settings/index.tsx
+│   │   ├── login.tsx              # 登录页（demo 模式自动填充）
+│   │   ├── setup.tsx              # 首次初始化向导
+│   │   ├── search.tsx             # SSE 两阶段搜索页
+│   │   ├── items.index.tsx        # 物品列表
+│   │   ├── items.$itemId.tsx      # 物品详情
+│   │   ├── locations.index.tsx    # 位置树
+│   │   ├── consumables.tsx        # 消耗品 A/B 管理
+│   │   ├── edc.tsx                # EDC 随身物品
+│   │   ├── loans.tsx              # 借出追踪
+│   │   ├── credentials.tsx        # 凭证与保修
+│   │   ├── lifecycle.tsx          # 物品退场 & 墓地
+│   │   ├── capture.tsx            # 录入（条码/AI 识别/手动）
+│   │   ├── qr-print.tsx           # 位置二维码批量打印
+│   │   ├── location-scan.tsx      # 位置扫码盘点
+│   │   ├── operations.tsx         # 操作中心（备份/提醒/导出）
+│   │   └── import.tsx             # CSV/JSON 批量导入
 │   ├── components/
-│   │   ├── ItemCard/
-│   │   ├── LocationTree/
-│   │   ├── BarcodeScanner/
-│   │   ├── CameraCapture/
-│   │   ├── SearchBar/             # SSE 消费，两阶段结果展示
-│   │   └── QrPrintSheet/
+│   │   └── ui/
+│   │       ├── index.tsx          # 设计系统组件（Button、Card、Dialog、Toast 等）
+│   │       └── styles.css.ts      # Vanilla Extract 样式
+│   ├── features/
+│   │   ├── m2/components.tsx      # M2 公共组件（FeatureHeader、MetricStrip、DataCard）
+│   │   ├── qr/                   # QR 码相关（扫描、生成、打印）
+│   │   └── locations/types.ts     # 位置类型定义
 │   ├── api/
-│   │   ├── client.ts              # ky 实例
-│   │   ├── items.ts
-│   │   ├── locations.ts
-│   │   └── search.ts              # streamSearch（SSE）
+│   │   └── client.ts             # ky 实例 + 全量 API 方法
 │   ├── styles/
-│   │   ├── tokens.css.ts          # Design token 定义（色彩、间距、圆角、阴影）
-│   │   ├── global.css.ts          # 全局 reset 与基础样式
-│   │   └── sprinkles.css.ts       # 原子化工具类（可选）
-│   └── utils/
+│   │   ├── theme.css.ts          # Design token（色彩、间距、圆角、阴影）
+│   │   ├── global.css.ts         # 全局 reset 与基础样式
+│   │   └── print.css             # 打印样式
+│   ├── utils/
+│   │   └── useNetworkStatus.ts   # 网络状态感知 hook
 ├── public/manifest.json
 ├── vite.config.ts
 └── package.json
@@ -871,13 +856,13 @@ const isOnline = useNetworkStatus();
 
 Base UI 提供无样式的行为原语（可访问性、键盘交互、ARIA 属性），Vanilla Extract 负责全部视觉样式。两者分工明确，共同构成 Havit 自有的设计系统。
 
-**Design Token 定义（styles/tokens.css.ts）：**
+**Design Token 定义（styles/theme.css.ts）：**
 
 ```typescript
-// styles/tokens.css.ts
+// styles/theme.css.ts
 import { createGlobalTheme } from '@vanilla-extract/css';
 
-export const vars = createGlobalTheme(':root', {
+export const themeVars = createGlobalTheme(':root', {
     color: {
         primary:       '#3B6DEA',
         primaryHover:  '#2F5DC9',
@@ -1021,21 +1006,21 @@ export const badge = styleVariants({
 });
 ```
 
-**需要自建的组件清单（M1 阶段完成）：**
+**需要自建的组件清单（均在 components/ui/ 单文件中）：**
 
-- `Button`（variant: primary / secondary / ghost / danger）
-- `Input` / `Textarea`（含 label、error state）
-- `Select`（Base UI Select 封装）
-- `Dialog` / `Modal`（Base UI Dialog 封装）
-- `Tooltip`（Base UI Tooltip 封装）
+- `Button`（variant: primary / subtle / quiet）
+- `TextField` / `TextareaField`（含 label、error state）
+- `SelectField`（Base UI Select 封装）
+- `Dialog`（Base UI Dialog 封装，未单独导出 Modal）
+- `Tooltip`（CSS 纯工具类，data-tip 属性驱动）
 - `Badge` / `StatusBadge`
 - `Card`
-- `Spinner` / `Skeleton`
-- `Alert`（info / warning / danger / success）
-- `Tabs`（Base UI Tabs 封装）
-- `Toast` / `Notification`（Base UI Toast 封装）
+- `Spinner` / `Skeleton`（SkeletonText / SkeletonTitle / SkeletonCircle / SkeletonRect）
+- `Alert`
+- `Tabs`
+- `Toast`（`ToastProvider` + `useToast` hook，Base UI Toast 封装）
 
-这些组件复用 tokens.css.ts 中的 design token，保证视觉一致性。
+这些组件复用 theme.css.ts 中的 design token，保证视觉一致性。
 
 ### 7.5 embed 进 Go 二进制
 
@@ -1210,7 +1195,7 @@ cd web && npm run dev
 | LLM 搜索体感延迟 | 并发赛跑：FTS5 先出结果，LLM 结果 SSE 异步刷新，用户感知瞬时响应 |
 | SQLite 备份文件损坏 | 三步原子流程：`VACUUM INTO` 先建一致性快照，再打包，绝不直接 tar 运行中的 db 文件 |
 | PWA 离线写冲突 | M3 前明确不做离线写，网络断开时置灰所有写操作按钮 |
-| Vanilla Extract 与 Mantine 样式冲突 | VE 只负责自定义组件，Mantine 内部样式不干预，通过 CSS 变量共享 token |
+| Base UI 默认样式覆盖 | VE 覆盖 Base UI 所有样式，通过 CSS 变量统一 design token，无运行时冲突 |
 | 单二进制体积 | 前端 tree-shaking + `-ldflags="-s -w"`，预计 < 35MB |
 
 ---
@@ -1221,7 +1206,7 @@ cd web && npm run dev
 
 Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 + 全量 Schema + FTS5（trigram）+ 物品 CRUD + 位置树 CRUD + JWT 认证 + CSV/JSON 批量导入 + Docker 多阶段构建
 
-前端：React + Vite + Mantine + TanStack Router/Query + Vanilla Extract 骨架 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
+前端：React + Vite + Base UI + TanStack Router/Query + Vanilla Extract 骨架 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
 
 **M2（P1，约 8~10 周）**
 
@@ -1296,7 +1281,7 @@ Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 
 前端挂载时的第一个请求，无需鉴权：
 
 ```
-GET /api/system/status
+GET /api/v1/system/status
 ```
 
 ```go
@@ -1329,47 +1314,35 @@ func (h *SystemHandler) Status(w http.ResponseWriter, r *http.Request) {
 
 ```typescript
 // routes/__root.tsx
+const PUBLIC_PATHS = new Set(['/login', '/setup']);
+
 export const Route = createRootRouteWithContext<RouterContext>()({
-    beforeLoad: async ({ context }) => {
+    beforeLoad: async ({ context, location }) => {
         const status = await context.queryClient.fetchQuery({
             queryKey:  ['system', 'status'],
-            queryFn:   () => ky.get('/api/system/status').json<SystemStatus>(),
-            staleTime: Infinity,   // 启动后状态不会变，不需要重新请求
+            queryFn:   () => api.get('system/status').json<SystemStatus>(),
+            staleTime: Infinity,
         });
 
-        // Release 模式：未初始化，强制跳 /setup
-        if (status.mode === 'release' && status.needs_setup) {
+        // Release 模式：未初始化且不在 /setup，强制跳 /setup
+        if (status.mode === 'release' && status.needs_setup && location.pathname !== '/setup') {
             throw redirect({ to: '/setup' });
         }
 
-        // 将 mode 注入 context，供子路由和组件消费
+        // 已初始化却在 /setup，跳 /login
+        if (!status.needs_setup && location.pathname === '/setup') {
+            throw redirect({ to: '/login', search: { redirect: undefined } });
+        }
+
+        // 非公开路径需要 token
+        const isPublic = PUBLIC_PATHS.has(location.pathname);
+        if (!isPublic && !getToken()) {
+            throw redirect({ to: '/login', search: { redirect: location.pathname } });
+        }
+
         return { systemStatus: status };
     },
 });
-
-// 登录页：Demo 模式自动填充账号
-function LoginPage() {
-    const { systemStatus } = Route.useRouteContext();
-    const isDemo = systemStatus.mode === 'demo';
-
-    return (
-        <>
-            {isDemo && (
-                <Alert color="yellow" icon={<IconInfoCircle />}>
-                    当前为演示模式，数据仅供体验，不会被保存。
-                </Alert>
-            )}
-            <TextInput
-                label="用户名"
-                defaultValue={isDemo ? 'admin@havit.local' : ''}
-            />
-            <PasswordInput
-                label="密码"
-                defaultValue={isDemo ? 'havit-demo' : ''}
-            />
-        </>
-    );
-}
 ```
 
 ### 13.5 Release 模式：初始化向导（/setup）
@@ -1461,27 +1434,36 @@ INSERT INTO tags (id, name, color) VALUES
 ('01DEMO000TAG0000002', '数码',     '#7B61FF'),
 ('01DEMO000TAG0000003', '高频使用', '#F5A623');
 
--- 4. 物品
+-- 4. 物品（覆盖全部 5 种类型）
 INSERT INTO items (id, name, category, type, status,
-                   location_id, owner_id, created_at, updated_at) VALUES
+                   location_id, current_stock, min_stock_threshold,
+                   is_private, owner_id, created_at, updated_at) VALUES
 -- 耐用品
-('01DEMO000ITEM000001', 'Sony A7M4 相机机身', '数码电子', 'durable', 'in_stock',
- '01DEMO000LOC0000003', '01DEMO0000USER000001', 1717770000, 1717770000),
-('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头', '数码电子', 'durable', 'in_stock',
- '01DEMO000LOC0000003', '01DEMO0000USER000001', 1717770000, 1717770000),
--- EDC 物品（当前状态 @随身）
-('01DEMO000ITEM000003', 'AirPods Pro 2', '数码电子', 'edc', 'in_stock',
- '01DEMO000LOC0000006', '01DEMO0000USER000001', 1717770000, 1717770000),
--- 消耗品 A（库存推算）
-('01DEMO000ITEM000004', '咖啡豆 (埃塞俄比亚)', '食品', 'consumable_a', 'in_stock',
- '01DEMO000LOC0000002', '01DEMO0000USER000001', 1717770000, 1717770000),
--- 消耗品 B（净水器滤芯，库存=1，低于阈值，演示红色提醒）
-('01DEMO000ITEM000005', '净水器滤芯', '家庭用品', 'consumable_b', 'in_stock',
- '01DEMO000LOC0000002', '01DEMO0000USER000001', 1717770000, 1717770000);
+('01DEMO000ITEM000001', 'Sony A7M4 相机机身',   '数码电子', 'durable',      'in_stock',
+ '01DEMO000LOC0000003', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
+('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头',  '数码电子', 'durable',      'borrowed',
+ '01DEMO000LOC0000003', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
+-- EDC 物品（当前 @随身）
+('01DEMO000ITEM000003', 'AirPods Pro 2',         '数码电子', 'edc',          'in_stock',
+ '01DEMO000LOC0000006', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
+-- 消耗品 A（时间推算型）
+('01DEMO000ITEM000004', '埃塞俄比亚咖啡豆',        '食品',     'consumable_a', 'in_stock',
+ '01DEMO000LOC0000002', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
+-- 消耗品 B（库存阈值型）
+('01DEMO000ITEM000005', '净水器滤芯',            '家庭用品', 'consumable_b', 'in_stock',
+ '01DEMO000LOC0000002', 0,    1,    0, '01DEMO0000USER000001', 1717770000, 1717770000),
+-- 虚拟资产（无实物位置）
+('01DEMO000ITEM000006', 'Adobe 创意云摄影计划',  '软件订阅', 'virtual',     'in_stock',
+ NULL,                NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000);
 
--- 5. 消耗品 B：当前库存设为 0，触发低库存提醒效果
-UPDATE items SET current_stock = 0, min_stock_threshold = 1
-WHERE id = '01DEMO000ITEM000005';
+-- 5. items_fts 同步
+INSERT INTO items_fts (item_id, name, description, category, serial_number) VALUES
+('01DEMO000ITEM000001', 'Sony A7M4 相机机身',   NULL, '数码电子', NULL),
+('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头',  NULL, '数码电子', NULL),
+('01DEMO000ITEM000003', 'AirPods Pro 2',         NULL, '数码电子', NULL),
+('01DEMO000ITEM000004', '埃塞俄比亚咖啡豆',      NULL, '食品',     NULL),
+('01DEMO000ITEM000005', '净水器滤芯',            NULL, '家庭用品', NULL),
+('01DEMO000ITEM000006', 'Adobe 创意云摄影计划',  NULL, '软件订阅', NULL);
 
 -- 6. 物品-标签关联
 INSERT INTO item_tags (item_id, tag_id) VALUES
@@ -1490,13 +1472,23 @@ INSERT INTO item_tags (item_id, tag_id) VALUES
 ('01DEMO000ITEM000002', '01DEMO000TAG0000001'),
 ('01DEMO000ITEM000003', '01DEMO000TAG0000003');
 
--- 7. 消耗品 A 历史购买事件（用于演示推算功能）
+-- 7. 消耗品 A 历史购买事件
 INSERT INTO purchase_events (id, item_id, quantity, purchased_at) VALUES
 ('01DEMO000EVT0000001', '01DEMO000ITEM000004', 1, 1710000000),
 ('01DEMO000EVT0000002', '01DEMO000ITEM000004', 1, 1712678400),
 ('01DEMO000EVT0000003', '01DEMO000ITEM000004', 1, 1715270400);
 
--- 8. 借出记录（演示借出追踪功能）
+-- 8. 虚拟资产凭证（演示加密凭证功能）
+INSERT INTO virtual_credentials (id, item_id, platform, account, order_id, purchased_at, price, currency) VALUES
+('01DEMO000VRC0000001', '01DEMO000ITEM000006', 'Adobe', 'photo@example.com', 'ADOBE-2024-001',
+ 1700000000, 1188.00, 'CNY');
+
+-- 9. 虚拟资产增补购买
+INSERT INTO virtual_addon_purchases (id, item_id, name, platform, price, currency, purchased_at) VALUES
+('01DEMO000ADP0000001', '01DEMO000ITEM000006', 'Lightroom 高级预设包', 'Adobe', 199.00, 'CNY', 1710000000),
+('01DEMO000ADP0000002', '01DEMO000ITEM000006', 'Photoshop 笔刷扩展',  'Adobe', 89.00,  'CNY', 1712600000);
+
+-- 10. 借出记录（演示借出追踪 + 逾期未还状态）
 INSERT INTO loans (id, item_id, borrower_name, borrower_contact,
                    loaned_at, due_at, status) VALUES
 ('01DEMO000LOAN000001', '01DEMO000ITEM000002', '小王', 'xiaowang@example.com',

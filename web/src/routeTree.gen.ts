@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as QrPrintRouteImport } from './routes/qr-print'
 import { Route as OperationsRouteImport } from './routes/operations'
@@ -30,6 +31,11 @@ import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/items/': typeof ItemsIndexRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/items': typeof ItemsIndexRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/items/': typeof ItemsIndexRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/operations'
     | '/qr-print'
     | '/search'
+    | '/settings'
     | '/setup'
     | '/items/$itemId'
     | '/items/'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/operations'
     | '/qr-print'
     | '/search'
+    | '/settings'
     | '/setup'
     | '/items/$itemId'
     | '/items'
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/operations'
     | '/qr-print'
     | '/search'
+    | '/settings'
     | '/setup'
     | '/items/$itemId'
     | '/items/'
@@ -245,6 +257,7 @@ export interface RootRouteChildren {
   OperationsRoute: typeof OperationsRoute
   QrPrintRoute: typeof QrPrintRoute
   SearchRoute: typeof SearchRoute
+  SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
   ItemsIndexRoute: typeof ItemsIndexRoute
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -389,6 +409,7 @@ const rootRouteChildren: RootRouteChildren = {
   OperationsRoute: OperationsRoute,
   QrPrintRoute: QrPrintRoute,
   SearchRoute: SearchRoute,
+  SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,
   ItemsIndexRoute: ItemsIndexRoute,

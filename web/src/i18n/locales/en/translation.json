@@ -13,7 +13,8 @@
     "import": "Import",
     "qrPrint": "QR Print",
     "locationScan": "Scan Location",
-    "operations": "Operations"
+    "operations": "Operations",
+    "settings": "Settings"
   },
   "navSection": {
     "overview": "Overview",
@@ -148,7 +149,8 @@
     "switchStatus": "Switch status",
     "tagsLoading": "Loading tags…",
     "selectTagPlaceholder": "Select an existing tag",
-    "photoReadFailed": "Photo unavailable"
+    "photoReadFailed": "Photo unavailable",
+    "downloadClaim": "Download Claim PDF"
   },
   "itemDetail": {
     "basicInfo": "Basic Info",
@@ -157,6 +159,8 @@
     "consumable": "Consumables",
     "virtual": "Virtual Assets",
     "events": "Event Log",
+    "contents": "Container Contents",
+    "removeFromContainer": "Remove",
     "warrantyExpiry": "Warranty Expiry",
     "warrantyContact": "Warranty Contact",
     "currentStock": "Current Stock",
@@ -276,6 +280,13 @@
     "title": "EDC",
     "description": "Retain a baseline location while expressing carry, travel pack, and unknown states with dynamic status.",
     "returnHome": "Return Home",
+    "returnAll": "Return All",
+    "returnedAll": "Returned {{count}} items home",
+    "packAll": "Pack All",
+    "packedAll": "Packed {{count}} items",
+    "packDestination": "Pack Destination",
+    "selectLocation": "Select location…",
+    "packConfirm": "Pack",
     "returnedHome": "Item returned home",
     "returnFailed": "Return failed: {{error}}",
     "noEdc": "No EDC items",
@@ -435,10 +446,28 @@
   },
   "settings": {
     "title": "Settings",
+    "description": "Manage users and system configuration.",
     "language": "Language",
     "theme": "Theme",
     "darkMode": "Dark Mode",
-    "lightMode": "Light Mode"
+    "lightMode": "Light Mode",
+    "users": "User Management",
+    "addMember": "Add Member",
+    "username": "Username",
+    "password": "Password",
+    "role": "Role",
+    "actions": "Actions",
+    "you": "You",
+    "ownerOnly": "Only the Owner can manage users.",
+    "promoteToOwner": "Promote to Owner",
+    "demoteToMember": "Demote to Member",
+    "createUser": "Create",
+    "userCreated": "User created",
+    "userCreateFailed": "Failed to create user",
+    "userDeleted": "User deleted",
+    "userDeleteFailed": "Failed to delete user",
+    "roleUpdated": "Role updated",
+    "roleUpdateFailed": "Failed to update role"
   },
   "auth": {
     "login": "Login",
@@ -496,6 +525,7 @@
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
+    "name": "Name",
     "items": "items",
     "item": "item",
     "pieces": "pieces",

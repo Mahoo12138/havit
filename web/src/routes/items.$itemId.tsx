@@ -5,9 +5,11 @@ import {
   IconArchive,
   IconCalendar,
   IconClipboardList,
+  IconDownload,
   IconHistory,
   IconKey,
   IconMapPin,
+  IconPackage,
   IconPhotoPlus,
   IconPlus,
   IconShieldCheck,
@@ -31,6 +33,7 @@ import {
   useToast,
 } from '../components/ui';
 import {
+  containerApi,
   itemsApi,
   itemsExtendedApi,
   loansApi,
@@ -197,6 +200,24 @@ function ItemDetail() {
           </div>
         </StackTight>
         <div className={uiStyles.pageActions}>
+          {it.status === 'stolen' && (
+            <Button
+              leftSection={<IconDownload size={16} />}
+              variant="subtle"
+              onClick={() => {
+                itemsExtendedApi.claimPdf(itemId).then((blob) => {
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${it.name}-insurance-claim.pdf`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                });
+              }}
+            >
+              {t('items.downloadClaim')}
+            </Button>
+          )}
           <Button
             leftSection={<IconArchive size={16} />}
             variant="quiet"
@@ -316,6 +337,7 @@ function ItemDetail() {
           </div>
 
           <LoansSection itemId={itemId} />
+          <ContentsSection itemId={itemId} />
           <EventsSection itemId={itemId} />
         </div>
 
@@ -763,6 +785,74 @@ function EventsSection({ itemId }: { itemId: string }) {
                 )}
               </div>
             ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ContentsSection({ itemId }: { itemId: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['item', itemId, 'contents'],
+    queryFn: () => containerApi.listContents(itemId),
+  });
+
+  const removeMutation = useMutation({
+    mutationFn: (childId: string) => containerApi.remove(itemId, childId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['item', itemId, 'contents'] }),
+  });
+
+  const contents = data?.items ?? [];
+  if (!isLoading && contents.length === 0) return null;
+
+  return (
+    <section className={uiStyles.itemSection}>
+      <header className={uiStyles.itemSectionHead}>
+        <h3 className={uiStyles.itemSectionTitle}>
+          <span className={uiStyles.itemSectionTitleIcon}>
+            <IconPackage size={14} />
+          </span>
+          {t('itemDetail.contents')}
+        </h3>
+      </header>
+      <div className={uiStyles.itemSectionBody}>
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          <div className={uiStyles.tableWrap}>
+            <table className={uiStyles.table}>
+              <thead>
+                <tr>
+                  <th className={uiStyles.th}>{t('common.name')}</th>
+                  <th className={uiStyles.th}>{t('items.status')}</th>
+                  <th className={uiStyles.th} />
+                </tr>
+              </thead>
+              <tbody>
+                {contents.map((child) => (
+                  <tr className={uiStyles.tableRow} key={child.id}>
+                    <td className={uiStyles.td}>{child.name}</td>
+                    <td className={uiStyles.td}>
+                      <StatusBadge status={child.status} />
+                    </td>
+                    <td className={uiStyles.td}>
+                      <Button
+                        variant="quiet"
+                        leftSection={<IconX size={13} />}
+                        disabled={removeMutation.isPending}
+                        onClick={() => removeMutation.mutate(child.id)}
+                      >
+                        {t('itemDetail.removeFromContainer')}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

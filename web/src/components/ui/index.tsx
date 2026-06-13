@@ -191,6 +191,22 @@ export function Spinner({ className }: { className?: string }) {
   return <span className={cx(s.spinner, className)} aria-label={t('common.loading')} />;
 }
 
+export function SkeletonText({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return <span className={cx(s.skeletonText, className)} style={style} />;
+}
+
+export function SkeletonTitle({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return <span className={cx(s.skeletonTitle, className)} style={style} />;
+}
+
+export function SkeletonCircle({ size = '2.25rem', className }: { size?: string; className?: string }) {
+  return <span className={cx(s.skeletonCircle, className)} style={{ width: size, height: size }} />;
+}
+
+export function SkeletonRect({ className }: { className?: string }) {
+  return <div className={cx(s.skeletonRect, className)} />;
+}
+
 export function Tabs({
   value,
   onChange,
@@ -294,6 +310,14 @@ function ToastLayer({ children }: { children: ReactNode }) {
         </BaseToast.Viewport>
       </BaseToast.Portal>
     </ToastContext.Provider>
+  );
+}
+
+export function Tooltip({ tip, children, className }: { tip: string; children: ReactNode; className?: string }) {
+  return (
+    <span className={cx(s.tooltip, className)} data-tip={tip} tabIndex={0} role="tooltip">
+      {children}
+    </span>
   );
 }
 

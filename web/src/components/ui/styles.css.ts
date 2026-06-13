@@ -3055,3 +3055,76 @@ export const itemSectionFoot = style({
   color: themeVars.muted,
 });
 
+/* ---------- Skeleton ---------- */
+
+const shimmer = keyframes({
+  '0%': { backgroundPosition: '-200% 0' },
+  '100%': { backgroundPosition: '200% 0' },
+});
+
+const skeletonBase = style({
+  animation: `${shimmer} 1.4s ease-in-out infinite`,
+  background: `linear-gradient(90deg, ${themeVars.lineSoft} 25%, ${themeVars.line} 50%, ${themeVars.lineSoft} 75%)`,
+  backgroundSize: '200% 100%',
+});
+
+export const skeletonText = style([
+  skeletonBase,
+  {
+    height: '0.85rem',
+    borderRadius: themeVars.radius1,
+    width: '100%',
+  },
+]);
+
+export const skeletonTitle = style([
+  skeletonBase,
+  {
+    height: '1.2rem',
+    borderRadius: themeVars.radius1,
+    width: '60%',
+  },
+]);
+
+export const skeletonCircle = style([
+  skeletonBase,
+  {
+    borderRadius: '999px',
+  },
+]);
+
+export const skeletonRect = style([
+  skeletonBase,
+  {
+    borderRadius: themeVars.radius2,
+    aspectRatio: '16 / 10',
+    width: '100%',
+  },
+]);
+
+/* ---------- Tooltip ---------- */
+
+export const tooltip = style({
+  position: 'relative',
+  display: 'inline-flex',
+  selectors: {
+    '&:hover::after, &:focus-visible::after': {
+      content: 'attr(data-tip)',
+      position: 'absolute',
+      bottom: 'calc(100% + 6px)',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      padding: `${themeVars.space1} ${themeVars.space3}`,
+      borderRadius: themeVars.radius1,
+      background: themeVars.ink,
+      color: themeVars.panel,
+      fontSize: '0.78rem',
+      fontWeight: 500,
+      whiteSpace: 'nowrap',
+      pointerEvents: 'none',
+      zIndex: 70,
+      lineHeight: 1.4,
+    },
+  },
+});
+

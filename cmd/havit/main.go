@@ -116,6 +116,7 @@ func main() {
 
 	systemH := handler.NewSystemHandler(state)
 	authH := handler.NewAuthHandler(authSvc, state)
+	userH := handler.NewUserHandler(authSvc)
 	itemH := handler.NewItemHandler(itemSvc)
 	tagH := handler.NewTagHandler(tagSvc)
 	locH := handler.NewLocationHandler(locSvc)
@@ -157,6 +158,14 @@ func main() {
 			searchH.Mount(r)
 			barcodeH.Mount(r)
 			aiH.Mount(r)
+		})
+
+		// Owner-only routes (user management).
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.Auth(authSvc))
+			r.Use(authmw.RequireOwner)
+			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
+			userH.Mount(r)
 		})
 
 		// Routes that set their own per-route body limits (import 16 MB, attachment streams to disk).
