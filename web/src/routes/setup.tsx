@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { IconShieldCheck } from '@tabler/icons-react';
 import { useState } from 'react';
@@ -13,7 +13,7 @@ import {
   uiStyles,
   useToast,
 } from '../components/ui';
-import { authApi, setToken } from '../api/client';
+import { authApi } from '../api/client';
 
 export const Route = createFileRoute('/setup')({
   component: SetupPage,
@@ -23,16 +23,17 @@ function SetupPage() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const toast = useToast();
+  const queryClient = useQueryClient();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
 
   const setup = useMutation({
     mutationFn: () => authApi.setup({ username, password }),
-    onSuccess: (data) => {
-      setToken(data.token);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['system', 'status'] });
       toast.show(t('auth.setupSuccess'));
-      nav({ to: '/' });
+      nav({ to: '/login', search: { redirect: undefined } });
     },
     onError: (e: Error) => toast.show(t('auth.setupFailed', { error: e.message })),
   });
