@@ -42,8 +42,6 @@ function ItemsPage() {
   const { t } = useTranslation();
   const itemTypeOptions = [
     { value: 'durable', label: t('items.durable') },
-    { value: 'consumable_a', label: t('items.consumable_a') },
-    { value: 'consumable_b', label: t('items.consumable_b') },
     { value: 'edc', label: t('nav.edc') },
     { value: 'virtual', label: t('items.virtual_asset') },
   ];

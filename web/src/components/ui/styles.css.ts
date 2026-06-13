@@ -3513,3 +3513,881 @@ export const loanMobileValue = style({
   fontWeight: 500,
 });
 
+/* ---------- EDC Page ---------- */
+
+export const edcStatsRow = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+  gap: themeVars.space4,
+  '@media': {
+    '(max-width: 64em)': {
+      gridTemplateColumns: 'repeat(2, 1fr)',
+    },
+    '(max-width: 40em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const edcStatCard = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space4,
+  padding: themeVars.space4,
+  background: themeVars.panel,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  boxShadow: themeVars.shadowSoft,
+});
+
+export const edcStatIcon = styleVariants({
+  blue: {
+    width: '2.8rem',
+    height: '2.8rem',
+    borderRadius: themeVars.radius2,
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+    display: 'inline-grid',
+    placeItems: 'center',
+    flex: '0 0 auto',
+  },
+  green: {
+    width: '2.8rem',
+    height: '2.8rem',
+    borderRadius: themeVars.radius2,
+    background: themeVars.successSoft,
+    color: themeVars.success,
+    display: 'inline-grid',
+    placeItems: 'center',
+    flex: '0 0 auto',
+  },
+  orange: {
+    width: '2.8rem',
+    height: '2.8rem',
+    borderRadius: themeVars.radius2,
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+    display: 'inline-grid',
+    placeItems: 'center',
+    flex: '0 0 auto',
+  },
+  gray: {
+    width: '2.8rem',
+    height: '2.8rem',
+    borderRadius: themeVars.radius2,
+    background: themeVars.lineSoft,
+    color: themeVars.muted,
+    display: 'inline-grid',
+    placeItems: 'center',
+    flex: '0 0 auto',
+  },
+});
+
+export const edcStatMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+});
+
+export const edcStatLabel = style({
+  color: themeVars.muted,
+  fontSize: '0.82rem',
+  fontWeight: 500,
+});
+
+export const edcStatValue = style({
+  color: themeVars.ink,
+  fontSize: '1.75rem',
+  fontWeight: 700,
+  letterSpacing: '-0.02em',
+  lineHeight: 1.1,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const edcStatNote = style({
+  color: themeVars.muted,
+  fontSize: '0.78rem',
+  marginTop: '1px',
+});
+
+export const edcMainLayout = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) 22rem',
+  gap: themeVars.space5,
+  alignItems: 'start',
+  '@media': {
+    '(max-width: 72em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const edcMainContent = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space4,
+  minWidth: 0,
+});
+
+export const edcSidebar = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space4,
+  minWidth: 0,
+  '@media': {
+    '(min-width: 72.01em)': {
+      position: 'sticky',
+      top: `calc(${themeVars.shellHeaderH} + ${themeVars.space5})`,
+    },
+  },
+});
+
+export const edcToolbar = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: themeVars.space3,
+  flexWrap: 'wrap',
+});
+
+export const edcToolbarLeft = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+});
+
+export const edcToolbarRight = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+});
+
+export const edcToolbarTitle = style({
+  margin: 0,
+  fontSize: '1rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  letterSpacing: '-0.01em',
+});
+
+export const edcToolbarDivider = style({
+  display: 'inline-block',
+  width: '1px',
+  height: '1.2rem',
+  background: themeVars.line,
+});
+
+export const edcViewToggle = style({
+  display: 'inline-flex',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  overflow: 'hidden',
+});
+
+export const edcViewToggleBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: themeVars.space1,
+  padding: `${themeVars.space1} ${themeVars.space3}`,
+  border: 0,
+  background: 'transparent',
+  color: themeVars.muted,
+  fontSize: '0.82rem',
+  fontWeight: 500,
+  cursor: 'pointer',
+  transition: 'background-color 140ms ease, color 140ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+      color: themeVars.text,
+    },
+    '&[data-active="true"]': {
+      background: themeVars.accentSoft,
+      color: themeVars.accentInk,
+    },
+  },
+});
+
+export const edcItemRow = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 1fr) auto',
+  alignItems: 'center',
+  gap: themeVars.space4,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+  color: themeVars.text,
+  textDecoration: 'none',
+  transition: 'background-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+      textDecoration: 'none',
+    },
+    '&:first-child': {
+      borderTop: 0,
+    },
+  },
+});
+
+export const edcItemInfo = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  minWidth: 0,
+});
+
+export const edcItemThumb = style({
+  width: '2.5rem',
+  height: '2.5rem',
+  borderRadius: themeVars.radius2,
+  background: themeVars.lineSoft,
+  display: 'grid',
+  placeItems: 'center',
+  color: themeVars.muted,
+  flex: '0 0 auto',
+  overflow: 'hidden',
+});
+
+export const edcItemName = style({
+  fontSize: '0.92rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const edcItemCategory = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+});
+
+export const edcStatusBadge = styleVariants({
+  carry: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.accentSoft,
+    color: themeVars.accentInk,
+    fontSize: '0.78rem',
+    fontWeight: 600,
+  },
+  bag: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+    fontSize: '0.78rem',
+    fontWeight: 600,
+  },
+  home: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.lineSoft,
+    color: themeVars.muted,
+    fontSize: '0.78rem',
+    fontWeight: 600,
+  },
+  away: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+    fontSize: '0.78rem',
+    fontWeight: 600,
+  },
+});
+
+export const edcQuickAction = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  border: `1px solid ${themeVars.lineSoft}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  color: themeVars.text,
+  textDecoration: 'none',
+  cursor: 'pointer',
+  transition: 'border-color 160ms ease, background-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      borderColor: `color-mix(in srgb, ${themeVars.accent} 28%, ${themeVars.line})`,
+      background: themeVars.bgSoft,
+      textDecoration: 'none',
+    },
+  },
+});
+
+export const edcQuickActionIcon = style({
+  width: '2.2rem',
+  height: '2.2rem',
+  borderRadius: themeVars.radius2,
+  display: 'inline-grid',
+  placeItems: 'center',
+  flex: '0 0 auto',
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
+});
+
+export const edcQuickActionMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+  flex: '1 1 auto',
+});
+
+export const edcQuickActionTitle = style({
+  fontSize: '0.88rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+});
+
+export const edcQuickActionHint = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+});
+
+export const edcQuickActionArrow = style({
+  color: themeVars.muted,
+  flex: '0 0 auto',
+});
+
+export const edcDonut = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space5,
+  padding: themeVars.space4,
+});
+
+export const edcDonutLegend = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  minWidth: 0,
+});
+
+export const edcDonutLegendItem = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  fontSize: '0.82rem',
+  color: themeVars.text,
+});
+
+export const edcDonutLegendDot = style({
+  width: '0.55rem',
+  height: '0.55rem',
+  borderRadius: '999px',
+  flex: '0 0 auto',
+});
+
+export const edcDonutLegendValue = style({
+  marginLeft: 'auto',
+  color: themeVars.muted,
+  fontVariantNumeric: 'tabular-nums',
+  fontSize: '0.78rem',
+});
+
+export const edcReminderItem = style({
+  display: 'flex',
+  gap: themeVars.space3,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+  selectors: {
+    '&:first-child': {
+      borderTop: 0,
+    },
+  },
+});
+
+export const edcReminderDot = style({
+  width: '0.5rem',
+  height: '0.5rem',
+  borderRadius: '999px',
+  background: themeVars.danger,
+  marginTop: '0.45rem',
+  flex: '0 0 auto',
+});
+
+export const edcReminderDotWarn = style([
+  edcReminderDot,
+  { background: themeVars.warning },
+]);
+
+export const edcReminderDotInfo = style([
+  edcReminderDot,
+  { background: themeVars.info },
+]);
+
+export const edcReminderMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+});
+
+export const edcReminderTitle = style({
+  fontSize: '0.88rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+});
+
+export const edcReminderSub = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+});
+
+export const edcChecklistStrip = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(10rem, 1fr))',
+  gap: themeVars.space3,
+  padding: themeVars.space4,
+});
+
+export const edcChecklistItem = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  padding: themeVars.space3,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  textAlign: 'center',
+  transition: 'border-color 160ms ease, background-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      borderColor: `color-mix(in srgb, ${themeVars.accent} 28%, ${themeVars.line})`,
+      background: themeVars.bgSoft,
+    },
+  },
+});
+
+export const edcChecklistThumb = style({
+  width: '3rem',
+  height: '3rem',
+  borderRadius: themeVars.radius2,
+  background: themeVars.lineSoft,
+  display: 'grid',
+  placeItems: 'center',
+  color: themeVars.muted,
+});
+
+export const edcChecklistName = style({
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  maxWidth: '100%',
+});
+
+export const edcChecklistStatus = style({
+  fontSize: '0.72rem',
+  color: themeVars.accentInk,
+  fontWeight: 500,
+});
+
+export const edcTagBadge = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '1px 6px',
+  borderRadius: '999px',
+  fontSize: '0.68rem',
+  fontWeight: 600,
+  lineHeight: 1.5,
+});
+
+export const edcTagBadgeCommon = style([
+  edcTagBadge,
+  {
+    background: themeVars.accentSoft,
+    color: themeVars.accentInk,
+  },
+]);
+
+export const edcTagBadgeEssential = style([
+  edcTagBadge,
+  {
+    background: themeVars.warningSoft,
+    color: themeVars.warningText,
+  },
+]);
+
+export const edcTagBadgeRead = style([
+  edcTagBadge,
+  {
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+  },
+]);
+
+/* ---------- Consumables Page ---------- */
+
+export const consumableKpiStrip = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  gap: themeVars.space4,
+  '@media': {
+    '(max-width: 72em)': {
+      gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
+    },
+    '(max-width: 40em)': {
+      gridTemplateColumns: '1fr 1fr',
+    },
+  },
+});
+
+export const consumableKpiTile = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  padding: themeVars.space4,
+  background: themeVars.panel,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  boxShadow: themeVars.shadowSoft,
+});
+
+export const consumableKpiIcon = styleVariants({
+  blue: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.6rem',
+    height: '2.6rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+  },
+  red: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.6rem',
+    height: '2.6rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
+  },
+  orange: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.6rem',
+    height: '2.6rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+  },
+  green: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.6rem',
+    height: '2.6rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.successSoft,
+    color: themeVars.success,
+  },
+  violet: {
+    flex: '0 0 auto',
+    display: 'inline-grid',
+    width: '2.6rem',
+    height: '2.6rem',
+    placeItems: 'center',
+    borderRadius: themeVars.radius2,
+    background: themeVars.violetSoft,
+    color: themeVars.violet,
+  },
+});
+
+export const consumableKpiMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+});
+
+export const consumableKpiLabel = style({
+  color: themeVars.muted,
+  fontSize: '0.78rem',
+  fontWeight: 500,
+});
+
+export const consumableKpiValue = style({
+  color: themeVars.ink,
+  fontSize: '1.5rem',
+  fontWeight: 700,
+  letterSpacing: '-0.02em',
+  lineHeight: 1.1,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const consumableKpiNote = style({
+  color: themeVars.muted,
+  fontSize: '0.72rem',
+});
+
+export const consumableForecastScroll = style({
+  display: 'flex',
+  gap: themeVars.space4,
+  overflowX: 'auto',
+  padding: `0 ${themeVars.space5} ${themeVars.space4}`,
+  scrollSnapType: 'x mandatory',
+  '@media': {
+    '(max-width: 48em)': {
+      padding: `0 ${themeVars.space3} ${themeVars.space3}`,
+    },
+  },
+});
+
+export const consumableForecastCard = style({
+  flex: '0 0 16rem',
+  scrollSnapAlign: 'start',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+  padding: themeVars.space4,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  background: themeVars.panel,
+  boxShadow: themeVars.shadowSoft,
+  minWidth: 0,
+  '@media': {
+    '(max-width: 48em)': {
+      flex: '0 0 14rem',
+    },
+  },
+});
+
+export const consumableForecastHeader = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+});
+
+export const consumableForecastThumb = style({
+  width: '2.5rem',
+  height: '2.5rem',
+  borderRadius: themeVars.radius2,
+  background: themeVars.lineSoft,
+  display: 'grid',
+  placeItems: 'center',
+  color: themeVars.muted,
+  flex: '0 0 auto',
+});
+
+export const consumableForecastName = style({
+  fontSize: '0.88rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+});
+
+export const consumableForecastHint = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+  lineHeight: 1.4,
+});
+
+export const consumableForecastMeta = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+});
+
+export const consumableProgressBar = style({
+  height: '6px',
+  borderRadius: '999px',
+  background: themeVars.lineSoft,
+  overflow: 'hidden',
+});
+
+export const consumableProgressFill = style({
+  height: '100%',
+  borderRadius: '999px',
+  transition: 'width 300ms ease',
+});
+
+export const consumableTwoCol = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+  gap: themeVars.space5,
+  alignItems: 'start',
+  '@media': {
+    '(max-width: 72em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const consumableTable = style({
+  width: '100%',
+  borderCollapse: 'separate',
+  borderSpacing: 0,
+});
+
+export const consumableTableHead = style({
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  color: themeVars.muted,
+  letterSpacing: '0.02em',
+  textTransform: 'uppercase',
+  textAlign: 'left',
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderBottom: `1px solid ${themeVars.line}`,
+  background: themeVars.bgSoft,
+});
+
+export const consumableTableRow = style({
+  transition: 'background-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+    },
+  },
+});
+
+export const consumableTableCell = style({
+  padding: `${themeVars.space3} ${themeVars.space3}`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  fontSize: '0.88rem',
+  verticalAlign: 'middle',
+});
+
+export const consumableStatusBadge = styleVariants({
+  normal: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.successSoft,
+    color: themeVars.success,
+    fontSize: '0.72rem',
+    fontWeight: 600,
+  },
+  sufficient: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.accentSoft,
+    color: themeVars.accentInk,
+    fontSize: '0.72rem',
+    fontWeight: 600,
+  },
+  low: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+    fontSize: '0.72rem',
+    fontWeight: 600,
+  },
+  below: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '2px 8px',
+    borderRadius: '999px',
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
+    fontSize: '0.72rem',
+    fontWeight: 600,
+  },
+});
+
+export const consumableViewAllLink = style({
+  display: 'block',
+  textAlign: 'center',
+  padding: themeVars.space3,
+  fontSize: '0.82rem',
+  fontWeight: 500,
+  color: themeVars.accent,
+  textDecoration: 'none',
+  cursor: 'pointer',
+  background: 'transparent',
+  border: 0,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+  width: '100%',
+  transition: 'color 160ms ease',
+  selectors: {
+    '&:hover': {
+      color: themeVars.accentHover,
+    },
+  },
+});
+
+export const consumableChartPlaceholder = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space4,
+  padding: themeVars.space5,
+  background: themeVars.panel,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+});
+
+export const consumableChartGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) auto',
+  gap: themeVars.space5,
+  alignItems: 'start',
+  '@media': {
+    '(max-width: 64em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const consumableChartMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+  minWidth: '12rem',
+});
+
+export const consumableChartAmount = style({
+  fontSize: '1.75rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  letterSpacing: '-0.02em',
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const consumableChartChange = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontSize: '0.82rem',
+  fontWeight: 600,
+});
+
+export const consumableChartChangeNeg = style([
+  consumableChartChange,
+  { color: themeVars.success },
+]);
+
+export const consumableChartChangePos = style([
+  consumableChartChange,
+  { color: themeVars.danger },
+]);
+
