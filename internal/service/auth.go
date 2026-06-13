@@ -133,6 +133,76 @@ func (s *AuthService) GetUser(ctx context.Context, id string) (*User, error) {
 	return &u, nil
 }
 
+func (s *AuthService) ListUsers(ctx context.Context) ([]*User, error) {
+	rows, err := s.db.QueryContext(ctx,
+		`SELECT id, username, role, created_at FROM users ORDER BY created_at ASC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var users []*User
+	for rows.Next() {
+		var u User
+		if err := rows.Scan(&u.ID, &u.Username, &u.Role, &u.CreatedAt); err != nil {
+			return nil, err
+		}
+		users = append(users, &u)
+	}
+	return users, rows.Err()
+}
+
+func (s *AuthService) CreateMember(ctx context.Context, username, password string) (*User, error) {
+	if username == "" || password == "" {
+		return nil, errors.New("username and password required")
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("hash: %w", err)
+	}
+	id := ulid.Make().String()
+	now := time.Now().Unix()
+	if _, err := s.db.ExecContext(ctx,
+		`INSERT INTO users (id, username, password, role, created_at) VALUES (?, ?, ?, 'member', ?)`,
+		id, username, string(hash), now,
+	); err != nil {
+		return nil, ErrUserExists
+	}
+	return &User{ID: id, Username: username, Role: "member", CreatedAt: now}, nil
+}
+
+func (s *AuthService) DeleteUser(ctx context.Context, id, callerID string) error {
+	if id == callerID {
+		return errors.New("cannot delete yourself")
+	}
+	res, err := s.db.ExecContext(ctx, `DELETE FROM users WHERE id = ?`, id)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (s *AuthService) UpdateRole(ctx context.Context, id, role, callerID string) (*User, error) {
+	if id == callerID {
+		return nil, errors.New("cannot change your own role")
+	}
+	if role != "owner" && role != "member" {
+		return nil, errors.New("role must be 'owner' or 'member'")
+	}
+	res, err := s.db.ExecContext(ctx, `UPDATE users SET role = ? WHERE id = ?`, role, id)
+	if err != nil {
+		return nil, err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return nil, ErrNotFound
+	}
+	return s.GetUser(ctx, id)
+}
+
 func (s *AuthService) issueToken(u *User) (string, error) {
 	now := time.Now()
 	claims := &Claims{

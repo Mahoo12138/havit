@@ -27,6 +27,8 @@ func (h *ItemHandler) Mount(r chi.Router) {
 		r.Get("/graveyard", h.graveyard)
 		r.Get("/loss-records", h.lossRecords)
 		r.Post("/", h.create)
+		r.Post("/edc/pack-all", h.packEDCAll)
+		r.Post("/edc/return-all", h.returnEDCAll)
 		r.Get("/{id}", h.get)
 		r.Patch("/{id}", h.update)
 		r.Delete("/{id}", h.archive)
@@ -41,6 +43,9 @@ func (h *ItemHandler) Mount(r chi.Router) {
 		r.Post("/{id}/calibration-events", h.createCalibrationEvent)
 		r.Put("/{id}/tags", h.replaceTags)
 		r.Get("/{id}/events", h.listEvents)
+		r.Get("/{id}/contents", h.listContents)
+		r.Post("/{id}/contents", h.putIntoContainer)
+		r.Delete("/{id}/contents/{childId}", h.removeFromContainer)
 	})
 }
 
@@ -355,4 +360,72 @@ func (h *ItemHandler) writeItemActionError(w http.ResponseWriter, err error) {
 		return
 	}
 	writeError(w, http.StatusBadRequest, err)
+}
+
+func (h *ItemHandler) packEDCAll(w http.ResponseWriter, r *http.Request) {
+	var body struct {
+		LocationID string `json:"location_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	n, err := h.svc.PackEDCAll(r.Context(), body.LocationID)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"moved": n})
+}
+
+func (h *ItemHandler) returnEDCAll(w http.ResponseWriter, r *http.Request) {
+	n, err := h.svc.ReturnEDCAll(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"moved": n})
+}
+
+func (h *ItemHandler) listContents(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	items, err := h.svc.ListContents(r.Context(), id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"items": items})
+}
+
+func (h *ItemHandler) putIntoContainer(w http.ResponseWriter, r *http.Request) {
+	containerID := chi.URLParam(r, "id")
+	var body struct {
+		ItemID string `json:"item_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	if err := h.svc.PutIntoContainer(r.Context(), body.ItemID, containerID); err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *ItemHandler) removeFromContainer(w http.ResponseWriter, r *http.Request) {
+	childID := chi.URLParam(r, "childId")
+	if err := h.svc.RemoveFromContainer(r.Context(), childID); err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

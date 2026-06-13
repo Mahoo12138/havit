@@ -41,6 +41,7 @@ type Item struct {
 	LocationID         *string `json:"location_id,omitempty"`
 	HomeBaseLocationID *string `json:"home_base_location_id,omitempty"`
 	CurrentStatusTag   *string `json:"current_status_tag,omitempty"`
+	ParentItemID       *string `json:"parent_item_id,omitempty"`
 
 	PurchasePrice    *float64 `json:"purchase_price,omitempty"`
 	PurchaseCurrency *string  `json:"purchase_currency,omitempty"`

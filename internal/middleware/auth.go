@@ -40,6 +40,17 @@ func Auth(svc *service.AuthService) func(http.Handler) http.Handler {
 	}
 }
 
+func RequireOwner(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims, ok := ClaimsFrom(r.Context())
+		if !ok || claims.Role != "owner" {
+			writeJSON(w, http.StatusForbidden, apperr.ErrForbidden)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func ClaimsFrom(ctx context.Context) (*service.Claims, bool) {
 	c, ok := ctx.Value(claimsKey).(*service.Claims)
 	return c, ok

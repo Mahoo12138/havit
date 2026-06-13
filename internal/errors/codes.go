@@ -22,6 +22,7 @@ func New(code, message string, status int) *AppError {
 // Error code constants. These are stable identifiers returned to the client.
 const (
 	CodeNotFound            = "not_found"
+	CodeForbidden           = "forbidden"
 	CodeInvalidItemType     = "invalid_item_type"
 	CodeInvalidItemStatus   = "invalid_item_status"
 	CodeInvalidLocationType = "invalid_location_type"
@@ -40,6 +41,8 @@ const (
 // Sentinel errors for common cases.
 var (
 	ErrNotFound = New(CodeNotFound, "Resource not found", http.StatusNotFound)
+
+	ErrForbidden = New(CodeForbidden, "Permission denied", http.StatusForbidden)
 
 	ErrInvalidItemType = New(CodeInvalidItemType, "Invalid item type", http.StatusBadRequest)
 

@@ -175,7 +175,7 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, name, description, category, type, status,
-			location_id, home_base_location_id, current_status_tag,
+			location_id, home_base_location_id, current_status_tag, parent_item_id,
 			purchase_price, purchase_currency, purchase_date, purchase_platform,
 			warranty_expires_at, serial_number, warranty_contact,
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
@@ -187,7 +187,7 @@ func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
 	var isPrivate int
 	if err := row.Scan(
 		&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
-		&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag,
+		&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag, &it.ParentItemID,
 		&it.PurchasePrice, &it.PurchaseCurrency, &it.PurchaseDate, &it.PurchasePlatform,
 		&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
 		&it.ExitType, &it.ExitDate, &it.ExitPrice, &it.ExitCurrency, &it.ExitNotes,
@@ -635,6 +635,124 @@ func (s *ItemService) ReturnEDCHome(ctx context.Context, id string) (*model.Item
 	}
 	s.logEvent(ctx, id, "edc_returned_home", nil)
 	return s.Get(ctx, id)
+}
+
+func (s *ItemService) PackEDCAll(ctx context.Context, locationID string) (int, error) {
+	if locationID == "" {
+		return 0, errors.New("location_id required")
+	}
+	now := time.Now().Unix()
+	res, err := s.db.ExecContext(ctx, `
+		UPDATE items
+		SET location_id = ?, current_status_tag = 'away', updated_at = ?
+		WHERE type = 'edc'
+		  AND status = 'in_stock'
+		  AND (home_base_location_id IS NULL OR location_id = home_base_location_id)`,
+		locationID, now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return int(n), nil
+}
+
+func (s *ItemService) ReturnEDCAll(ctx context.Context) (int, error) {
+	now := time.Now().Unix()
+	res, err := s.db.ExecContext(ctx, `
+		UPDATE items
+		SET location_id = home_base_location_id, current_status_tag = NULL, updated_at = ?
+		WHERE type = 'edc'
+		  AND status = 'in_stock'
+		  AND home_base_location_id IS NOT NULL
+		  AND location_id != home_base_location_id`,
+		now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	n, _ := res.RowsAffected()
+	return int(n), nil
+}
+
+func (s *ItemService) ListContents(ctx context.Context, containerID string) ([]*model.Item, error) {
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT id, name, description, category, type, status,
+			location_id, home_base_location_id, current_status_tag,
+			purchase_price, purchase_currency, purchase_date, purchase_platform,
+			warranty_expires_at, serial_number, warranty_contact,
+			exit_type, exit_date, exit_price, exit_currency, exit_notes,
+			current_stock, min_stock_threshold, lifespan_days, in_use_since,
+			is_private, owner_id, created_at, updated_at
+		FROM items WHERE parent_item_id = ?
+		ORDER BY name ASC`, containerID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []*model.Item{}
+	for rows.Next() {
+		var it model.Item
+		var isPrivate int
+		if err := rows.Scan(
+			&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
+			&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag,
+			&it.PurchasePrice, &it.PurchaseCurrency, &it.PurchaseDate, &it.PurchasePlatform,
+			&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
+			&it.ExitType, &it.ExitDate, &it.ExitPrice, &it.ExitCurrency, &it.ExitNotes,
+			&it.CurrentStock, &it.MinStockThreshold, &it.LifespanDays, &it.InUseSince,
+			&isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		it.IsPrivate = isPrivate != 0
+		applyConsumableDerivedFields(&it)
+		out = append(out, &it)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if err := s.loadTagsForItems(ctx, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (s *ItemService) PutIntoContainer(ctx context.Context, itemID, containerID string) error {
+	if itemID == containerID {
+		return errors.New("an item cannot contain itself")
+	}
+	container, err := s.Get(ctx, containerID)
+	if err != nil {
+		return err
+	}
+	now := time.Now().Unix()
+	_, err = s.db.ExecContext(ctx, `
+		UPDATE items SET parent_item_id = ?, location_id = ?, updated_at = ?
+		WHERE id = ?`,
+		containerID, container.LocationID, now, itemID,
+	)
+	if err != nil {
+		return err
+	}
+	s.logEvent(ctx, itemID, "put_into_container", nil)
+	return nil
+}
+
+func (s *ItemService) RemoveFromContainer(ctx context.Context, itemID string) error {
+	now := time.Now().Unix()
+	res, err := s.db.ExecContext(ctx, `
+		UPDATE items SET parent_item_id = NULL, updated_at = ?
+		WHERE id = ?`, now, itemID,
+	)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return ErrNotFound
+	}
+	s.logEvent(ctx, itemID, "removed_from_container", nil)
+	return nil
 }
 
 func (s *ItemService) Exit(ctx context.Context, id string, in ItemExitInput) (*model.Item, error) {
