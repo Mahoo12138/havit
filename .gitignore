@@ -1,4 +1,5 @@
 /data/
+/data_e2e/
 /tmp/
 /havit
 /havit.exe
@@ -9,3 +10,6 @@ internal/static/dist/
 .DS_Store
 .idea/
 .vscode/
+web/test-results/
+web/playwright-report/
+web/playwright/.cache/
