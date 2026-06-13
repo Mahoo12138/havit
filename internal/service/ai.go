@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mahoo12138/havit/internal/config"
 	"github.com/mahoo12138/havit/internal/model"
 )
 
@@ -90,43 +91,18 @@ func (s *AIRecognitionService) RecognizeItem(ctx context.Context, in RecognizeIt
 	}, nil
 }
 
-type OpenAIProviderConfig struct {
-	BaseURL        string
-	APIKey         string
-	Model          string
-	VisionModel    string
-	TimeoutSeconds int
-}
-
+// OpenAIProvider implements AIProvider by reading config live from ConfigService
+// on every call, enabling hot-reload without restart.
 type OpenAIProvider struct {
-	client      *http.Client
-	baseURL     string
-	apiKey      string
-	model       string
-	visionModel string
+	client *http.Client
+	cfgSvc *config.ConfigService
 }
 
-func NewOpenAIProvider(cfg OpenAIProviderConfig) *OpenAIProvider {
-	if cfg.BaseURL == "" {
-		cfg.BaseURL = "https://api.openai.com/v1"
-	}
-	if cfg.Model == "" {
-		cfg.Model = "gpt-4o-mini"
-	}
-	if cfg.VisionModel == "" {
-		cfg.VisionModel = cfg.Model
-	}
-	if cfg.TimeoutSeconds <= 0 {
-		cfg.TimeoutSeconds = 10
-	}
+// NewOpenAIProvider creates a provider that reads AI config from ConfigService on each call.
+func NewOpenAIProvider(cfgSvc *config.ConfigService) *OpenAIProvider {
 	return &OpenAIProvider{
-		client: &http.Client{
-			Timeout: time.Duration(cfg.TimeoutSeconds) * time.Second,
-		},
-		baseURL:     strings.TrimRight(cfg.BaseURL, "/"),
-		apiKey:      cfg.APIKey,
-		model:       cfg.Model,
-		visionModel: cfg.VisionModel,
+		client: &http.Client{}, // timeout applied per-request via context.WithTimeout
+		cfgSvc: cfgSvc,
 	}
 }
 
@@ -137,8 +113,12 @@ func (p *OpenAIProvider) RecognizeItem(ctx context.Context, imageData []byte, co
 	if contentType == "" {
 		contentType = "application/octet-stream"
 	}
+	visionModel := p.cfgSvc.GetString("ai.vision_model")
+	if visionModel == "" {
+		visionModel = p.cfgSvc.GetString("ai.model")
+	}
 
-	raw, err := p.chat(ctx, p.visionModel, []chatMessage{
+	raw, err := p.chat(ctx, visionModel, []chatMessage{
 		{
 			Role: "system",
 			Content: []chatContent{{
@@ -185,7 +165,8 @@ func (p *OpenAIProvider) ParseSearchQuery(ctx context.Context, query string) (*S
 		return &SearchFilter{}, nil
 	}
 
-	raw, err := p.chat(ctx, p.model, []chatMessage{
+	model := p.cfgSvc.GetString("ai.model")
+	raw, err := p.chat(ctx, model, []chatMessage{
 		{
 			Role: "system",
 			Content: []chatContent{{
@@ -232,6 +213,10 @@ time_filter.value/value2 使用 Unix 秒。
 }
 
 func (p *OpenAIProvider) chat(ctx context.Context, model string, messages []chatMessage) (string, error) {
+	baseURL := strings.TrimRight(p.cfgSvc.GetString("ai.base_url"), "/")
+	apiKey := p.cfgSvc.GetString("ai.api_key")
+	timeout := p.cfgSvc.GetInt("ai.timeout_seconds", 10)
+
 	reqBody := chatCompletionRequest{
 		Model:          model,
 		Messages:       messages,
@@ -243,13 +228,16 @@ func (p *OpenAIProvider) chat(ctx context.Context, model string, messages []chat
 		return "", err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, p.baseURL+"/chat/completions", bytes.NewReader(raw))
+	timeoutCtx, cancel := context.WithTimeout(ctx, time.Duration(timeout)*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(timeoutCtx, http.MethodPost, baseURL+"/chat/completions", bytes.NewReader(raw))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	if p.apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+p.apiKey)
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
 	}
 
 	res, err := p.client.Do(req)

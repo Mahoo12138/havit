@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mahoo12138/havit/internal/config"
 	"github.com/mahoo12138/havit/internal/model"
 )
 
@@ -90,36 +91,30 @@ func messageForReminder(reminder *model.Reminder) NotifyMessage {
 }
 
 type HTTPNotifyGateway struct {
-	client     *http.Client
-	webhookURL string
-	ntfyURL    string
-	appriseURL string
+	client *http.Client
+	cfgSvc *config.ConfigService
 }
 
-type HTTPNotifyGatewayConfig struct {
-	WebhookURL string
-	NtfyURL    string
-	AppriseURL string
-}
-
-func NewHTTPNotifyGateway(cfg HTTPNotifyGatewayConfig) *HTTPNotifyGateway {
+func NewHTTPNotifyGateway(cfgSvc *config.ConfigService) *HTTPNotifyGateway {
 	return &HTTPNotifyGateway{
-		client:     &http.Client{Timeout: 8 * time.Second},
-		webhookURL: cfg.WebhookURL,
-		ntfyURL:    cfg.NtfyURL,
-		appriseURL: cfg.AppriseURL,
+		client: &http.Client{Timeout: 8 * time.Second},
+		cfgSvc: cfgSvc,
 	}
 }
 
 func (g *HTTPNotifyGateway) Send(ctx context.Context, msg NotifyMessage) error {
+	webhookURL := g.cfgSvc.GetString("notify.webhook_url")
+	ntfyURL := g.cfgSvc.GetString("notify.ntfy_url")
+	appriseURL := g.cfgSvc.GetString("notify.apprise_url")
+
 	sent := false
 	for _, endpoint := range []struct {
 		url  string
 		kind string
 	}{
-		{g.webhookURL, "webhook"},
-		{g.ntfyURL, "ntfy"},
-		{g.appriseURL, "apprise"},
+		{webhookURL, "webhook"},
+		{ntfyURL, "ntfy"},
+		{appriseURL, "apprise"},
 	} {
 		if endpoint.url == "" {
 			continue

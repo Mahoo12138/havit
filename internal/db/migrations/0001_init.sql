@@ -40,6 +40,7 @@ CREATE TABLE items (
     location_id             TEXT REFERENCES locations(id),
     home_base_location_id   TEXT REFERENCES locations(id),
     current_status_tag      TEXT,
+    parent_item_id           TEXT REFERENCES items(id),
 
     purchase_price      REAL,
     purchase_currency   TEXT,
@@ -171,6 +172,7 @@ CREATE INDEX idx_loans_item           ON loans(item_id);
 CREATE INDEX idx_loans_status         ON loans(status);
 CREATE INDEX idx_reminders_trigger    ON reminders(trigger_at) WHERE sent_at IS NULL;
 CREATE INDEX idx_item_events_item     ON item_events(item_id);
+CREATE INDEX idx_items_parent         ON items(parent_item_id);
 
 CREATE VIRTUAL TABLE items_fts USING fts5(
     item_id UNINDEXED,
@@ -179,4 +181,25 @@ CREATE VIRTUAL TABLE items_fts USING fts5(
     category,
     serial_number,
     tokenize='trigram'
+);
+
+CREATE TABLE system_configs (
+    key        TEXT PRIMARY KEY,
+    value      TEXT NOT NULL,
+    updated_at INTEGER NOT NULL,
+    updated_by TEXT REFERENCES users(id)
+);
+
+CREATE TABLE user_preferences (
+    user_id                 TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    theme                   TEXT NOT NULL DEFAULT 'system',
+    default_currency        TEXT NOT NULL DEFAULT 'CNY',
+    date_format             TEXT NOT NULL DEFAULT 'relative',
+    home_view               TEXT NOT NULL DEFAULT 'spaces',
+    scan_behavior           TEXT NOT NULL DEFAULT 'confirm',
+    default_visibility      TEXT NOT NULL DEFAULT 'shared',
+    personal_bark_key       TEXT,
+    personal_ntfy_topic     TEXT,
+    show_archived_in_search INTEGER NOT NULL DEFAULT 0,
+    updated_at              INTEGER NOT NULL
 );

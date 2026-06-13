@@ -60,6 +60,8 @@ func main() {
 		"version", system.Version,
 	)
 
+	configSvc := config.NewConfigService(database)
+
 	authSvc := service.NewAuthService(
 		database,
 		cfg.Auth.JWTSecret,
@@ -82,26 +84,16 @@ func main() {
 	loanSvc := service.NewLoanService(database)
 	virtualAssetSvc := service.NewVirtualAssetService(database, fieldCrypto)
 	reminderSvc := service.NewReminderService(database)
-	notifyGateway := service.NewHTTPNotifyGateway(service.HTTPNotifyGatewayConfig{
-		WebhookURL: cfg.Notify.WebhookURL,
-		NtfyURL:    cfg.Notify.NtfyURL,
-		AppriseURL: cfg.Notify.AppriseURL,
-	})
+	notifyGateway := service.NewHTTPNotifyGateway(configSvc)
 	notifySvc := service.NewNotifyService(reminderSvc, notifyGateway)
 	backupSvc := service.NewBackupService(database, cfg.Data.Dir, cfg.Backup.KeepDays)
 	searchSvc := service.NewSearchService(database)
 	barcodeSvc := service.NewBarcodeService("")
 	attachmentSvc := service.NewAttachmentService(database, cfg.Data.Dir)
-	var aiProvider service.AIProvider
-	if cfg.AI.Enabled {
-		aiProvider = service.NewOpenAIProvider(service.OpenAIProviderConfig{
-			BaseURL:        cfg.AI.BaseURL,
-			APIKey:         cfg.AI.APIKey,
-			Model:          cfg.AI.Model,
-			VisionModel:    cfg.AI.VisionModel,
-			TimeoutSeconds: cfg.AI.TimeoutSeconds,
-		})
-	}
+	prefsSvc := service.NewPreferencesService(database)
+
+	// AI provider always constructed; provider checks ai.api_key at call time.
+	aiProvider := service.NewOpenAIProvider(configSvc)
 	aiRecognitionSvc := service.NewAIRecognitionService(attachmentSvc, aiProvider)
 
 	r := chi.NewRouter()
@@ -117,6 +109,8 @@ func main() {
 	systemH := handler.NewSystemHandler(state)
 	authH := handler.NewAuthHandler(authSvc, state)
 	userH := handler.NewUserHandler(authSvc)
+	settingsH := handler.NewSettingsHandler(configSvc)
+	prefsH := handler.NewPreferencesHandler(prefsSvc)
 	itemH := handler.NewItemHandler(itemSvc)
 	tagH := handler.NewTagHandler(tagSvc)
 	locH := handler.NewLocationHandler(locSvc)
@@ -158,14 +152,16 @@ func main() {
 			searchH.Mount(r)
 			barcodeH.Mount(r)
 			aiH.Mount(r)
+			prefsH.Mount(r)
 		})
 
-		// Owner-only routes (user management).
+		// Owner-only routes (user management + instance config).
 		r.Group(func(r chi.Router) {
 			r.Use(authmw.Auth(authSvc))
 			r.Use(authmw.RequireOwner)
 			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
 			userH.Mount(r)
+			settingsH.Mount(r)
 		})
 
 		// Routes that set their own per-route body limits (import 16 MB, attachment streams to disk).
@@ -179,7 +175,7 @@ func main() {
 
 	static.Mount(r)
 
-	if cfg.Notify.Enabled {
+	if cfg.Notify.Enabled || configSvc.GetBool("notify.enabled") {
 		notifySvc.StartScheduler(appCtx, 15*time.Minute)
 	}
 	if cfg.Backup.Enabled {

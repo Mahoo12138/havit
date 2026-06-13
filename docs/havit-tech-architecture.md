@@ -1,7 +1,7 @@
 # Havit — 技术架构规划
 
-**版本** v0.4  
-**关联文档** havit-product-design.md v0.4
+**版本** v0.5  
+**关联文档** havit-product-design.md v0.5
 
 ---
 
@@ -11,13 +11,13 @@
 |---|---|---|
 | 后端语言 | Go | 编译为单二进制，性能好，交叉编译方便 |
 | Web 框架 | Chi | 轻量，基于标准库，无魔法 |
-| 配置管理 | Viper | 统一管理 config file + 环境变量，Go 生态标准选择 |
+| 配置管理 | Viper + ConfigService（四层优先级） | 环境变量 > DB 动态配置 > config.yaml > 代码默认值，热重载无需重启 |
 | 数据库 | SQLite（sqlc + modernc/sqlite） | 零依赖，单文件，家庭数据规模完全够用 |
 | 数据库迁移 | Goose | 显式迁移文件，生产环境安全 |
 | 附件存储 | 本地文件系统（multipart 流式写入） | 无外部依赖，Docker volume 挂载，杜绝 OOM |
 | 自然语言搜索 | FTS5 并发先出 + LLM 异步刷新（无向量库） | 体感即时，LLM 结果异步补全，零额外依赖 |
 | 前端框架 | React 18 + Vite | 生态最大，组件库丰富 |
-| UI 原语层 | Base UI | 无样式 headless 原语，与 VE 配合实现完全自主的设计系统 |
+| UI 原语层 | Base UI（MUI） | 无样式 headless 原语，与 VE 配合实现完全自主的设计系统 |
 | 数据请求 | TanStack Query v5 | 缓存、乐观更新、后台刷新 |
 | 路由 | TanStack Router v1 | 类型安全，与 TanStack Query 天然配合 |
 | 样式 | Vanilla Extract | 零运行时 CSS-in-TS，编译时类型安全 |
@@ -38,37 +38,30 @@ havit/
 │       └── main.go              # 入口：初始化 Viper、DB、路由、调度器
 ├── internal/
 │   ├── config/
-│   │   └── config.go            # Viper 配置结构体与加载逻辑
+│   │   ├── config.go            # Viper 静态配置结构体与加载逻辑（层级 1+2）
+│   │   └── service.go           # ConfigService：四层优先级合并读取 + 热重载
 │   ├── db/
 │   │   ├── migrations/          # Goose SQL 迁移文件
-│   │   ├── seeds/               # demo 模式种子数据
-│   │   ├── db.go                # SQLite 初始化（WAL pragma、连接池）
-│   │   └── seed.go              # 种子数据注入逻辑
-│   ├── handler/                 # Chi 路由处理器（每个文件一个资源）
-│   │   ├── system.go            # /system/status
-│   │   ├── auth.go              # JWT 认证、初始设置
-│   │   ├── item.go              # 物品 CRUD + EDC + 消耗品 + 退场 + 墓地
-│   │   ├── location.go          # 位置树 CRUD + QR 码
-│   │   ├── attachment.go        # multipart 流式上传
-│   │   ├── tag.go               # 标签管理
-│   │   ├── search.go            # 并发赛跑搜索（SSE）
-│   │   ├── barcode.go           # 条码查询（Open Food Facts）
-│   │   ├── ai.go                # AI 拍照识别
-│   │   ├── loan.go              # 借出追踪
-│   │   ├── virtual_asset.go     # 虚拟资产凭证
-│   │   ├── reminder.go          # 提醒管理
-│   │   ├── notify.go            # 通知渠道配置
-│   │   ├── backup.go            # 备份触发 & 管理
-│   │   ├── import.go            # CSV/JSON 导入
-│   │   └── export.go            # CSV/JSON 导出
-│   ├── service/                 # 业务逻辑层
-│   ├── model/                   # 数据模型结构体
+│   │   ├── query/               # sqlc 原始 .sql 查询文件
+│   │   └── sqlc/                # sqlc 生成的 Go 代码（不手写）
+│   ├── handler/
+│   │   ├── item.go
+│   │   ├── location.go
+│   │   ├── consumable.go
+│   │   ├── attachment.go        # multipart 流式上传，禁止 Base64-in-JSON
+│   │   ├── search.go            # 并发赛跑：FTS5 先出 + LLM 异步刷新
+│   │   ├── settings.go          # 实例级配置 CRUD + 触发 ConfigService 热重载
+│   │   ├── preferences.go       # 用户级个人偏好 CRUD
+│   │   └── auth.go
+│   ├── service/
+│   │   ├── item.go
+│   │   ├── search.go            # Race 搜索实现
+│   │   ├── ai.go                # AI 识别 + LLM query 解析
+│   │   ├── notify.go            # 提醒调度器
+│   │   └── backup.go            # 三步原子备份（VACUUM INTO）
+│   ├── model/
 │   ├── middleware/
-│   │   ├── auth.go              # JWT 鉴权中间件
-│   │   └── cors.go
-│   ├── crypto/                  # AES-256-GCM 加密
-│   ├── errors/                  # 类型化错误码
-│   └── system/                  # 应用运行时状态
+│   └── storage/                 # 附件流式写入抽象
 ├── web/                         # 前端源码（React + Vite）
 ├── static/                      # 前端编译产物（go:embed）
 ├── Dockerfile
@@ -99,50 +92,129 @@ func main() {
 }
 ```
 
-### 2.3 配置管理：Viper
+### 2.3 配置架构：四层优先级金字塔
 
-**加载优先级：环境变量 > config.yaml > 默认值**
+Havit 的配置体系遵循"基础设施与业务逻辑解耦"原则，分为四个层级，优先级从低到高依次覆盖：
+
+```
+┌──────────────────────────────────────────────────┐ ▲ 优先级
+│  层级 4：环境变量 (Environment Variables)          │ │ 最高
+│          运维强制管控，绝对覆盖                    │ │
+└───────────────────────┬──────────────────────────┘ │
+                        ▼ 覆盖                        │
+┌──────────────────────────────────────────────────┐ │
+│  层级 3：数据库配置 (system_configs 表)            │ │
+│          管理员 UI 动态调整，热重载免重启          │ │
+└───────────────────────┬──────────────────────────┘ │
+                        ▼ 覆盖                        │
+┌──────────────────────────────────────────────────┐ │
+│  层级 2：静态配置文件 (config.yaml)               │ │
+│          可选，用于网络拓扑/长文本配置            │ │
+└───────────────────────┬──────────────────────────┘ │
+                        ▼ 覆盖                        │
+┌──────────────────────────────────────────────────┐ │
+│  层级 1：代码默认值 (Code Defaults)               │ │ 最低
+│          Viper SetDefault，保证开箱即用           │ │
+└──────────────────────────────────────────────────┘
+```
+
+**配置项职责边界矩阵：**
+
+| 配置项 | 推荐来源 | 允许 UI 覆盖 | 热重载 | 说明 |
+|---|---|---|---|---|
+| `HAVIT_RUN_MODE` | 仅环境变量 | ❌ | ❌ | 决定启动模式（demo/release），属于运维管控 |
+| `HAVIT_PORT` / `DB_PATH` | 环境变量或文件 | ❌ | ❌ | 容器基础设施层，网络绑定与磁盘挂载 |
+| `JWT_SECRET` | 仅环境变量 | ❌ | ❌ | 安全根密钥，坚决不写入 SQLite，防止 DB 泄漏导致全站 Token 被伪造 |
+| `AI_API_KEY` / `AI_URL` | 环境变量 + UI | 🤝 允许重合 | ✅ | 环境变量存在时 UI 只读锁死；否则管理员可在网页端填写存入 DB |
+| `NOTIFY_*` | 仅 UI 数据库 | ✅ | ✅ | 业务通知网关，随用随改，不应污染环境变量 |
+| `THEME` / `CURRENCY` 等 | 仅 user_preferences | ✅ | ✅ | 用户级个人偏好，与实例配置完全隔离 |
+
+**ConfigService 实现（统一配置读取入口）：**
+
+业务层不直接调用 `viper.GetString()`，而是通过 `ConfigService` 获取合并后的最终值：
 
 ```go
-// internal/config/config.go
-func Load() *Config {
-    v := viper.New()
+// internal/config/service.go
+type ConfigService struct {
+    db      *sql.DB
+    mu      sync.RWMutex
+    dbCache map[string]string // 数据库动态配置内存缓存
+}
 
-    v.SetDefault("server.port", 3000)
-    v.SetDefault("auth.session_expire_hours", 720)
-    v.SetDefault("storage.max_photo_size_mb", 20)
-    v.SetDefault("storage.max_attachment_size_mb", 50)
-    v.SetDefault("storage.max_total_size_gb", 10)
-    v.SetDefault("backup.cron", "0 3 * * *")
-    v.SetDefault("backup.keep_days", 30)
-    v.SetDefault("ai.timeout_seconds", 10)
-
-    v.SetConfigName("config")
-    v.SetConfigType("yaml")
-    v.AddConfigPath("/data")   // Docker 挂载目录优先
-    v.AddConfigPath(".")
-    v.ReadInConfig()           // 文件不存在时不报错，使用默认值
-
-    // 环境变量映射：HAVIT_AI_API_KEY → ai.api_key
-    v.SetEnvPrefix("HAVIT")
-    v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-    v.AutomaticEnv()
-
-    var cfg Config
-    v.Unmarshal(&cfg)
-
-    // jwt_secret 为空时自动生成并持久化
-    if cfg.Auth.JWTSecret == "" {
-        cfg.Auth.JWTSecret = generateSecret()
-        v.Set("auth.jwt_secret", cfg.Auth.JWTSecret)
-        v.WriteConfigAs("/data/config.yaml")
+// GetString 严格执行四层优先级
+func (s *ConfigService) GetString(key string) string {
+    // 层级 4：环境变量最高优先
+    envKey := "HAVIT_" + strings.ToUpper(strings.ReplaceAll(key, ".", "_"))
+    if val, exists := os.LookupEnv(envKey); exists && val != "" {
+        return val
     }
+    // 层级 3：数据库动态配置（热重载）
+    s.mu.RLock()
+    if val, found := s.dbCache[key]; found && val != "" {
+        s.mu.RUnlock()
+        return val
+    }
+    s.mu.RUnlock()
+    // 层级 2 + 1：config.yaml 与代码默认值（Viper 统一处理）
+    return viper.GetString(key)
+}
 
-    return &cfg
+// RefreshDBCache 管理员保存配置后调用，实现热重载
+func (s *ConfigService) RefreshDBCache() error {
+    rows, err := s.db.Query("SELECT key, value FROM system_configs")
+    if err != nil {
+        return err
+    }
+    defer rows.Close()
+    newCache := make(map[string]string)
+    for rows.Next() {
+        var k, v string
+        rows.Scan(&k, &v)
+        newCache[k] = v
+    }
+    s.mu.Lock()
+    s.dbCache = newCache
+    s.mu.Unlock()
+    return nil
+}
+
+// IsLockedByEnv 判断某配置项是否被环境变量锁死，供前端渲染 UI 状态使用
+func (s *ConfigService) IsLockedByEnv(key string) bool {
+    envKey := "HAVIT_" + strings.ToUpper(strings.ReplaceAll(key, ".", "_"))
+    val, exists := os.LookupEnv(envKey)
+    return exists && val != ""
 }
 ```
 
-**config.example.yaml：**
+**`/api/system/status` 扩展（向前端下发配置控制权）：**
+
+```go
+// 扩展 SystemStatus，告知前端每项配置的来源与是否可编辑
+type ConfigMeta struct {
+    Value       string `json:"value"`        // 敏感值脱敏（如 API Key 显示 ••••）
+    ControlledBy string `json:"controlled_by"` // "env" | "database" | "default"
+    CanEdit     bool   `json:"can_edit"`
+}
+
+// GET /api/system/status 响应示例：
+// {
+//   "mode": "release",
+//   "needs_setup": false,
+//   "version": "v0.1.0",
+//   "configs": {
+//     "ai_api_key":      { "value": "••••••••", "controlled_by": "env",      "can_edit": false },
+//     "notify_bark_url": { "value": "https://…", "controlled_by": "database", "can_edit": true  },
+//     "ai_model":        { "value": "gpt-4o-mini","controlled_by": "default", "can_edit": true  }
+//   }
+// }
+```
+
+**前端 UI 渲染规则：**
+
+- `can_edit: false` 且 `controlled_by: "env"`：输入框强制 `disabled`，下方显示浅色提示文字："该配置已被宿主机环境变量锁定，如需修改请调整 Docker Compose 配置。"
+- `can_edit: true`：正常渲染，保存后触发 `ConfigService.RefreshDBCache()`
+
+**config.example.yaml（层级 2，可选）：**
 
 ```yaml
 server:
@@ -153,25 +225,21 @@ data:
   dir: "/data"
 
 auth:
-  jwt_secret: ""            # 留空则首次启动自动生成
+  # JWT_SECRET 建议通过环境变量 HAVIT_AUTH_JWT_SECRET 注入
+  # 留空则首次启动自动生成并写入此文件
+  jwt_secret: ""
   session_expire_hours: 720
 
+# AI 配置建议通过环境变量注入（HAVIT_AI_API_KEY），
+# 或在管理员设置页填写（存入 system_configs 表）
+# config.yaml 中填写仅作为低优先级回退
 ai:
   enabled: false
   base_url: "https://api.openai.com/v1"
-  api_key: ""               # 建议通过 HAVIT_AI_API_KEY 环境变量传入
+  api_key: ""
   model: "gpt-4o-mini"
   vision_model: "gpt-4o"
   timeout_seconds: 10
-
-barcode:
-  open_food_facts: true
-  lookup_api_key: ""
-
-notify:
-  apprise_url: ""
-  ntfy_url: ""
-  webhook_url: ""
 
 storage:
   max_photo_size_mb: 20
@@ -398,6 +466,35 @@ CREATE TABLE item_events (
     created_at INTEGER NOT NULL
 );
 
+-- 实例级动态配置（管理员通过 UI 修改，热重载免重启）
+-- 对应 ConfigService 层级 3，存储 AI、通知网关等业务配置
+CREATE TABLE system_configs (
+    key        TEXT PRIMARY KEY,  -- 如 'ai.api_key' | 'notify.bark_url'
+    value      TEXT NOT NULL,
+    updated_at INTEGER NOT NULL,
+    updated_by TEXT REFERENCES users(id)
+);
+
+-- 用户级个人偏好（千人千面，与实例配置完全隔离）
+CREATE TABLE user_preferences (
+    user_id           TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    -- 视觉与本地化
+    theme             TEXT NOT NULL DEFAULT 'system',   -- 'light' | 'dark' | 'system'
+    default_currency  TEXT NOT NULL DEFAULT 'CNY',
+    date_format       TEXT NOT NULL DEFAULT 'relative', -- 'absolute' | 'relative'
+    -- 工作流
+    home_view         TEXT NOT NULL DEFAULT 'spaces',   -- 'spaces' | 'edc' | 'restock'
+    scan_behavior     TEXT NOT NULL DEFAULT 'confirm',  -- 'confirm' | 'silent'
+    -- 隐私
+    default_visibility TEXT NOT NULL DEFAULT 'shared',  -- 'shared' | 'private'
+    -- 通知
+    personal_bark_key  TEXT,       -- 个人 Bark Token，仅接收与自己相关的提醒
+    personal_ntfy_topic TEXT,
+    -- 墓地视图
+    show_archived_in_search INTEGER NOT NULL DEFAULT 0, -- 0=隐藏归档物品，1=显示
+    updated_at        INTEGER NOT NULL
+);
+
 -- 索引
 CREATE INDEX idx_items_location       ON items(location_id);
 CREATE INDEX idx_items_status         ON items(status);
@@ -494,28 +591,59 @@ func writeSSEEvent(w http.ResponseWriter, event string, data any) {
 
 ### 3.3 前端消费 SSE
 
-SSE 消费逻辑在 `routes/search.tsx` 中内联实现，没有抽取为独立模块（仅单页面使用）。核心流程：
-
 ```typescript
-// routes/search.tsx — 使用 EventSource 消费 SSE 流
-const es = new EventSource(`/api/v1/search?q=${encodeURIComponent(query)}`);
+// api/search.ts
+export function streamSearch(
+    query: string,
+    onFTSResults: (items: Item[]) => void,
+    onLLMResults: (items: Item[]) => void,
+) {
+    const url = `/api/v1/search?q=${encodeURIComponent(query)}`;
+    const es = new EventSource(url);
 
-es.addEventListener('fts_results', (e: MessageEvent) => {
-    setFtsResults(JSON.parse(e.data));   // 即时展示 FTS 结果
-    setIsRefining(true);                 // 显示"AI 优化中…"
-});
+    es.addEventListener('fts_results', (e) => {
+        onFTSResults(JSON.parse(e.data));
+    });
+    es.addEventListener('llm_results', (e) => {
+        onLLMResults(JSON.parse(e.data));
+    });
+    es.addEventListener('done', () => es.close());
+    es.onerror = () => es.close();
 
-es.addEventListener('llm_results', (e: MessageEvent) => {
-    setLlmResults(JSON.parse(e.data));   // 静默替换为 LLM 精细结果
-});
+    return () => es.close(); // 返回清理函数
+}
 
-es.addEventListener('done', () => {
-    setIsRefining(false);
-    es.close();
-});
+// routes/items/index.tsx（搜索框）
+function SearchBar() {
+    const [items, setItems] = useState<Item[]>([]);
+    const [isRefining, setIsRefining] = useState(false);
 
-// 最终展示：优先 LLM 结果，FTS 结果作为回退
-const results = llmResults.length > 0 ? llmResults : ftsResults;
+    const handleSearch = (query: string) => {
+        const cleanup = streamSearch(
+            query,
+            (ftsItems) => {
+                setItems(ftsItems);          // 立即展示 FTS 结果
+                setIsRefining(true);         // 显示"AI 优化中…"提示
+            },
+            (llmItems) => {
+                setItems(llmItems);          // 静默替换为 LLM 精细结果
+                setIsRefining(false);
+            },
+        );
+        return cleanup;
+    };
+
+    return (
+        <TextInput
+            placeholder="搜索物品…"
+            rightSection={isRefining
+                ? <Loader size="xs" />
+                : <IconSearch size={16} />
+            }
+            onChange={(e) => handleSearch(e.target.value)}
+        />
+    );
+}
 ```
 
 ### 3.4 LLM 解析 Prompt
@@ -748,7 +876,7 @@ func (s *BackupService) StartScheduler(ctx context.Context) {
 | 路由 | TanStack Router v1 |
 | 数据请求 | TanStack Query v5 |
 | 样式 | Vanilla Extract |
-| 图标 | @tabler/icons-react |
+| 图标 | Lucide React |
 | 条码扫描 | @zxing/browser（纯前端） |
 | HTTP 客户端 | ky |
 | PWA | vite-plugin-pwa |
@@ -759,40 +887,34 @@ func (s *BackupService) StartScheduler(ctx context.Context) {
 web/
 ├── src/
 │   ├── routes/
-│   │   ├── __root.tsx             # 根布局、导航栏、路由守卫（beforeLoad）
+│   │   ├── __root.tsx
 │   │   ├── index.tsx              # Dashboard
-│   │   ├── login.tsx              # 登录页（demo 模式自动填充）
-│   │   ├── setup.tsx              # 首次初始化向导
-│   │   ├── search.tsx             # SSE 两阶段搜索页
-│   │   ├── items.index.tsx        # 物品列表
-│   │   ├── items.$itemId.tsx      # 物品详情
-│   │   ├── locations.index.tsx    # 位置树
-│   │   ├── consumables.tsx        # 消耗品 A/B 管理
-│   │   ├── edc.tsx                # EDC 随身物品
-│   │   ├── loans.tsx              # 借出追踪
-│   │   ├── credentials.tsx        # 凭证与保修
-│   │   ├── lifecycle.tsx          # 物品退场 & 墓地
-│   │   ├── capture.tsx            # 录入（条码/AI 识别/手动）
-│   │   ├── qr-print.tsx           # 位置二维码批量打印
-│   │   ├── location-scan.tsx      # 位置扫码盘点
-│   │   ├── operations.tsx         # 操作中心（备份/提醒/导出）
-│   │   └── import.tsx             # CSV/JSON 批量导入
+│   │   ├── items/
+│   │   │   ├── index.tsx          # 物品列表
+│   │   │   ├── $itemId.tsx        # 物品详情
+│   │   │   └── new.tsx            # 录入（拍照/扫码/手动）
+│   │   ├── locations/index.tsx
+│   │   ├── consumables/index.tsx
+│   │   ├── loans/index.tsx
+│   │   ├── archive/index.tsx      # 物品墓地
+│   │   └── settings/index.tsx
 │   ├── components/
-│   │   └── ui/
-│   │       ├── index.tsx          # 设计系统组件（Button、Card、Dialog、Toast 等）
-│   │       └── styles.css.ts      # Vanilla Extract 样式
-│   ├── features/
-│   │   ├── m2/components.tsx      # M2 公共组件（FeatureHeader、MetricStrip、DataCard）
-│   │   ├── qr/                   # QR 码相关（扫描、生成、打印）
-│   │   └── locations/types.ts     # 位置类型定义
+│   │   ├── ItemCard/
+│   │   ├── LocationTree/
+│   │   ├── BarcodeScanner/
+│   │   ├── CameraCapture/
+│   │   ├── SearchBar/             # SSE 消费，两阶段结果展示
+│   │   └── QrPrintSheet/
 │   ├── api/
-│   │   └── client.ts             # ky 实例 + 全量 API 方法
+│   │   ├── client.ts              # ky 实例
+│   │   ├── items.ts
+│   │   ├── locations.ts
+│   │   └── search.ts              # streamSearch（SSE）
 │   ├── styles/
-│   │   ├── theme.css.ts          # Design token（色彩、间距、圆角、阴影）
-│   │   ├── global.css.ts         # 全局 reset 与基础样式
-│   │   └── print.css             # 打印样式
-│   ├── utils/
-│   │   └── useNetworkStatus.ts   # 网络状态感知 hook
+│   │   ├── tokens.css.ts          # Design token 定义（色彩、间距、圆角、阴影）
+│   │   ├── global.css.ts          # 全局 reset 与基础样式
+│   │   └── sprinkles.css.ts       # 原子化工具类（可选）
+│   └── utils/
 ├── public/manifest.json
 ├── vite.config.ts
 └── package.json
@@ -856,13 +978,13 @@ const isOnline = useNetworkStatus();
 
 Base UI 提供无样式的行为原语（可访问性、键盘交互、ARIA 属性），Vanilla Extract 负责全部视觉样式。两者分工明确，共同构成 Havit 自有的设计系统。
 
-**Design Token 定义（styles/theme.css.ts）：**
+**Design Token 定义（styles/tokens.css.ts）：**
 
 ```typescript
-// styles/theme.css.ts
+// styles/tokens.css.ts
 import { createGlobalTheme } from '@vanilla-extract/css';
 
-export const themeVars = createGlobalTheme(':root', {
+export const vars = createGlobalTheme(':root', {
     color: {
         primary:       '#3B6DEA',
         primaryHover:  '#2F5DC9',
@@ -1006,21 +1128,21 @@ export const badge = styleVariants({
 });
 ```
 
-**需要自建的组件清单（均在 components/ui/ 单文件中）：**
+**需要自建的组件清单（M1 阶段完成）：**
 
-- `Button`（variant: primary / subtle / quiet）
-- `TextField` / `TextareaField`（含 label、error state）
-- `SelectField`（Base UI Select 封装）
-- `Dialog`（Base UI Dialog 封装，未单独导出 Modal）
-- `Tooltip`（CSS 纯工具类，data-tip 属性驱动）
+- `Button`（variant: primary / secondary / ghost / danger）
+- `Input` / `Textarea`（含 label、error state）
+- `Select`（Base UI Select 封装）
+- `Dialog` / `Modal`（Base UI Dialog 封装）
+- `Tooltip`（Base UI Tooltip 封装）
 - `Badge` / `StatusBadge`
 - `Card`
-- `Spinner` / `Skeleton`（SkeletonText / SkeletonTitle / SkeletonCircle / SkeletonRect）
-- `Alert`
-- `Tabs`
-- `Toast`（`ToastProvider` + `useToast` hook，Base UI Toast 封装）
+- `Spinner` / `Skeleton`
+- `Alert`（info / warning / danger / success）
+- `Tabs`（Base UI Tabs 封装）
+- `Toast` / `Notification`（Base UI Toast 封装）
 
-这些组件复用 theme.css.ts 中的 design token，保证视觉一致性。
+这些组件复用 tokens.css.ts 中的 design token，保证视觉一致性。
 
 ### 7.5 embed 进 Go 二进制
 
@@ -1189,13 +1311,15 @@ cd web && npm run dev
 | 风险 | 应对方案 |
 |---|---|
 | **中文 FTS 无效** | FTS5 必须使用 `tokenize='trigram'`，否则中文子串匹配完全失效 |
+| JWT_SECRET 泄漏 | 坚决不写入 SQLite；仅从环境变量读取或首次启动写入 config.yaml（不在 DB 中） |
+| 配置热重载竞态 | `ConfigService` 用 `sync.RWMutex` 保护 dbCache，读多写少场景性能无损 |
 | SQLite 并发写锁 | `SetMaxOpenConns(1)` + `busy_timeout=5000`；家庭 QPS 极低，实际不成问题 |
 | 附件上传内存击穿 | 强制 multipart，`io.Copy` 流式落盘，全局 JSON 接口限 4MB，附件接口独立限制 |
 | AI 识别幻觉 | 结构化 Prompt + 高风险字段强制 null + 原始照片永久留存 |
 | LLM 搜索体感延迟 | 并发赛跑：FTS5 先出结果，LLM 结果 SSE 异步刷新，用户感知瞬时响应 |
 | SQLite 备份文件损坏 | 三步原子流程：`VACUUM INTO` 先建一致性快照，再打包，绝不直接 tar 运行中的 db 文件 |
 | PWA 离线写冲突 | M3 前明确不做离线写，网络断开时置灰所有写操作按钮 |
-| Base UI 默认样式覆盖 | VE 覆盖 Base UI 所有样式，通过 CSS 变量统一 design token，无运行时冲突 |
+| Vanilla Extract 与 Mantine 样式冲突 | VE 只负责自定义组件，Mantine 内部样式不干预，通过 CSS 变量共享 token |
 | 单二进制体积 | 前端 tree-shaking + `-ldflags="-s -w"`，预计 < 35MB |
 
 ---
@@ -1204,15 +1328,15 @@ cd web && npm run dev
 
 **M1（P0，约 6~8 周）**
 
-Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 + 全量 Schema + FTS5（trigram）+ 物品 CRUD + 位置树 CRUD + JWT 认证 + CSV/JSON 批量导入 + Docker 多阶段构建
+Go：Viper 静态配置 + ConfigService（四层优先级 + 热重载）+ Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 + 全量 Schema（含 `system_configs` + `user_preferences`）+ FTS5（trigram）+ 物品 CRUD + 位置树 CRUD（语义类型）+ JWT 认证 + CSV/JSON 批量导入 + Docker 多阶段构建
 
-前端：React + Vite + Base UI + TanStack Router/Query + Vanilla Extract 骨架 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
+前端：React + Vite + Base UI + TanStack Router/Query + Vanilla Extract 骨架 + Design Token 系统 + 基础自建组件库 + 基础页面 + PWA manifest + 网络状态感知（写操作 online-only）
 
 **M2（P1，约 8~10 周）**
 
 - 条码扫描（@zxing/browser 前端 + 后端条码库查询）
 - AI 拍照识别（multipart 流式上传 + 幻觉防御）
-- 自然语言搜索（并发赛跑：FTS5 + SSE + LLM 异步刷新）
+- 自然语言搜索（并发赛跑：FTS5 + SSE + LLM 异步刷新，含语义位置类型上下文）
 - 消耗品 A/B 双模型 + 校准事件
 - EDC 双轨模型 + 搜索降级提示
 - 位置二维码生成与打印
@@ -1221,6 +1345,8 @@ Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 
 - 资产退场状态机 + 物品墓地
 - 提醒调度器 + Apprise/Ntfy/Webhook
 - 备份服务（三步原子流程 + cron 调度）
+- **实例级设置页**（AI 配置 + 通知网关 + 基础设施策略，含环境变量锁死 UI 只读展示）
+- **用户级偏好页**（主题 / 币种 / 日期格式 / 首页视图 / 扫码行为 / 墓地视图开关）
 
 **M3（P2，持续迭代）**
 
@@ -1281,7 +1407,7 @@ Go：Viper 配置 + Chi 路由 + SQLite 初始化（WAL pragma）+ Goose 迁移 
 前端挂载时的第一个请求，无需鉴权：
 
 ```
-GET /api/v1/system/status
+GET /api/system/status
 ```
 
 ```go
@@ -1314,35 +1440,47 @@ func (h *SystemHandler) Status(w http.ResponseWriter, r *http.Request) {
 
 ```typescript
 // routes/__root.tsx
-const PUBLIC_PATHS = new Set(['/login', '/setup']);
-
 export const Route = createRootRouteWithContext<RouterContext>()({
-    beforeLoad: async ({ context, location }) => {
+    beforeLoad: async ({ context }) => {
         const status = await context.queryClient.fetchQuery({
             queryKey:  ['system', 'status'],
-            queryFn:   () => api.get('system/status').json<SystemStatus>(),
-            staleTime: Infinity,
+            queryFn:   () => ky.get('/api/system/status').json<SystemStatus>(),
+            staleTime: Infinity,   // 启动后状态不会变，不需要重新请求
         });
 
-        // Release 模式：未初始化且不在 /setup，强制跳 /setup
-        if (status.mode === 'release' && status.needs_setup && location.pathname !== '/setup') {
+        // Release 模式：未初始化，强制跳 /setup
+        if (status.mode === 'release' && status.needs_setup) {
             throw redirect({ to: '/setup' });
         }
 
-        // 已初始化却在 /setup，跳 /login
-        if (!status.needs_setup && location.pathname === '/setup') {
-            throw redirect({ to: '/login', search: { redirect: undefined } });
-        }
-
-        // 非公开路径需要 token
-        const isPublic = PUBLIC_PATHS.has(location.pathname);
-        if (!isPublic && !getToken()) {
-            throw redirect({ to: '/login', search: { redirect: location.pathname } });
-        }
-
+        // 将 mode 注入 context，供子路由和组件消费
         return { systemStatus: status };
     },
 });
+
+// 登录页：Demo 模式自动填充账号
+function LoginPage() {
+    const { systemStatus } = Route.useRouteContext();
+    const isDemo = systemStatus.mode === 'demo';
+
+    return (
+        <>
+            {isDemo && (
+                <Alert color="yellow" icon={<IconInfoCircle />}>
+                    当前为演示模式，数据仅供体验，不会被保存。
+                </Alert>
+            )}
+            <TextInput
+                label="用户名"
+                defaultValue={isDemo ? 'admin@havit.local' : ''}
+            />
+            <PasswordInput
+                label="密码"
+                defaultValue={isDemo ? 'havit-demo' : ''}
+            />
+        </>
+    );
+}
 ```
 
 ### 13.5 Release 模式：初始化向导（/setup）
@@ -1434,36 +1572,27 @@ INSERT INTO tags (id, name, color) VALUES
 ('01DEMO000TAG0000002', '数码',     '#7B61FF'),
 ('01DEMO000TAG0000003', '高频使用', '#F5A623');
 
--- 4. 物品（覆盖全部 5 种类型）
+-- 4. 物品
 INSERT INTO items (id, name, category, type, status,
-                   location_id, current_stock, min_stock_threshold,
-                   is_private, owner_id, created_at, updated_at) VALUES
+                   location_id, owner_id, created_at, updated_at) VALUES
 -- 耐用品
-('01DEMO000ITEM000001', 'Sony A7M4 相机机身',   '数码电子', 'durable',      'in_stock',
- '01DEMO000LOC0000003', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
-('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头',  '数码电子', 'durable',      'borrowed',
- '01DEMO000LOC0000003', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
--- EDC 物品（当前 @随身）
-('01DEMO000ITEM000003', 'AirPods Pro 2',         '数码电子', 'edc',          'in_stock',
- '01DEMO000LOC0000006', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
--- 消耗品 A（时间推算型）
-('01DEMO000ITEM000004', '埃塞俄比亚咖啡豆',        '食品',     'consumable_a', 'in_stock',
- '01DEMO000LOC0000002', NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000),
--- 消耗品 B（库存阈值型）
-('01DEMO000ITEM000005', '净水器滤芯',            '家庭用品', 'consumable_b', 'in_stock',
- '01DEMO000LOC0000002', 0,    1,    0, '01DEMO0000USER000001', 1717770000, 1717770000),
--- 虚拟资产（无实物位置）
-('01DEMO000ITEM000006', 'Adobe 创意云摄影计划',  '软件订阅', 'virtual',     'in_stock',
- NULL,                NULL, NULL, 0, '01DEMO0000USER000001', 1717770000, 1717770000);
+('01DEMO000ITEM000001', 'Sony A7M4 相机机身', '数码电子', 'durable', 'in_stock',
+ '01DEMO000LOC0000003', '01DEMO0000USER000001', 1717770000, 1717770000),
+('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头', '数码电子', 'durable', 'in_stock',
+ '01DEMO000LOC0000003', '01DEMO0000USER000001', 1717770000, 1717770000),
+-- EDC 物品（当前状态 @随身）
+('01DEMO000ITEM000003', 'AirPods Pro 2', '数码电子', 'edc', 'in_stock',
+ '01DEMO000LOC0000006', '01DEMO0000USER000001', 1717770000, 1717770000),
+-- 消耗品 A（库存推算）
+('01DEMO000ITEM000004', '咖啡豆 (埃塞俄比亚)', '食品', 'consumable_a', 'in_stock',
+ '01DEMO000LOC0000002', '01DEMO0000USER000001', 1717770000, 1717770000),
+-- 消耗品 B（净水器滤芯，库存=1，低于阈值，演示红色提醒）
+('01DEMO000ITEM000005', '净水器滤芯', '家庭用品', 'consumable_b', 'in_stock',
+ '01DEMO000LOC0000002', '01DEMO0000USER000001', 1717770000, 1717770000);
 
--- 5. items_fts 同步
-INSERT INTO items_fts (item_id, name, description, category, serial_number) VALUES
-('01DEMO000ITEM000001', 'Sony A7M4 相机机身',   NULL, '数码电子', NULL),
-('01DEMO000ITEM000002', 'Sony 50mm F1.2 镜头',  NULL, '数码电子', NULL),
-('01DEMO000ITEM000003', 'AirPods Pro 2',         NULL, '数码电子', NULL),
-('01DEMO000ITEM000004', '埃塞俄比亚咖啡豆',      NULL, '食品',     NULL),
-('01DEMO000ITEM000005', '净水器滤芯',            NULL, '家庭用品', NULL),
-('01DEMO000ITEM000006', 'Adobe 创意云摄影计划',  NULL, '软件订阅', NULL);
+-- 5. 消耗品 B：当前库存设为 0，触发低库存提醒效果
+UPDATE items SET current_stock = 0, min_stock_threshold = 1
+WHERE id = '01DEMO000ITEM000005';
 
 -- 6. 物品-标签关联
 INSERT INTO item_tags (item_id, tag_id) VALUES
@@ -1472,23 +1601,13 @@ INSERT INTO item_tags (item_id, tag_id) VALUES
 ('01DEMO000ITEM000002', '01DEMO000TAG0000001'),
 ('01DEMO000ITEM000003', '01DEMO000TAG0000003');
 
--- 7. 消耗品 A 历史购买事件
+-- 7. 消耗品 A 历史购买事件（用于演示推算功能）
 INSERT INTO purchase_events (id, item_id, quantity, purchased_at) VALUES
 ('01DEMO000EVT0000001', '01DEMO000ITEM000004', 1, 1710000000),
 ('01DEMO000EVT0000002', '01DEMO000ITEM000004', 1, 1712678400),
 ('01DEMO000EVT0000003', '01DEMO000ITEM000004', 1, 1715270400);
 
--- 8. 虚拟资产凭证（演示加密凭证功能）
-INSERT INTO virtual_credentials (id, item_id, platform, account, order_id, purchased_at, price, currency) VALUES
-('01DEMO000VRC0000001', '01DEMO000ITEM000006', 'Adobe', 'photo@example.com', 'ADOBE-2024-001',
- 1700000000, 1188.00, 'CNY');
-
--- 9. 虚拟资产增补购买
-INSERT INTO virtual_addon_purchases (id, item_id, name, platform, price, currency, purchased_at) VALUES
-('01DEMO000ADP0000001', '01DEMO000ITEM000006', 'Lightroom 高级预设包', 'Adobe', 199.00, 'CNY', 1710000000),
-('01DEMO000ADP0000002', '01DEMO000ITEM000006', 'Photoshop 笔刷扩展',  'Adobe', 89.00,  'CNY', 1712600000);
-
--- 10. 借出记录（演示借出追踪 + 逾期未还状态）
+-- 8. 借出记录（演示借出追踪功能）
 INSERT INTO loans (id, item_id, borrower_name, borrower_contact,
                    loaned_at, due_at, status) VALUES
 ('01DEMO000LOAN000001', '01DEMO000ITEM000002', '小王', 'xiaowang@example.com',
