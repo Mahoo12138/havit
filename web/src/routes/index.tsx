@@ -45,8 +45,9 @@ function formatGreeting(t: (key: string) => string): string {
 }
 
 function formatPrice(value: number, t: (key: string, opts?: any) => string): string {
-  if (value >= 10000) return t('common.wan', { value: (value / 10000).toFixed(1) });
-  return value.toLocaleString('zh-CN');
+  const symbol = t('common.currencySymbol');
+  if (value >= 10000) return `${symbol}${t('common.wan', { value: (value / 10000).toFixed(1) })}`;
+  return `${symbol}${value.toLocaleString()}`;
 }
 
 function formatDateShort(ts: number): string {
@@ -161,7 +162,7 @@ function Dashboard() {
             icon={IconCoin}
             label={t('kpi.totalValue')}
             value={
-              totals.totalValue > 0 ? `¥${formatPrice(totals.totalValue, t)}` : '—'
+              totals.totalValue > 0 ? formatPrice(totals.totalValue, t) : '—'
             }
             tone="warning"
             loading={items.isPending}
@@ -350,7 +351,7 @@ function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
                   </span>
                 </div>
                 <span className={uiStyles.recentPrice}>
-                  {it.purchase_price ? `¥${formatPrice(it.purchase_price, t)}` : '—'}
+                  {it.purchase_price ? formatPrice(it.purchase_price, t) : '—'}
                 </span>
               </Link>
             );
@@ -406,7 +407,7 @@ function RemindersCard({ reminders, loading }: { reminders: any[]; loading: bool
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {reminders.slice(0, 5).map((r) => (
               <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{r.type} — {r.item_id}</span>
+                <span>{t(`reminder.${r.type}`, r.type)} — {r.item_id}</span>
                 <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
               </div>
             ))}

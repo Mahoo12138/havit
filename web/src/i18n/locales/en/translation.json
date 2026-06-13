@@ -152,6 +152,13 @@
     "photoReadFailed": "Photo unavailable",
     "downloadClaim": "Download Claim PDF"
   },
+  "itemType": {
+    "durable": "Durable",
+    "consumable_a": "Consumable A",
+    "consumable_b": "Consumable B",
+    "edc": "EDC",
+    "virtual": "Virtual Asset"
+  },
   "itemDetail": {
     "basicInfo": "Basic Info",
     "warranty": "Warranty & Credentials",
@@ -197,6 +204,22 @@
     "accountLabel": "Account",
     "orderLabel": "Order"
   },
+  "events": {
+    "created": "Created",
+    "status_changed": "Status Changed",
+    "location_changed": "Location Changed",
+    "photo_added": "Photo Added",
+    "tag_added": "Tag Added",
+    "tag_removed": "Tag Removed",
+    "loan_started": "Loan Started",
+    "loan_returned": "Loan Returned",
+    "warranty_added": "Warranty Added",
+    "warranty_expired": "Warranty Expired",
+    "consumed": "Consumed",
+    "archived": "Archived",
+    "restored": "Restored",
+    "edited": "Edited"
+  },
   "locations": {
     "title": "Locations",
     "create": "Create Location",
@@ -228,7 +251,37 @@
     "qrGenerateFailed": "QR generation failed: {{error}}",
     "confirmDelete": "Are you sure you want to delete this location?",
     "noLocations": "No locations found",
-    "noLocationsHint": "Create a location to start organizing your items."
+    "noLocationsHint": "Create a location to start organizing your items.",
+    "description": "Organize your items in a tree of physical and virtual locations.",
+    "offlineDisabled": "Cannot create while offline",
+    "addRoot": "Add Root",
+    "tree": "Location Tree",
+    "nodeCount": "{{count}} nodes",
+    "loading": "Loading…",
+    "physicalPositions": "Physical Locations",
+    "virtualPositions": "Virtual Locations",
+    "selectToStart": "Select a location to get started",
+    "addFirstChild": "Select a location to view its details.",
+    "addChild": "Add Child",
+    "privateOnly": "Private",
+    "directItems": "Direct Items",
+    "childCount": "Children",
+    "subtreeTotal": "Total in Subtree",
+    "childrenHaveItems": "{{count}} items in child locations",
+    "noItems": "No items in this location",
+    "uncategorized": "Uncategorized",
+    "addChildTo": "Add child to {{name}}",
+    "privatePosition": "Private location",
+    "privateHint": "Only visible to you",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "save": "Save",
+    "editTitle": "Edit {{name}}",
+    "cannotNest": "Cannot place {{child}} inside {{parent}}",
+    "confirmDeleteTitle": "Delete {{name}}",
+    "deleteLocation": "Delete Location",
+    "deleteWarning": "This will permanently delete this location and all its children. Items inside will be unlinked.",
+    "deleting": "Deleting…"
   },
   "consumables": {
     "title": "Consumables",
@@ -238,6 +291,7 @@
     "noCalibration": "No calibration",
     "noConsumables": "No consumables found",
     "description": "Type A uses purchase events to predict stock; Type B uses one-tap use and lifespan countdown.",
+    "meta": "A/B Model",
     "typeA": "Type A",
     "typeB": "Type B",
     "tracked": "Tracked",
@@ -314,7 +368,8 @@
     "noLoss": "No loss records",
     "archivedAssets": "Archived Assets",
     "abnormalExit": "Abnormal Exits",
-    "itemGraveyard": "Item Graveyard"
+    "itemGraveyard": "Item Graveyard",
+    "meta": "Item Graveyard"
   },
   "edc": {
     "title": "EDC",
@@ -324,6 +379,7 @@
     "returnedAll": "Returned {{count}} items home",
     "packAll": "Pack All",
     "packedAll": "Packed {{count}} items",
+    "meta": "Baseline + State",
     "packDestination": "Pack Destination",
     "selectLocation": "Select location…",
     "packConfirm": "Pack",
@@ -353,6 +409,7 @@
     "contactInfo": "Contact",
     "credentialRecords": "Credential Records",
     "hasLicenseKey": "Has License Key",
+    "meta": "Warranty",
     "virtualCredentialList": "Virtual Credentials",
     "platform": "Platform",
     "account": "Account",
@@ -361,6 +418,7 @@
   "capture": {
     "title": "Capture Enhancement",
     "description": "Barcode scanning, AI photo recognition, and manual entry share a confirmation queue.",
+    "meta": "P1 Capture",
     "barcode": "Barcode Scan",
     "barcodeDesc": "Enter a product barcode to query product info from Open Food Facts.",
     "aiPhoto": "AI Photo Recognition",
@@ -432,11 +490,13 @@
     "sent": "Sent",
     "dismissed": "Dismissed",
     "completed": "Completed",
-    "backingUp": "Backing up…"
+    "backingUp": "Backing up…",
+    "meta": "Operations"
   },
   "qrPrint": {
     "title": "Location Label Printing",
     "description": "Select locations, generate codes in bulk, and print cuttable QR labels.",
+    "meta": "QR Print",
     "print": "Print {{count}} labels",
     "noLocations": "No location data",
     "noPrintable": "Select locations with codes, or generate codes for the selection first",
@@ -456,6 +516,7 @@
   "locationScan": {
     "title": "Scan Location",
     "description": "Scan a container label to see items in that location and its children.",
+    "meta": "Location Scan",
     "codeInput": "Location code",
     "codePlaceholder": "e.g. LOC-XXXXXXXX",
     "lookup": "Look up",
@@ -482,7 +543,8 @@
     "abnormalStatus": "Abnormal Status",
     "searchSource": "Search Source",
     "llmRefined": "LLM Reranked",
-    "searchResults": "Search Results"
+    "searchResults": "Search Results",
+    "meta": "FTS5 + SSE"
   },
   "settings": {
     "title": "Settings",
@@ -639,12 +701,23 @@
     "notifications": "Notifications",
     "wan": "{{value}}0k",
     "friend": "buddy",
-    "selectPlaceholder": "Select…"
+    "selectPlaceholder": "Select…",
+    "upload": "Upload",
+    "sn": "SN: {{number}}",
+    "currencySymbol": "¥",
+    "more": "More"
   },
   "demo": {
     "mode": "Demo Mode",
     "version": "Version",
-    "description": "This is a demo mode. Data is for preview only and may be reset at any time."
+    "description": "This is a demo mode. Data is for preview only and may be reset at any time.",
+    "badge": "DEMO"
+  },
+  "reminder": {
+    "warranty_expiry": "Warranty Expiring",
+    "stock_low": "Low Stock",
+    "loan_overdue": "Loan Overdue",
+    "default": "Reminder"
   },
   "date": {
     "weekday_sun": "Sun",

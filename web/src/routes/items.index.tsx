@@ -173,9 +173,9 @@ function ItemsPage() {
                       {it.name}
                     </Link>
                   </td>
-                  <td className={uiStyles.td}>{it.type}</td>
+                  <td className={uiStyles.td}>{t(`itemType.${it.type}`, it.type)}</td>
                   <td className={uiStyles.td}>
-                    <Badge>{it.status}</Badge>
+                    <Badge>{t(`status.${it.status}`, it.status)}</Badge>
                   </td>
                   <td className={uiStyles.td}>{it.category ?? t('common.notSet')}</td>
                   <td className={uiStyles.td}>

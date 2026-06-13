@@ -45,7 +45,7 @@ function CredentialsPage() {
       <FeatureHeader
         title={t('credentials.title')}
         description={t('credentials.description')}
-        meta="warranty"
+        meta={t('credentials.meta')}
       />
 
       <Tabs

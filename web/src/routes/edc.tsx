@@ -85,7 +85,7 @@ function EDCPage() {
       <FeatureHeader
         title={t('edc.title')}
         description={t('edc.description')}
-        meta="baseline + state"
+        meta={t('edc.meta')}
       />
 
       {isLoading ? (
@@ -145,7 +145,7 @@ function EDCPage() {
                       </td>
                       <td className={uiStyles.td}>{item.home_base_location_id ?? '—'}</td>
                       <td className={uiStyles.td}>
-                        <Badge>{item.status}</Badge>
+                        <Badge>{t(`status.${item.status}`, item.status)}</Badge>
                       </td>
                       <td className={uiStyles.td}>
                         {item.location_id !== item.home_base_location_id && (

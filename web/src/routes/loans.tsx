@@ -189,7 +189,8 @@ function LoansPage() {
   }
 
   function formatCurrency(value: number): string {
-    return `¥${value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const symbol = t('common.currencySymbol');
+    return `${symbol}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   function formatDate(ts?: number): string {
@@ -355,7 +356,7 @@ function LoansPage() {
                               <div className={uiStyles.loanItemInfo}>
                                 <div className={uiStyles.loanItemName}>{item.name}</div>
                                 {item.serial_number && (
-                                  <div className={uiStyles.loanItemSn}>SN: {item.serial_number}</div>
+                                  <div className={uiStyles.loanItemSn}>{t('common.sn', { number: item.serial_number })}</div>
                                 )}
                               </div>
                             </div>
@@ -396,7 +397,7 @@ function LoansPage() {
                                   {t('loans.returnItem')}
                                 </button>
                               ) : null}
-                              <button className={uiStyles.loanActionMore} title="More">
+                              <button className={uiStyles.loanActionMore} title={t('common.more', { defaultValue: 'More' })}>
                                 <IconDotsVertical size={14} />
                               </button>
                             </div>
@@ -430,7 +431,7 @@ function LoansPage() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className={uiStyles.loanItemName}>{item.name}</div>
                         {item.serial_number && (
-                          <div className={uiStyles.loanItemSn}>SN: {item.serial_number}</div>
+                          <div className={uiStyles.loanItemSn}>{t('common.sn', { number: item.serial_number })}</div>
                         )}
                       </div>
                       <span className={`${uiStyles.loanStatusBadgeBase} ${uiStyles.loanStatusBadge[status]}`}>

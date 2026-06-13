@@ -274,7 +274,7 @@ function RootLayout() {
           </form>
 
           <div className={uiStyles.headerActions}>
-            {systemStatus.mode === 'demo' && <Badge>DEMO</Badge>}
+            {systemStatus.mode === 'demo' && <Badge>{t('demo.badge')}</Badge>}
             <span className={uiStyles.shellHeaderDate}>{formatToday(t)}</span>
             <button type="button" className={uiStyles.headerIconBtn} aria-label={t('common.notifications')}>
               <IconBell size={18} />

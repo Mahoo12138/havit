@@ -67,7 +67,7 @@ function CapturePage() {
       <FeatureHeader
         title={t('capture.title')}
         description={t('capture.description')}
-        meta="P1 capture"
+        meta={t('capture.meta')}
       />
 
       <div className={uiStyles.featureGrid}>
@@ -154,7 +154,7 @@ function CapturePage() {
             <Badge>{resultType === 'barcode' ? t('capture.barcodeResult') : t('capture.aiResult')}</Badge>
             <TextField label={t('capture.name')} value={draftName} onChange={(e) => setDraftName(e.target.value)} />
             <TextField label={t('capture.category')} value={draftCategory} onChange={(e) => setDraftCategory(e.target.value)} />
-            <TextField label={t('capture.descriptionField')} value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} />
+            <TextField label={t('capture.description')} value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} />
             <Button
               onClick={() => createMutation.mutate()}
               disabled={!draftName || createMutation.isPending}

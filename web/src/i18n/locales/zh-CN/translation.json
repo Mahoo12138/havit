@@ -152,6 +152,13 @@
     "photoReadFailed": "照片加载失败",
     "downloadClaim": "下载理赔凭证 PDF"
   },
+  "itemType": {
+    "durable": "耐用品",
+    "consumable_a": "消耗品 A",
+    "consumable_b": "消耗品 B",
+    "edc": "EDC",
+    "virtual": "虚拟资产"
+  },
   "itemDetail": {
     "basicInfo": "基本信息",
     "warranty": "保修与凭证",
@@ -190,11 +197,28 @@
     "warrantyExpired": "已过期",
     "daysLeft": "剩余",
     "daysCount": "{{count}} 天",
+    "daysCount_other": "{{count}} 天",
     "belowThreshold": "低于阈值",
     "expectedReturn": "预计归还",
     "contactInfo": "联系方式",
     "accountLabel": "账号",
     "orderLabel": "订单"
+  },
+  "events": {
+    "created": "已创建",
+    "status_changed": "状态变更",
+    "location_changed": "位置变更",
+    "photo_added": "添加照片",
+    "tag_added": "添加标签",
+    "tag_removed": "移除标签",
+    "loan_started": "借出登记",
+    "loan_returned": "借出归还",
+    "warranty_added": "添加保修",
+    "warranty_expired": "保修到期",
+    "consumed": "已消耗",
+    "archived": "已归档",
+    "restored": "已恢复",
+    "edited": "已编辑"
   },
   "locations": {
     "title": "位置",
@@ -227,7 +251,37 @@
     "qrGenerateFailed": "生成失败：{{error}}",
     "confirmDelete": "确定要删除此位置吗？",
     "noLocations": "未找到位置",
-    "noLocationsHint": "创建一个位置来开始整理你的物品。"
+    "noLocationsHint": "创建一个位置来开始整理你的物品。",
+    "description": "用树状结构管理物品的物理和虚拟存放位置。",
+    "offlineDisabled": "离线模式下无法创建",
+    "addRoot": "新增根位置",
+    "tree": "位置树",
+    "nodeCount": "{{count}} 个节点",
+    "loading": "加载中…",
+    "physicalPositions": "物理位置",
+    "virtualPositions": "虚拟位置",
+    "selectToStart": "选择一个位置开始",
+    "addFirstChild": "选择一个位置查看详情。",
+    "addChild": "新增子位置",
+    "privateOnly": "私有",
+    "directItems": "直属物品",
+    "childCount": "子位置",
+    "subtreeTotal": "子树合计",
+    "childrenHaveItems": "子位置含 {{count}} 件物品",
+    "noItems": "该位置下暂无物品",
+    "uncategorized": "未分类",
+    "addChildTo": "在 {{name}} 下新增子位置",
+    "privatePosition": "私有位置",
+    "privateHint": "仅自己可见",
+    "cancel": "取消",
+    "saving": "保存中…",
+    "save": "保存",
+    "editTitle": "编辑 {{name}}",
+    "cannotNest": "不能将 {{child}} 放在 {{parent}} 内",
+    "confirmDeleteTitle": "删除 {{name}}",
+    "deleteLocation": "删除位置",
+    "deleteWarning": "此操作将永久删除该位置及其所有子位置，其中的物品将被解除关联。",
+    "deleting": "删除中…"
   },
   "consumables": {
     "title": "消耗品",
@@ -237,6 +291,7 @@
     "noCalibration": "无校准",
     "noConsumables": "未找到消耗品",
     "description": "类型 A 用购买事件预测库存，类型 B 用一键计数和寿命倒计时。",
+    "meta": "A/B 模型",
     "typeA": "类型 A",
     "typeB": "类型 B",
     "tracked": "追踪项",
@@ -313,7 +368,8 @@
     "noLoss": "暂无遗失记录",
     "archivedAssets": "归档资产",
     "abnormalExit": "异常退场",
-    "itemGraveyard": "物品墓地"
+    "itemGraveyard": "物品墓地",
+    "meta": "物品墓地"
   },
   "edc": {
     "title": "EDC",
@@ -334,6 +390,7 @@
     "returnedAll": "已归位 {{count}} 件",
     "packAll": "一键打包",
     "packedAll": "已打包 {{count}} 件",
+    "meta": "基准 + 状态",
     "packDestination": "打包目标位置",
     "selectLocation": "选择位置",
     "packConfirm": "确认打包"
@@ -352,6 +409,7 @@
     "contactInfo": "联系方式",
     "credentialRecords": "凭证记录",
     "hasLicenseKey": "有 License Key",
+    "meta": "保修",
     "virtualCredentialList": "虚拟凭证",
     "platform": "平台",
     "account": "账号",
@@ -360,6 +418,7 @@
   "capture": {
     "title": "录入增强",
     "description": "条码扫描、AI 拍照识别和手动兜底共用一套确认队列。",
+    "meta": "P1 录入",
     "barcode": "条码扫描",
     "barcodeDesc": "输入商品条码，从 Open Food Facts 查询商品信息。",
     "aiPhoto": "AI 拍照识别",
@@ -431,11 +490,13 @@
     "sent": "已发送",
     "dismissed": "已忽略",
     "completed": "已完成",
-    "backingUp": "备份中…"
+    "backingUp": "备份中…",
+    "meta": "运维"
   },
   "qrPrint": {
     "title": "位置标签打印",
     "description": "勾选位置、批量生成编号，打印可裁剪的 QR 标签贴在收纳盒上。",
+    "meta": "QR 标签",
     "print": "打印 {{count}} 个标签",
     "noLocations": "暂无位置数据",
     "noPrintable": "请先勾选已有编号的位置，或为选中项生成编号",
@@ -455,6 +516,7 @@
   "locationScan": {
     "title": "扫码查位置",
     "description": "扫描收纳盒上的位置标签，立即查看该位置及子位置内的物品。",
+    "meta": "扫码查位",
     "codeInput": "位置编号",
     "codePlaceholder": "例如：LOC-XXXXXXXX",
     "lookup": "查询",
@@ -481,7 +543,8 @@
     "abnormalStatus": "异常状态",
     "searchSource": "搜索源",
     "llmRefined": "LLM 精排",
-    "searchResults": "搜索结果"
+    "searchResults": "搜索结果",
+    "meta": "FTS5 + SSE"
   },
   "settings": {
     "title": "设置",
@@ -638,12 +701,23 @@
     "wan": "{{value}}万",
     "friend": "伙计",
     "selectPlaceholder": "请选择",
-    "name": "名称"
+    "name": "名称",
+    "upload": "上传",
+    "sn": "序列号：{{number}}",
+    "currencySymbol": "¥",
+    "more": "更多"
   },
   "demo": {
     "mode": "演示模式",
     "version": "版本",
-    "description": "当前为演示模式，数据仅供体验，可能在任何时刻被重置。"
+    "description": "当前为演示模式，数据仅供体验，可能在任何时刻被重置。",
+    "badge": "演示"
+  },
+  "reminder": {
+    "warranty_expiry": "保修即将到期",
+    "stock_low": "库存不足",
+    "loan_overdue": "借出逾期",
+    "default": "提醒"
   },
   "date": {
     "weekday_sun": "周日",

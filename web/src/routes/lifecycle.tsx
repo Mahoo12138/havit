@@ -35,7 +35,7 @@ function LifecyclePage() {
       <FeatureHeader
         title={t('lifecycle.title')}
         description={t('lifecycle.description')}
-        meta="item graveyard"
+        meta={t('lifecycle.meta')}
       />
 
       <Tabs

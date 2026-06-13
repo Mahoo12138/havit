@@ -70,7 +70,7 @@ function SearchPage() {
       <FeatureHeader
         title={t('search.title')}
         description={t('search.description')}
-        meta="FTS5 + SSE"
+        meta={t('search.meta')}
       />
 
       <Card className="surface-card">
@@ -124,7 +124,7 @@ function SearchPage() {
                   {result.edc_hint && <p className={uiStyles.help}>{result.edc_hint}</p>}
                   <Row>
                     <StatusBadge status={result.status} />
-                    <span className={uiStyles.muted}>{result.type}</span>
+                    <span className={uiStyles.muted}>{t(`itemType.${result.type}`, result.type)}</span>
                   </Row>
                 </Stack>
               </Card>

@@ -46,7 +46,7 @@ function OperationsPage() {
       <FeatureHeader
         title={t('operations.title')}
         description={t('operations.description')}
-        meta="ops"
+        meta={t('operations.meta')}
       />
 
       <MetricStrip
@@ -92,7 +92,7 @@ function OperationsPage() {
               reminders.slice(0, 10).map((r) => (
                 <Card className="surface-card" key={r.id}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{r.type} — {r.item_id}</span>
+                    <span>{t(`reminder.${r.type}`, r.type)} — {r.item_id}</span>
                     <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
                   </div>
                 </Card>

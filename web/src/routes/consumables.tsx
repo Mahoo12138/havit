@@ -52,7 +52,7 @@ function ConsumablesPage() {
       <FeatureHeader
         title={t('consumables.title')}
         description={t('consumables.description')}
-        meta="A/B model"
+        meta={t('consumables.meta')}
       />
 
       {isLoading ? (

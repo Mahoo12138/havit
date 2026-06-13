@@ -107,7 +107,7 @@ function QrPrintPage() {
         <FeatureHeader
           title={t('qrPrint.title')}
           description={t('qrPrint.description')}
-          meta="ops"
+          meta={t('qrPrint.meta')}
         />
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>

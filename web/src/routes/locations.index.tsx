@@ -112,8 +112,9 @@ function collectSubtreeIds(index: LocationIndex, id: string): string[] {
 }
 
 function formatPrice(value: number, t: (key: string, opts?: any) => string): string {
-  if (value >= 10000) return `¥${t('common.wan', { value: (value / 10000).toFixed(1) })}`;
-  return `¥${value.toLocaleString('zh-CN')}`;
+  const symbol = t('common.currencySymbol');
+  if (value >= 10000) return `${symbol}${t('common.wan', { value: (value / 10000).toFixed(1) })}`;
+  return `${symbol}${value.toLocaleString()}`;
 }
 
 interface CreateDialogState {
@@ -686,7 +687,7 @@ function LocationDetail({
                 <div className={uiStyles.recentMeta}>
                   <span className={uiStyles.recentName}>{it.name}</span>
                   <span className={uiStyles.recentSub}>
-                    {it.category ?? t('locations.uncategorized')} · {it.status}
+                    {it.category ?? t('locations.uncategorized')} · {t(`status.${it.status}`, it.status)}
                   </span>
                 </div>
                 {it.tags && it.tags.length > 0 && (

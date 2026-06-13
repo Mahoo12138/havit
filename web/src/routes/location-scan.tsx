@@ -63,7 +63,7 @@ function LocationScanPage() {
       <FeatureHeader
         title={t('locationScan.title')}
         description={t('locationScan.description')}
-        meta="ops"
+        meta={t('locationScan.meta')}
       />
 
       <div className={uiStyles.twoColumn}>
