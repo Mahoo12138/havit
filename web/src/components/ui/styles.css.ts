@@ -3203,3 +3203,313 @@ export const scrollAreaCorner = style({
   background: 'transparent',
 });
 
+export const loanPageMetrics = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  gap: themeVars.space3,
+  '@media': {
+    '(max-width: 64em)': {
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    },
+    '(max-width: 48em)': {
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
+    '(max-width: 36em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const loanMetricCard = style({
+  padding: themeVars.space4,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  background: themeVars.panel,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space1,
+  transition: 'border-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      borderColor: themeVars.accent,
+    },
+  },
+});
+
+export const loanMetricLabel = style({
+  color: themeVars.muted,
+  fontSize: '0.82rem',
+  fontWeight: 500,
+});
+
+export const loanMetricValue = style({
+  color: themeVars.ink,
+  fontSize: '1.6rem',
+  fontWeight: 700,
+  letterSpacing: '-0.02em',
+  lineHeight: 1.1,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const loanMetricValueDanger = style([
+  loanMetricValue,
+  { color: themeVars.danger },
+]);
+
+export const loanMetricSub = style({
+  color: themeVars.muted,
+  fontSize: '0.78rem',
+});
+
+export const loanFilterBar = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  marginBottom: themeVars.space3,
+  '@media': {
+    '(max-width: 48em)': {
+      gap: themeVars.space2,
+    },
+  },
+});
+
+export const loanFilterSelect = style({
+  minHeight: '2rem',
+  boxSizing: 'border-box',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  color: themeVars.text,
+  font: 'inherit',
+  fontSize: '0.82rem',
+  padding: `${themeVars.space1} ${themeVars.space3}`,
+  paddingRight: `${themeVars.space6}`,
+  outline: 'none',
+  cursor: 'pointer',
+  appearance: 'none',
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+  backgroundRepeat: 'no-repeat',
+  backgroundPosition: `right ${themeVars.space2} center`,
+  transition: 'border-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      borderColor: `color-mix(in srgb, ${themeVars.accent} 22%, ${themeVars.line})`,
+    },
+    '&:focus': {
+      borderColor: themeVars.accent,
+      boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
+    },
+  },
+});
+
+export const loanFilterIconBtn = style([
+  iconButton,
+  {
+    width: '2rem',
+    minWidth: '2rem',
+    height: '2rem',
+  },
+]);
+
+export const loanToolbarActions = style({
+  display: 'flex',
+  gap: themeVars.space2,
+  marginLeft: 'auto',
+});
+
+export const loanStatusBadge = styleVariants({
+  active: { background: themeVars.accentSoft, color: themeVars.accentInk },
+  overdue: { background: themeVars.dangerSoft, color: themeVars.danger },
+  due_soon: { background: themeVars.warningSoft, color: themeVars.warning },
+  returned: { background: themeVars.successSoft, color: themeVars.success },
+});
+
+export const loanStatusBadgeBase = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  borderRadius: themeVars.radius1,
+  fontSize: '0.72rem',
+  fontWeight: 700,
+  letterSpacing: '0.04em',
+  padding: `${themeVars.space1} ${themeVars.space2}`,
+});
+
+export const loanItemCell = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  minWidth: 0,
+});
+
+export const loanItemThumb = style({
+  width: '2.5rem',
+  height: '2.5rem',
+  borderRadius: themeVars.radius2,
+  background: themeVars.bgSoft,
+  border: `1px solid ${themeVars.line}`,
+  objectFit: 'cover',
+  flexShrink: 0,
+});
+
+export const loanItemThumbPlaceholder = style([
+  loanItemThumb,
+  {
+    display: 'grid',
+    placeItems: 'center',
+    color: themeVars.muted,
+    fontSize: '0.9rem',
+  },
+]);
+
+export const loanItemInfo = style({
+  minWidth: 0,
+});
+
+export const loanItemName = style({
+  fontWeight: 600,
+  color: themeVars.ink,
+  fontSize: '0.9rem',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+});
+
+export const loanItemSn = style({
+  color: themeVars.muted,
+  fontSize: '0.76rem',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+});
+
+export const loanActionBtn = style({
+  background: 'transparent',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  padding: `${themeVars.space1} ${themeVars.space3}`,
+  fontSize: '0.8rem',
+  fontWeight: 500,
+  color: themeVars.accent,
+  cursor: 'pointer',
+  transition: 'background-color 140ms ease, border-color 140ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.accentSoft,
+      borderColor: themeVars.accent,
+    },
+  },
+});
+
+export const loanActionMore = style({
+  background: 'transparent',
+  border: 0,
+  borderRadius: themeVars.radius2,
+  padding: themeVars.space1,
+  color: themeVars.muted,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  transition: 'color 140ms ease, background-color 140ms ease',
+  selectors: {
+    '&:hover': {
+      color: themeVars.text,
+      background: themeVars.lineSoft,
+    },
+  },
+});
+
+export const loanPageHeader = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: themeVars.space4,
+  paddingTop: themeVars.space2,
+  paddingBottom: themeVars.space2,
+  '@media': {
+    '(max-width: 48em)': {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+  },
+});
+
+export const loanPageHeaderRight = style({
+  display: 'flex',
+  gap: themeVars.space2,
+  alignItems: 'center',
+  flexShrink: 0,
+});
+
+export const loanPageSubtitle = style({
+  color: themeVars.muted,
+  fontSize: '0.88rem',
+  marginTop: themeVars.space1,
+});
+
+export const loanBottomGrid = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr 1fr',
+  gap: themeVars.space4,
+  marginTop: themeVars.space4,
+  '@media': {
+    '(max-width: 58em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const loanBottomCard = style({
+  padding: themeVars.space5,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  background: themeVars.panel,
+});
+
+export const loanBottomTitle = style({
+  margin: 0,
+  fontSize: '1rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  letterSpacing: '-0.01em',
+});
+
+export const loanMobileCard = style({
+  padding: themeVars.space4,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  background: themeVars.panel,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+});
+
+export const loanMobileRow = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+});
+
+export const loanMobileItemRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+});
+
+export const loanMobileMeta = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  gap: `${themeVars.space1} ${themeVars.space4}`,
+  fontSize: '0.82rem',
+});
+
+export const loanMobileLabel = style({
+  color: themeVars.muted,
+});
+
+export const loanMobileValue = style({
+  color: themeVars.text,
+  fontWeight: 500,
+});
+

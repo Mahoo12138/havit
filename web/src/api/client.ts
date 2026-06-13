@@ -497,3 +497,38 @@ export const edcBulkApi = {
   returnAll: () =>
     api.post('items/edc/return-all').json<{ moved: number }>(),
 };
+
+export interface SystemConfig {
+  key: string;
+  value: string;
+  controlled_by: 'env' | 'database' | 'default';
+  can_edit: boolean;
+  type?: 'string' | 'bool' | 'int' | 'sensitive' | 'enum';
+  options?: string[];
+  description?: string;
+}
+
+export interface UserPreferences {
+  user_id?: string;
+  theme: 'light' | 'dark' | 'system';
+  default_currency: string;
+  date_format: 'absolute' | 'relative';
+  home_view: 'spaces' | 'edc' | 'restock';
+  scan_behavior: 'confirm' | 'silent';
+  default_visibility: 'shared' | 'private';
+  personal_bark_key?: string;
+  personal_ntfy_topic?: string;
+  show_archived_in_search: boolean;
+}
+
+export const systemConfigsApi = {
+  list: () => api.get('system/configs').json<{ configs: SystemConfig[] }>(),
+  update: (key: string, value: string) =>
+    api.patch(`system/configs/${key}`, { json: { value } }).json<SystemConfig>(),
+};
+
+export const preferencesApi = {
+  get: () => api.get('preferences').json<UserPreferences>(),
+  update: (body: Partial<UserPreferences>) =>
+    api.patch('preferences', { json: body }).json<UserPreferences>(),
+};

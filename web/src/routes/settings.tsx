@@ -2,22 +2,31 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { IconTrash, IconUserPlus } from '@tabler/icons-react';
+import { IconTrash, IconUserPlus, IconLock } from '@tabler/icons-react';
 import {
-  Alert,
   Badge,
   Button,
   Dialog,
   Spinner,
   ScrollArea,
+  SelectField,
   Stack,
   StackTight,
+  Tabs,
   TextField,
   uiStyles,
   useToast,
 } from '../components/ui';
 import { DataCard, FeatureHeader } from '../features/m2/components';
-import { authApi, usersApi, type User } from '../api/client';
+import {
+  authApi,
+  usersApi,
+  systemConfigsApi,
+  preferencesApi,
+  type User,
+  type SystemConfig,
+  type UserPreferences,
+} from '../api/client';
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -33,22 +42,315 @@ function SettingsPage() {
 
   const isOwner = me?.role === 'owner';
 
+  const tabs = [
+    { key: 'preferences', label: t('settings.tabs.preferences') },
+    ...(isOwner
+      ? [
+          { key: 'system', label: t('settings.tabs.system') },
+          { key: 'members', label: t('settings.tabs.members') },
+        ]
+      : []),
+  ];
+
+  const [activeTab, setActiveTab] = useState('preferences');
+
   return (
     <Stack>
       <FeatureHeader
         title={t('settings.title')}
         description={t('settings.description')}
-        meta="owner only"
       />
+      <Tabs value={activeTab} onChange={setActiveTab} tabs={tabs} />
 
-      {isOwner ? (
+      {activeTab === 'preferences' && <PreferencesTab />}
+      {activeTab === 'system' && isOwner && <SystemConfigTab />}
+      {activeTab === 'members' && isOwner && (
         <UserManagement currentUserId={me?.id ?? ''} />
-      ) : (
-        <Alert>{t('settings.ownerOnly')}</Alert>
       )}
     </Stack>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Preferences tab
+// ---------------------------------------------------------------------------
+
+function PreferencesTab() {
+  const { t } = useTranslation();
+  const toast = useToast();
+
+  const { data: prefs, isLoading } = useQuery({
+    queryKey: ['preferences'],
+    queryFn: () => preferencesApi.get(),
+  });
+
+  const mutation = useMutation({
+    mutationFn: (body: Partial<UserPreferences>) => preferencesApi.update(body),
+    onSuccess: () => toast.show(t('settings.prefsSaved')),
+    onError: () => toast.show(t('settings.prefsSaveFailed')),
+  });
+
+  const [local, setLocal] = useState<Partial<UserPreferences>>({});
+
+  if (isLoading || !prefs) return <Spinner />;
+
+  const merged: UserPreferences = { ...prefs, ...local };
+
+  function field<K extends keyof UserPreferences>(key: K) {
+    return {
+      value: String(merged[key] ?? ''),
+      onChange: (e: { currentTarget: { value: string } }) =>
+        setLocal((prev) => ({ ...prev, [key]: e.currentTarget.value as UserPreferences[K] })),
+    };
+  }
+
+  function save() {
+    mutation.mutate(local);
+    setLocal({});
+  }
+
+  return (
+    <Stack>
+      <DataCard title={t('settings.prefs.display')}>
+        <Stack>
+          <SelectField
+            label={t('settings.prefs.theme')}
+            options={[
+              { value: 'system', label: t('settings.prefs.themeSystem') },
+              { value: 'light', label: t('settings.prefs.themeLight') },
+              { value: 'dark', label: t('settings.prefs.themeDark') },
+            ]}
+            {...field('theme')}
+          />
+          <SelectField
+            label={t('settings.prefs.dateFormat')}
+            options={[
+              { value: 'relative', label: t('settings.prefs.dateRelative') },
+              { value: 'absolute', label: t('settings.prefs.dateAbsolute') },
+            ]}
+            {...field('date_format')}
+          />
+          <TextField
+            label={t('settings.prefs.currency')}
+            {...field('default_currency')}
+          />
+        </Stack>
+      </DataCard>
+
+      <DataCard title={t('settings.prefs.behavior')}>
+        <Stack>
+          <SelectField
+            label={t('settings.prefs.homeView')}
+            options={[
+              { value: 'spaces', label: t('settings.prefs.homeSpaces') },
+              { value: 'edc', label: t('settings.prefs.homeEdc') },
+              { value: 'restock', label: t('settings.prefs.homeRestock') },
+            ]}
+            {...field('home_view')}
+          />
+          <SelectField
+            label={t('settings.prefs.scanBehavior')}
+            options={[
+              { value: 'confirm', label: t('settings.prefs.scanConfirm') },
+              { value: 'silent', label: t('settings.prefs.scanSilent') },
+            ]}
+            {...field('scan_behavior')}
+          />
+          <SelectField
+            label={t('settings.prefs.defaultVisibility')}
+            options={[
+              { value: 'shared', label: t('settings.prefs.visibilityShared') },
+              { value: 'private', label: t('settings.prefs.visibilityPrivate') },
+            ]}
+            {...field('default_visibility')}
+          />
+          <SelectField
+            label={t('settings.prefs.showArchived')}
+            options={[
+              { value: 'false', label: t('common.no') },
+              { value: 'true', label: t('common.yes') },
+            ]}
+            value={merged.show_archived_in_search ? 'true' : 'false'}
+            onChange={(e) =>
+              setLocal((prev) => ({
+                ...prev,
+                show_archived_in_search: e.currentTarget.value === 'true',
+              }))
+            }
+          />
+        </Stack>
+      </DataCard>
+
+      <DataCard title={t('settings.prefs.notifications')}>
+        <Stack>
+          <TextField
+            label={t('settings.prefs.barkKey')}
+            placeholder={t('settings.prefs.barkKeyHint')}
+            {...field('personal_bark_key')}
+          />
+          <TextField
+            label={t('settings.prefs.ntfyTopic')}
+            placeholder={t('settings.prefs.ntfyTopicHint')}
+            {...field('personal_ntfy_topic')}
+          />
+        </Stack>
+      </DataCard>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button
+          variant="primary"
+          disabled={Object.keys(local).length === 0 || mutation.isPending}
+          onClick={save}
+        >
+          {t('common.save')}
+        </Button>
+      </div>
+    </Stack>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// System config tab (owner-only)
+// ---------------------------------------------------------------------------
+
+function SystemConfigTab() {
+  const { t } = useTranslation();
+  const toast = useToast();
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['system-configs'],
+    queryFn: () => systemConfigsApi.list(),
+  });
+
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
+
+  const saveMutation = useMutation({
+    mutationFn: ({ key, value }: { key: string; value: string }) =>
+      systemConfigsApi.update(key, value),
+    onSuccess: (_data, vars) => {
+      toast.show(t('settings.configSaved'));
+      setDrafts((prev) => {
+        const next = { ...prev };
+        delete next[vars.key];
+        return next;
+      });
+      refetch();
+    },
+    onError: () => toast.show(t('settings.configSaveFailed')),
+  });
+
+  if (isLoading || !data) return <Spinner />;
+
+  const configs = data.configs;
+
+  function groupConfigs(prefix: string) {
+    return configs.filter((c) => c.key.startsWith(prefix));
+  }
+
+  function renderConfigField(cfg: SystemConfig) {
+    const isSensitive = cfg.type === 'sensitive';
+    const isLocked = !cfg.can_edit;
+    const isRevealed = revealed[cfg.key];
+    const draftValue = drafts[cfg.key];
+    const displayValue =
+      draftValue !== undefined
+        ? draftValue
+        : isSensitive && !isRevealed
+        ? cfg.value
+        : cfg.value;
+
+    const label = t(`settings.system.keys.${cfg.key}`, { defaultValue: cfg.key });
+
+    return (
+      <div key={cfg.key} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1 }}>
+          {cfg.type === 'bool' || cfg.type === 'enum' ? (
+            <SelectField
+              label={label}
+              disabled={isLocked}
+              options={
+                cfg.type === 'bool'
+                  ? [
+                      { value: 'true', label: t('common.yes') },
+                      { value: 'false', label: t('common.no') },
+                    ]
+                  : (cfg.options ?? []).map((o) => ({ value: o, label: o }))
+              }
+              value={draftValue ?? cfg.value}
+              onChange={(e) =>
+                setDrafts((prev) => ({ ...prev, [cfg.key]: e.currentTarget.value }))
+              }
+            />
+          ) : (
+            <TextField
+              label={label}
+              disabled={isLocked}
+              type={isSensitive && !isRevealed ? 'password' : 'text'}
+              value={displayValue}
+              onChange={(e) =>
+                setDrafts((prev) => ({ ...prev, [cfg.key]: e.target.value }))
+              }
+            />
+          )}
+          {isLocked && (
+            <span className={uiStyles.muted} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginTop: '0.25rem' }}>
+              <IconLock size={12} />
+              {t('settings.envLocked')}
+            </span>
+          )}
+        </div>
+        {isSensitive && !isLocked && (
+          <Button
+            variant="quiet"
+            onClick={() => setRevealed((prev) => ({ ...prev, [cfg.key]: !prev[cfg.key] }))}
+          >
+            {isRevealed ? t('settings.system.hide') : t('settings.system.reveal')}
+          </Button>
+        )}
+        {!isLocked && (
+          <Button
+            variant="primary"
+            disabled={draftValue === undefined || draftValue === cfg.value || saveMutation.isPending}
+            onClick={() => saveMutation.mutate({ key: cfg.key, value: draftValue ?? cfg.value })}
+          >
+            {t('common.save')}
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  const infraKeys = configs.filter(
+    (c) => c.key.startsWith('storage.') || c.key.startsWith('auth.')
+  );
+
+  return (
+    <Stack>
+      <DataCard title={t('settings.system.aiSection')}>
+        <Stack>
+          {groupConfigs('ai.').map(renderConfigField)}
+        </Stack>
+      </DataCard>
+
+      <DataCard title={t('settings.system.notifySection')}>
+        <Stack>
+          {groupConfigs('notify.').map(renderConfigField)}
+        </Stack>
+      </DataCard>
+
+      <DataCard title={t('settings.system.infraSection')}>
+        <Stack>
+          {infraKeys.map(renderConfigField)}
+        </Stack>
+      </DataCard>
+    </Stack>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Members tab (owner-only)
+// ---------------------------------------------------------------------------
 
 function UserManagement({ currentUserId }: { currentUserId: string }) {
   const { t } = useTranslation();
