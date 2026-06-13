@@ -9,6 +9,7 @@ import {
   Dialog,
   RowBetween,
   SelectField,
+  ScrollArea,
   Spinner,
   Stack,
   StackTight,
@@ -123,7 +124,7 @@ function EDCPage() {
           </RowBetween>
 
           <DataCard title={t('edc.checklist')}>
-            <div className={uiStyles.tableWrap}>
+            <ScrollArea className={uiStyles.tableWrap}>
               <table className={uiStyles.table}>
                 <thead>
                   <tr>
@@ -162,7 +163,7 @@ function EDCPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollArea>
           </DataCard>
         </>
       )}

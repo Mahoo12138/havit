@@ -629,8 +629,6 @@ export const sidebarBrandClose = style({
 });
 
 export const sidebarScroll = style({
-  flex: '1 1 auto',
-  overflowY: 'auto',
   padding: `${themeVars.space3} ${themeVars.space2}`,
 });
 
@@ -1526,7 +1524,6 @@ export const locationTreeWrap = style({
   flexDirection: 'column',
   gap: '2px',
   maxHeight: '20rem',
-  overflowY: 'auto',
 });
 
 export const locationNode = style({
@@ -1553,7 +1550,7 @@ export const locationNodeMuted = style({
 });
 
 export const tableWrap = style({
-  overflowX: 'auto',
+  minWidth: 0,
 });
 
 export const tableRow = style({
@@ -1905,8 +1902,6 @@ export const locationTreeHeadTitle = style({
 });
 
 export const locationTreeBody = style({
-  flex: '1 1 auto',
-  overflowY: 'auto',
   padding: `${themeVars.space2} ${themeVars.space2}`,
 });
 
@@ -3126,5 +3121,85 @@ export const tooltip = style({
       lineHeight: 1.4,
     },
   },
+});
+
+/* ---------- ScrollArea (Base UI) ---------- */
+
+const scrollbarBase = style({
+  display: 'flex',
+  padding: '2px',
+  background: 'transparent',
+  transition: 'background 180ms ease, opacity 180ms ease',
+  opacity: 0,
+  selectors: {
+    '&:hover': {
+      background: 'transparent',
+    },
+    '&[data-state="visible"]': {
+      opacity: 1,
+    },
+  },
+});
+
+export const scrollAreaRoot = style({
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+  flex: '1 1 auto',
+});
+
+export const scrollAreaViewport = style({
+  flex: '1 1 auto',
+  minHeight: 0,
+  overflow: 'auto',
+  scrollbarWidth: 'none',
+  selectors: {
+    '&::-webkit-scrollbar': {
+      display: 'none',
+    },
+  },
+});
+
+export const scrollAreaScrollbarVert = style([
+  scrollbarBase,
+  {
+    width: 8,
+    borderRadius: 4,
+    selectors: {
+      '&:hover': {
+        background: 'rgba(0,0,0,0.04)',
+      },
+    },
+  },
+]);
+
+export const scrollAreaScrollbarHoriz = style([
+  scrollbarBase,
+  {
+    height: 8,
+    borderRadius: 4,
+    flexDirection: 'column',
+    selectors: {
+      '&:hover': {
+        background: 'rgba(0,0,0,0.04)',
+      },
+    },
+  },
+]);
+
+export const scrollAreaThumb = style({
+  flex: '1 1 auto',
+  borderRadius: 4,
+  background: themeVars.line,
+  minHeight: 32,
+  selectors: {
+    '&:hover': {
+      background: themeVars.muted,
+    },
+  },
+});
+
+export const scrollAreaCorner = style({
+  background: 'transparent',
 });
 

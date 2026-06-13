@@ -37,6 +37,7 @@ import {
   Alert,
   Badge,
   RowBetween,
+  ScrollArea,
   uiStyles,
 } from '../components/ui';
 import {
@@ -193,7 +194,7 @@ function RootLayout() {
           </button>
         </div>
 
-        <div className={uiStyles.sidebarScroll}>
+        <ScrollArea className={uiStyles.sidebarScroll}>
           {navSections.map((section, sectionIdx) => (
             <div key={section.label}>
               {sectionIdx > 0 && (
@@ -223,7 +224,7 @@ function RootLayout() {
               </div>
             </div>
           ))}
-        </div>
+        </ScrollArea>
 
         <div className={uiStyles.sidebarFooter}>
           <LanguageSwitcher />

@@ -26,6 +26,7 @@ import {
   SelectField,
   Spinner,
   Stack,
+  ScrollArea,
   StackTight,
   StatusBadge,
   TextField,
@@ -823,7 +824,7 @@ function ContentsSection({ itemId }: { itemId: string }) {
         {isLoading ? (
           <Spinner />
         ) : (
-          <div className={uiStyles.tableWrap}>
+          <ScrollArea className={uiStyles.tableWrap}>
             <table className={uiStyles.table}>
               <thead>
                 <tr>
@@ -853,7 +854,7 @@ function ContentsSection({ itemId }: { itemId: string }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollArea>
         )}
       </div>
     </section>

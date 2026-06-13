@@ -18,7 +18,7 @@ import {
 } from '@tabler/icons-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Badge, uiStyles } from '../components/ui';
+import { Badge, ScrollArea, uiStyles } from '../components/ui';
 import { authApi, itemsApi, locationsApi, remindersApi, type Item, type Location } from '../api/client';
 
 export const Route = createFileRoute('/')({
@@ -433,7 +433,7 @@ function LocationsCard({
           {t('dashboard.manage')} <IconArrowRight size={14} />
         </Link>
       </header>
-      <div className={uiStyles.locationTreeWrap}>
+      <ScrollArea className={uiStyles.locationTreeWrap}>
         {loading ? (
           <div className={uiStyles.reminderEmpty}>{t('common.loading')}</div>
         ) : tree.length === 0 ? (
@@ -451,7 +451,7 @@ function LocationsCard({
             </div>
           ))
         )}
-      </div>
+      </ScrollArea>
     </section>
   );
 }

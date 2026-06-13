@@ -9,6 +9,7 @@ import {
   Button,
   Dialog,
   Spinner,
+  ScrollArea,
   Stack,
   StackTight,
   TextField,
@@ -107,7 +108,7 @@ function UserManagement({ currentUserId }: { currentUserId: string }) {
         {isLoading ? (
           <Spinner />
         ) : (
-          <div className={uiStyles.tableWrap}>
+          <ScrollArea className={uiStyles.tableWrap}>
             <table className={uiStyles.table}>
               <thead>
                 <tr>
@@ -160,7 +161,7 @@ function UserManagement({ currentUserId }: { currentUserId: string }) {
                 ))}
               </tbody>
             </table>
-          </div>
+          </ScrollArea>
         )}
       </DataCard>
 

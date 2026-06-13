@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog as BaseDialog } from '@base-ui/react/dialog';
+import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import { Select as BaseSelect } from '@base-ui/react/select';
 import { Toast as BaseToast } from '@base-ui/react/toast';
 import { IconChevronDown, IconX } from '@tabler/icons-react';
@@ -318,6 +319,29 @@ export function Tooltip({ tip, children, className }: { tip: string; children: R
     <span className={cx(s.tooltip, className)} data-tip={tip} tabIndex={0} role="tooltip">
       {children}
     </span>
+  );
+}
+
+type ScrollAreaProps = {
+  children: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+export function ScrollArea({ children, className, style }: ScrollAreaProps) {
+  return (
+    <BaseScrollArea.Root className={cx(s.scrollAreaRoot, className)} style={style}>
+      <BaseScrollArea.Viewport className={s.scrollAreaViewport}>
+        {children}
+      </BaseScrollArea.Viewport>
+      <BaseScrollArea.Scrollbar className={s.scrollAreaScrollbarVert} orientation="vertical">
+        <BaseScrollArea.Thumb className={s.scrollAreaThumb} />
+      </BaseScrollArea.Scrollbar>
+      <BaseScrollArea.Scrollbar className={s.scrollAreaScrollbarHoriz} orientation="horizontal">
+        <BaseScrollArea.Thumb className={s.scrollAreaThumb} />
+      </BaseScrollArea.Scrollbar>
+      <BaseScrollArea.Corner className={s.scrollAreaCorner} />
+    </BaseScrollArea.Root>
   );
 }
 

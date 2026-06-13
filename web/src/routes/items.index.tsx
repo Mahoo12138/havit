@@ -10,6 +10,7 @@ import {
   Dialog,
   SelectField,
   Stack,
+  ScrollArea,
   StackTight,
   TextareaField,
   TextField,
@@ -153,7 +154,7 @@ function ItemsPage() {
       </div>
 
       <Card className="surface-card table-card" padded={false}>
-        <div className={uiStyles.tableWrap}>
+        <ScrollArea className={uiStyles.tableWrap}>
           <table className={uiStyles.table}>
             <thead>
               <tr>
@@ -203,7 +204,7 @@ function ItemsPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </ScrollArea>
       </Card>
 
       <Dialog

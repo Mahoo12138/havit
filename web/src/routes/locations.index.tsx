@@ -18,6 +18,7 @@ import {
   Button,
   Dialog,
   Row,
+  ScrollArea,
   Stack,
   StackTight,
   TextField,
@@ -288,7 +289,7 @@ function LocationsPage() {
               {t('locations.nodeCount', { count: index.byId.size })}
             </span>
           </div>
-          <div className={uiStyles.locationTreeBody}>
+          <ScrollArea className={uiStyles.locationTreeBody}>
             {tree.isPending ? (
               <div className={uiStyles.reminderEmpty}>{t('locations.loading')}</div>
             ) : index.roots.length === 0 ? (
@@ -323,7 +324,7 @@ function LocationsPage() {
                 )}
               </>
             )}
-          </div>
+          </ScrollArea>
         </aside>
 
         <section className={uiStyles.locationDetailPane}>
