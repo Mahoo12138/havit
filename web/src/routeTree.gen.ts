@@ -26,6 +26,7 @@ import { Route as ConsumablesRouteImport } from './routes/consumables'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as AssetsRouteImport } from './routes/assets'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as LocationsIndexRouteImport } from './routes/locations.index'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 
@@ -114,6 +115,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TagsIndexRoute = TagsIndexRouteImport.update({
+  id: '/tags/',
+  path: '/tags/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LocationsIndexRoute = LocationsIndexRouteImport.update({
   id: '/locations/',
   path: '/locations/',
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/locations/': typeof LocationsIndexRoute
+  '/tags/': typeof TagsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/locations': typeof LocationsIndexRoute
+  '/tags': typeof TagsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/locations/': typeof LocationsIndexRoute
+  '/tags/': typeof TagsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/virtual-assets'
     | '/items/$itemId'
     | '/locations/'
+    | '/tags/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/virtual-assets'
     | '/items/$itemId'
     | '/locations'
+    | '/tags'
   id:
     | '__root__'
     | '/'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/virtual-assets'
     | '/items/$itemId'
     | '/locations/'
+    | '/tags/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -275,6 +287,7 @@ export interface RootRouteChildren {
   VirtualAssetsRoute: typeof VirtualAssetsRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
   LocationsIndexRoute: typeof LocationsIndexRoute
+  TagsIndexRoute: typeof TagsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -398,6 +411,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tags/': {
+      id: '/tags/'
+      path: '/tags'
+      fullPath: '/tags/'
+      preLoaderRoute: typeof TagsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/locations/': {
       id: '/locations/'
       path: '/locations'
@@ -435,6 +455,7 @@ const rootRouteChildren: RootRouteChildren = {
   VirtualAssetsRoute: VirtualAssetsRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,
   LocationsIndexRoute: LocationsIndexRoute,
+  TagsIndexRoute: TagsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -127,6 +127,8 @@ export interface Tag {
   id: string;
   name: string;
   color?: string;
+  created_at?: number;
+  usage_count?: number;
 }
 
 export interface Attachment {
@@ -183,6 +185,9 @@ export const itemsApi = {
 export const tagsApi = {
   list: () => api.get('tags/').json<{ tags: Tag[] }>(),
   create: (body: { name: string; color?: string }) => api.post('tags/', { json: body }).json<Tag>(),
+  update: (id: string, body: { name: string; color?: string }) =>
+    api.patch(`tags/${id}`, { json: { name: body.name, color: body.color ?? '' } }).json<Tag>(),
+  remove: (id: string) => api.delete(`tags/${id}`),
 };
 
 export const locationsApi = {

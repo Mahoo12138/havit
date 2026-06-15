@@ -4358,6 +4358,340 @@ export const consumableChartGrid = style({
   },
 });
 
+// ----- Tag management page -----
+
+export const tagsKpiGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+  gap: themeVars.space3,
+  '@media': {
+    '(max-width: 64em)': { gridTemplateColumns: 'repeat(2, 1fr)' },
+    '(max-width: 30em)': { gridTemplateColumns: '1fr' },
+  },
+});
+
+export const tagsKpiCard = style([
+  card,
+  {
+    padding: themeVars.space4,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: themeVars.space1,
+  },
+]);
+
+export const tagsKpiLabel = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+  letterSpacing: '0.02em',
+});
+
+export const tagsKpiValue = style({
+  fontSize: '1.75rem',
+  fontWeight: 600,
+  fontFamily: themeVars.fontSerif,
+  color: themeVars.ink,
+  lineHeight: 1.1,
+  fontFeatureSettings: '"tnum"',
+});
+
+export const tagsKpiValueAccent = style([
+  tagsKpiValue,
+  { color: themeVars.accentInk },
+]);
+
+export const tagsKpiValueWarn = style([
+  tagsKpiValue,
+  { color: themeVars.warningText },
+]);
+
+export const tagsKpiHint = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+});
+
+export const tagsLayout = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) 22rem',
+  gap: themeVars.space4,
+  alignItems: 'start',
+  '@media': {
+    '(max-width: 64em)': { gridTemplateColumns: '1fr' },
+  },
+});
+
+export const tagsListCard = style([
+  card,
+  {
+    padding: themeVars.space4,
+    minWidth: 0,
+  },
+]);
+
+export const tagsListToolbar = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  marginBottom: themeVars.space4,
+  '@media': {
+    '(max-width: 40em)': { flexDirection: 'column', alignItems: 'stretch' },
+  },
+});
+
+export const tagsSearchWrap = style({
+  position: 'relative',
+  flex: 1,
+});
+
+export const tagsSearchIcon = style({
+  position: 'absolute',
+  left: themeVars.space3,
+  top: '50%',
+  transform: 'translateY(-50%)',
+  color: themeVars.muted,
+  pointerEvents: 'none',
+});
+
+export const tagsSearchInput = style({
+  width: '100%',
+  height: '2.25rem',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  paddingLeft: '2.25rem',
+  paddingRight: themeVars.space3,
+  background: themeVars.bgSoft,
+  color: themeVars.text,
+  fontSize: '0.85rem',
+  selectors: {
+    '&:focus': {
+      outline: `2px solid ${themeVars.focusRing}`,
+      outlineOffset: 0,
+      borderColor: themeVars.accent,
+    },
+  },
+});
+
+export const tagsTableWrap = style({
+  overflowX: 'auto',
+  margin: `0 -${themeVars.space4}`,
+});
+
+export const tagsTable = style({
+  width: '100%',
+  borderCollapse: 'collapse',
+});
+
+export const tagsTableHead = style({
+  textAlign: 'left',
+  color: themeVars.muted,
+  fontWeight: 500,
+  fontSize: '0.72rem',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+});
+
+export const tagsTableRow = style({
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  selectors: {
+    '&:hover': { background: themeVars.bgSoft },
+    '&:last-child': { borderBottom: 'none' },
+  },
+});
+
+export const tagsTableCell = style({
+  padding: `${themeVars.space3}`,
+  fontSize: '0.85rem',
+  color: themeVars.text,
+  verticalAlign: 'middle',
+});
+
+export const tagsTableNameCell = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+});
+
+export const tagsColorSwatch = style({
+  width: '0.875rem',
+  height: '0.875rem',
+  borderRadius: '50%',
+  flexShrink: 0,
+  border: '1px solid rgba(0,0,0,0.06)',
+  background: themeVars.muted,
+});
+
+export const tagsName = style({
+  color: themeVars.ink,
+  fontWeight: 500,
+});
+
+export const tagsUsageBadge = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: themeVars.space1,
+  padding: `2px ${themeVars.space2}`,
+  borderRadius: '999px',
+  background: themeVars.bgSoft,
+  border: `1px solid ${themeVars.lineSoft}`,
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+  fontFeatureSettings: '"tnum"',
+});
+
+export const tagsUsageBadgeActive = style([
+  tagsUsageBadge,
+  {
+    background: themeVars.accentSoft,
+    borderColor: themeVars.accentSoft,
+    color: themeVars.accentInk,
+  },
+]);
+
+export const tagsRowActions = style({
+  display: 'flex',
+  gap: themeVars.space1,
+  justifyContent: 'flex-end',
+});
+
+export const tagsEmptyState = style({
+  padding: themeVars.space6,
+  textAlign: 'center',
+  color: themeVars.muted,
+  fontSize: '0.9rem',
+});
+
+export const tagsRail = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space4,
+});
+
+export const tagsRailCard = style([
+  card,
+  {
+    padding: themeVars.space4,
+  },
+]);
+
+export const tagsRailTitle = style({
+  fontSize: '0.72rem',
+  letterSpacing: '0.06em',
+  textTransform: 'uppercase',
+  color: themeVars.muted,
+  fontWeight: 500,
+  marginBottom: themeVars.space3,
+});
+
+export const tagsRailItem = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  padding: `${themeVars.space2} 0`,
+  borderBottom: `1px dashed ${themeVars.lineSoft}`,
+  selectors: {
+    '&:last-child': { borderBottom: 'none' },
+  },
+});
+
+export const tagsRailItemName = style({
+  fontSize: '0.85rem',
+  color: themeVars.text,
+  fontWeight: 500,
+});
+
+export const tagsRailItemMeta = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+  marginLeft: 'auto',
+  fontFeatureSettings: '"tnum"',
+});
+
+export const tagsMiniKpi = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'baseline',
+  padding: `${themeVars.space2} 0`,
+  selectors: {
+    '&:not(:last-child)': {
+      borderBottom: `1px solid ${themeVars.lineSoft}`,
+    },
+  },
+});
+
+export const tagsMiniKpiLabel = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+});
+
+export const tagsMiniKpiValue = style({
+  fontSize: '1.1rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  fontFeatureSettings: '"tnum"',
+});
+
+export const tagsColorPalette = style({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: themeVars.space2,
+  padding: `${themeVars.space2} 0`,
+});
+
+export const tagsPaletteSwatch = style({
+  width: '1.75rem',
+  height: '1.75rem',
+  borderRadius: themeVars.radius2,
+  border: `1px solid ${themeVars.line}`,
+  cursor: 'pointer',
+  transition: 'transform 120ms ease, box-shadow 120ms ease',
+  selectors: {
+    '&:hover': { transform: 'scale(1.06)' },
+    '&[data-selected="true"]': {
+      boxShadow: `0 0 0 2px ${themeVars.accent}`,
+    },
+  },
+});
+
+export const tagsHexInput = style({
+  width: '8rem',
+  height: '2rem',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  padding: `0 ${themeVars.space2}`,
+  background: themeVars.bgSoft,
+  color: themeVars.text,
+  fontFamily: themeVars.fontMono,
+  fontSize: '0.78rem',
+  selectors: {
+    '&:focus': {
+      outline: `2px solid ${themeVars.focusRing}`,
+      outlineOffset: 0,
+      borderColor: themeVars.accent,
+    },
+  },
+});
+
+export const tagsDialogActions = style({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: themeVars.space2,
+  marginTop: themeVars.space4,
+});
+
+export const tagsDeleteWarn = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  padding: themeVars.space3,
+  background: themeVars.warningSoft,
+  border: `1px solid ${themeVars.warning}`,
+  borderRadius: themeVars.radius2,
+  color: themeVars.warningText,
+  fontSize: '0.85rem',
+});
+
 export const consumableChartMeta = style({
   display: 'flex',
   flexDirection: 'column',

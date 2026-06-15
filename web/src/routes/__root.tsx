@@ -29,6 +29,7 @@ import {
   IconSearch,
   IconSettings,
   IconShoppingBag,
+  IconTags,
   IconWorld,
   IconX,
 } from '@tabler/icons-react';
@@ -118,6 +119,7 @@ function RootLayout() {
         { to: '/assets', label: t('nav.assets'), icon: IconBox },
         { to: '/virtual-assets', label: t('nav.virtualAssets'), icon: IconCloudDownload },
         { to: '/locations', label: t('nav.locations'), icon: IconMap2 },
+        { to: '/tags', label: t('nav.tags'), icon: IconTags },
         { to: '/consumables', label: t('nav.consumables'), icon: IconShoppingBag },
         { to: '/edc', label: t('nav.edc'), icon: IconBriefcase },
         { to: '/credentials', label: t('nav.credentials'), icon: IconReceipt },
