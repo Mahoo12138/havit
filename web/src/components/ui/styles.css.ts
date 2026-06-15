@@ -5493,3 +5493,151 @@ export const abnormalFilterSelect = style({
   cursor: 'pointer',
 });
 
+/* ---------- TreeSelectField (Base UI Popover) ---------- */
+
+export const treeSelectPopup = style({
+  zIndex: 80,
+  maxHeight: '18rem',
+  minWidth: '14rem',
+  overflowY: 'auto',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  boxShadow: themeVars.shadow,
+  padding: themeVars.space1,
+});
+
+export const treeSelectNode = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  borderRadius: themeVars.radius1,
+  cursor: 'pointer',
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  fontSize: '0.875rem',
+  transition: 'background-color 120ms ease',
+  selectors: {
+    '&:hover': { background: themeVars.accentSoft },
+    '&[data-selected]': {
+      background: themeVars.accentSoft,
+      fontWeight: 600,
+      color: themeVars.accentInk,
+    },
+  },
+});
+
+export const treeSelectChevron = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '1rem',
+  height: '1rem',
+  flexShrink: 0,
+  color: themeVars.muted,
+  transition: 'transform 150ms ease',
+  selectors: {
+    '&[data-expanded]': { transform: 'rotate(90deg)' },
+    '&[data-empty]': { visibility: 'hidden' },
+  },
+});
+
+export const treeSelectNodeName = style({
+  flex: 1,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+/* ---------- DatePickerField (Base UI Popover) ---------- */
+
+export const datePickerPopup = style({
+  zIndex: 80,
+  minWidth: '17rem',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  boxShadow: themeVars.shadow,
+  padding: themeVars.space3,
+  userSelect: 'none',
+});
+
+export const datePickerHeader = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: themeVars.space2,
+});
+
+export const datePickerTitle = style({
+  fontWeight: 600,
+  fontSize: '0.875rem',
+  color: themeVars.ink,
+});
+
+export const datePickerNavBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '1.75rem',
+  height: '1.75rem',
+  border: 'none',
+  borderRadius: themeVars.radius1,
+  background: 'transparent',
+  cursor: 'pointer',
+  color: themeVars.text,
+  transition: 'background-color 120ms ease',
+  selectors: {
+    '&:hover': { background: themeVars.accentSoft },
+  },
+});
+
+export const datePickerWeekdays = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(7, 1fr)',
+  gap: '1px',
+  marginBottom: themeVars.space1,
+});
+
+export const datePickerWeekday = style({
+  textAlign: 'center',
+  fontSize: '0.68rem',
+  fontWeight: 500,
+  color: themeVars.muted,
+  padding: `${themeVars.space1} 0`,
+});
+
+export const datePickerGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(7, 1fr)',
+  gap: '1px',
+});
+
+export const datePickerDay = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '2rem',
+  height: '2rem',
+  margin: '0 auto',
+  border: 'none',
+  borderRadius: themeVars.radius1,
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: '0.8rem',
+  color: themeVars.text,
+  transition: 'background-color 120ms ease',
+  selectors: {
+    '&:hover': { background: themeVars.accentSoft },
+    '&[data-outside]': { color: themeVars.muted, opacity: 0.4 },
+    '&[data-today]': { fontWeight: 700, color: themeVars.accentInk },
+    '&[data-selected]': {
+      background: themeVars.accent,
+      color: themeVars.onAccent,
+      fontWeight: 600,
+    },
+    '&[data-selected]:hover': {
+      background: themeVars.accentHover,
+    },
+  },
+});
+
