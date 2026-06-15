@@ -80,6 +80,16 @@ type Tag struct {
 	UsageCount int     `json:"usage_count"`
 }
 
+type Category struct {
+	ID         string  `json:"id"`
+	Name       string  `json:"name"`
+	Icon       *string `json:"icon,omitempty"`
+	RootType   string  `json:"root_type"`
+	IsSystem   bool    `json:"is_system"`
+	CreatedAt  int64   `json:"created_at"`
+	UsageCount int     `json:"usage_count"`
+}
+
 type Attachment struct {
 	ID          string         `json:"id"`
 	ItemID      string         `json:"item_id"`

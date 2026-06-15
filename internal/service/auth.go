@@ -49,8 +49,9 @@ type User struct {
 }
 
 type Claims struct {
-	UserID string `json:"uid"`
-	Role   string `json:"role"`
+	UserID       string `json:"uid"`
+	Role         string `json:"role"`
+	TokenVersion int    `json:"tv"`
 	jwt.RegisteredClaims
 }
 
@@ -204,10 +205,12 @@ func (s *AuthService) UpdateRole(ctx context.Context, id, role, callerID string)
 }
 
 func (s *AuthService) issueToken(u *User) (string, error) {
+	tv := s.getTokenVersion(u.ID)
 	now := time.Now()
 	claims := &Claims{
-		UserID: u.ID,
-		Role:   u.Role,
+		UserID:       u.ID,
+		Role:         u.Role,
+		TokenVersion: tv,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   u.ID,
 			IssuedAt:  jwt.NewNumericDate(now),
@@ -216,6 +219,12 @@ func (s *AuthService) issueToken(u *User) (string, error) {
 	}
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return tok.SignedString(s.jwtSecret)
+}
+
+func (s *AuthService) getTokenVersion(userID string) int {
+	var v int
+	_ = s.db.QueryRow(`SELECT COALESCE(token_version, 0) FROM users WHERE id = ?`, userID).Scan(&v)
+	return v
 }
 
 func (s *AuthService) Verify(tokenStr string) (*Claims, error) {
@@ -231,6 +240,11 @@ func (s *AuthService) Verify(tokenStr string) (*Claims, error) {
 	claims, ok := parsed.Claims.(*Claims)
 	if !ok || !parsed.Valid {
 		return nil, errors.New("invalid token")
+	}
+	// Check token_version for session invalidation.
+	currentVersion := s.getTokenVersion(claims.UserID)
+	if claims.TokenVersion < currentVersion {
+		return nil, errors.New("token revoked")
 	}
 	return claims, nil
 }

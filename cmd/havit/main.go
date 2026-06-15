@@ -71,6 +71,7 @@ func main() {
 	)
 	itemSvc := service.NewItemService(database)
 	tagSvc := service.NewTagService(database)
+	catSvc := service.NewCategoryService(database)
 	locSvc := service.NewLocationService(database)
 
 	fieldCrypto, err := havitcrypto.New(cfg.Auth.JWTSecret)
@@ -92,6 +93,7 @@ func main() {
 	attachmentSvc := service.NewAttachmentService(database, cfg.Data.Dir)
 	prefsSvc := service.NewPreferencesService(database)
 	abnormalSvc := service.NewAbnormalService(database)
+	apiTokenSvc := service.NewAPITokenService(database)
 
 	// AI provider always constructed; provider checks ai.api_key at call time.
 	aiProvider := service.NewOpenAIProvider(configSvc)
@@ -114,6 +116,7 @@ func main() {
 	prefsH := handler.NewPreferencesHandler(prefsSvc)
 	itemH := handler.NewItemHandler(itemSvc)
 	tagH := handler.NewTagHandler(tagSvc)
+	catH := handler.NewCategoryHandler(catSvc)
 	locH := handler.NewLocationHandler(locSvc)
 	importH := handler.NewImportHandler(importSvc)
 	exportH := handler.NewExportHandler(exportSvc)
@@ -123,6 +126,7 @@ func main() {
 	notifyH := handler.NewNotifyHandler(notifySvc)
 	backupH := handler.NewBackupHandler(backupSvc)
 	abnormalH := handler.NewAbnormalHandler(abnormalSvc)
+	apiTokenH := handler.NewAPITokenHandler(apiTokenSvc)
 	searchH := handler.NewSearchHandler(searchSvc, aiProvider)
 	barcodeH := handler.NewBarcodeHandler(barcodeSvc)
 	attachmentH := handler.NewAttachmentHandler(attachmentSvc, cfg.Storage.MaxPhotoSizeMB)
@@ -139,11 +143,12 @@ func main() {
 
 		// Standard JSON routes — 4 MB body limit applies.
 		r.Group(func(r chi.Router) {
-			r.Use(authmw.Auth(authSvc))
+			r.Use(authmw.Auth(authSvc, apiTokenSvc))
 			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
 			authH.MountProtected(r)
 			itemH.Mount(r)
 			tagH.Mount(r)
+			catH.Mount(r)
 			locH.Mount(r)
 			exportH.Mount(r)
 			loanH.Mount(r)
@@ -156,11 +161,12 @@ func main() {
 			barcodeH.Mount(r)
 			aiH.Mount(r)
 			prefsH.Mount(r)
+			apiTokenH.Mount(r)
 		})
 
 		// Owner-only routes (user management + instance config).
 		r.Group(func(r chi.Router) {
-			r.Use(authmw.Auth(authSvc))
+			r.Use(authmw.Auth(authSvc, apiTokenSvc))
 			r.Use(authmw.RequireOwner)
 			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
 			userH.Mount(r)
@@ -170,7 +176,7 @@ func main() {
 		// Routes that set their own per-route body limits (import 16 MB, attachment streams to disk).
 		// Mounted in a separate group so the global 4 MB RequestSize does not apply.
 		r.Group(func(r chi.Router) {
-			r.Use(authmw.Auth(authSvc))
+			r.Use(authmw.Auth(authSvc, apiTokenSvc))
 			importH.Mount(r)
 			attachmentH.Mount(r)
 		})

@@ -92,5 +92,37 @@ func Migrate(d *sql.DB) error {
 		}
 	}
 
+	// Ensure columns added by later schema revisions exist on older databases.
+	ensureColumn(d, "items", "parent_item_id", "TEXT REFERENCES items(id)")
+	ensureIndex(d, "idx_items_parent", "items(parent_item_id)")
+
 	return nil
+}
+
+// ensureColumn adds a column to a table only if it does not already exist.
+func ensureColumn(d *sql.DB, table, column, colDef string) {
+	rows, err := d.Query(fmt.Sprintf("PRAGMA table_info(%s)", table))
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var cid int
+		var name, ctype string
+		var notnull int
+		var dfltValue *string
+		var pk int
+		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dfltValue, &pk); err != nil {
+			continue
+		}
+		if name == column {
+			return
+		}
+	}
+	d.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", table, column, colDef))
+}
+
+// ensureIndex creates an index only if it does not already exist.
+func ensureIndex(d *sql.DB, name, definition string) {
+	d.Exec(fmt.Sprintf("CREATE INDEX IF NOT EXISTS %s ON %s", name, definition))
 }

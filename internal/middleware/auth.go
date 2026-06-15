@@ -21,7 +21,11 @@ func writeJSON(w http.ResponseWriter, status int, body any) {
 	json.NewEncoder(w).Encode(body)
 }
 
-func Auth(svc *service.AuthService) func(http.Handler) http.Handler {
+func Auth(svc *service.AuthService, tokenSvc ...*service.APITokenService) func(http.Handler) http.Handler {
+	var patSvc *service.APITokenService
+	if len(tokenSvc) > 0 {
+		patSvc = tokenSvc[0]
+	}
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tok, err := extractToken(r)
@@ -29,6 +33,25 @@ func Auth(svc *service.AuthService) func(http.Handler) http.Handler {
 				writeJSON(w, http.StatusUnauthorized, apperr.ErrInvalidCredentials)
 				return
 			}
+
+			// Try PAT first if the token has the hv_pat_ prefix.
+			if patSvc != nil && strings.HasPrefix(tok, "hv_pat_") {
+				userID, patErr := patSvc.Verify(tok)
+				if patErr == nil {
+					claims := &service.Claims{UserID: userID, Role: "member"}
+					// Look up the actual role from the user record.
+					if u, uErr := svc.GetUser(r.Context(), userID); uErr == nil {
+						claims.Role = u.Role
+					}
+					ctx := context.WithValue(r.Context(), claimsKey, claims)
+					next.ServeHTTP(w, r.WithContext(ctx))
+					return
+				}
+				writeJSON(w, http.StatusUnauthorized, apperr.ErrInvalidCredentials)
+				return
+			}
+
+			// Standard JWT flow.
 			claims, err := svc.Verify(tok)
 			if err != nil {
 				writeJSON(w, http.StatusUnauthorized, apperr.ErrInvalidCredentials)
@@ -57,6 +80,10 @@ func ClaimsFrom(ctx context.Context) (*service.Claims, bool) {
 }
 
 func extractToken(r *http.Request) (string, error) {
+	// Check X-API-Key header first (PAT convention).
+	if apiKey := r.Header.Get("X-API-Key"); apiKey != "" {
+		return apiKey, nil
+	}
 	h := r.Header.Get("Authorization")
 	if h != "" {
 		if !strings.HasPrefix(h, "Bearer ") {

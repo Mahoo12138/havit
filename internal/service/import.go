@@ -47,6 +47,7 @@ type ImportRow struct {
 type ImportResult struct {
 	Total    int           `json:"total"`
 	Created  int           `json:"created"`
+	Skipped  int           `json:"skipped"`
 	Failed   int           `json:"failed"`
 	Errors   []ImportError `json:"errors,omitempty"`
 }
@@ -126,6 +127,12 @@ func (s *ImportService) Import(ctx context.Context, format ImportFormat, body io
 				continue
 			}
 			purchaseDate = &ts
+		}
+
+		// Check for duplicate: same name in the same location (or both without location).
+		if itemExists(ctx, tx, row.Name, locID) {
+			res.Skipped++
+			continue
 		}
 
 		id := ulid.Make().String()
@@ -335,4 +342,21 @@ func nullableStr(s string) any {
 		return nil
 	}
 	return s
+}
+
+// itemExists reports whether an item with the given name and location already exists.
+func itemExists(ctx context.Context, tx *sql.Tx, name string, locID *string) bool {
+	var n int
+	if locID != nil {
+		_ = tx.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM items WHERE name = ? AND location_id = ?`,
+			name, *locID,
+		).Scan(&n)
+	} else {
+		_ = tx.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM items WHERE name = ? AND location_id IS NULL`,
+			name,
+		).Scan(&n)
+	}
+	return n > 0
 }
