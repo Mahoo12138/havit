@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-router';
 import { type QueryClient, useQuery } from '@tanstack/react-query';
 import {
+  IconAlertTriangle,
   IconBarcode,
   IconBell,
   IconBox,
@@ -16,7 +17,6 @@ import {
   IconCloudDownload,
   IconDatabaseExport,
   IconFileImport,
-  IconHistory,
   IconHome,
   IconInfoCircle,
   IconLayoutDashboard,
@@ -129,7 +129,7 @@ function RootLayout() {
       label: t('navSection.flow'),
       items: [
         { to: '/loans', label: t('nav.loans'), icon: IconClipboardList },
-        { to: '/lifecycle', label: t('nav.lifecycle'), icon: IconHistory },
+        { to: '/abnormal', label: t('nav.abnormal'), icon: IconAlertTriangle },
       ],
     },
     {

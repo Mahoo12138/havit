@@ -537,3 +537,91 @@ export const preferencesApi = {
   update: (body: Partial<UserPreferences>) =>
     api.patch('preferences', { json: body }).json<UserPreferences>(),
 };
+
+// ── Abnormal Asset Management ────────────────────────────────────────────────
+
+export interface AbnormalListItem {
+  item_id: string;
+  name: string;
+  status: string;
+  serial_number?: string;
+  category?: string;
+  location_id?: string;
+  location_name?: string;
+  purchase_price?: number;
+  purchase_currency?: string;
+  exit_date?: number;
+  updated_at: number;
+  photo_url?: string;
+  abnormal_id: string;
+  abnormal_type: string;
+  processing_status: string;
+  processing_notes?: string;
+  responsible_person?: string;
+  estimated_loss?: number;
+  estimated_loss_currency?: string;
+  recoverable_amount?: number;
+  recoverable_currency?: string;
+}
+
+export interface AbnormalStats {
+  total: number;
+  lost: number;
+  stolen: number;
+  unreturned: number;
+  damaged: number;
+}
+
+export interface AbnormalTrendPoint {
+  month: string;
+  count: number;
+}
+
+export interface ProgressStatsItem {
+  status: string;
+  count: number;
+}
+
+export interface LossValuation {
+  total_estimated: number;
+  estimated_currency: string;
+  recoverable_amount: number;
+  recoverable_currency: string;
+}
+
+export interface AbnormalRecord {
+  id: string;
+  item_id: string;
+  abnormal_type: string;
+  processing_status: string;
+  processing_notes?: string;
+  responsible_person?: string;
+  estimated_loss?: number;
+  estimated_loss_currency?: string;
+  recoverable_amount?: number;
+  recoverable_currency?: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export const abnormalApi = {
+  list: (params?: { type?: string; status?: string; limit?: number; offset?: number }) => {
+    const sp: Record<string, string> = {};
+    if (params?.type) sp.type = params.type;
+    if (params?.status) sp.status = params.status;
+    if (params?.limit !== undefined) sp.limit = String(params.limit);
+    if (params?.offset !== undefined) sp.offset = String(params.offset);
+    return api.get('abnormal', { searchParams: sp }).json<{ items: AbnormalListItem[]; total: number }>();
+  },
+  stats: () => api.get('abnormal/stats').json<AbnormalStats>(),
+  trend: () => api.get('abnormal/trend').json<{ trend: AbnormalTrendPoint[] }>(),
+  progress: () => api.get('abnormal/progress').json<{ progress: ProgressStatsItem[] }>(),
+  valuation: () => api.get('abnormal/valuation').json<LossValuation>(),
+  updateProgress: (id: string, body: {
+    processing_status?: string;
+    processing_notes?: string;
+    responsible_person?: string;
+    recoverable_amount?: number;
+    recoverable_currency?: string;
+  }) => api.patch(`abnormal/${id}`, { json: body }).json<AbnormalRecord>(),
+};

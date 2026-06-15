@@ -18,13 +18,13 @@ import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LocationScanRouteImport } from './routes/location-scan'
 import { Route as LoansRouteImport } from './routes/loans'
-import { Route as LifecycleRouteImport } from './routes/lifecycle'
 import { Route as ImportRouteImport } from './routes/import'
 import { Route as EdcRouteImport } from './routes/edc'
 import { Route as CredentialsRouteImport } from './routes/credentials'
 import { Route as ConsumablesRouteImport } from './routes/consumables'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as AssetsRouteImport } from './routes/assets'
+import { Route as AbnormalRouteImport } from './routes/abnormal'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as LocationsIndexRouteImport } from './routes/locations.index'
@@ -75,11 +75,6 @@ const LoansRoute = LoansRouteImport.update({
   path: '/loans',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LifecycleRoute = LifecycleRouteImport.update({
-  id: '/lifecycle',
-  path: '/lifecycle',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ImportRoute = ImportRouteImport.update({
   id: '/import',
   path: '/import',
@@ -110,6 +105,11 @@ const AssetsRoute = AssetsRouteImport.update({
   path: '/assets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AbnormalRoute = AbnormalRouteImport.update({
+  id: '/abnormal',
+  path: '/abnormal',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -133,13 +133,13 @@ const ItemsItemIdRoute = ItemsItemIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/abnormal': typeof AbnormalRoute
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
   '/edc': typeof EdcRoute
   '/import': typeof ImportRoute
-  '/lifecycle': typeof LifecycleRoute
   '/loans': typeof LoansRoute
   '/location-scan': typeof LocationScanRoute
   '/login': typeof LoginRoute
@@ -155,13 +155,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/abnormal': typeof AbnormalRoute
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
   '/edc': typeof EdcRoute
   '/import': typeof ImportRoute
-  '/lifecycle': typeof LifecycleRoute
   '/loans': typeof LoansRoute
   '/location-scan': typeof LocationScanRoute
   '/login': typeof LoginRoute
@@ -178,13 +178,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/abnormal': typeof AbnormalRoute
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
   '/edc': typeof EdcRoute
   '/import': typeof ImportRoute
-  '/lifecycle': typeof LifecycleRoute
   '/loans': typeof LoansRoute
   '/location-scan': typeof LocationScanRoute
   '/login': typeof LoginRoute
@@ -202,13 +202,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/abnormal'
     | '/assets'
     | '/capture'
     | '/consumables'
     | '/credentials'
     | '/edc'
     | '/import'
-    | '/lifecycle'
     | '/loans'
     | '/location-scan'
     | '/login'
@@ -224,13 +224,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/abnormal'
     | '/assets'
     | '/capture'
     | '/consumables'
     | '/credentials'
     | '/edc'
     | '/import'
-    | '/lifecycle'
     | '/loans'
     | '/location-scan'
     | '/login'
@@ -246,13 +246,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/abnormal'
     | '/assets'
     | '/capture'
     | '/consumables'
     | '/credentials'
     | '/edc'
     | '/import'
-    | '/lifecycle'
     | '/loans'
     | '/location-scan'
     | '/login'
@@ -269,13 +269,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AbnormalRoute: typeof AbnormalRoute
   AssetsRoute: typeof AssetsRoute
   CaptureRoute: typeof CaptureRoute
   ConsumablesRoute: typeof ConsumablesRoute
   CredentialsRoute: typeof CredentialsRoute
   EdcRoute: typeof EdcRoute
   ImportRoute: typeof ImportRoute
-  LifecycleRoute: typeof LifecycleRoute
   LoansRoute: typeof LoansRoute
   LocationScanRoute: typeof LocationScanRoute
   LoginRoute: typeof LoginRoute
@@ -355,13 +355,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoansRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lifecycle': {
-      id: '/lifecycle'
-      path: '/lifecycle'
-      fullPath: '/lifecycle'
-      preLoaderRoute: typeof LifecycleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/import': {
       id: '/import'
       path: '/import'
@@ -404,6 +397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AssetsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/abnormal': {
+      id: '/abnormal'
+      path: '/abnormal'
+      fullPath: '/abnormal'
+      preLoaderRoute: typeof AbnormalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -437,13 +437,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AbnormalRoute: AbnormalRoute,
   AssetsRoute: AssetsRoute,
   CaptureRoute: CaptureRoute,
   ConsumablesRoute: ConsumablesRoute,
   CredentialsRoute: CredentialsRoute,
   EdcRoute: EdcRoute,
   ImportRoute: ImportRoute,
-  LifecycleRoute: LifecycleRoute,
   LoansRoute: LoansRoute,
   LocationScanRoute: LocationScanRoute,
   LoginRoute: LoginRoute,

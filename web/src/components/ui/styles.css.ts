@@ -5146,3 +5146,350 @@ export const vaMobileCardBadges = style({
   gap: themeVars.space1,
 });
 
+// ── Abnormal Asset Management Page ───────────────────────────────────────────
+
+export const abnormalPageHeader = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingBottom: themeVars.space2,
+  gap: themeVars.space3,
+  flexWrap: 'wrap',
+});
+
+export const abnormalTwoCol = style({
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) 320px',
+  gap: themeVars.space5,
+  alignItems: 'start',
+  '@media': {
+    '(max-width: 64em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const abnormalAlertBanner = style({
+  background: 'rgba(255, 100, 130, 0.10)',
+  border: '1px solid rgba(255, 100, 130, 0.35)',
+  borderRadius: '8px',
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  fontSize: '0.875rem',
+  color: '#c0392b',
+});
+
+export const abnormalBottomGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: themeVars.space4,
+  alignItems: 'start',
+});
+
+export const abnormalQuickActions = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+});
+
+export const abnormalQuickBtn = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderRadius: '6px',
+  border: `1px solid ${themeVars.line}`,
+  background: themeVars.panel,
+  cursor: 'pointer',
+  fontSize: '0.82rem',
+  color: themeVars.ink,
+  transition: 'background 0.1s',
+  ':hover': {
+    background: themeVars.bgSoft,
+  },
+});
+
+export const abnormalTypeBadgeBase = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 7px',
+  borderRadius: '999px',
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  whiteSpace: 'nowrap',
+});
+
+export const abnormalTypeBadge = styleVariants({
+  lost: [abnormalTypeBadgeBase, { background: themeVars.infoSoft, color: themeVars.info }],
+  stolen: [abnormalTypeBadgeBase, { background: themeVars.warningSoft, color: themeVars.warningText }],
+  unreturned: [abnormalTypeBadgeBase, { background: themeVars.violetSoft, color: themeVars.violet }],
+  damaged: [abnormalTypeBadgeBase, { background: themeVars.dangerSoft, color: themeVars.danger }],
+});
+
+export const abnormalProgressBadgeBase = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  padding: '2px 7px',
+  borderRadius: '999px',
+  fontSize: '0.72rem',
+  fontWeight: 600,
+  lineHeight: 1.4,
+  whiteSpace: 'nowrap',
+});
+
+export const abnormalProgressBadge = styleVariants({
+  reporting: [abnormalProgressBadgeBase, { background: themeVars.infoSoft, color: themeVars.info }],
+  searching: [abnormalProgressBadgeBase, { background: 'rgba(56,189,248,0.15)', color: '#0284c7' }],
+  pending_compensation: [abnormalProgressBadgeBase, { background: themeVars.warningSoft, color: themeVars.warningText }],
+  compensated: [abnormalProgressBadgeBase, { background: themeVars.successSoft, color: themeVars.success }],
+  scrapped: [abnormalProgressBadgeBase, { background: themeVars.bgSoft, color: themeVars.muted }],
+  closed: [abnormalProgressBadgeBase, { background: themeVars.successSoft, color: themeVars.success }],
+  pending: [abnormalProgressBadgeBase, { background: themeVars.bgSoft, color: themeVars.muted }],
+});
+
+export const abnormalSidebarCard = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  padding: `${themeVars.space3}`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  ':last-child': {
+    borderBottom: 'none',
+  },
+});
+
+export const abnormalSidebarIcon = style({
+  width: '36px',
+  height: '36px',
+  borderRadius: '8px',
+  background: themeVars.bgSoft,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  color: themeVars.muted,
+  fontSize: '1rem',
+  fontWeight: 700,
+});
+
+export const abnormalSidebarInfo = style({
+  flex: 1,
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+});
+
+export const abnormalSidebarName = style({
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const abnormalSidebarMeta = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+});
+
+export const abnormalPagination = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: themeVars.space1,
+  padding: `${themeVars.space3} 0`,
+});
+
+export const abnormalPageBtn = style({
+  width: '28px',
+  height: '28px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '6px',
+  border: `1px solid ${themeVars.line}`,
+  background: themeVars.panel,
+  cursor: 'pointer',
+  fontSize: '0.78rem',
+  color: themeVars.ink,
+  ':hover': { background: themeVars.bgSoft },
+  selectors: {
+    '&[disabled]': { opacity: 0.4, cursor: 'default' },
+    '&.active': { background: themeVars.accent, color: themeVars.onAccent, borderColor: themeVars.accent },
+  },
+});
+
+export const abnormalMetricStrip = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+  gap: themeVars.space3,
+});
+
+export const abnormalMetricCard = style({
+  background: themeVars.panel,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '10px',
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+});
+
+export const abnormalMetricLabel = style({
+  fontSize: '0.75rem',
+  color: themeVars.muted,
+});
+
+export const abnormalMetricValue = style({
+  fontSize: '1.6rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  fontVariantNumeric: 'tabular-nums',
+  lineHeight: 1,
+});
+
+export const abnormalMetricSub = style({
+  fontSize: '0.7rem',
+  color: themeVars.muted,
+});
+
+export const abnormalChartCard = style({
+  background: themeVars.panel,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: '10px',
+  padding: themeVars.space4,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+});
+
+export const abnormalChartTitle = style({
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+});
+
+export const abnormalValuationRow = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: `${themeVars.space2} 0`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  ':last-child': { borderBottom: 'none' },
+});
+
+export const abnormalThumb = style({
+  width: '32px',
+  height: '32px',
+  borderRadius: '6px',
+  objectFit: 'cover',
+  flexShrink: 0,
+  background: themeVars.bgSoft,
+});
+
+export const abnormalThumbPlaceholder = style({
+  width: '32px',
+  height: '32px',
+  borderRadius: '6px',
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontWeight: 700,
+  fontSize: '0.8rem',
+  flexShrink: 0,
+});
+
+export const abnormalItemCell = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+});
+
+export const abnormalItemInfo = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1px',
+  minWidth: 0,
+});
+
+export const abnormalItemName = style({
+  fontSize: '0.82rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const abnormalItemSn = style({
+  fontSize: '0.7rem',
+  color: themeVars.muted,
+});
+
+export const abnormalActionBtn = style({
+  padding: '3px 8px',
+  borderRadius: '5px',
+  border: `1px solid ${themeVars.line}`,
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+  transition: 'all 0.1s',
+  ':hover': { background: themeVars.bgSoft, color: themeVars.ink },
+});
+
+export const abnormalMoreBtn = style({
+  padding: '3px 6px',
+  borderRadius: '5px',
+  border: 'none',
+  background: 'transparent',
+  cursor: 'pointer',
+  color: themeVars.muted,
+  ':hover': { background: themeVars.bgSoft },
+});
+
+export const abnormalLegendItem = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  fontSize: '0.75rem',
+  color: themeVars.muted,
+});
+
+export const abnormalLegendDot = style({
+  width: '8px',
+  height: '8px',
+  borderRadius: '999px',
+  flexShrink: 0,
+});
+
+export const abnormalTrendSvg = style({
+  width: '100%',
+  height: '120px',
+});
+
+export const abnormalFilterBar = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  flexWrap: 'wrap',
+  padding: `${themeVars.space2} 0`,
+});
+
+export const abnormalFilterSelect = style({
+  padding: '5px 10px',
+  borderRadius: '6px',
+  border: `1px solid ${themeVars.line}`,
+  background: themeVars.panel,
+  color: themeVars.ink,
+  fontSize: '0.78rem',
+  cursor: 'pointer',
+});
+
