@@ -73,9 +73,11 @@ type Item struct {
 }
 
 type Tag struct {
-	ID    string  `json:"id"`
-	Name  string  `json:"name"`
-	Color *string `json:"color,omitempty"`
+	ID         string  `json:"id"`
+	Name       string  `json:"name"`
+	Color      *string `json:"color,omitempty"`
+	CreatedAt  int64   `json:"created_at"`
+	UsageCount int     `json:"usage_count"`
 }
 
 type Attachment struct {

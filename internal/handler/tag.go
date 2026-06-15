@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -21,6 +22,8 @@ func (h *TagHandler) Mount(r chi.Router) {
 	r.Route("/tags", func(r chi.Router) {
 		r.Get("/", h.list)
 		r.Post("/", h.create)
+		r.Patch("/{id}", h.update)
+		r.Delete("/{id}", h.remove)
 	})
 }
 
@@ -45,4 +48,36 @@ func (h *TagHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusCreated, tag)
+}
+
+func (h *TagHandler) update(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var in service.TagUpdateInput
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	tag, err := h.svc.Update(r.Context(), id, in)
+	if err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, tag)
+}
+
+func (h *TagHandler) remove(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.svc.Delete(r.Context(), id); err != nil {
+		if errors.Is(err, service.ErrNotFound) {
+			writeError(w, http.StatusNotFound, err)
+			return
+		}
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }

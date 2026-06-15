@@ -35,6 +35,8 @@ const (
 	CodeFileRequired        = "file_required"
 	CodeImageRequired       = "image_required"
 	CodeUnsupportedFormat   = "unsupported_format"
+	CodeTagInUse            = "tag_in_use"
+	CodeTagNameConflict     = "tag_name_conflict"
 	CodeInternal            = "internal_error"
 )
 

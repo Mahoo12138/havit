@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 
+	apperr "github.com/mahoo12138/havit/internal/errors"
 	"github.com/mahoo12138/havit/internal/model"
 )
 
@@ -129,5 +131,151 @@ func TestItemListCanFilterByTag(t *testing.T) {
 	}
 	if items[0].ID == cable.ID {
 		t.Fatal("expected untagged cable to be excluded")
+	}
+}
+
+func TestTagListReportsUsageCountAndCreatedAt(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	tagSvc := NewTagService(database)
+	locID := createTestLocation(t, ctx, database, "书房")
+
+	used, err := tagSvc.Create(ctx, TagCreateInput{Name: "摄影"})
+	if err != nil {
+		t.Fatalf("create used tag: %v", err)
+	}
+	if _, err := tagSvc.Create(ctx, TagCreateInput{Name: "闲置"}); err != nil {
+		t.Fatalf("create unused tag: %v", err)
+	}
+
+	item, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "Sony A7M4",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	if _, err := itemSvc.ReplaceTags(ctx, item.ID, []string{used.ID}); err != nil {
+		t.Fatalf("tag item: %v", err)
+	}
+
+	list, err := tagSvc.List(ctx)
+	if err != nil {
+		t.Fatalf("list tags: %v", err)
+	}
+	if len(list) != 2 {
+		t.Fatalf("expected 2 tags, got %d", len(list))
+	}
+	byName := map[string]*model.Tag{}
+	for _, tg := range list {
+		byName[tg.Name] = tg
+		if tg.CreatedAt <= 0 {
+			t.Fatalf("expected tag %s created_at populated, got %d", tg.Name, tg.CreatedAt)
+		}
+	}
+	if byName["摄影"].UsageCount != 1 {
+		t.Fatalf("expected 摄影 usage 1, got %d", byName["摄影"].UsageCount)
+	}
+	if byName["闲置"].UsageCount != 0 {
+		t.Fatalf("expected 闲置 usage 0, got %d", byName["闲置"].UsageCount)
+	}
+}
+
+func TestTagUpdateRenamesAndRecolors(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewTagService(database)
+
+	tag, err := svc.Create(ctx, TagCreateInput{Name: "摄影", Color: "#4a90d9"})
+	if err != nil {
+		t.Fatalf("create tag: %v", err)
+	}
+	updated, err := svc.Update(ctx, tag.ID, TagUpdateInput{Name: " 摄影器材 ", Color: "#ff8800"})
+	if err != nil {
+		t.Fatalf("update tag: %v", err)
+	}
+	if updated.Name != "摄影器材" {
+		t.Fatalf("expected trimmed renamed tag, got %q", updated.Name)
+	}
+	if updated.Color == nil || *updated.Color != "#ff8800" {
+		t.Fatalf("expected updated color, got %#v", updated.Color)
+	}
+
+	cleared, err := svc.Update(ctx, tag.ID, TagUpdateInput{Name: "摄影器材", Color: ""})
+	if err != nil {
+		t.Fatalf("clear color: %v", err)
+	}
+	if cleared.Color != nil {
+		t.Fatalf("expected color cleared, got %#v", cleared.Color)
+	}
+}
+
+func TestTagUpdateRejectsNameConflict(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewTagService(database)
+
+	a, err := svc.Create(ctx, TagCreateInput{Name: "摄影"})
+	if err != nil {
+		t.Fatalf("create a: %v", err)
+	}
+	if _, err := svc.Create(ctx, TagCreateInput{Name: "数码"}); err != nil {
+		t.Fatalf("create b: %v", err)
+	}
+
+	_, err = svc.Update(ctx, a.ID, TagUpdateInput{Name: "数码"})
+	if err == nil {
+		t.Fatal("expected conflict error renaming to existing name")
+	}
+	var ae *apperr.AppError
+	if !errors.As(err, &ae) || ae.Code != apperr.CodeTagNameConflict {
+		t.Fatalf("expected CodeTagNameConflict, got %v", err)
+	}
+}
+
+func TestTagDeleteRefusesWhenInUseAndAllowsWhenUnused(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	tagSvc := NewTagService(database)
+	locID := createTestLocation(t, ctx, database, "书房")
+
+	tag, err := tagSvc.Create(ctx, TagCreateInput{Name: "摄影"})
+	if err != nil {
+		t.Fatalf("create tag: %v", err)
+	}
+
+	if err := tagSvc.Delete(ctx, tag.ID); err != nil {
+		t.Fatalf("expected to delete unused tag, got %v", err)
+	}
+	if _, err := tagSvc.Get(ctx, tag.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("expected ErrNotFound after delete, got %v", err)
+	}
+
+	tag2, err := tagSvc.Create(ctx, TagCreateInput{Name: "数码"})
+	if err != nil {
+		t.Fatalf("recreate tag: %v", err)
+	}
+	item, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "相机",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	if _, err := itemSvc.ReplaceTags(ctx, item.ID, []string{tag2.ID}); err != nil {
+		t.Fatalf("attach tag: %v", err)
+	}
+
+	err = tagSvc.Delete(ctx, tag2.ID)
+	if err == nil {
+		t.Fatal("expected refusal deleting in-use tag")
+	}
+	var ae *apperr.AppError
+	if !errors.As(err, &ae) || ae.Code != apperr.CodeTagInUse {
+		t.Fatalf("expected CodeTagInUse, got %v", err)
 	}
 }
