@@ -793,6 +793,18 @@ func (s *ItemService) Exit(ctx context.Context, id string, in ItemExitInput) (*m
 	_, _ = s.db.ExecContext(ctx, `DELETE FROM items_fts WHERE item_id = ?`, id)
 	payload := fmt.Sprintf(`{"exit_type":%q}`, in.ExitType)
 	s.logEvent(ctx, id, "exited", &payload)
+
+	// Auto-create abnormal record for abnormal exit statuses.
+	if abnormalType := abnormalTypeForStatus(status); abnormalType != "" {
+		responsiblePerson := ""
+		if abnormalType == "unreturned" {
+			responsiblePerson = s.activeBorrowerName(ctx, id)
+		}
+		if err := s.createAbnormalRecord(ctx, id, abnormalType, responsiblePerson, in.ExitPrice, in.ExitCurrency); err != nil {
+			slog.Warn("auto-create abnormal record failed", "item_id", id, "err", err)
+		}
+	}
+
 	return s.Get(ctx, id)
 }
 
@@ -1218,6 +1230,72 @@ func validExitStatus(s model.ItemStatus) bool {
 		return true
 	}
 	return false
+}
+
+func abnormalTypeForStatus(s model.ItemStatus) string {
+	switch s {
+	case model.StatusLost:
+		return "lost"
+	case model.StatusStolen:
+		return "stolen"
+	case model.StatusUnreturned:
+		return "unreturned"
+	case model.StatusDamaged:
+		return "damaged"
+	default:
+		return ""
+	}
+}
+
+func (s *ItemService) activeBorrowerName(ctx context.Context, itemID string) string {
+	var name string
+	err := s.db.QueryRowContext(ctx, `
+		SELECT borrower_name FROM loans
+		WHERE item_id = ? AND status IN ('active', 'unreturned')
+		ORDER BY loaned_at DESC LIMIT 1`, itemID).Scan(&name)
+	if err != nil {
+		return ""
+	}
+	return name
+}
+
+func (s *ItemService) createAbnormalRecord(ctx context.Context, itemID, abnormalType, responsiblePerson string, estimatedLoss *float64, currency *string) error {
+	now := time.Now().Unix()
+	id := ulid.Make().String()
+	initialStatus := initialProcessingStatusForExit(abnormalType)
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO abnormal_records (
+			id, item_id, abnormal_type, processing_status,
+			responsible_person, estimated_loss, estimated_loss_currency,
+			recoverable_amount, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+		id, itemID, abnormalType, initialStatus,
+		nilIfEmptyStr(responsiblePerson), estimatedLoss, currency,
+		now, now,
+	)
+	return err
+}
+
+func initialProcessingStatusForExit(abnormalType string) string {
+	switch abnormalType {
+	case "stolen":
+		return "reporting"
+	case "lost":
+		return "searching"
+	case "unreturned":
+		return "pending_compensation"
+	case "damaged":
+		return "scrapped"
+	default:
+		return "pending"
+	}
+}
+
+func nilIfEmptyStr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
 }
 
 func (s *ItemService) loadTags(ctx context.Context, item *model.Item) error {

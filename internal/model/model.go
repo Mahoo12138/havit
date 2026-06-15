@@ -175,6 +175,21 @@ type LocationScanResult struct {
 	Items    []*Item   `json:"items"`
 }
 
+type AbnormalRecord struct {
+	ID                    string   `json:"id"`
+	ItemID                string   `json:"item_id"`
+	AbnormalType          string   `json:"abnormal_type"`
+	ProcessingStatus      string   `json:"processing_status"`
+	ProcessingNotes       *string  `json:"processing_notes,omitempty"`
+	ResponsiblePerson     *string  `json:"responsible_person,omitempty"`
+	EstimatedLoss         *float64 `json:"estimated_loss,omitempty"`
+	EstimatedLossCurrency *string  `json:"estimated_loss_currency,omitempty"`
+	RecoverableAmount     *float64 `json:"recoverable_amount,omitempty"`
+	RecoverableCurrency   *string  `json:"recoverable_currency,omitempty"`
+	CreatedAt             int64    `json:"created_at"`
+	UpdatedAt             int64    `json:"updated_at"`
+}
+
 type ItemEvent struct {
 	ID        string  `json:"id"`
 	ItemID    string  `json:"item_id"`

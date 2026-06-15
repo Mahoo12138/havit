@@ -91,6 +91,7 @@ func main() {
 	barcodeSvc := service.NewBarcodeService("")
 	attachmentSvc := service.NewAttachmentService(database, cfg.Data.Dir)
 	prefsSvc := service.NewPreferencesService(database)
+	abnormalSvc := service.NewAbnormalService(database)
 
 	// AI provider always constructed; provider checks ai.api_key at call time.
 	aiProvider := service.NewOpenAIProvider(configSvc)
@@ -121,6 +122,7 @@ func main() {
 	reminderH := handler.NewReminderHandler(reminderSvc)
 	notifyH := handler.NewNotifyHandler(notifySvc)
 	backupH := handler.NewBackupHandler(backupSvc)
+	abnormalH := handler.NewAbnormalHandler(abnormalSvc)
 	searchH := handler.NewSearchHandler(searchSvc, aiProvider)
 	barcodeH := handler.NewBarcodeHandler(barcodeSvc)
 	attachmentH := handler.NewAttachmentHandler(attachmentSvc, cfg.Storage.MaxPhotoSizeMB)
@@ -149,6 +151,7 @@ func main() {
 			reminderH.Mount(r)
 			notifyH.Mount(r)
 			backupH.Mount(r)
+			abnormalH.Mount(r)
 			searchH.Mount(r)
 			barcodeH.Mount(r)
 			aiH.Mount(r)
