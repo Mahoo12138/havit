@@ -20,6 +20,7 @@ import {
 import {
   Button,
   Card,
+  DatePickerField,
   Dialog,
   SelectField,
   Spinner,
@@ -28,6 +29,7 @@ import {
   Tabs,
   TextField,
   TextareaField,
+  TreeSelectField,
   uiStyles,
   useToast,
 } from '../components/ui';
@@ -677,24 +679,23 @@ function AssetsPage() {
             value={form.category}
             onChange={(e) => setForm({ ...form, category: e.currentTarget.value })}
           />
-          <SelectField
+          <TreeSelectField
             label={t('assets.location')}
-            options={locOptions}
+            tree={locData?.tree ?? []}
             placeholder={t('items.selectLocation')}
             required
             value={form.location_id}
-            onChange={(e) => setForm({ ...form, location_id: e.currentTarget.value })}
+            onChange={(v) => setForm({ ...form, location_id: v })}
           />
           <TextField
             label={t('assets.serialNumberLabel')}
             value={form.serial_number}
             onChange={(e) => setForm({ ...form, serial_number: e.currentTarget.value })}
           />
-          <TextField
+          <DatePickerField
             label={t('assets.warrantyExpiry')}
-            type="date"
             value={form.warranty_expires_at}
-            onChange={(e) => setForm({ ...form, warranty_expires_at: e.currentTarget.value })}
+            onChange={(v) => setForm({ ...form, warranty_expires_at: v })}
           />
           <TextField
             label={t('assets.warrantyContact')}

@@ -40,7 +40,7 @@ function ImportPage() {
       setResult(data);
       qc.invalidateQueries({ queryKey: ['items'] });
       qc.invalidateQueries({ queryKey: ['locations'] });
-      toast.show(t('import.result', { created: data.created, failed: data.failed }));
+      toast.show(t('import.result', { created: data.created, failed: data.failed, skipped: data.skipped }));
     },
     onError: (e: Error) => toast.show(t('import.importFailed', { error: e.message })),
   });
@@ -94,6 +94,9 @@ function ImportPage() {
               <h3 className={uiStyles.heading}>{t('import.resultTitle')}</h3>
               <Badge>{t('import.total', { count: result.total })}</Badge>
               <Badge>{t('import.createdCount', { count: result.created })}</Badge>
+              {result.skipped > 0 && (
+                <Badge>{t('import.skippedCount', { count: result.skipped })}</Badge>
+              )}
               <Badge>{t('import.failedCount', { count: result.failed })}</Badge>
             </Row>
             {result.errors && result.errors.length > 0 && (

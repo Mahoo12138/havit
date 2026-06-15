@@ -22,6 +22,7 @@ import { Route as ImportRouteImport } from './routes/import'
 import { Route as EdcRouteImport } from './routes/edc'
 import { Route as CredentialsRouteImport } from './routes/credentials'
 import { Route as ConsumablesRouteImport } from './routes/consumables'
+import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as AssetsRouteImport } from './routes/assets'
 import { Route as AbnormalRouteImport } from './routes/abnormal'
@@ -95,6 +96,11 @@ const ConsumablesRoute = ConsumablesRouteImport.update({
   path: '/consumables',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CategoriesRoute = CategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CaptureRoute = CaptureRouteImport.update({
   id: '/capture',
   path: '/capture',
@@ -136,6 +142,7 @@ export interface FileRoutesByFullPath {
   '/abnormal': typeof AbnormalRoute
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
+  '/categories': typeof CategoriesRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
   '/edc': typeof EdcRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/abnormal': typeof AbnormalRoute
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
+  '/categories': typeof CategoriesRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
   '/edc': typeof EdcRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/abnormal': typeof AbnormalRoute
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
+  '/categories': typeof CategoriesRoute
   '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
   '/edc': typeof EdcRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/abnormal'
     | '/assets'
     | '/capture'
+    | '/categories'
     | '/consumables'
     | '/credentials'
     | '/edc'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/abnormal'
     | '/assets'
     | '/capture'
+    | '/categories'
     | '/consumables'
     | '/credentials'
     | '/edc'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/abnormal'
     | '/assets'
     | '/capture'
+    | '/categories'
     | '/consumables'
     | '/credentials'
     | '/edc'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   AbnormalRoute: typeof AbnormalRoute
   AssetsRoute: typeof AssetsRoute
   CaptureRoute: typeof CaptureRoute
+  CategoriesRoute: typeof CategoriesRoute
   ConsumablesRoute: typeof ConsumablesRoute
   CredentialsRoute: typeof CredentialsRoute
   EdcRoute: typeof EdcRoute
@@ -383,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConsumablesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/categories': {
+      id: '/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/capture': {
       id: '/capture'
       path: '/capture'
@@ -440,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   AbnormalRoute: AbnormalRoute,
   AssetsRoute: AssetsRoute,
   CaptureRoute: CaptureRoute,
+  CategoriesRoute: CategoriesRoute,
   ConsumablesRoute: ConsumablesRoute,
   CredentialsRoute: CredentialsRoute,
   EdcRoute: EdcRoute,

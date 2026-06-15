@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { IconTrash, IconUserPlus, IconLock } from '@tabler/icons-react';
+import { IconTrash, IconUserPlus, IconLock, IconKey, IconCopy, IconShieldOff } from '@tabler/icons-react';
 import {
   Badge,
   Button,
@@ -23,9 +23,12 @@ import {
   usersApi,
   systemConfigsApi,
   preferencesApi,
+  apiTokensApi,
   type User,
   type SystemConfig,
   type UserPreferences,
+  type APIToken,
+  type APITokenCreated,
 } from '../api/client';
 
 export const Route = createFileRoute('/settings')({
@@ -44,6 +47,7 @@ function SettingsPage() {
 
   const tabs = [
     { key: 'preferences', label: t('settings.tabs.preferences') },
+    { key: 'api-tokens', label: t('settings.tabs.apiTokens') },
     ...(isOwner
       ? [
           { key: 'system', label: t('settings.tabs.system') },
@@ -63,6 +67,7 @@ function SettingsPage() {
       <Tabs value={activeTab} onChange={setActiveTab} tabs={tabs} />
 
       {activeTab === 'preferences' && <PreferencesTab />}
+      {activeTab === 'api-tokens' && <APITokensTab />}
       {activeTab === 'system' && isOwner && <SystemConfigTab />}
       {activeTab === 'members' && isOwner && (
         <UserManagement currentUserId={me?.id ?? ''} />
@@ -206,6 +211,220 @@ function PreferencesTab() {
         </Button>
       </div>
     </Stack>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// API Tokens tab
+// ---------------------------------------------------------------------------
+
+function APITokensTab() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newExpiry, setNewExpiry] = useState('0');
+  const [createdToken, setCreatedToken] = useState<APITokenCreated | null>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['api-tokens'],
+    queryFn: () => apiTokensApi.list(),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: () => {
+      const expiresAt = newExpiry === '0' ? undefined : Math.floor(Date.now() / 1000) + Number(newExpiry);
+      return apiTokensApi.create({ name: newName, expires_at: expiresAt });
+    },
+    onSuccess: (token) => {
+      queryClient.invalidateQueries({ queryKey: ['api-tokens'] });
+      setCreateOpen(false);
+      setNewName('');
+      setNewExpiry('0');
+      setCreatedToken(token);
+    },
+    onError: () => toast.show(t('settings.tokens.createFailed')),
+  });
+
+  const revokeMutation = useMutation({
+    mutationFn: (id: string) => apiTokensApi.revoke(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['api-tokens'] });
+      toast.show(t('settings.tokens.revoked'));
+    },
+    onError: () => toast.show(t('settings.tokens.revokeFailed')),
+  });
+
+  const revokeAllMutation = useMutation({
+    mutationFn: () => apiTokensApi.revokeAllSessions(),
+    onSuccess: () => toast.show(t('settings.tokens.allSessionsRevoked')),
+    onError: () => toast.show(t('settings.tokens.revokeFailed')),
+  });
+
+  const tokens: APIToken[] = data?.tokens ?? [];
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text);
+    toast.show(t('settings.tokens.copied'));
+  }
+
+  function formatTime(ts?: number) {
+    if (!ts) return '—';
+    return new Date(ts * 1000).toLocaleString();
+  }
+
+  function isExpired(token: APIToken) {
+    return token.expires_at ? token.expires_at < Math.floor(Date.now() / 1000) : false;
+  }
+
+  return (
+    <>
+      <DataCard
+        title={t('settings.tokens.title')}
+        meta={
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button
+              variant="quiet"
+              leftSection={<IconShieldOff size={14} />}
+              onClick={() => revokeAllMutation.mutate()}
+              disabled={revokeAllMutation.isPending}
+            >
+              {t('settings.tokens.revokeAllSessions')}
+            </Button>
+            <Button
+              variant="subtle"
+              leftSection={<IconKey size={14} />}
+              onClick={() => setCreateOpen(true)}
+            >
+              {t('settings.tokens.create')}
+            </Button>
+          </div>
+        }
+      >
+        {isLoading ? (
+          <Spinner />
+        ) : tokens.length === 0 ? (
+          <p className={uiStyles.muted}>{t('settings.tokens.empty')}</p>
+        ) : (
+          <ScrollArea className={uiStyles.tableWrap}>
+            <table className={uiStyles.table}>
+              <thead>
+                <tr>
+                  <th className={uiStyles.th}>{t('settings.tokens.name')}</th>
+                  <th className={uiStyles.th}>{t('settings.tokens.status')}</th>
+                  <th className={uiStyles.th}>{t('settings.tokens.createdAt')}</th>
+                  <th className={uiStyles.th}>{t('settings.tokens.lastUsed')}</th>
+                  <th className={uiStyles.th}>{t('settings.actions')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {tokens.map((token) => (
+                  <tr className={uiStyles.tableRow} key={token.id}>
+                    <td className={uiStyles.td}>
+                      <strong>{token.name}</strong>
+                    </td>
+                    <td className={uiStyles.td}>
+                      {isExpired(token) ? (
+                        <Badge>{t('settings.tokens.expired')}</Badge>
+                      ) : token.expires_at ? (
+                        <Badge>{t('settings.tokens.expiresAt', { date: formatTime(token.expires_at) })}</Badge>
+                      ) : (
+                        <Badge>{t('settings.tokens.noExpiry')}</Badge>
+                      )}
+                    </td>
+                    <td className={uiStyles.td}>{formatTime(token.created_at)}</td>
+                    <td className={uiStyles.td}>{formatTime(token.last_used_at)}</td>
+                    <td className={uiStyles.td}>
+                      <Button
+                        variant="quiet"
+                        leftSection={<IconTrash size={14} />}
+                        disabled={revokeMutation.isPending}
+                        onClick={() => revokeMutation.mutate(token.id)}
+                      >
+                        {t('settings.tokens.revoke')}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </ScrollArea>
+        )}
+      </DataCard>
+
+      {/* Create dialog */}
+      <Dialog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title={t('settings.tokens.create')}
+      >
+        <Stack>
+          <TextField
+            label={t('settings.tokens.name')}
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder={t('settings.tokens.namePlaceholder')}
+          />
+          <SelectField
+            label={t('settings.tokens.expiry')}
+            value={newExpiry}
+            onChange={(e) => setNewExpiry(e.currentTarget.value)}
+            options={[
+              { value: '0', label: t('settings.tokens.never') },
+              { value: '2592000', label: t('settings.tokens.days30') },
+              { value: '7776000', label: t('settings.tokens.days90') },
+              { value: '31536000', label: t('settings.tokens.year1') },
+            ]}
+          />
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <Button variant="subtle" onClick={() => setCreateOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              disabled={!newName || createMutation.isPending}
+              onClick={() => createMutation.mutate()}
+            >
+              {t('settings.tokens.create')}
+            </Button>
+          </div>
+        </Stack>
+      </Dialog>
+
+      {/* Token reveal dialog (shown once after creation) */}
+      <Dialog
+        open={!!createdToken}
+        onClose={() => setCreatedToken(null)}
+        title={t('settings.tokens.createdTitle')}
+      >
+        <Stack>
+          <p className={uiStyles.muted}>{t('settings.tokens.createdHint')}</p>
+          <div
+            style={{
+              padding: '0.75rem',
+              borderRadius: '0.5rem',
+              background: 'var(--color-bg-secondary, #f5f5f5)',
+              fontFamily: 'monospace',
+              fontSize: '0.85rem',
+              wordBreak: 'break-all',
+              userSelect: 'all',
+            }}
+          >
+            {createdToken?.plain_token}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="primary"
+              leftSection={<IconCopy size={14} />}
+              onClick={() => copyToClipboard(createdToken?.plain_token ?? '')}
+            >
+              {t('settings.tokens.copy')}
+            </Button>
+          </div>
+        </Stack>
+      </Dialog>
+    </>
   );
 }
 

@@ -131,6 +131,16 @@ export interface Tag {
   usage_count?: number;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  icon?: string;
+  root_type: 'physical' | 'virtual';
+  is_system: boolean;
+  created_at: number;
+  usage_count: number;
+}
+
 export interface Attachment {
   id: string;
   item_id: string;
@@ -188,6 +198,15 @@ export const tagsApi = {
   update: (id: string, body: { name: string; color?: string }) =>
     api.patch(`tags/${id}`, { json: { name: body.name, color: body.color ?? '' } }).json<Tag>(),
   remove: (id: string) => api.delete(`tags/${id}`),
+};
+
+export const categoriesApi = {
+  list: () => api.get('categories/').json<{ categories: Category[] }>(),
+  create: (body: { name: string; icon?: string; root_type: string }) =>
+    api.post('categories/', { json: body }).json<Category>(),
+  update: (id: string, body: { name: string; icon?: string; root_type: string }) =>
+    api.patch(`categories/${id}`, { json: body }).json<Category>(),
+  remove: (id: string) => api.delete(`categories/${id}`),
 };
 
 export const locationsApi = {
@@ -624,4 +643,27 @@ export const abnormalApi = {
     recoverable_amount?: number;
     recoverable_currency?: string;
   }) => api.patch(`abnormal/${id}`, { json: body }).json<AbnormalRecord>(),
+};
+
+// ── API Tokens (Personal Access Tokens) ──────────────────────────────────────
+
+export interface APIToken {
+  id: string;
+  user_id: string;
+  name: string;
+  expires_at?: number;
+  last_used_at?: number;
+  created_at: number;
+}
+
+export interface APITokenCreated extends APIToken {
+  plain_token: string;
+}
+
+export const apiTokensApi = {
+  list: () => api.get('api-tokens/').json<{ tokens: APIToken[] }>(),
+  create: (body: { name: string; expires_at?: number }) =>
+    api.post('api-tokens/', { json: body }).json<APITokenCreated>(),
+  revoke: (id: string) => api.delete(`api-tokens/${id}`),
+  revokeAllSessions: () => api.post('api-tokens/revoke-all-sessions').json<{ status: string }>(),
 };

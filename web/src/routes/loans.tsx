@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { IconPlus, IconSettings, IconDotsVertical, IconAlertTriangle, IconClipboardList, IconEye } from '@tabler/icons-react';
-import { Button, Card, Dialog, Spinner, Stack, Tabs, TextField, uiStyles } from '../components/ui';
+import { Button, Card, DatePickerField, Dialog, Spinner, Stack, Tabs, TextField, uiStyles } from '../components/ui';
 import { itemsApi, loansApi, type Loan } from '../api/client';
 
 export const Route = createFileRoute('/loans')({
@@ -508,7 +508,7 @@ function LoansPage() {
             <TextField label={t('loans.itemId')} value={itemId} onChange={(e) => setItemId(e.target.value)} />
             <TextField label={t('loans.borrowerName')} value={borrowerName} onChange={(e) => setBorrowerName(e.target.value)} />
             <TextField label={t('loans.borrowerContact')} value={borrowerContact} onChange={(e) => setBorrowerContact(e.target.value)} />
-            <TextField label={t('loans.dueDate')} type="date" value={dueAt} onChange={(e) => setDueAt(e.target.value)} />
+            <DatePickerField label={t('loans.dueDate')} value={dueAt} onChange={setDueAt} />
             <Button
               onClick={() => createMutation.mutate()}
               disabled={!itemId || !borrowerName || createMutation.isPending}
