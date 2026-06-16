@@ -20,7 +20,7 @@ func TestBackupRunCreatesConsistentSnapshotArchiveAndRemovesTempDB(t *testing.T)
 		t.Fatalf("open db: %v", err)
 	}
 	t.Cleanup(func() { _ = database.Close() })
-	if err := db.Migrate(database); err != nil {
+	if err := db.Migrate(ctx, database); err != nil {
 		t.Fatalf("migrate db: %v", err)
 	}
 	if _, err := database.ExecContext(ctx,

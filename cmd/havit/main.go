@@ -43,7 +43,7 @@ func main() {
 	}
 	defer database.Close()
 
-	if err := db.Migrate(database); err != nil {
+	if err := db.Migrate(appCtx, database); err != nil {
 		slog.Error("migrate", "err", err)
 		os.Exit(1)
 	}

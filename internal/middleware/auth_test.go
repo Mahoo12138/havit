@@ -23,7 +23,7 @@ func newAuthMiddlewareTestDB(t *testing.T) *sql.DB {
 		_ = database.Close()
 	})
 
-	if err := db.Migrate(database); err != nil {
+	if err := db.Migrate(context.Background(), database); err != nil {
 		t.Fatalf("migrate db: %v", err)
 	}
 

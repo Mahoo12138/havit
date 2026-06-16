@@ -19,7 +19,7 @@ func newSeedTestDB(t *testing.T) *sql.DB {
 		_ = database.Close()
 	})
 
-	if err := Migrate(database); err != nil {
+	if err := Migrate(context.Background(), database); err != nil {
 		t.Fatalf("migrate db: %v", err)
 	}
 
