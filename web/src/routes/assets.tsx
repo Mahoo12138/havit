@@ -26,7 +26,6 @@ import {
   Spinner,
   Stack,
   StackTight,
-  Tabs,
   TextField,
   TextareaField,
   TreeSelectField,
@@ -35,12 +34,13 @@ import {
 } from '../components/ui';
 import { itemsApi, locationsApi, type Item, type Location } from '../api/client';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
+import { CategoryTabs } from '../features/categories/CategoryTabs';
 
 export const Route = createFileRoute('/assets')({
   component: AssetsPage,
 });
 
-type AssetTab = 'overview' | 'inUse' | 'stored' | 'maintenance';
+type AssetTab = string;
 
 interface AssetItem extends Item {
   attachments?: Array<{ url: string; type: string }>;
@@ -87,7 +87,7 @@ function AssetsPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const isOnline = useNetworkStatus();
-  const [activeTab, setActiveTab] = useState<AssetTab>('overview');
+  const [activeTab, setActiveTab] = useState<AssetTab>('all');
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
   const [opened, setOpened] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -158,9 +158,10 @@ function AssetsPage() {
 
   const filteredItems = useMemo(() => {
     let items = allItems;
-    if (activeTab === 'inUse') items = items.filter((i) => i.status === 'in_use');
-    else if (activeTab === 'stored') items = items.filter((i) => i.status === 'stored' || i.status === 'in_stock');
-    else if (activeTab === 'maintenance') items = items.filter((i) => i.status === 'maintenance' || i.status === 'damaged');
+    // Category tab filtering
+    if (activeTab !== 'all') {
+      items = items.filter((i) => i.category === activeTab);
+    }
     if (statusFilter !== 'all') items = items.filter((i) => i.status === statusFilter);
     if (locationFilter !== 'all') items = items.filter((i) => i.location_id === locationFilter);
     return items;
@@ -185,13 +186,6 @@ function AssetsPage() {
   }, [allItems]);
 
   const locOptions = flatten(locData?.tree);
-
-  const tabItems = [
-    { key: 'overview', label: t('assets.overview') },
-    { key: 'inUse', label: t('assets.inUse') },
-    { key: 'stored', label: t('assets.stored') },
-    { key: 'maintenance', label: t('assets.maintenance') },
-  ];
 
   const warrantyAlerts = allItems.filter((i) => {
     const ws = getWarrantyStatus(i);
@@ -229,7 +223,7 @@ function AssetsPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onChange={(v) => setActiveTab(v as AssetTab)} tabs={tabItems} />
+      <CategoryTabs rootType="physical" value={activeTab} onChange={(v) => setActiveTab(v)} />
 
       {isLoading ? (
         <Spinner />

@@ -116,6 +116,7 @@ export interface Item {
   min_stock_threshold?: number;
   lifespan_days?: number;
   in_use_since?: number;
+  metadata?: Record<string, string>;
   is_private: boolean;
   owner_id?: string;
   created_at: number;

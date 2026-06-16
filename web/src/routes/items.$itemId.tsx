@@ -15,6 +15,7 @@ import {
   IconShieldCheck,
   IconShoppingCart,
   IconTag,
+  IconTrash,
   IconX,
 } from '@tabler/icons-react';
 import { useRef, useState, type ReactNode } from 'react';
@@ -23,6 +24,7 @@ import {
   Badge,
   Button,
   Card,
+  Dialog,
   SelectField,
   Spinner,
   Stack,
@@ -63,6 +65,7 @@ function ItemDetail() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tagName, setTagName] = useState('');
   const [selectedTagID, setSelectedTagID] = useState('');
+  const [tagDialogOpen, setTagDialogOpen] = useState(false);
   const [selectedPhotoIdx, setSelectedPhotoIdx] = useState(0);
 
   const item = useQuery({
@@ -337,6 +340,7 @@ function ItemDetail() {
           </div>
 
           <LoansSection itemId={itemId} />
+          <MetadataSection itemId={itemId} item={it} />
           <ContentsSection itemId={itemId} />
           <EventsSection itemId={itemId} />
         </div>
@@ -379,6 +383,14 @@ function ItemDetail() {
                 </span>
                 {t('items.tags')}
               </h3>
+              <Button
+                variant="subtle"
+                leftSection={<IconPlus size={14} />}
+                disabled={!isOnline}
+                onClick={() => setTagDialogOpen(true)}
+              >
+                {t('common.add')}
+              </Button>
             </header>
             <div className={uiStyles.itemSectionBody}>
               <div className={uiStyles.tagList}>
@@ -400,27 +412,55 @@ function ItemDetail() {
                   <span className={uiStyles.muted}>{t('items.noTags')}</span>
                 )}
               </div>
-              <SelectField
-                label={t('items.selectTag')}
-                options={tagOptions}
-                placeholder={
-                  tags.isLoading
-                    ? t('items.tagsLoading')
-                    : t('items.selectTagPlaceholder')
-                }
-                value={selectedTagID}
-                disabled={
-                  !isOnline || replaceTags.isPending || tagOptions.length === 0
-                }
-                onChange={(e) => {
-                  const tagID = e.currentTarget.value;
-                  const tag = tags.data?.tags.find(
-                    (candidate) => candidate.id === tagID,
-                  );
-                  if (tag) addTag(tag);
-                  setSelectedTagID('');
-                }}
-              />
+            </div>
+          </section>
+
+          <Dialog
+            open={tagDialogOpen}
+            title={t('items.manageTags')}
+            onClose={() => setTagDialogOpen(false)}
+          >
+            <Stack>
+              <div className={uiStyles.tagList}>
+                {currentTags.map((tag) => (
+                  <span className={uiStyles.tagChip} key={tag.id}>
+                    {tag.name}
+                    <button
+                      className={uiStyles.tagRemove}
+                      type="button"
+                      onClick={() => removeTag(tag.id)}
+                      disabled={!isOnline || replaceTags.isPending}
+                      title={t('items.removeTag')}
+                    >
+                      <IconX size={13} />
+                    </button>
+                  </span>
+                ))}
+                {currentTags.length === 0 && (
+                  <span className={uiStyles.muted}>{t('items.noTags')}</span>
+                )}
+              </div>
+              {tagOptions.length > 0 && (
+                <SelectField
+                  label={t('items.selectTag')}
+                  options={tagOptions}
+                  placeholder={
+                    tags.isLoading
+                      ? t('items.tagsLoading')
+                      : t('items.selectTagPlaceholder')
+                  }
+                  value={selectedTagID}
+                  disabled={!isOnline || replaceTags.isPending}
+                  onChange={(e) => {
+                    const tagID = e.currentTarget.value;
+                    const tag = tags.data?.tags.find(
+                      (candidate) => candidate.id === tagID,
+                    );
+                    if (tag) addTag(tag);
+                    setSelectedTagID('');
+                  }}
+                />
+              )}
               <div className={uiStyles.inlineForm}>
                 <TextField
                   label={t('items.newTag')}
@@ -430,16 +470,19 @@ function ItemDetail() {
                 />
                 <Button
                   leftSection={<IconPlus size={15} />}
-                  disabled={
-                    !isOnline || !tagName.trim() || createTag.isPending
-                  }
+                  disabled={!isOnline || !tagName.trim() || createTag.isPending}
                   onClick={() => createTag.mutate(tagName)}
                 >
                   {t('items.createTag')}
                 </Button>
               </div>
-            </div>
-          </section>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button variant="quiet" onClick={() => setTagDialogOpen(false)}>
+                  {t('common.close')}
+                </Button>
+              </div>
+            </Stack>
+          </Dialog>
 
           <section className={uiStyles.itemSection}>
             <header className={uiStyles.itemSectionHead}>
@@ -789,6 +832,159 @@ function EventsSection({ itemId }: { itemId: string }) {
         )}
       </div>
     </section>
+  );
+}
+
+function MetadataSection({ itemId, item }: { itemId: string; item: Item }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formKey, setFormKey] = useState('');
+  const [formVal, setFormVal] = useState('');
+  const [editOriginalKey, setEditOriginalKey] = useState<string | null>(null);
+  const isOnline = useNetworkStatus();
+
+  const meta = item.metadata ?? {};
+  const entries = Object.entries(meta);
+
+  const updateMutation = useMutation({
+    mutationFn: (next: Record<string, string>) =>
+      itemsApi.update(itemId, { metadata: next }),
+    onSuccess: (next) => {
+      qc.setQueryData(['item', itemId], next);
+      qc.invalidateQueries({ queryKey: ['items'] });
+    },
+  });
+
+  function openAddDialog() {
+    setEditOriginalKey(null);
+    setFormKey('');
+    setFormVal('');
+    setDialogOpen(true);
+  }
+
+  function openEditDialog(key: string, value: string) {
+    setEditOriginalKey(key);
+    setFormKey(key);
+    setFormVal(value);
+    setDialogOpen(true);
+  }
+
+  function handleSave() {
+    const k = formKey.trim();
+    const v = formVal.trim();
+    if (!k) return;
+    const next: Record<string, string> = {};
+    for (const [ek, ev] of entries) {
+      if (editOriginalKey !== null && ek === editOriginalKey) continue;
+      next[ek] = ev;
+    }
+    next[k] = v;
+    updateMutation.mutate(next);
+    setDialogOpen(false);
+  }
+
+  function handleRemove(key: string) {
+    const next = { ...meta };
+    delete next[key];
+    updateMutation.mutate(next);
+  }
+
+  const dialogTitle = editOriginalKey !== null
+    ? t('itemDetail.editMetadata')
+    : t('itemDetail.addMetadata');
+
+  return (
+    <>
+      <section className={uiStyles.itemSection}>
+        <header className={uiStyles.itemSectionHead}>
+          <h3 className={uiStyles.itemSectionTitle}>
+            <span className={uiStyles.itemSectionTitleIcon}>
+              <IconTag size={14} />
+            </span>
+            {t('itemDetail.customMetadata')}
+          </h3>
+          {entries.length > 0 && (
+            <span className={uiStyles.itemSectionHint}>
+              {entries.length} {t('common.items')}
+            </span>
+          )}
+          <Button
+            variant="subtle"
+            leftSection={<IconPlus size={14} />}
+            disabled={!isOnline}
+            onClick={openAddDialog}
+          >
+            {t('common.add')}
+          </Button>
+        </header>
+        <div className={uiStyles.itemSectionBody}>
+          {entries.length > 0 ? (
+            <div className={uiStyles.itemKvList}>
+              {entries.map(([key, value]) => (
+                <div className={uiStyles.itemKvRow} key={key}>
+                  <span className={uiStyles.itemKvLabel}>{key}</span>
+                  <span
+                    className={uiStyles.itemKvValue}
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => openEditDialog(key, value)}
+                    title={t('common.edit')}
+                  >
+                    {value}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(key)}
+                    disabled={!isOnline || updateMutation.isPending}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--color-text-muted)' }}
+                    title={t('common.delete')}
+                  >
+                    <IconTrash size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={uiStyles.itemSectionEmpty}>
+              {t('itemDetail.noMetadata')}
+            </div>
+          )}
+        </div>
+      </section>
+
+      <Dialog
+        open={dialogOpen}
+        title={dialogTitle}
+        onClose={() => setDialogOpen(false)}
+      >
+        <Stack>
+          <TextField
+            label={t('itemDetail.metadataKey')}
+            value={formKey}
+            onChange={(e) => setFormKey(e.currentTarget.value)}
+            disabled={!isOnline || updateMutation.isPending}
+            autoFocus
+          />
+          <TextField
+            label={t('itemDetail.metadataValue')}
+            value={formVal}
+            onChange={(e) => setFormVal(e.currentTarget.value)}
+            disabled={!isOnline || updateMutation.isPending}
+          />
+          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+            <Button variant="quiet" onClick={() => setDialogOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              disabled={!isOnline || !formKey.trim() || updateMutation.isPending}
+              onClick={handleSave}
+            >
+              {t('common.save')}
+            </Button>
+          </div>
+        </Stack>
+      </Dialog>
+    </>
   );
 }
 

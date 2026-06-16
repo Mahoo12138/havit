@@ -114,6 +114,7 @@
     "serialNumber": "Serial Number",
     "description": "Description",
     "tags": "Tags",
+    "manageTags": "Manage Tags",
     "addTag": "Add Tag",
     "newTag": "New Tag",
     "removeTag": "Remove tag",
@@ -206,7 +207,13 @@
     "expectedReturn": "Due back",
     "contactInfo": "Contact",
     "accountLabel": "Account",
-    "orderLabel": "Order"
+    "orderLabel": "Order",
+    "customMetadata": "Custom Properties",
+    "noMetadata": "No custom properties",
+    "metadataKey": "Property Name",
+    "metadataValue": "Property Value",
+    "addMetadata": "Add Property",
+    "editMetadata": "Edit Property"
   },
   "events": {
     "created": "Created",
@@ -973,7 +980,8 @@
     "upload": "Upload",
     "sn": "SN: {{number}}",
     "currencySymbol": "¥",
-    "more": "More"
+    "more": "More",
+    "add": "Add"
   },
   "demo": {
     "mode": "Demo Mode",
@@ -1052,6 +1060,7 @@
     "deleteFailed": "Delete failed: {{error}}"
   },
   "categories": {
+    "all": "All",
     "title": "Category Management",
     "description": "Manage the flat taxonomy for physical and virtual assets. System presets are read-only.",
     "addCategory": "New Category",

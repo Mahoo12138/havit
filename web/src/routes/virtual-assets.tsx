@@ -22,19 +22,19 @@ import {
   Stack,
   Spinner,
   StackTight,
-  Tabs,
   TextField,
   uiStyles,
   useToast,
 } from '../components/ui';
 import { itemsApi, type Item, type VirtualCredential, type VirtualAddonPurchase } from '../api/client';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
+import { CategoryTabs } from '../features/categories/CategoryTabs';
 
 export const Route = createFileRoute('/virtual-assets')({
   component: VirtualAssetsPage,
 });
 
-type VaTab = 'all' | 'inUse' | 'archived' | 'pendingActivation';
+type VaTab = string;
 
 interface VaItem extends Item {
   credentials?: VirtualCredential[];
@@ -102,10 +102,11 @@ function VirtualAssetsPage() {
   const allItems: VaItem[] = data?.items ?? [];
 
   const filteredItems = useMemo(() => {
-    if (activeTab === 'inUse') return allItems.filter((i) => i.status === 'in_use');
-    if (activeTab === 'archived') return allItems.filter((i) => i.status === 'archived');
-    if (activeTab === 'pendingActivation') return allItems.filter((i) => i.status === 'pending' || i.status === 'inactive');
-    return allItems;
+    let items = allItems;
+    if (activeTab !== 'all') {
+      items = items.filter((i) => i.category === activeTab);
+    }
+    return items;
   }, [allItems, activeTab]);
 
   const stats = useMemo(() => {
@@ -116,13 +117,6 @@ function VirtualAssetsPage() {
     const pendingCount = allItems.filter((i) => i.status === 'pending' || i.status === 'inactive').length;
     return { total, totalValue, inUseCount, archivedCount, pendingCount };
   }, [allItems]);
-
-  const tabItems = [
-    { key: 'all', label: t('virtualAssets.all') },
-    { key: 'inUse', label: t('virtualAssets.inUse') },
-    { key: 'archived', label: t('virtualAssets.archived') },
-    { key: 'pendingActivation', label: t('virtualAssets.pendingActivation') },
-  ];
 
   return (
     <Stack>
@@ -146,7 +140,7 @@ function VirtualAssetsPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onChange={(v) => setActiveTab(v as VaTab)} tabs={tabItems} />
+      <CategoryTabs rootType="virtual" value={activeTab} onChange={(v) => setActiveTab(v)} />
 
       {isLoading ? (
         <Spinner />

@@ -114,6 +114,7 @@
     "serialNumber": "序列号",
     "description": "描述",
     "tags": "标签",
+    "manageTags": "管理标签",
     "addTag": "添加标签",
     "newTag": "新标签",
     "removeTag": "移除标签",
@@ -206,7 +207,13 @@
     "expectedReturn": "预计归还",
     "contactInfo": "联系方式",
     "accountLabel": "账号",
-    "orderLabel": "订单"
+    "orderLabel": "订单",
+    "customMetadata": "自定义属性",
+    "noMetadata": "暂无自定义属性",
+    "metadataKey": "属性名",
+    "metadataValue": "属性值",
+    "addMetadata": "添加属性",
+    "editMetadata": "编辑属性"
   },
   "events": {
     "created": "已创建",
@@ -965,7 +972,8 @@
     "upload": "上传",
     "sn": "序列号：{{number}}",
     "currencySymbol": "¥",
-    "more": "更多"
+    "more": "更多",
+    "add": "添加"
   },
   "demo": {
     "mode": "演示模式",
@@ -1040,6 +1048,7 @@
     "deleteFailed": "删除失败：{{error}}"
   },
   "categories": {
+    "all": "全部",
     "title": "资产分类管理",
     "description": "管理实体与虚拟资产的扁平化分类体系，系统预设不可修改。",
     "addCategory": "新建分类",
