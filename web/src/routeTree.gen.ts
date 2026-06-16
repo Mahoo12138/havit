@@ -29,6 +29,7 @@ import { Route as AbnormalRouteImport } from './routes/abnormal'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TagsIndexRouteImport } from './routes/tags.index'
 import { Route as LocationsIndexRouteImport } from './routes/locations.index'
+import { Route as SuppliesItemIdRouteImport } from './routes/supplies.$itemId'
 import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 
 const VirtualAssetsRoute = VirtualAssetsRouteImport.update({
@@ -131,6 +132,11 @@ const LocationsIndexRoute = LocationsIndexRouteImport.update({
   path: '/locations/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SuppliesItemIdRoute = SuppliesItemIdRouteImport.update({
+  id: '/$itemId',
+  path: '/$itemId',
+  getParentRoute: () => SuppliesRoute,
+} as any)
 const ItemsItemIdRoute = ItemsItemIdRouteImport.update({
   id: '/items/$itemId',
   path: '/items/$itemId',
@@ -154,9 +160,10 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
-  '/supplies': typeof SuppliesRoute
+  '/supplies': typeof SuppliesRouteWithChildren
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
+  '/supplies/$itemId': typeof SuppliesItemIdRoute
   '/locations/': typeof LocationsIndexRoute
   '/tags/': typeof TagsIndexRoute
 }
@@ -177,9 +184,10 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
-  '/supplies': typeof SuppliesRoute
+  '/supplies': typeof SuppliesRouteWithChildren
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
+  '/supplies/$itemId': typeof SuppliesItemIdRoute
   '/locations': typeof LocationsIndexRoute
   '/tags': typeof TagsIndexRoute
 }
@@ -201,9 +209,10 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
-  '/supplies': typeof SuppliesRoute
+  '/supplies': typeof SuppliesRouteWithChildren
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
+  '/supplies/$itemId': typeof SuppliesItemIdRoute
   '/locations/': typeof LocationsIndexRoute
   '/tags/': typeof TagsIndexRoute
 }
@@ -229,6 +238,7 @@ export interface FileRouteTypes {
     | '/supplies'
     | '/virtual-assets'
     | '/items/$itemId'
+    | '/supplies/$itemId'
     | '/locations/'
     | '/tags/'
   fileRoutesByTo: FileRoutesByTo
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/supplies'
     | '/virtual-assets'
     | '/items/$itemId'
+    | '/supplies/$itemId'
     | '/locations'
     | '/tags'
   id:
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/supplies'
     | '/virtual-assets'
     | '/items/$itemId'
+    | '/supplies/$itemId'
     | '/locations/'
     | '/tags/'
   fileRoutesById: FileRoutesById
@@ -296,7 +308,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
-  SuppliesRoute: typeof SuppliesRoute
+  SuppliesRoute: typeof SuppliesRouteWithChildren
   VirtualAssetsRoute: typeof VirtualAssetsRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
   LocationsIndexRoute: typeof LocationsIndexRoute
@@ -445,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/supplies/$itemId': {
+      id: '/supplies/$itemId'
+      path: '/$itemId'
+      fullPath: '/supplies/$itemId'
+      preLoaderRoute: typeof SuppliesItemIdRouteImport
+      parentRoute: typeof SuppliesRoute
+    }
     '/items/$itemId': {
       id: '/items/$itemId'
       path: '/items/$itemId'
@@ -454,6 +473,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface SuppliesRouteChildren {
+  SuppliesItemIdRoute: typeof SuppliesItemIdRoute
+}
+
+const SuppliesRouteChildren: SuppliesRouteChildren = {
+  SuppliesItemIdRoute: SuppliesItemIdRoute,
+}
+
+const SuppliesRouteWithChildren = SuppliesRoute._addFileChildren(
+  SuppliesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -472,7 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
-  SuppliesRoute: SuppliesRoute,
+  SuppliesRoute: SuppliesRouteWithChildren,
   VirtualAssetsRoute: VirtualAssetsRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,
   LocationsIndexRoute: LocationsIndexRoute,

@@ -4725,6 +4725,323 @@ export const supplyChartChangePos = style([
   { color: themeVars.danger },
 ]);
 
+/* ---------- Supplies Detail Page ---------- */
+
+export const supplyDetailHero = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'space-between',
+  gap: themeVars.space4,
+  padding: themeVars.space4,
+  '@media': {
+    '(max-width: 48em)': {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+  },
+});
+
+export const supplyDetailHeroMain = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  minWidth: 0,
+  flex: 1,
+});
+
+export const supplyDetailHeroTitle = style({
+  fontSize: '1.4rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  letterSpacing: '-0.01em',
+  margin: 0,
+});
+
+export const supplyDetailHeroMeta = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  flexWrap: 'wrap',
+  fontSize: '0.82rem',
+  color: themeVars.muted,
+});
+
+export const supplyDetailTypeBadge = styleVariants({
+  typeA: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '3px 10px',
+    borderRadius: '999px',
+    fontSize: '0.74rem',
+    fontWeight: 600,
+    background: themeVars.infoSoft,
+    color: themeVars.info,
+  },
+  typeB: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '3px 10px',
+    borderRadius: '999px',
+    fontSize: '0.74rem',
+    fontWeight: 600,
+    background: themeVars.accentSoft,
+    color: themeVars.accentInk,
+  },
+});
+
+export const supplyDetailActions = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  flexShrink: 0,
+});
+
+export const supplyActionRow = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, 1fr))',
+  gap: themeVars.space3,
+});
+
+export const supplyActionBigBtn = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: themeVars.space2,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  fontSize: '0.92rem',
+  fontWeight: 600,
+  borderRadius: themeVars.radius2,
+  border: `1px solid ${themeVars.line}`,
+  background: themeVars.panel,
+  color: themeVars.ink,
+  cursor: 'pointer',
+  transition: 'background 120ms ease, transform 120ms ease',
+  ':hover': {
+    background: themeVars.bgSoft,
+  },
+  ':active': {
+    transform: 'translateY(1px)',
+  },
+  ':disabled': {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+});
+
+export const supplyActionPrimary = style([
+  supplyActionBigBtn,
+  {
+    background: themeVars.accent,
+    color: themeVars.accentInk,
+    borderColor: themeVars.accent,
+    ':hover': {
+      background: themeVars.accentHover,
+    },
+  },
+]);
+
+export const supplyActionDanger = style([
+  supplyActionBigBtn,
+  {
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
+    borderColor: themeVars.dangerSoft,
+    ':hover': {
+      background: themeVars.danger,
+      color: themeVars.accentInk,
+    },
+  },
+]);
+
+export const supplyActionSuccess = style([
+  supplyActionBigBtn,
+  {
+    background: themeVars.successSoft,
+    color: themeVars.success,
+    borderColor: themeVars.successSoft,
+    ':hover': {
+      background: themeVars.success,
+      color: themeVars.accentInk,
+    },
+  },
+]);
+
+export const supplyStockHero = style({
+  display: 'flex',
+  alignItems: 'baseline',
+  justifyContent: 'center',
+  gap: themeVars.space2,
+  padding: `${themeVars.space5} ${themeVars.space4}`,
+});
+
+export const supplyStockHeroValue = style({
+  fontSize: '3.6rem',
+  fontWeight: 700,
+  lineHeight: 1,
+  color: themeVars.ink,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const supplyStockHeroUnit = style({
+  fontSize: '1rem',
+  color: themeVars.muted,
+});
+
+export const supplyStockHeroSub = style({
+  textAlign: 'center',
+  fontSize: '0.82rem',
+  color: themeVars.muted,
+  marginTop: `calc(-1 * ${themeVars.space3})`,
+  paddingBottom: themeVars.space3,
+});
+
+export const supplyCalibrationPill = styleVariants({
+  almostEmpty: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '3px 10px',
+    borderRadius: '999px',
+    fontSize: '0.72rem',
+    fontWeight: 600,
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
+  },
+  plentyLeft: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '3px 10px',
+    borderRadius: '999px',
+    fontSize: '0.72rem',
+    fontWeight: 600,
+    background: themeVars.successSoft,
+    color: themeVars.success,
+  },
+});
+
+export const supplyTimeline = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+});
+
+export const supplyTimelineItem = style({
+  display: 'grid',
+  gridTemplateColumns: '0.6rem 1fr',
+  gap: themeVars.space3,
+  alignItems: 'flex-start',
+  position: 'relative',
+});
+
+export const supplyTimelineDot = style({
+  width: '0.6rem',
+  height: '0.6rem',
+  borderRadius: '999px',
+  background: themeVars.accent,
+  marginTop: '0.35rem',
+  flexShrink: 0,
+});
+
+export const supplyTimelineBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+});
+
+export const supplyTimelineMeta = style({
+  fontSize: '0.74rem',
+  color: themeVars.muted,
+});
+
+export const supplyStatGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: themeVars.space3,
+});
+
+export const supplyStatCard = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  padding: themeVars.space3,
+  borderRadius: themeVars.radius2,
+  background: themeVars.bgSoft,
+  border: `1px solid ${themeVars.lineSoft}`,
+});
+
+export const supplyStatLabel = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+  fontWeight: 500,
+});
+
+export const supplyStatValue = style({
+  fontSize: '1.1rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const supplyStatHint = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+});
+
+export const supplyLifeCountdown = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  padding: themeVars.space4,
+});
+
+export const supplyLifeCountdownValue = style({
+  fontSize: '2.4rem',
+  fontWeight: 700,
+  color: themeVars.ink,
+  lineHeight: 1,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const supplyLifeCountdownLabel = style({
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+});
+
+export const supplyDetailEmpty = style({
+  textAlign: 'center',
+  padding: `${themeVars.space5} ${themeVars.space4}`,
+  color: themeVars.muted,
+  fontSize: '0.86rem',
+});
+
+export const supplyBackLink = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontSize: '0.78rem',
+  color: themeVars.muted,
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: 0,
+  ':hover': {
+    color: themeVars.ink,
+  },
+});
+
+export const supplyForecastActions = style({
+  display: 'flex',
+  gap: themeVars.space2,
+  marginTop: themeVars.space2,
+  paddingTop: themeVars.space2,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+});
+
 /* ---------- Virtual Assets Page ---------- */
 
 export const vaKpiStrip = style({
