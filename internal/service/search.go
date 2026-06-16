@@ -23,7 +23,7 @@ type SearchResult struct {
 	Status       string  `json:"status"`
 	LocationID   *string `json:"location_id,omitempty"`
 	LocationPath *string `json:"location_path,omitempty"`
-	EDCHint      *string `json:"edc_hint,omitempty"`
+	EssentialsHint      *string `json:"essentials_hint,omitempty"`
 }
 
 type SearchFilter struct {
@@ -121,14 +121,14 @@ func (s *SearchService) FTS(ctx context.Context, query string) ([]SearchResult, 
 				result.LocationPath = &path
 			}
 		}
-		if result.Type == "edc" && currentStatusTag != nil {
+		if result.Type == "essentials" && currentStatusTag != nil {
 			hint := fmt.Sprintf("当前状态：%s", *currentStatusTag)
 			if homeBaseID != nil {
 				if path, ok := locationPaths[*homeBaseID]; ok {
 					hint += "；如果不在身上，请检查基准归宿：" + path
 				}
 			}
-			result.EDCHint = &hint
+			result.EssentialsHint = &hint
 		}
 		out = append(out, result)
 	}
@@ -199,7 +199,7 @@ func (s *SearchService) Filter(ctx context.Context, f SearchFilter) ([]SearchRes
 		args = append(args, "idle", time.Now().Add(-time.Duration(*f.IdleDays)*24*time.Hour).Unix())
 	}
 	if f.StockLow != nil && *f.StockLow {
-		where += ` AND items.type = 'consumable_b'
+		where += ` AND items.type = 'tracked_spares'
 			AND items.current_stock IS NOT NULL
 			AND items.min_stock_threshold IS NOT NULL
 			AND items.current_stock <= items.min_stock_threshold`
@@ -335,14 +335,14 @@ func scanSearchResults(rows *sql.Rows, locationPaths map[string]string) ([]Searc
 				result.LocationPath = &path
 			}
 		}
-		if result.Type == "edc" && currentStatusTag != nil {
+		if result.Type == "essentials" && currentStatusTag != nil {
 			hint := fmt.Sprintf("当前状态：%s", *currentStatusTag)
 			if homeBaseID != nil {
 				if path, ok := locationPaths[*homeBaseID]; ok {
 					hint += "；如果不在身上，请检查基准归宿：" + path
 				}
 			}
-			result.EDCHint = &hint
+			result.EssentialsHint = &hint
 		}
 		out = append(out, result)
 	}

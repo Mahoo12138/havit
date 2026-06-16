@@ -84,7 +84,7 @@ type PurchaseEventInput struct {
 	Notes       *string  `json:"notes,omitempty"`
 }
 
-type EDCStatusInput struct {
+type EssentialsStatusInput struct {
 	CurrentStatusTag string  `json:"current_status_tag"`
 	LocationID       *string `json:"location_id,omitempty"`
 }
@@ -130,7 +130,7 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 	if !validItemType(string(in.Type)) {
 		return nil, fmt.Errorf("invalid type: %s", in.Type)
 	}
-	if in.Type == model.ItemTypeConsumableB && in.MinStockThreshold == nil {
+	if in.Type == model.ItemTypeTrackedSpares && in.MinStockThreshold == nil {
 		threshold := 1
 		in.MinStockThreshold = &threshold
 	}
@@ -609,12 +609,12 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 	return cur, nil
 }
 
-func (s *ItemService) SetEDCStatus(ctx context.Context, id string, in EDCStatusInput) (*model.Item, error) {
+func (s *ItemService) SetEssentialsStatus(ctx context.Context, id string, in EssentialsStatusInput) (*model.Item, error) {
 	cur, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if cur.Type != model.ItemTypeEDC {
+	if cur.Type != model.ItemTypeEssentials {
 		return nil, ErrInvalidItemType
 	}
 	if in.CurrentStatusTag == "" {
@@ -631,16 +631,16 @@ func (s *ItemService) SetEDCStatus(ctx context.Context, id string, in EDCStatusI
 	if err != nil {
 		return nil, err
 	}
-	s.logEvent(ctx, id, "edc_status_changed", nil)
+	s.logEvent(ctx, id, "essentials_status_changed", nil)
 	return s.Get(ctx, id)
 }
 
-func (s *ItemService) ReturnEDCHome(ctx context.Context, id string) (*model.Item, error) {
+func (s *ItemService) ReturnEssentialsHome(ctx context.Context, id string) (*model.Item, error) {
 	cur, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	if cur.Type != model.ItemTypeEDC {
+	if cur.Type != model.ItemTypeEssentials {
 		return nil, ErrInvalidItemType
 	}
 	if cur.HomeBaseLocationID == nil || *cur.HomeBaseLocationID == "" {
@@ -657,11 +657,11 @@ func (s *ItemService) ReturnEDCHome(ctx context.Context, id string) (*model.Item
 	if err != nil {
 		return nil, err
 	}
-	s.logEvent(ctx, id, "edc_returned_home", nil)
+	s.logEvent(ctx, id, "essentials_returned_home", nil)
 	return s.Get(ctx, id)
 }
 
-func (s *ItemService) PackEDCAll(ctx context.Context, locationID string) (int, error) {
+func (s *ItemService) PackEssentialsAll(ctx context.Context, locationID string) (int, error) {
 	if locationID == "" {
 		return 0, errors.New("location_id required")
 	}
@@ -669,7 +669,7 @@ func (s *ItemService) PackEDCAll(ctx context.Context, locationID string) (int, e
 	res, err := s.db.ExecContext(ctx, `
 		UPDATE items
 		SET location_id = ?, current_status_tag = 'away', updated_at = ?
-		WHERE type = 'edc'
+		WHERE type = 'essentials'
 		  AND status = 'in_stock'
 		  AND (home_base_location_id IS NULL OR location_id = home_base_location_id)`,
 		locationID, now,
@@ -681,12 +681,12 @@ func (s *ItemService) PackEDCAll(ctx context.Context, locationID string) (int, e
 	return int(n), nil
 }
 
-func (s *ItemService) ReturnEDCAll(ctx context.Context) (int, error) {
+func (s *ItemService) ReturnEssentialsAll(ctx context.Context) (int, error) {
 	now := time.Now().Unix()
 	res, err := s.db.ExecContext(ctx, `
 		UPDATE items
 		SET location_id = home_base_location_id, current_status_tag = NULL, updated_at = ?
-		WHERE type = 'edc'
+		WHERE type = 'essentials'
 		  AND status = 'in_stock'
 		  AND home_base_location_id IS NOT NULL
 		  AND location_id != home_base_location_id`,
@@ -839,7 +839,7 @@ func (s *ItemService) UseOne(ctx context.Context, id string) (*model.Item, error
 	if err != nil {
 		return nil, err
 	}
-	if cur.Type != model.ItemTypeConsumableB {
+	if cur.Type != model.ItemTypeTrackedSpares {
 		return nil, ErrInvalidItemType
 	}
 
@@ -897,7 +897,7 @@ func (s *ItemService) CreatePurchaseEvent(ctx context.Context, itemID string, in
 	if err != nil {
 		return nil, err
 	}
-	if item.Type != model.ItemTypeConsumableA {
+	if item.Type != model.ItemTypePredictiveSupplies {
 		return nil, ErrInvalidItemType
 	}
 	if in.Quantity <= 0 {
@@ -927,7 +927,7 @@ func (s *ItemService) ListPurchaseEvents(ctx context.Context, itemID string) ([]
 	if err != nil {
 		return nil, nil, err
 	}
-	if item.Type != model.ItemTypeConsumableA {
+	if item.Type != model.ItemTypePredictiveSupplies {
 		return nil, nil, ErrInvalidItemType
 	}
 
@@ -961,7 +961,7 @@ func (s *ItemService) CreateCalibrationEvent(ctx context.Context, itemID string,
 	if err != nil {
 		return nil, err
 	}
-	if item.Type != model.ItemTypeConsumableA {
+	if item.Type != model.ItemTypePredictiveSupplies {
 		return nil, ErrInvalidItemType
 	}
 	if signal != "almost_empty" && signal != "plenty_left" {
@@ -988,7 +988,7 @@ func (s *ItemService) ListCalibrationEvents(ctx context.Context, itemID string) 
 	if err != nil {
 		return nil, err
 	}
-	if item.Type != model.ItemTypeConsumableA {
+	if item.Type != model.ItemTypePredictiveSupplies {
 		return nil, ErrInvalidItemType
 	}
 
@@ -1014,7 +1014,7 @@ func (s *ItemService) ListCalibrationEvents(ctx context.Context, itemID string) 
 }
 
 func applyConsumableDerivedFields(item *model.Item) {
-	if item.Type != model.ItemTypeConsumableB {
+	if item.Type != model.ItemTypeTrackedSpares {
 		return
 	}
 

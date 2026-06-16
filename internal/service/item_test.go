@@ -239,7 +239,7 @@ func TestItemUpdateRejectsInvalidStatus(t *testing.T) {
 	}
 }
 
-func TestConsumableBUseOneDecrementsStockAndCreatesLifeReminder(t *testing.T) {
+func TestTrackedSparesUseOneDecrementsStockAndCreatesLifeReminder(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)
 	svc := NewItemService(database)
@@ -250,14 +250,14 @@ func TestConsumableBUseOneDecrementsStockAndCreatesLifeReminder(t *testing.T) {
 	lifespanDays := 180
 	item, err := svc.Create(ctx, ItemCreateInput{
 		Name:              "净水器滤芯",
-		Type:              model.ItemTypeConsumableB,
+		Type:              model.ItemTypeTrackedSpares,
 		LocationID:        &locID,
 		CurrentStock:      &stock,
 		MinStockThreshold: &threshold,
 		LifespanDays:      &lifespanDays,
 	})
 	if err != nil {
-		t.Fatalf("create consumable b item: %v", err)
+		t.Fatalf("create tracked spares item: %v", err)
 	}
 
 	used, err := svc.UseOne(ctx, item.ID)
@@ -298,7 +298,7 @@ func TestConsumableBUseOneDecrementsStockAndCreatesLifeReminder(t *testing.T) {
 	}
 }
 
-func TestUseOneRejectsNonConsumableBItems(t *testing.T) {
+func TestUseOneRejectsNonTrackedSparesItems(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)
 	svc := NewItemService(database)
@@ -319,7 +319,7 @@ func TestUseOneRejectsNonConsumableBItems(t *testing.T) {
 	}
 }
 
-func TestConsumableAPurchaseEventsAndCalibrationSignals(t *testing.T) {
+func TestPredictiveSuppliesPurchaseEventsAndCalibrationSignals(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)
 	svc := NewItemService(database)
@@ -327,11 +327,11 @@ func TestConsumableAPurchaseEventsAndCalibrationSignals(t *testing.T) {
 
 	item, err := svc.Create(ctx, ItemCreateInput{
 		Name:       "咖啡豆",
-		Type:       model.ItemTypeConsumableA,
+		Type:       model.ItemTypePredictiveSupplies,
 		LocationID: &locID,
 	})
 	if err != nil {
-		t.Fatalf("create consumable a item: %v", err)
+		t.Fatalf("create predictive supplies item: %v", err)
 	}
 
 	price := 88.5
@@ -381,7 +381,7 @@ func TestConsumableAPurchaseEventsAndCalibrationSignals(t *testing.T) {
 	}
 }
 
-func TestEDCStatusCanSwitchToDynamicNodeAndReturnHome(t *testing.T) {
+func TestEssentialsStatusCanSwitchToDynamicNodeAndReturnHome(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)
 	svc := NewItemService(database)
@@ -390,23 +390,23 @@ func TestEDCStatusCanSwitchToDynamicNodeAndReturnHome(t *testing.T) {
 
 	item, err := svc.Create(ctx, ItemCreateInput{
 		Name:               "钥匙",
-		Type:               model.ItemTypeEDC,
+		Type:               model.ItemTypeEssentials,
 		LocationID:         &homeID,
 		HomeBaseLocationID: &homeID,
 	})
 	if err != nil {
-		t.Fatalf("create edc item: %v", err)
+		t.Fatalf("create essentials item: %v", err)
 	}
 	if item.HomeBaseLocationID == nil || *item.HomeBaseLocationID != homeID {
 		t.Fatalf("expected home base %s, got %#v", homeID, item.HomeBaseLocationID)
 	}
 
-	withStatus, err := svc.SetEDCStatus(ctx, item.ID, EDCStatusInput{
+	withStatus, err := svc.SetEssentialsStatus(ctx, item.ID, EssentialsStatusInput{
 		CurrentStatusTag: "@随身",
 		LocationID:       &awayID,
 	})
 	if err != nil {
-		t.Fatalf("set edc status: %v", err)
+		t.Fatalf("set essentials status: %v", err)
 	}
 	if withStatus.CurrentStatusTag == nil || *withStatus.CurrentStatusTag != "@随身" {
 		t.Fatalf("expected @随身 status, got %#v", withStatus.CurrentStatusTag)
@@ -415,9 +415,9 @@ func TestEDCStatusCanSwitchToDynamicNodeAndReturnHome(t *testing.T) {
 		t.Fatalf("expected current location %s, got %#v", awayID, withStatus.LocationID)
 	}
 
-	returned, err := svc.ReturnEDCHome(ctx, item.ID)
+	returned, err := svc.ReturnEssentialsHome(ctx, item.ID)
 	if err != nil {
-		t.Fatalf("return edc home: %v", err)
+		t.Fatalf("return essentials home: %v", err)
 	}
 	if returned.CurrentStatusTag != nil {
 		t.Fatalf("expected current status cleared, got %#v", returned.CurrentStatusTag)

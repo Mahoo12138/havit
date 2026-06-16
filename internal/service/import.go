@@ -329,8 +329,8 @@ func parseDate(s string) (int64, error) {
 
 func validItemType(t string) bool {
 	switch model.ItemType(t) {
-	case model.ItemTypeDurable, model.ItemTypeConsumableA, model.ItemTypeConsumableB,
-		model.ItemTypeEDC, model.ItemTypeVirtual:
+	case model.ItemTypeDurable, model.ItemTypePredictiveSupplies, model.ItemTypeTrackedSpares,
+		model.ItemTypeEssentials, model.ItemTypeVirtual:
 		return true
 	}
 	return false

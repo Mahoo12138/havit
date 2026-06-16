@@ -912,6 +912,7 @@
     "username": "Username",
     "password": "Password",
     "loginFailed": "Invalid username or password",
+    "sessionExpired": "Session expired, please log in again",
     "loginSubtitle": "Full asset ledger for individuals and families",
     "loggingIn": "Logging in…",
     "demoHint": "Demo mode active. Test credentials are pre-filled.",

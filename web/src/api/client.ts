@@ -33,6 +33,10 @@ export const api = ky.create({
       (_req, _opt, res) => {
         if (res.status === 401) {
           clearToken();
+          const path = window.location.pathname;
+          if (path !== '/login' && path !== '/setup') {
+            window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
+          }
         }
       },
     ],

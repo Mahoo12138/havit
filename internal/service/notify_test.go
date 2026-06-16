@@ -17,7 +17,7 @@ func TestNotifyProcessDueSendsWebhookAndMarksReminderSent(t *testing.T) {
 
 	if _, err := database.ExecContext(ctx,
 		`INSERT INTO items (id, name, type, status, is_private, created_at, updated_at)
-		 VALUES ('item-1', '滤芯', 'consumable_b', 'in_stock', 0, 1, 1)`); err != nil {
+		 VALUES ('item-1', '滤芯', 'tracked_spares', 'in_stock', 0, 1, 1)`); err != nil {
 		t.Fatalf("insert item: %v", err)
 	}
 	reminderID := ulid.Make().String()

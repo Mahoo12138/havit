@@ -193,7 +193,7 @@ func (p *OpenAIProvider) ParseSearchQuery(ctx context.Context, query string) (*S
   "sort_dir": "desc"
 }
 允许的 status: in_stock, borrowed, idle, for_sale, sold, given_away, lost, stolen, unreturned, damaged, archived。
-允许的 type: durable, consumable_a, consumable_b, edc, virtual。
+允许的 type: durable, predictive_supplies, tracked_spares, essentials, virtual。
 time_filter.value/value2 使用 Unix 秒。
 今天的 Unix 秒是 %d。
 用户查询：%q`, time.Now().Unix(), query),

@@ -27,16 +27,16 @@ func (h *ItemHandler) Mount(r chi.Router) {
 		r.Get("/graveyard", h.graveyard)
 		r.Get("/loss-records", h.lossRecords)
 		r.Post("/", h.create)
-		r.Post("/edc/pack-all", h.packEDCAll)
-		r.Post("/edc/return-all", h.returnEDCAll)
+		r.Post("/essentials/pack-all", h.packEssentialsAll)
+		r.Post("/essentials/return-all", h.returnEssentialsAll)
 		r.Get("/{id}", h.get)
 		r.Patch("/{id}", h.update)
 		r.Delete("/{id}", h.archive)
 		r.Post("/{id}/exit", h.exit)
 		r.Get("/{id}/claim-pdf", h.claimPDF)
 		r.Post("/{id}/use-one", h.useOne)
-		r.Post("/{id}/edc-status", h.setEDCStatus)
-		r.Post("/{id}/return-home", h.returnEDCHome)
+		r.Post("/{id}/essentials-status", h.setEssentialsStatus)
+		r.Post("/{id}/return-home", h.returnEssentialsHome)
 		r.Get("/{id}/purchase-events", h.listPurchaseEvents)
 		r.Post("/{id}/purchase-events", h.createPurchaseEvent)
 		r.Get("/{id}/calibration-events", h.listCalibrationEvents)
@@ -235,14 +235,14 @@ func (h *ItemHandler) useOne(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, item)
 }
 
-func (h *ItemHandler) setEDCStatus(w http.ResponseWriter, r *http.Request) {
+func (h *ItemHandler) setEssentialsStatus(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	var in service.EDCStatusInput
+	var in service.EssentialsStatusInput
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		writeError(w, http.StatusBadRequest, err)
 		return
 	}
-	item, err := h.svc.SetEDCStatus(r.Context(), id, in)
+	item, err := h.svc.SetEssentialsStatus(r.Context(), id, in)
 	if err != nil {
 		h.writeItemActionError(w, err)
 		return
@@ -250,9 +250,9 @@ func (h *ItemHandler) setEDCStatus(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, item)
 }
 
-func (h *ItemHandler) returnEDCHome(w http.ResponseWriter, r *http.Request) {
+func (h *ItemHandler) returnEssentialsHome(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	item, err := h.svc.ReturnEDCHome(r.Context(), id)
+	item, err := h.svc.ReturnEssentialsHome(r.Context(), id)
 	if err != nil {
 		h.writeItemActionError(w, err)
 		return
@@ -362,7 +362,7 @@ func (h *ItemHandler) writeItemActionError(w http.ResponseWriter, err error) {
 	writeError(w, http.StatusBadRequest, err)
 }
 
-func (h *ItemHandler) packEDCAll(w http.ResponseWriter, r *http.Request) {
+func (h *ItemHandler) packEssentialsAll(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		LocationID string `json:"location_id"`
 	}
@@ -370,7 +370,7 @@ func (h *ItemHandler) packEDCAll(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err)
 		return
 	}
-	n, err := h.svc.PackEDCAll(r.Context(), body.LocationID)
+	n, err := h.svc.PackEssentialsAll(r.Context(), body.LocationID)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err)
 		return
@@ -378,8 +378,8 @@ func (h *ItemHandler) packEDCAll(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"moved": n})
 }
 
-func (h *ItemHandler) returnEDCAll(w http.ResponseWriter, r *http.Request) {
-	n, err := h.svc.ReturnEDCAll(r.Context())
+func (h *ItemHandler) returnEssentialsAll(w http.ResponseWriter, r *http.Request) {
+	n, err := h.svc.ReturnEssentialsAll(r.Context())
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return

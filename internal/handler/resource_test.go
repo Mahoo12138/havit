@@ -190,7 +190,7 @@ func TestExportItemsHTTPFlowDownloadsJSONAndCSV(t *testing.T) {
 
 	createItem := postAuthedJSON(t, router, "/api/v1/items/", token, map[string]any{
 		"name":          "Sony A7M4",
-		"type":          "consumable_b",
+		"type":          "tracked_spares",
 		"location_id":   loc.ID,
 		"serial_number": "SN-A7M4",
 		"current_stock": 2,
@@ -243,7 +243,7 @@ func TestExportItemsHTTPFlowDownloadsJSONAndCSV(t *testing.T) {
 	}
 }
 
-func TestConsumableBUseOneHTTPFlow(t *testing.T) {
+func TestTrackedSparesUseOneHTTPFlow(t *testing.T) {
 	router := newAuthTestRouter(t)
 	token := setupToken(t, router)
 
@@ -257,7 +257,7 @@ func TestConsumableBUseOneHTTPFlow(t *testing.T) {
 
 	createItem := postAuthedJSON(t, router, "/api/v1/items/", token, map[string]any{
 		"name":                "净水器滤芯",
-		"type":                "consumable_b",
+		"type":                "tracked_spares",
 		"location_id":         loc.ID,
 		"current_stock":       1,
 		"min_stock_threshold": 1,
@@ -283,7 +283,7 @@ func TestConsumableBUseOneHTTPFlow(t *testing.T) {
 	}
 }
 
-func TestConsumableAPurchaseAndCalibrationHTTPFlow(t *testing.T) {
+func TestPredictiveSuppliesPurchaseAndCalibrationHTTPFlow(t *testing.T) {
 	router := newAuthTestRouter(t)
 	token := setupToken(t, router)
 
@@ -297,7 +297,7 @@ func TestConsumableAPurchaseAndCalibrationHTTPFlow(t *testing.T) {
 
 	createItem := postAuthedJSON(t, router, "/api/v1/items/", token, map[string]any{
 		"name":        "咖啡豆",
-		"type":        "consumable_a",
+		"type":        "predictive_supplies",
 		"location_id": loc.ID,
 	})
 	if createItem.Code != http.StatusCreated {
@@ -359,7 +359,7 @@ func TestConsumableAPurchaseAndCalibrationHTTPFlow(t *testing.T) {
 	}
 	if !bytes.Contains(jsonExport.Body.Bytes(), []byte(`"purchase_events":[`)) ||
 		!bytes.Contains(jsonExport.Body.Bytes(), []byte(`"calibration_events":[`)) {
-		t.Fatalf("expected export to include consumable a events, got %s", jsonExport.Body.String())
+		t.Fatalf("expected export to include predictive supplies events, got %s", jsonExport.Body.String())
 	}
 }
 
@@ -536,7 +536,7 @@ func TestLocationQRCodeHTTPFlowScansContainedItems(t *testing.T) {
 	}
 }
 
-func TestEDCHTTPFlowSwitchesDynamicStatusAndReturnsHome(t *testing.T) {
+func TestEssentialsHTTPFlowSwitchesDynamicStatusAndReturnsHome(t *testing.T) {
 	router := newAuthTestRouter(t)
 	token := setupToken(t, router)
 
@@ -559,28 +559,28 @@ func TestEDCHTTPFlowSwitchesDynamicStatusAndReturnsHome(t *testing.T) {
 
 	createItem := postAuthedJSON(t, router, "/api/v1/items/", token, map[string]any{
 		"name":                  "钥匙",
-		"type":                  "edc",
+		"type":                  "essentials",
 		"location_id":           home.ID,
 		"home_base_location_id": home.ID,
 	})
 	if createItem.Code != http.StatusCreated {
-		t.Fatalf("expected edc item create 201, got %d: %s", createItem.Code, createItem.Body.String())
+		t.Fatalf("expected essentials item create 201, got %d: %s", createItem.Code, createItem.Body.String())
 	}
 	var item struct {
 		ID string `json:"id"`
 	}
 	decodeJSON(t, createItem, &item)
 
-	setStatus := postAuthedJSON(t, router, "/api/v1/items/"+item.ID+"/edc-status", token, map[string]any{
+	setStatus := postAuthedJSON(t, router, "/api/v1/items/"+item.ID+"/essentials-status", token, map[string]any{
 		"current_status_tag": "@随身",
 		"location_id":        away.ID,
 	})
 	if setStatus.Code != http.StatusOK {
-		t.Fatalf("expected set edc status 200, got %d: %s", setStatus.Code, setStatus.Body.String())
+		t.Fatalf("expected set essentials status 200, got %d: %s", setStatus.Code, setStatus.Body.String())
 	}
 	if !bytes.Contains(setStatus.Body.Bytes(), []byte(`"current_status_tag":"@随身"`)) ||
 		!bytes.Contains(setStatus.Body.Bytes(), []byte(`"location_id":"`+away.ID+`"`)) {
-		t.Fatalf("expected edc status response, got %s", setStatus.Body.String())
+		t.Fatalf("expected essentials status response, got %s", setStatus.Body.String())
 	}
 
 	returnHome := httptest.NewRecorder()
@@ -590,7 +590,7 @@ func TestEDCHTTPFlowSwitchesDynamicStatusAndReturnsHome(t *testing.T) {
 	}
 	if bytes.Contains(returnHome.Body.Bytes(), []byte(`current_status_tag`)) ||
 		!bytes.Contains(returnHome.Body.Bytes(), []byte(`"location_id":"`+home.ID+`"`)) {
-		t.Fatalf("expected edc item returned home, got %s", returnHome.Body.String())
+		t.Fatalf("expected essentials item returned home, got %s", returnHome.Body.String())
 	}
 }
 
@@ -1034,7 +1034,7 @@ func TestBackupHTTPFlowRunsManualBackup(t *testing.T) {
 	}
 }
 
-func TestSearchSSEHTTPFlowReturnsFTSResultsWithEDCHint(t *testing.T) {
+func TestSearchSSEHTTPFlowReturnsFTSResultsWithEssentialsHint(t *testing.T) {
 	router := newAuthTestRouter(t)
 	token := setupToken(t, router)
 
@@ -1057,7 +1057,7 @@ func TestSearchSSEHTTPFlowReturnsFTSResultsWithEDCHint(t *testing.T) {
 
 	createItem := postAuthedJSON(t, router, "/api/v1/items/", token, map[string]any{
 		"name":                  "钥匙",
-		"type":                  "edc",
+		"type":                  "essentials",
 		"location_id":           home.ID,
 		"home_base_location_id": home.ID,
 	})
@@ -1066,7 +1066,7 @@ func TestSearchSSEHTTPFlowReturnsFTSResultsWithEDCHint(t *testing.T) {
 	}
 	decodeJSON(t, createItem, &item)
 
-	setStatus := postAuthedJSON(t, router, "/api/v1/items/"+item.ID+"/edc-status", token, map[string]any{
+	setStatus := postAuthedJSON(t, router, "/api/v1/items/"+item.ID+"/essentials-status", token, map[string]any{
 		"current_status_tag": "@随身",
 		"location_id":        away.ID,
 	})
@@ -1084,7 +1084,7 @@ func TestSearchSSEHTTPFlowReturnsFTSResultsWithEDCHint(t *testing.T) {
 	}
 	if !bytes.Contains(search.Body.Bytes(), []byte("event: fts_results")) ||
 		!bytes.Contains(search.Body.Bytes(), []byte(`"name":"钥匙"`)) ||
-		!bytes.Contains(search.Body.Bytes(), []byte(`"edc_hint":"当前状态：@随身；如果不在身上，请检查基准归宿：玄关"`)) ||
+		!bytes.Contains(search.Body.Bytes(), []byte(`"essentials_hint":"当前状态：@随身；如果不在身上，请检查基准归宿：玄关"`)) ||
 		!bytes.Contains(search.Body.Bytes(), []byte("event: done")) {
 		t.Fatalf("expected fts SSE result with edc hint, got %s", search.Body.String())
 	}

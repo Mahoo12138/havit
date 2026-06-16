@@ -385,7 +385,7 @@ func TestSearchFilterStockLow(t *testing.T) {
 	stock := 3
 	itemSvc.Create(ctx, ItemCreateInput{
 		Name:             "Paper Clips",
-		Type:             model.ItemTypeConsumableB,
+		Type:             model.ItemTypeTrackedSpares,
 		LocationID:       &locID,
 		CurrentStock:     &stock,
 		MinStockThreshold: &stockLow,

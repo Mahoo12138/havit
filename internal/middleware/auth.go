@@ -30,7 +30,7 @@ func Auth(svc *service.AuthService, tokenSvc ...*service.APITokenService) func(h
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tok, err := extractToken(r)
 			if err != nil {
-				writeJSON(w, http.StatusUnauthorized, apperr.ErrInvalidCredentials)
+				writeJSON(w, http.StatusUnauthorized, apperr.ErrSessionExpired)
 				return
 			}
 
@@ -47,14 +47,14 @@ func Auth(svc *service.AuthService, tokenSvc ...*service.APITokenService) func(h
 					next.ServeHTTP(w, r.WithContext(ctx))
 					return
 				}
-				writeJSON(w, http.StatusUnauthorized, apperr.ErrInvalidCredentials)
+				writeJSON(w, http.StatusUnauthorized, apperr.ErrSessionExpired)
 				return
 			}
 
 			// Standard JWT flow.
 			claims, err := svc.Verify(tok)
 			if err != nil {
-				writeJSON(w, http.StatusUnauthorized, apperr.ErrInvalidCredentials)
+				writeJSON(w, http.StatusUnauthorized, apperr.ErrSessionExpired)
 				return
 			}
 			ctx := context.WithValue(r.Context(), claimsKey, claims)

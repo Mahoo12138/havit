@@ -30,6 +30,7 @@ const (
 	CodeSetupClosed         = "setup_closed"
 	CodeUserExists          = "user_exists"
 	CodeInvalidCredentials  = "invalid_credentials"
+	CodeSessionExpired      = "session_expired"
 	CodeAISourceProtected   = "ai_source_protected"
 	CodeValidationFailed    = "validation_failed"
 	CodeFileRequired        = "file_required"
@@ -59,6 +60,8 @@ var (
 	ErrUserExists = New(CodeUserExists, "User already exists", http.StatusBadRequest)
 
 	ErrInvalidCredentials = New(CodeInvalidCredentials, "Invalid username or password", http.StatusUnauthorized)
+
+	ErrSessionExpired = New(CodeSessionExpired, "Session expired, please log in again", http.StatusUnauthorized)
 
 	ErrAISourceProtected = New(CodeAISourceProtected, "AI source attachment cannot be deleted", http.StatusForbidden)
 

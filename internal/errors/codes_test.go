@@ -67,6 +67,7 @@ func TestSentinelErrorCodes(t *testing.T) {
 		{ErrSetupClosed, CodeSetupClosed, http.StatusGone},
 		{ErrUserExists, CodeUserExists, http.StatusBadRequest},
 		{ErrInvalidCredentials, CodeInvalidCredentials, http.StatusUnauthorized},
+		{ErrSessionExpired, CodeSessionExpired, http.StatusUnauthorized},
 		{ErrAISourceProtected, CodeAISourceProtected, http.StatusForbidden},
 		{ErrFileRequired, CodeFileRequired, http.StatusBadRequest},
 		{ErrImageRequired, CodeImageRequired, http.StatusBadRequest},
