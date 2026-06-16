@@ -1,5 +1,7 @@
 package model
 
+import "encoding/json"
+
 type ItemType string
 type ItemStatus string
 type AttachmentType string
@@ -64,6 +66,8 @@ type Item struct {
 	InUseSince        *int64 `json:"in_use_since,omitempty"`
 	NeedsRestock      bool   `json:"needs_restock"`
 	LifeExpiresAt     *int64 `json:"life_expires_at,omitempty"`
+
+	Metadata json.RawMessage `json:"metadata"`
 
 	IsPrivate bool    `json:"is_private"`
 	OwnerID   *string `json:"owner_id,omitempty"`

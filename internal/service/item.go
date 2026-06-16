@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -49,6 +50,7 @@ type ItemCreateInput struct {
 	InUseSince         *int64         `json:"in_use_since,omitempty"`
 	IsPrivate          bool           `json:"is_private,omitempty"`
 	OwnerID            *string        `json:"owner_id,omitempty"`
+	Metadata           json.RawMessage `json:"metadata,omitempty"`
 }
 
 type ItemUpdateInput struct {
@@ -71,6 +73,7 @@ type ItemUpdateInput struct {
 	MinStockThreshold  *int              `json:"min_stock_threshold,omitempty"`
 	LifespanDays       *int              `json:"lifespan_days,omitempty"`
 	InUseSince         *int64            `json:"in_use_since,omitempty"`
+	Metadata           json.RawMessage   `json:"metadata,omitempty"`
 }
 
 type PurchaseEventInput struct {
@@ -135,6 +138,11 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 	now := time.Now().Unix()
 	id := ulid.Make().String()
 
+	metadata := in.Metadata
+	if len(metadata) == 0 || string(metadata) == "null" {
+		metadata = json.RawMessage(`{}`)
+	}
+
 	_, err := s.db.ExecContext(ctx, `
 		INSERT INTO items (
 			id, name, description, category, type, status,
@@ -142,14 +150,15 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 			purchase_price, purchase_currency, purchase_date,
 			purchase_platform, serial_number, warranty_expires_at, warranty_contact,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
-			is_private, owner_id, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, 'in_stock', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			is_private, owner_id, metadata, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, 'in_stock', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		id, in.Name, in.Description, in.Category, in.Type,
 		in.LocationID, in.HomeBaseLocationID, in.CurrentStatusTag,
 		in.PurchasePrice, in.PurchaseCurrency, in.PurchaseDate,
 		in.PurchasePlatform, in.SerialNumber, in.WarrantyExpiresAt, in.WarrantyContact,
 		in.CurrentStock, in.MinStockThreshold, in.LifespanDays, in.InUseSince,
 		in.IsPrivate, in.OwnerID,
+		string(metadata),
 		now, now,
 	)
 	if err != nil {
@@ -180,11 +189,12 @@ func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
 			warranty_expires_at, serial_number, warranty_contact,
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
-			is_private, owner_id, created_at, updated_at
+			metadata, is_private, owner_id, created_at, updated_at
 		FROM items WHERE id = ?`, id)
 
 	var it model.Item
 	var isPrivate int
+	var metadata string
 	if err := row.Scan(
 		&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
 		&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag, &it.ParentItemID,
@@ -192,7 +202,7 @@ func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
 		&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
 		&it.ExitType, &it.ExitDate, &it.ExitPrice, &it.ExitCurrency, &it.ExitNotes,
 		&it.CurrentStock, &it.MinStockThreshold, &it.LifespanDays, &it.InUseSince,
-		&isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
+		&metadata, &isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
 	); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
@@ -200,6 +210,7 @@ func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
 		return nil, err
 	}
 	it.IsPrivate = isPrivate != 0
+	it.Metadata = json.RawMessage(metadata)
 	applyConsumableDerivedFields(&it)
 	if err := s.loadTags(ctx, &it); err != nil {
 		return nil, err
@@ -269,7 +280,7 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 			warranty_expires_at, serial_number, warranty_contact,
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
-			is_private, owner_id, created_at, updated_at
+			metadata, is_private, owner_id, created_at, updated_at
 		FROM items WHERE %s
 		ORDER BY updated_at DESC
 		LIMIT ? OFFSET ?`, where)
@@ -284,6 +295,7 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 	for rows.Next() {
 		var it model.Item
 		var isPrivate int
+		var metadata string
 		if err := rows.Scan(
 			&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
 			&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag,
@@ -291,11 +303,12 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 			&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
 			&it.ExitType, &it.ExitDate, &it.ExitPrice, &it.ExitCurrency, &it.ExitNotes,
 			&it.CurrentStock, &it.MinStockThreshold, &it.LifespanDays, &it.InUseSince,
-			&isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
+			&metadata, &isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
 		it.IsPrivate = isPrivate != 0
+		it.Metadata = json.RawMessage(metadata)
 		applyConsumableDerivedFields(&it)
 		out = append(out, &it)
 	}
@@ -325,7 +338,7 @@ func (s *ItemService) WarrantyItems(ctx context.Context, f WarrantyListFilter) (
 			purchase_price, purchase_currency, purchase_date, purchase_platform,
 			warranty_expires_at, serial_number, warranty_contact,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
-			is_private, owner_id, created_at, updated_at
+			metadata, is_private, owner_id, created_at, updated_at
 		FROM items WHERE %s
 		ORDER BY warranty_expires_at ASC, name ASC`, where), args...)
 	if err != nil {
@@ -337,17 +350,19 @@ func (s *ItemService) WarrantyItems(ctx context.Context, f WarrantyListFilter) (
 	for rows.Next() {
 		var it model.Item
 		var isPrivate int
+		var metadata string
 		if err := rows.Scan(
 			&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
 			&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag,
 			&it.PurchasePrice, &it.PurchaseCurrency, &it.PurchaseDate, &it.PurchasePlatform,
 			&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
 			&it.CurrentStock, &it.MinStockThreshold, &it.LifespanDays, &it.InUseSince,
-			&isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
+			&metadata, &isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
 		it.IsPrivate = isPrivate != 0
+		it.Metadata = json.RawMessage(metadata)
 		applyConsumableDerivedFields(&it)
 		out = append(out, &it)
 	}
@@ -386,7 +401,7 @@ func (s *ItemService) Graveyard(ctx context.Context) ([]*model.Item, error) {
 			warranty_expires_at, serial_number, warranty_contact,
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
-			is_private, owner_id, created_at, updated_at
+			metadata, is_private, owner_id, created_at, updated_at
 		FROM items
 		WHERE status IN (%s)
 		ORDER BY COALESCE(exit_date, updated_at) DESC, name ASC`, placeholders), args...)
@@ -399,6 +414,7 @@ func (s *ItemService) Graveyard(ctx context.Context) ([]*model.Item, error) {
 	for rows.Next() {
 		var it model.Item
 		var isPrivate int
+		var metadata string
 		if err := rows.Scan(
 			&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
 			&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag,
@@ -406,11 +422,12 @@ func (s *ItemService) Graveyard(ctx context.Context) ([]*model.Item, error) {
 			&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
 			&it.ExitType, &it.ExitDate, &it.ExitPrice, &it.ExitCurrency, &it.ExitNotes,
 			&it.CurrentStock, &it.MinStockThreshold, &it.LifespanDays, &it.InUseSince,
-			&isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
+			&metadata, &isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
 		it.IsPrivate = isPrivate != 0
+		it.Metadata = json.RawMessage(metadata)
 		applyConsumableDerivedFields(&it)
 		out = append(out, &it)
 	}
@@ -544,8 +561,15 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 	if in.InUseSince != nil {
 		cur.InUseSince = in.InUseSince
 	}
+	if len(in.Metadata) > 0 {
+		cur.Metadata = in.Metadata
+	}
 
 	now := time.Now().Unix()
+	metadataStr := string(cur.Metadata)
+	if metadataStr == "" {
+		metadataStr = "{}"
+	}
 	_, err = s.db.ExecContext(ctx, `
 		UPDATE items SET
 			name = ?, description = ?, category = ?, type = ?, status = ?,
@@ -553,14 +577,14 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 			purchase_price = ?, purchase_currency = ?, purchase_date = ?, purchase_platform = ?,
 			serial_number = ?, warranty_expires_at = ?, warranty_contact = ?,
 			current_stock = ?, min_stock_threshold = ?, lifespan_days = ?, in_use_since = ?,
-			updated_at = ?
+			metadata = ?, updated_at = ?
 		WHERE id = ?`,
 		cur.Name, cur.Description, cur.Category, cur.Type, cur.Status,
 		cur.LocationID, cur.HomeBaseLocationID, cur.CurrentStatusTag,
 		cur.PurchasePrice, cur.PurchaseCurrency, cur.PurchaseDate, cur.PurchasePlatform,
 		cur.SerialNumber, cur.WarrantyExpiresAt, cur.WarrantyContact,
 		cur.CurrentStock, cur.MinStockThreshold, cur.LifespanDays, cur.InUseSince,
-		now, id,
+		metadataStr, now, id,
 	)
 	if err != nil {
 		return nil, err
@@ -683,7 +707,7 @@ func (s *ItemService) ListContents(ctx context.Context, containerID string) ([]*
 			warranty_expires_at, serial_number, warranty_contact,
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
-			is_private, owner_id, created_at, updated_at
+			metadata, is_private, owner_id, created_at, updated_at
 		FROM items WHERE parent_item_id = ?
 		ORDER BY name ASC`, containerID)
 	if err != nil {
@@ -694,6 +718,7 @@ func (s *ItemService) ListContents(ctx context.Context, containerID string) ([]*
 	for rows.Next() {
 		var it model.Item
 		var isPrivate int
+		var metadata string
 		if err := rows.Scan(
 			&it.ID, &it.Name, &it.Description, &it.Category, &it.Type, &it.Status,
 			&it.LocationID, &it.HomeBaseLocationID, &it.CurrentStatusTag,
@@ -701,11 +726,12 @@ func (s *ItemService) ListContents(ctx context.Context, containerID string) ([]*
 			&it.WarrantyExpiresAt, &it.SerialNumber, &it.WarrantyContact,
 			&it.ExitType, &it.ExitDate, &it.ExitPrice, &it.ExitCurrency, &it.ExitNotes,
 			&it.CurrentStock, &it.MinStockThreshold, &it.LifespanDays, &it.InUseSince,
-			&isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
+			&metadata, &isPrivate, &it.OwnerID, &it.CreatedAt, &it.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
 		it.IsPrivate = isPrivate != 0
+		it.Metadata = json.RawMessage(metadata)
 		applyConsumableDerivedFields(&it)
 		out = append(out, &it)
 	}

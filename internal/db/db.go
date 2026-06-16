@@ -95,6 +95,7 @@ func Migrate(d *sql.DB) error {
 	// Ensure columns added by later schema revisions exist on older databases.
 	ensureColumn(d, "items", "parent_item_id", "TEXT REFERENCES items(id)")
 	ensureIndex(d, "idx_items_parent", "items(parent_item_id)")
+	ensureColumn(d, "items", "metadata", "TEXT NOT NULL DEFAULT '{}'")
 
 	return nil
 }
