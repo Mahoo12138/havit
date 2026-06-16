@@ -229,51 +229,51 @@ function AssetsPage() {
         <Spinner />
       ) : (
         <>
-          <div className={uiStyles.edcStatsRow}>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.blue}>
+          <div className={uiStyles.essentialsStatsRow}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.blue}>
                 <IconPackage size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('assets.totalAssets')}</span>
-                <strong className={uiStyles.edcStatValue}>{stats.total}</strong>
-                <span className={uiStyles.edcStatNote}>{t('assets.totalAssetsHint')}</span>
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('assets.totalAssets')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{stats.total}</strong>
+                <span className={uiStyles.essentialsStatNote}>{t('assets.totalAssetsHint')}</span>
               </div>
             </div>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.green}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.green}>
                 <IconMapPin size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('assets.inUseCount')}</span>
-                <strong className={uiStyles.edcStatValue}>{stats.inUse}</strong>
-                <span className={uiStyles.edcStatNote}>{t('assets.inUseCountHint')}</span>
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('assets.inUseCount')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{stats.inUse}</strong>
+                <span className={uiStyles.essentialsStatNote}>{t('assets.inUseCountHint')}</span>
               </div>
             </div>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.orange}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.orange}>
                 <IconShieldCheck size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('assets.underWarranty')}</span>
-                <strong className={uiStyles.edcStatValue}>{stats.warrantyActive}</strong>
-                <span className={uiStyles.edcStatNote}>{t('assets.underWarrantyHint')}</span>
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('assets.underWarranty')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{stats.warrantyActive}</strong>
+                <span className={uiStyles.essentialsStatNote}>{t('assets.underWarrantyHint')}</span>
               </div>
             </div>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.gray}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.gray}>
                 <IconAlertTriangle size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('assets.needsAttention')}</span>
-                <strong className={uiStyles.edcStatValue}>{stats.warrantyExpiring}</strong>
-                <span className={uiStyles.edcStatNote}>{t('assets.needsAttentionHint')}</span>
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('assets.needsAttention')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{stats.warrantyExpiring}</strong>
+                <span className={uiStyles.essentialsStatNote}>{t('assets.needsAttentionHint')}</span>
               </div>
             </div>
           </div>
 
-          <div className={uiStyles.edcMainLayout}>
-            <div className={uiStyles.edcMainContent}>
+          <div className={uiStyles.essentialsMainLayout}>
+            <div className={uiStyles.essentialsMainContent}>
               <Card className="surface-card" padded={false}>
                 <div className={uiStyles.sectionHead}>
                   <div className={uiStyles.vaFilterRow}>
@@ -309,9 +309,9 @@ function AssetsPage() {
                       </select>
                     </div>
                     <div className={uiStyles.vaFilterRowRight}>
-                      <div className={uiStyles.edcViewToggle}>
+                      <div className={uiStyles.essentialsViewToggle}>
                         <button
-                          className={uiStyles.edcViewToggleBtn}
+                          className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'list' || undefined}
                           onClick={() => setViewMode('list')}
                         >
@@ -319,7 +319,7 @@ function AssetsPage() {
                           {t('assets.listView')}
                         </button>
                         <button
-                          className={uiStyles.edcViewToggleBtn}
+                          className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'cards' || undefined}
                           onClick={() => setViewMode('cards')}
                         >
@@ -379,7 +379,7 @@ function AssetsPage() {
                                 </span>
                               </td>
                               <td className={uiStyles.vaTableCell}>
-                                <span className={uiStyles.consumableStatusBadge[item.status === 'in_use' ? 'normal' : item.status === 'maintenance' ? 'low' : 'sufficient']}>
+                                <span className={uiStyles.supplyStatusBadge[item.status === 'in_use' ? 'normal' : item.status === 'maintenance' ? 'low' : 'sufficient']}>
                                   {t(`status.${item.status}`, item.status)}
                                 </span>
                               </td>
@@ -553,42 +553,42 @@ function AssetsPage() {
               </Card>
             </div>
 
-            <div className={uiStyles.edcSidebar}>
+            <div className={uiStyles.essentialsSidebar}>
               <Card className="surface-card">
                 <div className={uiStyles.sectionHead}>
                   <h3 className={uiStyles.sectionTitle}>{t('assets.quickActions')}</h3>
                 </div>
                 <div className={uiStyles.sectionBodyTight}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <div className={uiStyles.edcQuickAction}>
-                      <div className={uiStyles.edcQuickActionIcon}>
+                    <div className={uiStyles.essentialsQuickAction}>
+                      <div className={uiStyles.essentialsQuickActionIcon}>
                         <IconPlus size={16} />
                       </div>
-                      <div className={uiStyles.edcQuickActionMeta}>
-                        <span className={uiStyles.edcQuickActionTitle}>{t('assets.addAsset')}</span>
-                        <span className={uiStyles.edcQuickActionHint}>{t('assets.addAssetHint')}</span>
+                      <div className={uiStyles.essentialsQuickActionMeta}>
+                        <span className={uiStyles.essentialsQuickActionTitle}>{t('assets.addAsset')}</span>
+                        <span className={uiStyles.essentialsQuickActionHint}>{t('assets.addAssetHint')}</span>
                       </div>
-                      <IconChevronRight size={16} className={uiStyles.edcQuickActionArrow} />
+                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
                     </div>
-                    <div className={uiStyles.edcQuickAction}>
-                      <div className={uiStyles.edcQuickActionIcon}>
+                    <div className={uiStyles.essentialsQuickAction}>
+                      <div className={uiStyles.essentialsQuickActionIcon}>
                         <IconPrinter size={16} />
                       </div>
-                      <div className={uiStyles.edcQuickActionMeta}>
-                        <span className={uiStyles.edcQuickActionTitle}>{t('assets.printQR')}</span>
-                        <span className={uiStyles.edcQuickActionHint}>{t('assets.printQRHint')}</span>
+                      <div className={uiStyles.essentialsQuickActionMeta}>
+                        <span className={uiStyles.essentialsQuickActionTitle}>{t('assets.printQR')}</span>
+                        <span className={uiStyles.essentialsQuickActionHint}>{t('assets.printQRHint')}</span>
                       </div>
-                      <IconChevronRight size={16} className={uiStyles.edcQuickActionArrow} />
+                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
                     </div>
-                    <div className={uiStyles.edcQuickAction}>
-                      <div className={uiStyles.edcQuickActionIcon}>
+                    <div className={uiStyles.essentialsQuickAction}>
+                      <div className={uiStyles.essentialsQuickActionIcon}>
                         <IconQrcode size={16} />
                       </div>
-                      <div className={uiStyles.edcQuickActionMeta}>
-                        <span className={uiStyles.edcQuickActionTitle}>{t('assets.locationScan')}</span>
-                        <span className={uiStyles.edcQuickActionHint}>{t('assets.locationScanHint')}</span>
+                      <div className={uiStyles.essentialsQuickActionMeta}>
+                        <span className={uiStyles.essentialsQuickActionTitle}>{t('assets.locationScan')}</span>
+                        <span className={uiStyles.essentialsQuickActionHint}>{t('assets.locationScanHint')}</span>
                       </div>
-                      <IconChevronRight size={16} className={uiStyles.edcQuickActionArrow} />
+                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
                     </div>
                   </div>
                 </div>
@@ -607,11 +607,11 @@ function AssetsPage() {
                     warrantyAlerts.map((item) => {
                       const ws = getWarrantyStatus(item);
                       return (
-                        <div className={uiStyles.edcReminderItem} key={item.id}>
-                          <div className={ws === 'expired' ? uiStyles.edcReminderDotWarn : uiStyles.edcReminderDot} />
-                          <div className={uiStyles.edcReminderMeta}>
-                            <span className={uiStyles.edcReminderTitle}>{item.name}</span>
-                            <span className={uiStyles.edcReminderSub}>
+                        <div className={uiStyles.essentialsReminderItem} key={item.id}>
+                          <div className={ws === 'expired' ? uiStyles.essentialsReminderDotWarn : uiStyles.essentialsReminderDot} />
+                          <div className={uiStyles.essentialsReminderMeta}>
+                            <span className={uiStyles.essentialsReminderTitle}>{item.name}</span>
+                            <span className={uiStyles.essentialsReminderSub}>
                               {ws === 'expired' ? t('assets.warrantyExpired') : t('assets.warrantyExpiringSoon')}
                               {item.warranty_expires_at ? ` · ${formatDate(item.warranty_expires_at)}` : ''}
                             </span>

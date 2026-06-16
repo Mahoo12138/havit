@@ -1,9 +1,9 @@
-import type {
+﻿import type {
   BackupRun,
   CaptureDraft,
-  ConsumableForecast,
+  SupplyForecast,
   CredentialRecord,
-  EDCAsset,
+  EssentialsAsset,
   ExportPreset,
   LifecycleRecord,
   LoanRecord,
@@ -56,9 +56,9 @@ export const searchResults: SearchResultHint[] = [
   {
     itemName: 'AirPods Pro',
     locationPath: '玄关 → 每日托盘',
-    status: 'edc_away',
-    hint: 'EDC 状态为 @随身，优先检查背包外层口袋。',
-    tags: ['EDC', '通勤', '音频'],
+    status: 'essentials_away',
+    hint: '随身常备状态为 @随身，优先检查背包外层口袋。',
+    tags: ['随身常备', '通勤', '音频'],
   },
   {
     itemName: 'Nikon 50mm F1.8',
@@ -76,9 +76,9 @@ export const searchResults: SearchResultHint[] = [
   },
 ];
 
-export const consumables: ConsumableForecast[] = [
+export const supplies: SupplyForecast[] = [
   {
-    id: 'consumable-1',
+    id: 'supply-1',
     name: '厨房纸巾',
     model: 'event_forecast',
     stock: 9,
@@ -89,7 +89,7 @@ export const consumables: ConsumableForecast[] = [
     lastSignal: '最近一次购买 12 卷，预测消耗稳定。',
   },
   {
-    id: 'consumable-2',
+    id: 'supply-2',
     name: '净水器滤芯',
     model: 'counter',
     stock: 1,
@@ -100,7 +100,7 @@ export const consumables: ConsumableForecast[] = [
     lastSignal: '已更换后进入 180 天寿命倒计时。',
   },
   {
-    id: 'consumable-3',
+    id: 'supply-3',
     name: '猫砂',
     model: 'event_forecast',
     stock: 2,
@@ -111,9 +111,9 @@ export const consumables: ConsumableForecast[] = [
   },
 ];
 
-export const edcAssets: EDCAsset[] = [
+export const essentialsAssets: EssentialsAsset[] = [
   {
-    id: 'edc-1',
+    id: 'essentials-1',
     name: '钥匙串',
     baselineLocation: '玄关 → 每日托盘',
     dynamicState: '@carry',
@@ -121,7 +121,7 @@ export const edcAssets: EDCAsset[] = [
     searchHint: '当前在随身状态，搜索时不展示基准位置。',
   },
   {
-    id: 'edc-2',
+    id: 'essentials-2',
     name: '移动电源',
     baselineLocation: '书房 → 充电抽屉',
     dynamicState: '@travel_bag',
@@ -129,7 +129,7 @@ export const edcAssets: EDCAsset[] = [
     searchHint: '优先提示出差包，回家后一键归位。',
   },
   {
-    id: 'edc-3',
+    id: 'essentials-3',
     name: 'AirTag 备用电池',
     baselineLocation: '玄关 → 备件盒',
     dynamicState: '@home',

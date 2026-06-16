@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { Card, Spinner, Stack, Tabs, uiStyles } from '../components/ui';
 import { DataCard, FeatureHeader, MetricStrip } from '../features/m2/components';
-import { itemsExtendedApi, itemsApi, virtualAssetsApi, type VirtualCredential } from '../api/client';
+import { suppliesExtendedApi, itemsApi, virtualAssetsApi, type VirtualCredential } from '../api/client';
 
 export const Route = createFileRoute('/credentials')({
   component: CredentialsPage,
@@ -16,7 +16,7 @@ function CredentialsPage() {
 
   const { data: warrantyData, isLoading: warrantyLoading } = useQuery({
     queryKey: ['items', 'warranty'],
-    queryFn: () => itemsExtendedApi.warranty(),
+    queryFn: () => suppliesExtendedApi.warranty(),
     enabled: tab === 'warranty',
   });
 

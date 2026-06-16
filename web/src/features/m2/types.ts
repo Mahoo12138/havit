@@ -1,8 +1,8 @@
 export type ItemKind =
   | 'durable'
-  | 'consumable_a'
-  | 'consumable_b'
-  | 'edc'
+  | 'predictive_supplies'
+  | 'tracked_spares'
+  | 'essentials'
   | 'virtual';
 
 export type AssetStatus =
@@ -35,12 +35,12 @@ export interface CaptureDraft {
 export interface SearchResultHint {
   itemName: string;
   locationPath: string;
-  status: AssetStatus | 'edc_away';
+  status: AssetStatus | 'essentials_away';
   hint: string;
   tags: string[];
 }
 
-export interface ConsumableForecast {
+export interface SupplyForecast {
   id: string;
   name: string;
   model: 'event_forecast' | 'counter';
@@ -52,7 +52,7 @@ export interface ConsumableForecast {
   lastSignal: string;
 }
 
-export interface EDCAsset {
+export interface EssentialsAsset {
   id: string;
   name: string;
   baselineLocation: string;

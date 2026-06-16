@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
@@ -28,14 +28,14 @@ import {
   uiStyles,
   useToast,
 } from '../components/ui';
-import { edcBulkApi, itemsApi, itemsExtendedApi, locationsApi } from '../api/client';
+import { essentialsBulkApi, itemsApi, suppliesExtendedApi, locationsApi } from '../api/client';
 
-export const Route = createFileRoute('/edc')({
-  component: EDCPage,
+export const Route = createFileRoute('/essentials')({
+  component: EssentialsPage,
 });
 
 type ViewMode = 'list' | 'cards';
-type EdcTab = 'myEdc' | 'departure' | 'returnLog' | 'dynamicNodes';
+type EssentialsTab = 'myEssentials' | 'departure' | 'returnLog' | 'dynamicNodes';
 
 interface Item {
   id: string;
@@ -59,10 +59,10 @@ function getStatusType(item: Item): 'carry' | 'bag' | 'home' | 'away' {
 
 function getStatusLabel(t: ReturnType<typeof useTranslation>['t'], item: Item): string {
   const type = getStatusType(item);
-  if (type === 'carry') return t('edc.carry');
-  if (type === 'bag') return t('edc.travelBag');
-  if (type === 'home') return t('edc.homeBaseShort');
-  return t('edc.notOnPersonShort');
+  if (type === 'carry') return t('essentials.carry');
+  if (type === 'bag') return t('essentials.travelBag');
+  if (type === 'home') return t('essentials.homeBaseShort');
+  return t('essentials.notOnPersonShort');
 }
 
 function DonutChart({
@@ -131,19 +131,19 @@ function DonutChart({
   );
 }
 
-function EDCPage() {
+function EssentialsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [packDialogOpen, setPackDialogOpen] = useState(false);
   const [selectedLocationId, setSelectedLocationId] = useState('');
-  const [activeTab, setActiveTab] = useState<EdcTab>('myEdc');
+  const [activeTab, setActiveTab] = useState<EssentialsTab>('myEssentials');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [statusFilter, setStatusFilter] = useState('all');
 
   const { data, isLoading } = useQuery({
-    queryKey: ['items', 'edc'],
-    queryFn: () => itemsApi.list({ type: 'edc' }),
+    queryKey: ['items', 'essentials'],
+    queryFn: () => itemsApi.list({ type: 'essentials' }),
   });
 
   const { data: locData } = useQuery({
@@ -152,16 +152,16 @@ function EDCPage() {
   });
 
   const returnHomeMutation = useMutation({
-    mutationFn: (id: string) => itemsExtendedApi.returnHome(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['items', 'edc'] }),
+    mutationFn: (id: string) => suppliesExtendedApi.returnHome(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['items', 'essentials'] }),
   });
 
   const packAllMutation = useMutation({
-    mutationFn: (locationId: string) => edcBulkApi.packAll(locationId),
+    mutationFn: (locationId: string) => essentialsBulkApi.packAll(locationId),
     onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['items', 'edc'] });
+      queryClient.invalidateQueries({ queryKey: ['items', 'essentials'] });
       setPackDialogOpen(false);
-      toast.show(t('edc.packedAll', { count: res.moved }));
+      toast.show(t('essentials.packedAll', { count: res.moved }));
     },
   });
 
@@ -195,60 +195,60 @@ function EDCPage() {
   ];
 
   const tabItems = [
-    { key: 'myEdc', label: t('edc.myEdc') },
-    { key: 'departure', label: t('edc.departureList') },
-    { key: 'returnLog', label: t('edc.returnLog') },
-    { key: 'dynamicNodes', label: t('edc.dynamicNodes') },
+    { key: 'myEssentials', label: t('essentials.myEdc') },
+    { key: 'departure', label: t('essentials.departureList') },
+    { key: 'returnLog', label: t('essentials.returnLog') },
+    { key: 'dynamicNodes', label: t('essentials.dynamicNodes') },
   ];
 
   return (
     <Stack>
       <div className={uiStyles.pageHeader}>
         <StackTight>
-          <h2 className="page-heading">{t('edc.title')}</h2>
-          <p className="page-kicker">{t('edc.description')}</p>
+          <h2 className="page-heading">{t('essentials.title')}</h2>
+          <p className="page-kicker">{t('essentials.description')}</p>
         </StackTight>
         <div className={uiStyles.pageActions}>
           <Button
             variant="primary"
             leftSection={<IconPlus size={14} />}
           >
-            {t('edc.addItem')}
+            {t('essentials.addItem')}
           </Button>
           <Button variant="subtle">
-            {t('edc.batchOps')}
+            {t('essentials.batchOps')}
           </Button>
         </div>
       </div>
 
-      <Tabs value={activeTab} onChange={(v) => setActiveTab(v as EdcTab)} tabs={tabItems} />
+      <Tabs value={activeTab} onChange={(v) => setActiveTab(v as EssentialsTab)} tabs={tabItems} />
 
       {isLoading ? (
         <Spinner />
       ) : (
         <>
-          <div className={uiStyles.edcStatsRow}>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.blue}>
+          <div className={uiStyles.essentialsStatsRow}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.blue}>
                 <IconBriefcase size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('edc.totalItems')}</span>
-                <strong className={uiStyles.edcStatValue}>{items.length}</strong>
-                <span className={uiStyles.edcStatNote}>
-                  {t('edc.baselineSet', { count: items.length })}
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('essentials.totalItems')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{items.length}</strong>
+                <span className={uiStyles.essentialsStatNote}>
+                  {t('essentials.baselineSet', { count: items.length })}
                 </span>
               </div>
             </div>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.green}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.green}>
                 <IconRun size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('edc.currentlyWithYou')}</span>
-                <strong className={uiStyles.edcStatValue}>{carryCount + bagCount}</strong>
-                <span className={uiStyles.edcStatNote}>
-                  {t('edc.percentCarry', {
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('essentials.currentlyWithYou')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{carryCount + bagCount}</strong>
+                <span className={uiStyles.essentialsStatNote}>
+                  {t('essentials.percentCarry', {
                     percent: items.length > 0
                       ? Math.round(((carryCount + bagCount) / items.length) * 100)
                       : 0,
@@ -256,35 +256,35 @@ function EDCPage() {
                 </span>
               </div>
             </div>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.orange}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.orange}>
                 <IconAlertTriangle size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('edc.notOnPerson')}</span>
-                <strong className={uiStyles.edcStatValue}>{items.length - carryCount - bagCount}</strong>
-                <span className={uiStyles.edcStatNote}>{t('edc.pleaseCheckBaseline')}</span>
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('essentials.notOnPerson')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{items.length - carryCount - bagCount}</strong>
+                <span className={uiStyles.essentialsStatNote}>{t('essentials.pleaseCheckBaseline')}</span>
               </div>
             </div>
-            <div className={uiStyles.edcStatCard}>
-              <div className={uiStyles.edcStatIcon.gray}>
+            <div className={uiStyles.essentialsStatCard}>
+              <div className={uiStyles.essentialsStatIcon.gray}>
                 <IconClock size={20} />
               </div>
-              <div className={uiStyles.edcStatMeta}>
-                <span className={uiStyles.edcStatLabel}>{t('edc.lastConfirmed')}</span>
-                <strong className={uiStyles.edcStatValue}>{t('edc.todayAt', { time: '08:30' })}</strong>
-                <span className={uiStyles.edcStatNote}>{t('edc.overdueConfirm', { count: 3 })}</span>
+              <div className={uiStyles.essentialsStatMeta}>
+                <span className={uiStyles.essentialsStatLabel}>{t('essentials.lastConfirmed')}</span>
+                <strong className={uiStyles.essentialsStatValue}>{t('essentials.todayAt', { time: '08:30' })}</strong>
+                <span className={uiStyles.essentialsStatNote}>{t('essentials.overdueConfirm', { count: 3 })}</span>
               </div>
             </div>
           </div>
 
-          <div className={uiStyles.edcMainLayout}>
-            <div className={uiStyles.edcMainContent}>
+          <div className={uiStyles.essentialsMainLayout}>
+            <div className={uiStyles.essentialsMainContent}>
               <Card className="surface-card">
                 <div style={{ padding: `${uiStyles.sectionHead ? '' : '0'}` }}>
                   <div className={uiStyles.sectionHead}>
-                    <h3 className={uiStyles.sectionTitle}>{t('edc.edcItems')}</h3>
-                    <div className={uiStyles.edcToolbarRight}>
+                    <h3 className={uiStyles.sectionTitle}>{t('essentials.edcItems')}</h3>
+                    <div className={uiStyles.essentialsToolbarRight}>
                       <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
@@ -297,28 +297,28 @@ function EDCPage() {
                           color: 'var(--havit-text)',
                         }}
                       >
-                        <option value="all">{t('edc.allStatus')}</option>
-                        <option value="carry">{t('edc.carry')}</option>
-                        <option value="bag">{t('edc.travelBag')}</option>
-                        <option value="home">{t('edc.homeBaseShort')}</option>
-                        <option value="away">{t('edc.notOnPersonShort')}</option>
+                        <option value="all">{t('essentials.allStatus')}</option>
+                        <option value="carry">{t('essentials.carry')}</option>
+                        <option value="bag">{t('essentials.travelBag')}</option>
+                        <option value="home">{t('essentials.homeBaseShort')}</option>
+                        <option value="away">{t('essentials.notOnPersonShort')}</option>
                       </select>
-                      <div className={uiStyles.edcViewToggle}>
+                      <div className={uiStyles.essentialsViewToggle}>
                         <button
-                          className={uiStyles.edcViewToggleBtn}
+                          className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'list' || undefined}
                           onClick={() => setViewMode('list')}
                         >
                           <IconList size={14} />
-                          {t('edc.listView')}
+                          {t('essentials.listView')}
                         </button>
                         <button
-                          className={uiStyles.edcViewToggleBtn}
+                          className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'cards' || undefined}
                           onClick={() => setViewMode('cards')}
                         >
                           <IconLayoutGrid size={14} />
-                          {t('edc.cardView')}
+                          {t('essentials.cardView')}
                         </button>
                       </div>
                     </div>
@@ -326,7 +326,7 @@ function EDCPage() {
                   {viewMode === 'list' ? (
                     <div>
                       <div
-                        className={uiStyles.edcItemRow}
+                        className={uiStyles.essentialsItemRow}
                         style={{
                           borderBottom: `1px solid var(--havit-line)`,
                           background: 'var(--havit-bg-soft)',
@@ -337,33 +337,33 @@ function EDCPage() {
                           textTransform: 'uppercase',
                         }}
                       >
-                        <span>{t('edc.item')}</span>
-                        <span>{t('edc.homeBase')}</span>
-                        <span>{t('edc.currentStatus')}</span>
-                        <span>{t('edc.lastConfirmedCol')}</span>
-                        <span>{t('edc.action')}</span>
+                        <span>{t('essentials.item')}</span>
+                        <span>{t('essentials.homeBase')}</span>
+                        <span>{t('essentials.currentStatus')}</span>
+                        <span>{t('essentials.lastConfirmedCol')}</span>
+                        <span>{t('essentials.action')}</span>
                       </div>
                       {filteredItems.map((item) => {
                         const statusType = getStatusType(item);
                         return (
-                          <div className={uiStyles.edcItemRow} key={item.id}>
-                            <div className={uiStyles.edcItemInfo}>
-                              <div className={uiStyles.edcItemThumb}>
+                          <div className={uiStyles.essentialsItemRow} key={item.id}>
+                            <div className={uiStyles.essentialsItemInfo}>
+                              <div className={uiStyles.essentialsItemThumb}>
                                 <IconPackage size={18} />
                               </div>
                               <div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span className={uiStyles.edcItemName}>{item.name}</span>
+                                  <span className={uiStyles.essentialsItemName}>{item.name}</span>
                                   {item.current_status_tag && (
                                     <span
                                       className={
                                         item.current_status_tag === '常用'
-                                          ? uiStyles.edcTagBadgeCommon
+                                          ? uiStyles.essentialsTagBadgeCommon
                                           : item.current_status_tag === '必备'
-                                            ? uiStyles.edcTagBadgeEssential
+                                            ? uiStyles.essentialsTagBadgeEssential
                                             : item.current_status_tag === '阅读'
-                                              ? uiStyles.edcTagBadgeRead
-                                              : uiStyles.edcTagBadgeCommon
+                                              ? uiStyles.essentialsTagBadgeRead
+                                              : uiStyles.essentialsTagBadgeCommon
                                       }
                                     >
                                       {item.current_status_tag}
@@ -371,14 +371,14 @@ function EDCPage() {
                                   )}
                                 </div>
                                 {item.category && (
-                                  <span className={uiStyles.edcItemCategory}>{item.category}</span>
+                                  <span className={uiStyles.essentialsItemCategory}>{item.category}</span>
                                 )}
                               </div>
                             </div>
                             <span style={{ fontSize: '0.85rem', color: 'var(--havit-muted)' }}>
                               {item.home_base_location_id ?? '—'}
                             </span>
-                            <span className={uiStyles.edcStatusBadge[statusType]}>
+                            <span className={uiStyles.essentialsStatusBadge[statusType]}>
                               {getStatusLabel(t, item)}
                             </span>
                             <span style={{ fontSize: '0.82rem', color: 'var(--havit-muted)' }}>
@@ -387,7 +387,7 @@ function EDCPage() {
                             <div style={{ display: 'flex', gap: '4px' }}>
                               <button
                                 className={uiStyles.iconButton}
-                                title={t('edc.returnHome')}
+                                title={t('essentials.returnHome')}
                                 disabled={statusType === 'home' || returnHomeMutation.isPending}
                                 onClick={() => returnHomeMutation.mutate(item.id)}
                               >
@@ -401,20 +401,20 @@ function EDCPage() {
                         );
                       })}
                       {filteredItems.length === 0 && (
-                        <div className="empty-state">{t('edc.noEdc')}</div>
+                        <div className="empty-state">{t('essentials.noEdc')}</div>
                       )}
                     </div>
                   ) : (
-                    <div className={uiStyles.edcChecklistStrip}>
+                    <div className={uiStyles.essentialsChecklistStrip}>
                       {filteredItems.map((item) => {
                         const statusType = getStatusType(item);
                         return (
-                          <div className={uiStyles.edcChecklistItem} key={item.id}>
-                            <div className={uiStyles.edcChecklistThumb}>
+                          <div className={uiStyles.essentialsChecklistItem} key={item.id}>
+                            <div className={uiStyles.essentialsChecklistThumb}>
                               <IconPackage size={20} />
                             </div>
-                            <span className={uiStyles.edcChecklistName}>{item.name}</span>
-                            <span className={uiStyles.edcStatusBadge[statusType]} style={{ fontSize: '0.72rem' }}>
+                            <span className={uiStyles.essentialsChecklistName}>{item.name}</span>
+                            <span className={uiStyles.essentialsStatusBadge[statusType]} style={{ fontSize: '0.72rem' }}>
                               {getStatusLabel(t, item)}
                             </span>
                           </div>
@@ -451,44 +451,44 @@ function EDCPage() {
               </Card>
             </div>
 
-            <div className={uiStyles.edcSidebar}>
+            <div className={uiStyles.essentialsSidebar}>
               <Card className="surface-card">
                 <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>{t('edc.quickActions')}</h3>
+                  <h3 className={uiStyles.sectionTitle}>{t('essentials.quickActions')}</h3>
                 </div>
                 <div className={uiStyles.sectionBodyTight}>
                   <div
                     style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
                   >
-                    <div className={uiStyles.edcQuickAction}>
-                      <div className={uiStyles.edcQuickActionIcon}>
+                    <div className={uiStyles.essentialsQuickAction}>
+                      <div className={uiStyles.essentialsQuickActionIcon}>
                         <IconCheckbox size={16} />
                       </div>
-                      <div className={uiStyles.edcQuickActionMeta}>
-                        <span className={uiStyles.edcQuickActionTitle}>{t('edc.departureChecklistAction')}</span>
-                        <span className={uiStyles.edcQuickActionHint}>{t('edc.departureChecklistActionHint')}</span>
+                      <div className={uiStyles.essentialsQuickActionMeta}>
+                        <span className={uiStyles.essentialsQuickActionTitle}>{t('essentials.departureChecklistAction')}</span>
+                        <span className={uiStyles.essentialsQuickActionHint}>{t('essentials.departureChecklistActionHint')}</span>
                       </div>
-                      <IconChevronRight size={16} className={uiStyles.edcQuickActionArrow} />
+                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
                     </div>
-                    <div className={uiStyles.edcQuickAction}>
-                      <div className={uiStyles.edcQuickActionIcon}>
+                    <div className={uiStyles.essentialsQuickAction}>
+                      <div className={uiStyles.essentialsQuickActionIcon}>
                         <IconRun size={16} />
                       </div>
-                      <div className={uiStyles.edcQuickActionMeta}>
-                        <span className={uiStyles.edcQuickActionTitle}>{t('edc.markAllCarryAction')}</span>
-                        <span className={uiStyles.edcQuickActionHint}>{t('edc.markAllCarryActionHint')}</span>
+                      <div className={uiStyles.essentialsQuickActionMeta}>
+                        <span className={uiStyles.essentialsQuickActionTitle}>{t('essentials.markAllCarryAction')}</span>
+                        <span className={uiStyles.essentialsQuickActionHint}>{t('essentials.markAllCarryActionHint')}</span>
                       </div>
-                      <IconChevronRight size={16} className={uiStyles.edcQuickActionArrow} />
+                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
                     </div>
-                    <div className={uiStyles.edcQuickAction}>
-                      <div className={uiStyles.edcQuickActionIcon} style={{ background: 'var(--havit-line-soft)', color: 'var(--havit-muted)' }}>
+                    <div className={uiStyles.essentialsQuickAction}>
+                      <div className={uiStyles.essentialsQuickActionIcon} style={{ background: 'var(--havit-line-soft)', color: 'var(--havit-muted)' }}>
                         <IconHome size={16} />
                       </div>
-                      <div className={uiStyles.edcQuickActionMeta}>
-                        <span className={uiStyles.edcQuickActionTitle}>{t('edc.returnAllAction')}</span>
-                        <span className={uiStyles.edcQuickActionHint}>{t('edc.returnAllActionHint')}</span>
+                      <div className={uiStyles.essentialsQuickActionMeta}>
+                        <span className={uiStyles.essentialsQuickActionTitle}>{t('essentials.returnAllAction')}</span>
+                        <span className={uiStyles.essentialsQuickActionHint}>{t('essentials.returnAllActionHint')}</span>
                       </div>
-                      <IconChevronRight size={16} className={uiStyles.edcQuickActionArrow} />
+                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
                     </div>
                   </div>
                 </div>
@@ -496,36 +496,36 @@ function EDCPage() {
 
               <Card className="surface-card">
                 <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>{t('edc.statusDistribution')}</h3>
+                  <h3 className={uiStyles.sectionTitle}>{t('essentials.statusDistribution')}</h3>
                 </div>
-                <div className={uiStyles.edcDonut}>
+                <div className={uiStyles.essentialsDonut}>
                   <DonutChart segments={donutSegments} />
-                  <div className={uiStyles.edcDonutLegend}>
-                    <div className={uiStyles.edcDonutLegendItem}>
-                      <span className={uiStyles.edcDonutLegendDot} style={{ background: 'var(--havit-accent)' }} />
-                      <span>{t('edc.carry')}</span>
-                      <span className={uiStyles.edcDonutLegendValue}>
+                  <div className={uiStyles.essentialsDonutLegend}>
+                    <div className={uiStyles.essentialsDonutLegendItem}>
+                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-accent)' }} />
+                      <span>{t('essentials.carry')}</span>
+                      <span className={uiStyles.essentialsDonutLegendValue}>
                         {carryCount} ({carryCount > 0 ? Math.round((carryCount / items.length) * 100) : 0}%)
                       </span>
                     </div>
-                    <div className={uiStyles.edcDonutLegendItem}>
-                      <span className={uiStyles.edcDonutLegendDot} style={{ background: 'var(--havit-info)' }} />
-                      <span>{t('edc.travelBag')}</span>
-                      <span className={uiStyles.edcDonutLegendValue}>
+                    <div className={uiStyles.essentialsDonutLegendItem}>
+                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-info)' }} />
+                      <span>{t('essentials.travelBag')}</span>
+                      <span className={uiStyles.essentialsDonutLegendValue}>
                         {bagCount} ({bagCount > 0 ? Math.round((bagCount / items.length) * 100) : 0}%)
                       </span>
                     </div>
-                    <div className={uiStyles.edcDonutLegendItem}>
-                      <span className={uiStyles.edcDonutLegendDot} style={{ background: 'var(--havit-line)' }} />
-                      <span>{t('edc.otherLocation')}</span>
-                      <span className={uiStyles.edcDonutLegendValue}>
+                    <div className={uiStyles.essentialsDonutLegendItem}>
+                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-line)' }} />
+                      <span>{t('essentials.otherLocation')}</span>
+                      <span className={uiStyles.essentialsDonutLegendValue}>
                         {homeCount} ({homeCount > 0 ? Math.round((homeCount / items.length) * 100) : 0}%)
                       </span>
                     </div>
-                    <div className={uiStyles.edcDonutLegendItem}>
-                      <span className={uiStyles.edcDonutLegendDot} style={{ background: 'var(--havit-warning)' }} />
-                      <span>{t('edc.notOnPersonShort')}</span>
-                      <span className={uiStyles.edcDonutLegendValue}>
+                    <div className={uiStyles.essentialsDonutLegendItem}>
+                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-warning)' }} />
+                      <span>{t('essentials.notOnPersonShort')}</span>
+                      <span className={uiStyles.essentialsDonutLegendValue}>
                         {awayCount} ({awayCount > 0 ? Math.round((awayCount / items.length) * 100) : 0}%)
                       </span>
                     </div>
@@ -535,28 +535,28 @@ function EDCPage() {
 
               <Card className="surface-card">
                 <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>{t('edc.lastConfirmReminder')}</h3>
+                  <h3 className={uiStyles.sectionTitle}>{t('essentials.lastConfirmReminder')}</h3>
                 </div>
                 <div>
-                  <div className={uiStyles.edcReminderItem}>
-                    <div className={uiStyles.edcReminderDot} />
-                    <div className={uiStyles.edcReminderMeta}>
-                      <span className={uiStyles.edcReminderTitle}>{t('edc.overdue7Days')}</span>
-                      <span className={uiStyles.edcReminderSub}>Kindle Paperwhite {t('edc.departureList')} 2 {t('edc.departureList').includes('清单') ? '件' : 'items'}</span>
+                  <div className={uiStyles.essentialsReminderItem}>
+                    <div className={uiStyles.essentialsReminderDot} />
+                    <div className={uiStyles.essentialsReminderMeta}>
+                      <span className={uiStyles.essentialsReminderTitle}>{t('essentials.overdue7Days')}</span>
+                      <span className={uiStyles.essentialsReminderSub}>Kindle Paperwhite {t('essentials.departureList')} 2 {t('essentials.departureList').includes('清单') ? '件' : 'items'}</span>
                     </div>
                   </div>
-                  <div className={uiStyles.edcReminderItem}>
-                    <div className={uiStyles.edcReminderDotWarn} />
-                    <div className={uiStyles.edcReminderMeta}>
-                      <span className={uiStyles.edcReminderTitle}>{t('edc.overdue3to7Days')}</span>
-                      <span className={uiStyles.edcReminderSub}>充电宝 Anker 1 {t('edc.departureList').includes('清单') ? '件' : 'item'}</span>
+                  <div className={uiStyles.essentialsReminderItem}>
+                    <div className={uiStyles.essentialsReminderDotWarn} />
+                    <div className={uiStyles.essentialsReminderMeta}>
+                      <span className={uiStyles.essentialsReminderTitle}>{t('essentials.overdue3to7Days')}</span>
+                      <span className={uiStyles.essentialsReminderSub}>充电宝 Anker 1 {t('essentials.departureList').includes('清单') ? '件' : 'item'}</span>
                     </div>
                   </div>
-                  <div className={uiStyles.edcReminderItem}>
-                    <div className={uiStyles.edcReminderDotInfo} />
-                    <div className={uiStyles.edcReminderMeta}>
-                      <span className={uiStyles.edcReminderTitle}>{t('edc.confirmedToday')}</span>
-                      <span className={uiStyles.edcReminderSub}>墨镜 Ray-Ban {t('edc.departureList').includes('清单') ? '等 3 件' : 'etc. 3 items'}</span>
+                  <div className={uiStyles.essentialsReminderItem}>
+                    <div className={uiStyles.essentialsReminderDotInfo} />
+                    <div className={uiStyles.essentialsReminderMeta}>
+                      <span className={uiStyles.essentialsReminderTitle}>{t('essentials.confirmedToday')}</span>
+                      <span className={uiStyles.essentialsReminderSub}>墨镜 Ray-Ban {t('essentials.departureList').includes('清单') ? '等 3 件' : 'etc. 3 items'}</span>
                     </div>
                   </div>
                   <div style={{ padding: `${uiStyles.stack ? '' : ''} 0.75rem 1rem`, textAlign: 'center' }}>
@@ -570,7 +570,7 @@ function EDCPage() {
                         cursor: 'pointer',
                       }}
                     >
-                      {t('edc.viewAllReminders')}
+                      {t('essentials.viewAllReminders')}
                     </button>
                   </div>
                 </div>
@@ -581,17 +581,17 @@ function EDCPage() {
           <Card className="surface-card">
             <div className={uiStyles.sectionHead}>
               <h3 className={uiStyles.sectionTitle}>
-                {t('edc.departureChecklistCount', { count: carryCount + bagCount })}
+                {t('essentials.departureChecklistCount', { count: carryCount + bagCount })}
               </h3>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <Button variant="subtle" leftSection={<IconCheckbox size={14} />}>
-                  {t('edc.selectAll')}
+                  {t('essentials.selectAll')}
                 </Button>
                 <Button variant="subtle" leftSection={<IconRun size={14} />}>
-                  {t('edc.markAllCarry')}
+                  {t('essentials.markAllCarry')}
                 </Button>
                 <Button variant="primary" leftSection={<IconCheck size={14} />}>
-                  {t('edc.iveGotAll')}
+                  {t('essentials.iveGotAll')}
                 </Button>
               </div>
             </div>
@@ -604,20 +604,20 @@ function EDCPage() {
                   color: 'var(--havit-muted)',
                 }}
               >
-                {t('edc.departureChecklistHint')}
+                {t('essentials.departureChecklistHint')}
               </p>
-              <div className={uiStyles.edcChecklistStrip}>
+              <div className={uiStyles.essentialsChecklistStrip}>
                 {items
                   .filter((i) => getStatusType(i) === 'carry' || getStatusType(i) === 'bag')
                   .map((item) => {
                     const statusType = getStatusType(item);
                     return (
-                      <div className={uiStyles.edcChecklistItem} key={item.id}>
-                        <div className={uiStyles.edcChecklistThumb}>
+                      <div className={uiStyles.essentialsChecklistItem} key={item.id}>
+                        <div className={uiStyles.essentialsChecklistThumb}>
                           <IconPackage size={20} />
                         </div>
-                        <span className={uiStyles.edcChecklistName}>{item.name}</span>
-                        <span className={uiStyles.edcStatusBadge[statusType]} style={{ fontSize: '0.72rem' }}>
+                        <span className={uiStyles.essentialsChecklistName}>{item.name}</span>
+                        <span className={uiStyles.essentialsStatusBadge[statusType]} style={{ fontSize: '0.72rem' }}>
                           {getStatusLabel(t, item)}
                         </span>
                       </div>
@@ -632,15 +632,15 @@ function EDCPage() {
       <Dialog
         open={packDialogOpen}
         onClose={() => setPackDialogOpen(false)}
-        title={t('edc.packAll')}
+        title={t('essentials.packAll')}
       >
         <Stack>
           <SelectField
-            label={t('edc.packDestination')}
+            label={t('essentials.packDestination')}
             value={selectedLocationId}
             onChange={(e) => setSelectedLocationId(e.currentTarget.value)}
             options={locationOptions}
-            placeholder={t('edc.selectLocation')}
+            placeholder={t('essentials.selectLocation')}
           />
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
             <Button variant="subtle" onClick={() => setPackDialogOpen(false)}>
@@ -652,7 +652,7 @@ function EDCPage() {
               disabled={!selectedLocationId || packAllMutation.isPending}
               onClick={() => packAllMutation.mutate(selectedLocationId)}
             >
-              {t('edc.packConfirm')}
+              {t('essentials.packConfirm')}
             </Button>
           </div>
         </Stack>

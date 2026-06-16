@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VirtualAssetsRouteImport } from './routes/virtual-assets'
+import { Route as SuppliesRouteImport } from './routes/supplies'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
@@ -19,9 +20,8 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LocationScanRouteImport } from './routes/location-scan'
 import { Route as LoansRouteImport } from './routes/loans'
 import { Route as ImportRouteImport } from './routes/import'
-import { Route as EdcRouteImport } from './routes/edc'
+import { Route as EssentialsRouteImport } from './routes/essentials'
 import { Route as CredentialsRouteImport } from './routes/credentials'
-import { Route as ConsumablesRouteImport } from './routes/consumables'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as AssetsRouteImport } from './routes/assets'
@@ -34,6 +34,11 @@ import { Route as ItemsItemIdRouteImport } from './routes/items.$itemId'
 const VirtualAssetsRoute = VirtualAssetsRouteImport.update({
   id: '/virtual-assets',
   path: '/virtual-assets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuppliesRoute = SuppliesRouteImport.update({
+  id: '/supplies',
+  path: '/supplies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SetupRoute = SetupRouteImport.update({
@@ -81,19 +86,14 @@ const ImportRoute = ImportRouteImport.update({
   path: '/import',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EdcRoute = EdcRouteImport.update({
-  id: '/edc',
-  path: '/edc',
+const EssentialsRoute = EssentialsRouteImport.update({
+  id: '/essentials',
+  path: '/essentials',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CredentialsRoute = CredentialsRouteImport.update({
   id: '/credentials',
   path: '/credentials',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConsumablesRoute = ConsumablesRouteImport.update({
-  id: '/consumables',
-  path: '/consumables',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -143,9 +143,8 @@ export interface FileRoutesByFullPath {
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/categories': typeof CategoriesRoute
-  '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
-  '/edc': typeof EdcRoute
+  '/essentials': typeof EssentialsRoute
   '/import': typeof ImportRoute
   '/loans': typeof LoansRoute
   '/location-scan': typeof LocationScanRoute
@@ -155,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
+  '/supplies': typeof SuppliesRoute
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/locations/': typeof LocationsIndexRoute
@@ -166,9 +166,8 @@ export interface FileRoutesByTo {
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/categories': typeof CategoriesRoute
-  '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
-  '/edc': typeof EdcRoute
+  '/essentials': typeof EssentialsRoute
   '/import': typeof ImportRoute
   '/loans': typeof LoansRoute
   '/location-scan': typeof LocationScanRoute
@@ -178,6 +177,7 @@ export interface FileRoutesByTo {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
+  '/supplies': typeof SuppliesRoute
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/locations': typeof LocationsIndexRoute
@@ -190,9 +190,8 @@ export interface FileRoutesById {
   '/assets': typeof AssetsRoute
   '/capture': typeof CaptureRoute
   '/categories': typeof CategoriesRoute
-  '/consumables': typeof ConsumablesRoute
   '/credentials': typeof CredentialsRoute
-  '/edc': typeof EdcRoute
+  '/essentials': typeof EssentialsRoute
   '/import': typeof ImportRoute
   '/loans': typeof LoansRoute
   '/location-scan': typeof LocationScanRoute
@@ -202,6 +201,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
+  '/supplies': typeof SuppliesRoute
   '/virtual-assets': typeof VirtualAssetsRoute
   '/items/$itemId': typeof ItemsItemIdRoute
   '/locations/': typeof LocationsIndexRoute
@@ -215,9 +215,8 @@ export interface FileRouteTypes {
     | '/assets'
     | '/capture'
     | '/categories'
-    | '/consumables'
     | '/credentials'
-    | '/edc'
+    | '/essentials'
     | '/import'
     | '/loans'
     | '/location-scan'
@@ -227,6 +226,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/setup'
+    | '/supplies'
     | '/virtual-assets'
     | '/items/$itemId'
     | '/locations/'
@@ -238,9 +238,8 @@ export interface FileRouteTypes {
     | '/assets'
     | '/capture'
     | '/categories'
-    | '/consumables'
     | '/credentials'
-    | '/edc'
+    | '/essentials'
     | '/import'
     | '/loans'
     | '/location-scan'
@@ -250,6 +249,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/setup'
+    | '/supplies'
     | '/virtual-assets'
     | '/items/$itemId'
     | '/locations'
@@ -261,9 +261,8 @@ export interface FileRouteTypes {
     | '/assets'
     | '/capture'
     | '/categories'
-    | '/consumables'
     | '/credentials'
-    | '/edc'
+    | '/essentials'
     | '/import'
     | '/loans'
     | '/location-scan'
@@ -273,6 +272,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/setup'
+    | '/supplies'
     | '/virtual-assets'
     | '/items/$itemId'
     | '/locations/'
@@ -285,9 +285,8 @@ export interface RootRouteChildren {
   AssetsRoute: typeof AssetsRoute
   CaptureRoute: typeof CaptureRoute
   CategoriesRoute: typeof CategoriesRoute
-  ConsumablesRoute: typeof ConsumablesRoute
   CredentialsRoute: typeof CredentialsRoute
-  EdcRoute: typeof EdcRoute
+  EssentialsRoute: typeof EssentialsRoute
   ImportRoute: typeof ImportRoute
   LoansRoute: typeof LoansRoute
   LocationScanRoute: typeof LocationScanRoute
@@ -297,6 +296,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
+  SuppliesRoute: typeof SuppliesRoute
   VirtualAssetsRoute: typeof VirtualAssetsRoute
   ItemsItemIdRoute: typeof ItemsItemIdRoute
   LocationsIndexRoute: typeof LocationsIndexRoute
@@ -310,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/virtual-assets'
       fullPath: '/virtual-assets'
       preLoaderRoute: typeof VirtualAssetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/supplies': {
+      id: '/supplies'
+      path: '/supplies'
+      fullPath: '/supplies'
+      preLoaderRoute: typeof SuppliesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/setup': {
@@ -375,11 +382,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ImportRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/edc': {
-      id: '/edc'
-      path: '/edc'
-      fullPath: '/edc'
-      preLoaderRoute: typeof EdcRouteImport
+    '/essentials': {
+      id: '/essentials'
+      path: '/essentials'
+      fullPath: '/essentials'
+      preLoaderRoute: typeof EssentialsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/credentials': {
@@ -387,13 +394,6 @@ declare module '@tanstack/react-router' {
       path: '/credentials'
       fullPath: '/credentials'
       preLoaderRoute: typeof CredentialsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/consumables': {
-      id: '/consumables'
-      path: '/consumables'
-      fullPath: '/consumables'
-      preLoaderRoute: typeof ConsumablesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -461,9 +461,8 @@ const rootRouteChildren: RootRouteChildren = {
   AssetsRoute: AssetsRoute,
   CaptureRoute: CaptureRoute,
   CategoriesRoute: CategoriesRoute,
-  ConsumablesRoute: ConsumablesRoute,
   CredentialsRoute: CredentialsRoute,
-  EdcRoute: EdcRoute,
+  EssentialsRoute: EssentialsRoute,
   ImportRoute: ImportRoute,
   LoansRoute: LoansRoute,
   LocationScanRoute: LocationScanRoute,
@@ -473,6 +472,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,
+  SuppliesRoute: SuppliesRoute,
   VirtualAssetsRoute: VirtualAssetsRoute,
   ItemsItemIdRoute: ItemsItemIdRoute,
   LocationsIndexRoute: LocationsIndexRoute,

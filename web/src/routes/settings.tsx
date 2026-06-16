@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
@@ -148,7 +148,7 @@ function PreferencesTab() {
             label={t('settings.prefs.homeView')}
             options={[
               { value: 'spaces', label: t('settings.prefs.homeSpaces') },
-              { value: 'edc', label: t('settings.prefs.homeEdc') },
+              { value: 'essentials', label: t('settings.prefs.homeEssentials') },
               { value: 'restock', label: t('settings.prefs.homeRestock') },
             ]}
             {...field('home_view')}

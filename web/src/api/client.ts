@@ -309,7 +309,7 @@ export interface SearchResult {
   status: string;
   location_id?: string;
   location_path?: string;
-  edc_hint?: string;
+  essentials_hint?: string;
 }
 
 export interface BarcodeLookupResult {
@@ -356,7 +356,7 @@ export interface RecognizeItemResult {
   fallback?: string;
 }
 
-export const itemsExtendedApi = {
+export const suppliesExtendedApi = {
   warranty: (expiringDays?: number) => {
     const params: Record<string, string> = {};
     if (expiringDays) params.expiring_days = String(expiringDays);
@@ -380,8 +380,8 @@ export const itemsExtendedApi = {
   claimPdf: (id: string) =>
     api.get(`items/${id}/claim-pdf`).blob(),
   useOne: (id: string) => api.post(`items/${id}/use-one`).json<Item>(),
-  setEdcStatus: (id: string, body: { current_status_tag: string; location_id?: string }) =>
-    api.post(`items/${id}/edc-status`, { json: body }).json<Item>(),
+  setEssentialsStatus: (id: string, body: { current_status_tag: string; location_id?: string }) =>
+    api.post(`items/${id}/essentials-status`, { json: body }).json<Item>(),
   returnHome: (id: string) => api.post(`items/${id}/return-home`).json<Item>(),
   listPurchaseEvents: (id: string) =>
     api.get(`items/${id}/purchase-events`).json<{ purchase_events: PurchaseEvent[]; next_purchase_at?: number }>(),
@@ -520,11 +520,11 @@ export const containerApi = {
     api.delete(`items/${containerId}/contents/${childId}`),
 };
 
-export const edcBulkApi = {
+export const essentialsBulkApi = {
   packAll: (locationId: string) =>
-    api.post('items/edc/pack-all', { json: { location_id: locationId } }).json<{ moved: number }>(),
+    api.post('items/essentials/pack-all', { json: { location_id: locationId } }).json<{ moved: number }>(),
   returnAll: () =>
-    api.post('items/edc/return-all').json<{ moved: number }>(),
+    api.post('items/essentials/return-all').json<{ moved: number }>(),
 };
 
 export interface SystemConfig {
@@ -542,7 +542,7 @@ export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   default_currency: string;
   date_format: 'absolute' | 'relative';
-  home_view: 'spaces' | 'edc' | 'restock';
+  home_view: 'spaces' | 'essentials' | 'restock';
   scan_behavior: 'confirm' | 'silent';
   default_visibility: 'shared' | 'private';
   personal_bark_key?: string;

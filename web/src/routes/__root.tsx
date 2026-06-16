@@ -1,4 +1,4 @@
-import {
+﻿import {
   createRootRouteWithContext,
   Link,
   Outlet,
@@ -122,8 +122,8 @@ function RootLayout() {
         { to: '/locations', label: t('nav.locations'), icon: IconMap2 },
         { to: '/tags', label: t('nav.tags'), icon: IconTags },
         { to: '/categories', label: t('nav.categories'), icon: IconCategory2 },
-        { to: '/consumables', label: t('nav.consumables'), icon: IconShoppingBag },
-        { to: '/edc', label: t('nav.edc'), icon: IconBriefcase },
+        { to: '/supplies', label: t('nav.supplies'), icon: IconShoppingBag },
+        { to: '/essentials', label: t('nav.essentials'), icon: IconBriefcase },
         { to: '/credentials', label: t('nav.credentials'), icon: IconReceipt },
       ],
     },

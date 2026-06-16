@@ -1,4 +1,4 @@
-import { style, styleVariants, keyframes } from '@vanilla-extract/css';
+﻿import { style, styleVariants, keyframes } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
@@ -3513,9 +3513,9 @@ export const loanMobileValue = style({
   fontWeight: 500,
 });
 
-/* ---------- EDC Page ---------- */
+/* ---------- Essentials Page ---------- */
 
-export const edcStatsRow = style({
+export const essentialsStatsRow = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
   gap: themeVars.space4,
@@ -3529,7 +3529,7 @@ export const edcStatsRow = style({
   },
 });
 
-export const edcStatCard = style({
+export const essentialsStatCard = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space4,
@@ -3540,7 +3540,7 @@ export const edcStatCard = style({
   boxShadow: themeVars.shadowSoft,
 });
 
-export const edcStatIcon = styleVariants({
+export const essentialsStatIcon = styleVariants({
   blue: {
     width: '2.8rem',
     height: '2.8rem',
@@ -3583,20 +3583,20 @@ export const edcStatIcon = styleVariants({
   },
 });
 
-export const edcStatMeta = style({
+export const essentialsStatMeta = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '2px',
   minWidth: 0,
 });
 
-export const edcStatLabel = style({
+export const essentialsStatLabel = style({
   color: themeVars.muted,
   fontSize: '0.82rem',
   fontWeight: 500,
 });
 
-export const edcStatValue = style({
+export const essentialsStatValue = style({
   color: themeVars.ink,
   fontSize: '1.75rem',
   fontWeight: 700,
@@ -3605,13 +3605,13 @@ export const edcStatValue = style({
   fontVariantNumeric: 'tabular-nums',
 });
 
-export const edcStatNote = style({
+export const essentialsStatNote = style({
   color: themeVars.muted,
   fontSize: '0.78rem',
   marginTop: '1px',
 });
 
-export const edcMainLayout = style({
+export const essentialsMainLayout = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) 22rem',
   gap: themeVars.space5,
@@ -3623,14 +3623,14 @@ export const edcMainLayout = style({
   },
 });
 
-export const edcMainContent = style({
+export const essentialsMainContent = style({
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space4,
   minWidth: 0,
 });
 
-export const edcSidebar = style({
+export const essentialsSidebar = style({
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space4,
@@ -3643,7 +3643,7 @@ export const edcSidebar = style({
   },
 });
 
-export const edcToolbar = style({
+export const essentialsToolbar = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -3651,19 +3651,19 @@ export const edcToolbar = style({
   flexWrap: 'wrap',
 });
 
-export const edcToolbarLeft = style({
+export const essentialsToolbarLeft = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
 });
 
-export const edcToolbarRight = style({
+export const essentialsToolbarRight = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space2,
 });
 
-export const edcToolbarTitle = style({
+export const essentialsToolbarTitle = style({
   margin: 0,
   fontSize: '1rem',
   fontWeight: 700,
@@ -3671,21 +3671,21 @@ export const edcToolbarTitle = style({
   letterSpacing: '-0.01em',
 });
 
-export const edcToolbarDivider = style({
+export const essentialsToolbarDivider = style({
   display: 'inline-block',
   width: '1px',
   height: '1.2rem',
   background: themeVars.line,
 });
 
-export const edcViewToggle = style({
+export const essentialsViewToggle = style({
   display: 'inline-flex',
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius2,
   overflow: 'hidden',
 });
 
-export const edcViewToggleBtn = style({
+export const essentialsViewToggleBtn = style({
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -3710,7 +3710,7 @@ export const edcViewToggleBtn = style({
   },
 });
 
-export const edcItemRow = style({
+export const essentialsItemRow = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 1fr) auto',
   alignItems: 'center',
@@ -3731,14 +3731,14 @@ export const edcItemRow = style({
   },
 });
 
-export const edcItemInfo = style({
+export const essentialsItemInfo = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
   minWidth: 0,
 });
 
-export const edcItemThumb = style({
+export const essentialsItemThumb = style({
   width: '2.5rem',
   height: '2.5rem',
   borderRadius: themeVars.radius2,
@@ -3750,7 +3750,7 @@ export const edcItemThumb = style({
   overflow: 'hidden',
 });
 
-export const edcItemName = style({
+export const essentialsItemName = style({
   fontSize: '0.92rem',
   fontWeight: 600,
   color: themeVars.ink,
@@ -3759,12 +3759,12 @@ export const edcItemName = style({
   whiteSpace: 'nowrap',
 });
 
-export const edcItemCategory = style({
+export const essentialsItemCategory = style({
   fontSize: '0.78rem',
   color: themeVars.muted,
 });
 
-export const edcStatusBadge = styleVariants({
+export const essentialsStatusBadge = styleVariants({
   carry: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -3811,7 +3811,7 @@ export const edcStatusBadge = styleVariants({
   },
 });
 
-export const edcQuickAction = style({
+export const essentialsQuickAction = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
@@ -3832,7 +3832,7 @@ export const edcQuickAction = style({
   },
 });
 
-export const edcQuickActionIcon = style({
+export const essentialsQuickActionIcon = style({
   width: '2.2rem',
   height: '2.2rem',
   borderRadius: themeVars.radius2,
@@ -3843,7 +3843,7 @@ export const edcQuickActionIcon = style({
   color: themeVars.accentInk,
 });
 
-export const edcQuickActionMeta = style({
+export const essentialsQuickActionMeta = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '2px',
@@ -3851,37 +3851,37 @@ export const edcQuickActionMeta = style({
   flex: '1 1 auto',
 });
 
-export const edcQuickActionTitle = style({
+export const essentialsQuickActionTitle = style({
   fontSize: '0.88rem',
   fontWeight: 600,
   color: themeVars.ink,
 });
 
-export const edcQuickActionHint = style({
+export const essentialsQuickActionHint = style({
   fontSize: '0.78rem',
   color: themeVars.muted,
 });
 
-export const edcQuickActionArrow = style({
+export const essentialsQuickActionArrow = style({
   color: themeVars.muted,
   flex: '0 0 auto',
 });
 
-export const edcDonut = style({
+export const essentialsDonut = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space5,
   padding: themeVars.space4,
 });
 
-export const edcDonutLegend = style({
+export const essentialsDonutLegend = style({
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space2,
   minWidth: 0,
 });
 
-export const edcDonutLegendItem = style({
+export const essentialsDonutLegendItem = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space2,
@@ -3889,21 +3889,21 @@ export const edcDonutLegendItem = style({
   color: themeVars.text,
 });
 
-export const edcDonutLegendDot = style({
+export const essentialsDonutLegendDot = style({
   width: '0.55rem',
   height: '0.55rem',
   borderRadius: '999px',
   flex: '0 0 auto',
 });
 
-export const edcDonutLegendValue = style({
+export const essentialsDonutLegendValue = style({
   marginLeft: 'auto',
   color: themeVars.muted,
   fontVariantNumeric: 'tabular-nums',
   fontSize: '0.78rem',
 });
 
-export const edcReminderItem = style({
+export const essentialsReminderItem = style({
   display: 'flex',
   gap: themeVars.space3,
   padding: `${themeVars.space3} ${themeVars.space4}`,
@@ -3915,7 +3915,7 @@ export const edcReminderItem = style({
   },
 });
 
-export const edcReminderDot = style({
+export const essentialsReminderDot = style({
   width: '0.5rem',
   height: '0.5rem',
   borderRadius: '999px',
@@ -3924,42 +3924,42 @@ export const edcReminderDot = style({
   flex: '0 0 auto',
 });
 
-export const edcReminderDotWarn = style([
-  edcReminderDot,
+export const essentialsReminderDotWarn = style([
+  essentialsReminderDot,
   { background: themeVars.warning },
 ]);
 
-export const edcReminderDotInfo = style([
-  edcReminderDot,
+export const essentialsReminderDotInfo = style([
+  essentialsReminderDot,
   { background: themeVars.info },
 ]);
 
-export const edcReminderMeta = style({
+export const essentialsReminderMeta = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '2px',
   minWidth: 0,
 });
 
-export const edcReminderTitle = style({
+export const essentialsReminderTitle = style({
   fontSize: '0.88rem',
   fontWeight: 600,
   color: themeVars.ink,
 });
 
-export const edcReminderSub = style({
+export const essentialsReminderSub = style({
   fontSize: '0.78rem',
   color: themeVars.muted,
 });
 
-export const edcChecklistStrip = style({
+export const essentialsChecklistStrip = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(auto-fill, minmax(10rem, 1fr))',
   gap: themeVars.space3,
   padding: themeVars.space4,
 });
 
-export const edcChecklistItem = style({
+export const essentialsChecklistItem = style({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -3978,7 +3978,7 @@ export const edcChecklistItem = style({
   },
 });
 
-export const edcChecklistThumb = style({
+export const essentialsChecklistThumb = style({
   width: '3rem',
   height: '3rem',
   borderRadius: themeVars.radius2,
@@ -3988,7 +3988,7 @@ export const edcChecklistThumb = style({
   color: themeVars.muted,
 });
 
-export const edcChecklistName = style({
+export const essentialsChecklistName = style({
   fontSize: '0.82rem',
   fontWeight: 600,
   color: themeVars.ink,
@@ -3998,13 +3998,13 @@ export const edcChecklistName = style({
   maxWidth: '100%',
 });
 
-export const edcChecklistStatus = style({
+export const essentialsChecklistStatus = style({
   fontSize: '0.72rem',
   color: themeVars.accentInk,
   fontWeight: 500,
 });
 
-export const edcTagBadge = style({
+export const essentialsTagBadge = style({
   display: 'inline-flex',
   alignItems: 'center',
   padding: '1px 6px',
@@ -4014,33 +4014,33 @@ export const edcTagBadge = style({
   lineHeight: 1.5,
 });
 
-export const edcTagBadgeCommon = style([
-  edcTagBadge,
+export const essentialsTagBadgeCommon = style([
+  essentialsTagBadge,
   {
     background: themeVars.accentSoft,
     color: themeVars.accentInk,
   },
 ]);
 
-export const edcTagBadgeEssential = style([
-  edcTagBadge,
+export const essentialsTagBadgeEssential = style([
+  essentialsTagBadge,
   {
     background: themeVars.warningSoft,
     color: themeVars.warningText,
   },
 ]);
 
-export const edcTagBadgeRead = style([
-  edcTagBadge,
+export const essentialsTagBadgeRead = style([
+  essentialsTagBadge,
   {
     background: themeVars.infoSoft,
     color: themeVars.info,
   },
 ]);
 
-/* ---------- Consumables Page ---------- */
+/* ---------- supplys Page ---------- */
 
-export const consumableKpiStrip = style({
+export const supplyKpiStrip = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
   gap: themeVars.space4,
@@ -4054,7 +4054,7 @@ export const consumableKpiStrip = style({
   },
 });
 
-export const consumableKpiTile = style({
+export const supplyKpiTile = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
@@ -4065,7 +4065,7 @@ export const consumableKpiTile = style({
   boxShadow: themeVars.shadowSoft,
 });
 
-export const consumableKpiIcon = styleVariants({
+export const supplyKpiIcon = styleVariants({
   blue: {
     flex: '0 0 auto',
     display: 'inline-grid',
@@ -4118,20 +4118,20 @@ export const consumableKpiIcon = styleVariants({
   },
 });
 
-export const consumableKpiMeta = style({
+export const supplyKpiMeta = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '2px',
   minWidth: 0,
 });
 
-export const consumableKpiLabel = style({
+export const supplyKpiLabel = style({
   color: themeVars.muted,
   fontSize: '0.78rem',
   fontWeight: 500,
 });
 
-export const consumableKpiValue = style({
+export const supplyKpiValue = style({
   color: themeVars.ink,
   fontSize: '1.5rem',
   fontWeight: 700,
@@ -4140,12 +4140,12 @@ export const consumableKpiValue = style({
   fontVariantNumeric: 'tabular-nums',
 });
 
-export const consumableKpiNote = style({
+export const supplyKpiNote = style({
   color: themeVars.muted,
   fontSize: '0.72rem',
 });
 
-export const consumableForecastScroll = style({
+export const supplyForecastScroll = style({
   display: 'flex',
   gap: themeVars.space4,
   overflowX: 'auto',
@@ -4158,7 +4158,7 @@ export const consumableForecastScroll = style({
   },
 });
 
-export const consumableForecastCard = style({
+export const supplyForecastCard = style({
   flex: '0 0 16rem',
   scrollSnapAlign: 'start',
   display: 'flex',
@@ -4177,13 +4177,13 @@ export const consumableForecastCard = style({
   },
 });
 
-export const consumableForecastHeader = style({
+export const supplyForecastHeader = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
 });
 
-export const consumableForecastThumb = style({
+export const supplyForecastThumb = style({
   width: '2.5rem',
   height: '2.5rem',
   borderRadius: themeVars.radius2,
@@ -4194,39 +4194,39 @@ export const consumableForecastThumb = style({
   flex: '0 0 auto',
 });
 
-export const consumableForecastName = style({
+export const supplyForecastName = style({
   fontSize: '0.88rem',
   fontWeight: 600,
   color: themeVars.ink,
 });
 
-export const consumableForecastHint = style({
+export const supplyForecastHint = style({
   fontSize: '0.78rem',
   color: themeVars.muted,
   lineHeight: 1.4,
 });
 
-export const consumableForecastMeta = style({
+export const supplyForecastMeta = style({
   display: 'flex',
   justifyContent: 'space-between',
   fontSize: '0.78rem',
   color: themeVars.muted,
 });
 
-export const consumableProgressBar = style({
+export const supplyProgressBar = style({
   height: '6px',
   borderRadius: '999px',
   background: themeVars.lineSoft,
   overflow: 'hidden',
 });
 
-export const consumableProgressFill = style({
+export const supplyProgressFill = style({
   height: '100%',
   borderRadius: '999px',
   transition: 'width 300ms ease',
 });
 
-export const consumableTwoCol = style({
+export const supplyTwoCol = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
   gap: themeVars.space5,
@@ -4238,13 +4238,13 @@ export const consumableTwoCol = style({
   },
 });
 
-export const consumableTable = style({
+export const supplyTable = style({
   width: '100%',
   borderCollapse: 'separate',
   borderSpacing: 0,
 });
 
-export const consumableTableHead = style({
+export const supplyTableHead = style({
   fontSize: '0.72rem',
   fontWeight: 600,
   color: themeVars.muted,
@@ -4256,7 +4256,7 @@ export const consumableTableHead = style({
   background: themeVars.bgSoft,
 });
 
-export const consumableTableRow = style({
+export const supplyTableRow = style({
   transition: 'background-color 160ms ease',
   selectors: {
     '&:hover': {
@@ -4265,14 +4265,14 @@ export const consumableTableRow = style({
   },
 });
 
-export const consumableTableCell = style({
+export const supplyTableCell = style({
   padding: `${themeVars.space3} ${themeVars.space3}`,
   borderBottom: `1px solid ${themeVars.lineSoft}`,
   fontSize: '0.88rem',
   verticalAlign: 'middle',
 });
 
-export const consumableStatusBadge = styleVariants({
+export const supplyStatusBadge = styleVariants({
   normal: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -4315,7 +4315,7 @@ export const consumableStatusBadge = styleVariants({
   },
 });
 
-export const consumableViewAllLink = style({
+export const supplyViewAllLink = style({
   display: 'block',
   textAlign: 'center',
   padding: themeVars.space3,
@@ -4336,7 +4336,7 @@ export const consumableViewAllLink = style({
   },
 });
 
-export const consumableChartPlaceholder = style({
+export const supplyChartPlaceholder = style({
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space4,
@@ -4346,7 +4346,7 @@ export const consumableChartPlaceholder = style({
   borderRadius: themeVars.radius3,
 });
 
-export const consumableChartGrid = style({
+export const supplyChartGrid = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) auto',
   gap: themeVars.space5,
@@ -4692,14 +4692,14 @@ export const tagsDeleteWarn = style({
   fontSize: '0.85rem',
 });
 
-export const consumableChartMeta = style({
+export const supplyChartMeta = style({
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space3,
   minWidth: '12rem',
 });
 
-export const consumableChartAmount = style({
+export const supplyChartAmount = style({
   fontSize: '1.75rem',
   fontWeight: 700,
   color: themeVars.ink,
@@ -4707,7 +4707,7 @@ export const consumableChartAmount = style({
   fontVariantNumeric: 'tabular-nums',
 });
 
-export const consumableChartChange = style({
+export const supplyChartChange = style({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '4px',
@@ -4715,13 +4715,13 @@ export const consumableChartChange = style({
   fontWeight: 600,
 });
 
-export const consumableChartChangeNeg = style([
-  consumableChartChange,
+export const supplyChartChangeNeg = style([
+  supplyChartChange,
   { color: themeVars.success },
 ]);
 
-export const consumableChartChangePos = style([
-  consumableChartChange,
+export const supplyChartChangePos = style([
+  supplyChartChange,
   { color: themeVars.danger },
 ]);
 

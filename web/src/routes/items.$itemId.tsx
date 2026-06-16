@@ -38,7 +38,7 @@ import {
 import {
   containerApi,
   itemsApi,
-  itemsExtendedApi,
+  suppliesExtendedApi,
   loansApi,
   virtualAssetsApi,
   locationsApi,
@@ -166,7 +166,7 @@ function ItemDetail() {
     { value: 'stolen', label: t('status.stolen') },
   ];
 
-  const isConsumable = it.type === 'consumable_a' || it.type === 'consumable_b';
+  const isConsumable = it.type === 'predictive_supplies' || it.type === 'tracked_spares';
   const isVirtual = it.type === 'virtual';
 
   function handlePhotoPick(file: File | undefined) {
@@ -208,7 +208,7 @@ function ItemDetail() {
               leftSection={<IconDownload size={16} />}
               variant="subtle"
               onClick={() => {
-                itemsExtendedApi.claimPdf(itemId).then((blob) => {
+                suppliesExtendedApi.claimPdf(itemId).then((blob) => {
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
                   a.href = url;
@@ -603,7 +603,7 @@ function ConsumableSection({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const useOneMutation = useMutation({
-    mutationFn: () => itemsExtendedApi.useOne(itemId),
+    mutationFn: () => suppliesExtendedApi.useOne(itemId),
     onSuccess: (next) => qc.setQueryData(['item', itemId], next),
   });
 
@@ -640,7 +640,7 @@ function ConsumableSection({
             {item.lifespan_days ?? '—'}
           </KvRow>
         </div>
-        {item.type === 'consumable_b' && (
+        {item.type === 'tracked_spares' && (
           <Button
             leftSection={<IconShoppingCart size={15} />}
             onClick={() => useOneMutation.mutate()}
@@ -790,7 +790,7 @@ function EventsSection({ itemId }: { itemId: string }) {
   const { t } = useTranslation();
   const { data, isLoading } = useQuery({
     queryKey: ['item', itemId, 'events'],
-    queryFn: () => itemsExtendedApi.listEvents(itemId),
+    queryFn: () => suppliesExtendedApi.listEvents(itemId),
   });
   const events = data?.events ?? [];
 

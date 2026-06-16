@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+﻿import { useCallback, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { IconSearch, IconSparkles } from '@tabler/icons-react';
@@ -121,7 +121,7 @@ function SearchPage() {
                     <h3 className={uiStyles.heading}>{result.name}</h3>
                   </Row>
                   {result.location_path && <span>{result.location_path}</span>}
-                  {result.edc_hint && <p className={uiStyles.help}>{result.edc_hint}</p>}
+                  {result.essentials_hint && <p className={uiStyles.help}>{result.essentials_hint}</p>}
                   <Row>
                     <StatusBadge status={result.status} />
                     <span className={uiStyles.muted}>{t(`itemType.${result.type}`, result.type)}</span>
