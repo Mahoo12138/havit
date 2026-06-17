@@ -135,6 +135,33 @@ export const buttonVariant = styleVariants({
       },
     },
   ],
+  secondary: [
+    button,
+    {
+      background: themeVars.secondaryBg,
+      color: themeVars.secondaryText,
+      selectors: {
+        '&:hover:not(:disabled)': {
+          background: themeVars.line,
+        },
+      },
+    },
+  ],
+  outline: [
+    button,
+    {
+      borderColor: themeVars.line,
+      background: themeVars.panel,
+      color: themeVars.text,
+      boxShadow: themeVars.shadowSoft,
+      selectors: {
+        '&:hover:not(:disabled)': {
+          background: themeVars.bgSoft,
+          color: themeVars.ink,
+        },
+      },
+    },
+  ],
   subtle: [
     button,
     {
@@ -144,6 +171,48 @@ export const buttonVariant = styleVariants({
         '&:hover:not(:disabled)': {
           background: themeVars.lineSoft,
           color: themeVars.ink,
+        },
+      },
+    },
+  ],
+  ghost: [
+    button,
+    {
+      background: 'transparent',
+      color: themeVars.text,
+      selectors: {
+        '&:hover:not(:disabled)': {
+          background: themeVars.lineSoft,
+          color: themeVars.ink,
+        },
+      },
+    },
+  ],
+  destructive: [
+    button,
+    {
+      background: themeVars.dangerBg,
+      color: themeVars.onDanger,
+      borderColor: themeVars.dangerBg,
+      selectors: {
+        '&:hover:not(:disabled)': {
+          background: '#b91c1c',
+          borderColor: '#b91c1c',
+        },
+      },
+    },
+  ],
+  link: [
+    button,
+    {
+      background: 'transparent',
+      color: themeVars.accent,
+      borderColor: 'transparent',
+      textDecoration: 'underline',
+      textUnderlineOffset: '4px',
+      selectors: {
+        '&:hover:not(:disabled)': {
+          color: themeVars.accentHover,
         },
       },
     },
@@ -163,6 +232,20 @@ export const buttonVariant = styleVariants({
       },
     },
   ],
+});
+
+export const buttonSize = styleVariants({
+  xs: { height: '1.5rem', gap: '0.25rem', padding: '0 0.5rem', fontSize: '0.75rem' },
+  sm: { height: '2rem', gap: '0.25rem', padding: '0 0.625rem', fontSize: '0.8rem' },
+  default: { height: '2.25rem', gap: '0.375rem', padding: '0 0.625rem', fontSize: '0.88rem' },
+  lg: { height: '2.5rem', gap: '0.375rem', padding: '0 0.625rem' },
+});
+
+export const iconButtonSize = styleVariants({
+  xs: { width: '1.5rem', height: '1.5rem', minWidth: '1.5rem', padding: 0 },
+  sm: { width: '2rem', height: '2rem', minWidth: '2rem', padding: 0 },
+  default: { width: '2.25rem', height: '2.25rem', minWidth: '2.25rem', padding: 0 },
+  lg: { width: '2.5rem', height: '2.5rem', minWidth: '2.5rem', padding: 0 },
 });
 
 export const iconButton = style([
@@ -218,9 +301,12 @@ export const selectTrigger = style([
   input,
   {
     alignItems: 'center',
+    cursor: 'pointer',
     display: 'flex',
     justifyContent: 'space-between',
     textAlign: 'left',
+    userSelect: 'none',
+    whiteSpace: 'nowrap',
   },
 ]);
 
@@ -246,21 +332,172 @@ export const selectPositioner = style({
 });
 
 export const selectItem = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
   borderRadius: themeVars.radius1,
   cursor: 'pointer',
   padding: `${themeVars.space2} ${themeVars.space3}`,
-  fontSize: '0.9rem',
+  fontSize: '0.875rem',
   transition: 'background-color 140ms ease, color 140ms ease',
+  outline: 'none',
   selectors: {
     '&[data-highlighted]': {
       background: themeVars.accentSoft,
       color: themeVars.accentInk,
     },
-    '&[data-selected]': {
-      fontWeight: 600,
-      color: themeVars.accentInk,
+  },
+});
+
+export const selectItemIndicator = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '1rem',
+  height: '1rem',
+  flexShrink: 0,
+  color: themeVars.accentInk,
+});
+
+export const selectItemText = style({
+  flex: 1,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const selectScrollArrow = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  height: '1.5rem',
+  cursor: 'default',
+  color: themeVars.muted,
+});
+
+export const selectGroup = style({
+  padding: themeVars.space1,
+});
+
+export const selectValue = style({
+  display: 'flex',
+  flex: 1,
+  textAlign: 'left',
+});
+
+export const selectLabel = style({
+  padding: `${themeVars.space1} ${themeVars.space2}`,
+  fontSize: '0.75rem',
+  color: themeVars.muted,
+  fontWeight: 500,
+});
+
+export const selectSeparator = style({
+  height: '1px',
+  background: themeVars.line,
+  margin: `${themeVars.space1} -${themeVars.space2}`,
+});
+
+export const selectTriggerShadcn = style({
+  background: 'transparent',
+  minHeight: 0,
+  padding: `${themeVars.space2} ${themeVars.space2} ${themeVars.space2} 0.625rem`,
+  width: 'fit-content',
+  height: '2rem',
+});
+
+export const selectTriggerSize = styleVariants({
+  default: {},
+  sm: { height: '1.75rem', borderRadius: 6 },
+});
+
+export const selectChevron = style({
+  color: themeVars.muted,
+  flexShrink: 0,
+  pointerEvents: 'none',
+});
+
+/* ---------- Card (shadcn-style) ---------- */
+
+export const cardRoot = style({
+  vars: {
+    '--card-spacing': themeVars.space4,
+  },
+  background: themeVars.panel,
+  borderRadius: themeVars.radius3,
+  boxShadow: `0 0 0 1px ${themeVars.line}`,
+  color: themeVars.text,
+  display: 'flex',
+  flexDirection: 'column',
+  fontSize: '0.875rem',
+  gap: 'var(--card-spacing)',
+  overflow: 'hidden',
+  padding: 'var(--card-spacing) 0',
+  selectors: {
+    '&:has([data-slot="card-footer"])': {
+      paddingBottom: 0,
+    },
+    '&:has(> img:first-child)': {
+      paddingTop: 0,
     },
   },
+});
+
+export const cardSizeSm = style({
+  vars: {
+    '--card-spacing': themeVars.space3,
+  },
+});
+
+export const cardHeader = style({
+  alignItems: 'start',
+  display: 'grid',
+  gap: '0.25rem',
+  gridTemplateRows: 'auto auto',
+  padding: `0 var(--card-spacing)`,
+  selectors: {
+    '&:has([data-slot="card-action"])': {
+      gridTemplateColumns: '1fr auto',
+    },
+  },
+});
+
+export const cardTitle = style({
+  color: themeVars.ink,
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  lineHeight: '1.375',
+  selectors: {
+    '[data-size="sm"] &': {
+      fontSize: '0.8125rem',
+    },
+  },
+});
+
+export const cardDescription = style({
+  color: themeVars.muted,
+  fontSize: '0.8125rem',
+});
+
+export const cardAction = style({
+  alignSelf: 'start',
+  gridColumn: 2,
+  gridRow: '1 / 3',
+  justifySelf: 'end',
+});
+
+export const cardContent = style({
+  padding: `0 var(--card-spacing)`,
+});
+
+export const cardFooter = style({
+  alignItems: 'center',
+  background: themeVars.bgSoft,
+  borderBottomLeftRadius: themeVars.radius3,
+  borderBottomRightRadius: themeVars.radius3,
+  borderTop: `1px solid ${themeVars.line}`,
+  display: 'flex',
+  padding: 'var(--card-spacing)',
 });
 
 export const textarea = style([
@@ -756,26 +993,39 @@ export const burger = style({
 });
 
 export const navLink = style({
+  position: 'relative',
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
-  borderRadius: themeVars.radius2,
   color: themeVars.sidebarText,
   padding: `${themeVars.space2} ${themeVars.space3}`,
   textDecoration: 'none',
   fontSize: '0.88rem',
   fontWeight: 500,
-  transition: 'background-color 160ms ease, color 160ms ease',
+  transition: 'color 160ms ease',
   selectors: {
     '&:hover': {
-      background: themeVars.sidebarHover,
       color: '#f1f5f9',
       textDecoration: 'none',
     },
     '&[data-active="true"]': {
-      background: themeVars.sidebarActive,
       color: themeVars.sidebarActiveText,
       fontWeight: 600,
+    },
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      left: '0',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      width: '2px',
+      height: '60%',
+      borderRadius: themeVars.radius1,
+      background: 'transparent',
+      transition: 'background 160ms ease',
+    },
+    '&[data-active="true"]::before': {
+      background: themeVars.sidebarActiveText,
     },
   },
 });
@@ -5956,5 +6206,180 @@ export const datePickerDay = style({
       background: themeVars.accentHover,
     },
   },
+});
+
+/* ────────────────────────────────────────────────────────
+   shadcn Select → vanilla-extract migration
+   ──────────────────────────────────────────────────────── */
+
+export const selTrigger = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '0.375rem',
+  width: 'fit-content',
+  height: '2rem',
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: 'transparent',
+  color: themeVars.text,
+  fontSize: '0.875rem',
+  whiteSpace: 'nowrap',
+  padding: '0 0.5rem 0 0.625rem',
+  outline: 'none',
+  userSelect: 'none',
+  transition: 'border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease',
+  cursor: 'pointer',
+  selectors: {
+    '&[data-size="sm"]': {
+      height: '1.75rem',
+      fontSize: '0.8rem',
+    },
+    '&:focus-visible': {
+      borderColor: themeVars.accent,
+      boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
+    },
+    '&:disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.5,
+    },
+    '&[data-popup-open]': {
+      borderColor: themeVars.accent,
+    },
+  },
+});
+
+export const selTriggerIcon = style({
+  pointerEvents: 'none',
+  color: themeVars.muted,
+  display: 'inline-flex',
+  flexShrink: 0,
+  width: '1rem',
+  height: '1rem',
+});
+
+export const selValue = style({
+  display: 'flex',
+  flex: 1,
+  alignItems: 'center',
+  gap: '0.375rem',
+  textAlign: 'left',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const selPositioner = style({
+  zIndex: 50,
+  isolation: 'isolate',
+});
+
+const selFadeIn = keyframes({
+  from: { opacity: 0, transform: 'scale(0.95)' },
+  to: { opacity: 1, transform: 'scale(1)' },
+});
+
+const selFadeOut = keyframes({
+  from: { opacity: 1, transform: 'scale(1)' },
+  to: { opacity: 0, transform: 'scale(0.95)' },
+});
+
+export const selPopup = style({
+  position: 'relative',
+  isolation: 'isolate',
+  zIndex: 50,
+  maxHeight: 'var(--available-height)',
+  width: 'var(--anchor-width)',
+  minWidth: '9rem',
+  overflowX: 'hidden',
+  overflowY: 'auto',
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  color: themeVars.text,
+  boxShadow: `${themeVars.shadow}, 0 0 0 1px ${themeVars.line}`,
+  padding: themeVars.space1,
+  transformOrigin: 'var(--transform-origin)',
+  animation: `${selFadeIn} 150ms ease-out`,
+  selectors: {
+    '&[data-ending-style]': {
+      animation: `${selFadeOut} 100ms ease-in`,
+    },
+  },
+});
+
+export const selGroup = style({
+  padding: themeVars.space1,
+});
+
+export const selLabel = style({
+  padding: '0.25rem 0.375rem',
+  fontSize: '0.75rem',
+  color: themeVars.muted,
+});
+
+export const selItem = style({
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.375rem',
+  borderRadius: themeVars.radius1,
+  padding: '0.25rem 2rem 0.25rem 0.375rem',
+  fontSize: '0.875rem',
+  cursor: 'default',
+  userSelect: 'none',
+  outline: 'none',
+  transition: 'background-color 140ms ease, color 140ms ease',
+  selectors: {
+    '&[data-highlighted]': {
+      background: themeVars.accentSoft,
+      color: themeVars.accentInk,
+    },
+    '&[data-disabled]': {
+      pointerEvents: 'none',
+      opacity: 0.5,
+    },
+  },
+});
+
+export const selItemIndicator = style({
+  position: 'absolute',
+  right: '0.5rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '1rem',
+  height: '1rem',
+  pointerEvents: 'none',
+  color: themeVars.accentInk,
+});
+
+export const selItemText = style({
+  display: 'flex',
+  flex: 1,
+  flexShrink: 0,
+  alignItems: 'center',
+  gap: '0.5rem',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+});
+
+export const selSeparator = style({
+  pointerEvents: 'none',
+  margin: `${themeVars.space1} -${themeVars.space1}`,
+  height: '1px',
+  background: themeVars.line,
+});
+
+export const selScrollArrow = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '100%',
+  padding: '0.25rem 0',
+  cursor: 'default',
+  background: themeVars.panel,
+  color: themeVars.muted,
+  zIndex: 10,
 });
 

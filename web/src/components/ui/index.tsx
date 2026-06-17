@@ -16,7 +16,7 @@ import { Popover as BasePopover } from '@base-ui/react/popover';
 import { ScrollArea as BaseScrollArea } from '@base-ui/react/scroll-area';
 import { Select as BaseSelect } from '@base-ui/react/select';
 import { Toast as BaseToast } from '@base-ui/react/toast';
-import { IconChevronDown, IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-react';
+import { IconCheck, IconChevronDown, IconChevronLeft, IconChevronRight, IconX } from '@tabler/icons-react';
 
 import * as s from './styles.css';
 
@@ -121,8 +121,12 @@ export function SelectField({
         <BaseSelect.Portal>
           <BaseSelect.Positioner className={s.selectPositioner} sideOffset={6}>
             <BaseSelect.Popup className={s.selectPopup}>
+              <BaseSelect.ScrollUpArrow className={s.selectScrollArrow}>
+                <IconChevronDown size={14} style={{ transform: 'rotate(180deg)' }} />
+              </BaseSelect.ScrollUpArrow>
               {placeholder && (
                 <BaseSelect.Item className={s.selectItem} value={null}>
+                  <BaseSelect.ItemIndicator className={s.selectItemIndicator} />
                   <BaseSelect.ItemText>{placeholder}</BaseSelect.ItemText>
                 </BaseSelect.Item>
               )}
@@ -132,9 +136,17 @@ export function SelectField({
                   key={option.value}
                   value={option.value}
                 >
-                  <BaseSelect.ItemText>{option.label}</BaseSelect.ItemText>
+                  <BaseSelect.ItemIndicator className={s.selectItemIndicator}>
+                    <IconCheck size={14} />
+                  </BaseSelect.ItemIndicator>
+                  <BaseSelect.ItemText className={s.selectItemText}>
+                    {option.label}
+                  </BaseSelect.ItemText>
                 </BaseSelect.Item>
               ))}
+              <BaseSelect.ScrollDownArrow className={s.selectScrollArrow}>
+                <IconChevronDown size={14} />
+              </BaseSelect.ScrollDownArrow>
             </BaseSelect.Popup>
           </BaseSelect.Positioner>
         </BaseSelect.Portal>

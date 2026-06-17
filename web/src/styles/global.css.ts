@@ -8,6 +8,8 @@ globalStyle('[data-color-scheme="dark"]', { colorScheme: 'dark' });
 
 globalStyle('*, *::before, *::after', {
   boxSizing: 'border-box',
+  borderColor: themeVars.line,
+  outlineColor: themeVars.focusRing,
 });
 
 globalStyle('#root', {
