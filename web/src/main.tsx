@@ -5,9 +5,11 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 
 import './i18n';
 import './styles/global.css';
-
 import { ToastProvider } from './components/ui';
+import { DeviceProvider } from './lib/device';
 import { routeTree } from './routeTree.gen';
+
+import './styles.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,10 +30,12 @@ declare module '@tanstack/react-router' {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ToastProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </ToastProvider>
+    <DeviceProvider>
+      <ToastProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </ToastProvider>
+    </DeviceProvider>
   </StrictMode>,
 );
