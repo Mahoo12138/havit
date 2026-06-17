@@ -303,14 +303,14 @@ function SupplyDetail() {
 
   return (
     <Stack>
-      <button
+      <Button
+        variant="subtle"
         className={uiStyles.supplyBackLink}
         onClick={() => navigate({ to: '/supplies' })}
-        type="button"
       >
         <IconChevronLeft size={14} />
         {t('supplies.back')}
-      </button>
+      </Button>
 
       <div className={uiStyles.pageHeader}>
         <StackTight>
@@ -383,8 +383,8 @@ function SupplyDetail() {
                 </header>
                 <div className={uiStyles.itemSectionBody}>
                   <div className={uiStyles.supplyActionRow}>
-                    <button
-                      type="button"
+                    <Button
+                      variant="subtle"
                       className={uiStyles.supplyActionPrimary}
                       onClick={() => setPurchaseOpen(true)}
                       disabled={!isOnline}
@@ -392,9 +392,9 @@ function SupplyDetail() {
                     >
                       <IconShoppingBag size={18} />
                       {t('supplies.recordPurchase')}
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="subtle"
                       className={uiStyles.supplyActionDanger}
                       onClick={() => calibrate.mutate('almost_empty')}
                       disabled={!isOnline || calibrate.isPending}
@@ -402,9 +402,9 @@ function SupplyDetail() {
                     >
                       <IconAlertTriangle size={18} />
                       {t('supplies.almostEmpty')}
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="subtle"
                       className={uiStyles.supplyActionSuccess}
                       onClick={() => calibrate.mutate('plenty_left')}
                       disabled={!isOnline || calibrate.isPending}
@@ -412,7 +412,7 @@ function SupplyDetail() {
                     >
                       <IconCheck size={18} />
                       {t('supplies.plentyLeft')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </section>
@@ -578,8 +578,8 @@ function SupplyDetail() {
                     {it.min_stock_threshold ?? '—'}
                   </div>
                   <div className={uiStyles.supplyActionRow}>
-                    <button
-                      type="button"
+                    <Button
+                      variant="subtle"
                       className={uiStyles.supplyActionDanger}
                       onClick={() => useOne.mutate()}
                       disabled={!isOnline || stock <= 0 || useOne.isPending}
@@ -587,9 +587,9 @@ function SupplyDetail() {
                     >
                       <IconMinus size={18} />
                       {t('supplies.useOneAction')}
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="subtle"
                       className={uiStyles.supplyActionPrimary}
                       onClick={() => setStockOpen(true)}
                       disabled={!isOnline}
@@ -597,9 +597,9 @@ function SupplyDetail() {
                     >
                       <IconShoppingBag size={18} />
                       {t('supplies.addStock')}
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="subtle"
                       className={uiStyles.supplyActionBigBtn}
                       onClick={() => setThresholdOpen(true)}
                       disabled={!isOnline}
@@ -607,7 +607,7 @@ function SupplyDetail() {
                     >
                       <IconTrendingUp size={18} />
                       {t('supplies.setThresholdTitle')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </section>

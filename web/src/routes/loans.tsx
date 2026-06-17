@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { IconPlus, IconSettings, IconDotsVertical, IconAlertTriangle, IconClipboardList, IconEye } from '@tabler/icons-react';
-import { Button, Card, DatePickerField, Dialog, Spinner, Stack, Tabs, TextField, uiStyles } from '../components/ui';
+import { Button, Card, DatePickerField, Dialog, SelectField, Spinner, Stack, Tabs, TextField, uiStyles } from '../components/ui';
 import { itemsApi, loansApi, type Loan } from '../api/client';
 
 export const Route = createFileRoute('/loans')({
@@ -277,39 +277,38 @@ function LoansPage() {
           </div>
 
           <div className={uiStyles.loanFilterBar}>
-            <select
-              className={uiStyles.loanFilterSelect}
+            <SelectField
+              label={t('items.status')}
+              options={[
+                { value: '', label: t('loans.filterAllStatus') },
+                { value: 'active', label: t('loans.statusBorrowed') },
+                { value: 'overdue', label: t('loans.statusOverdue') },
+              ]}
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <option value="">{t('loans.filterAllStatus')}</option>
-              <option value="active">{t('loans.statusBorrowed')}</option>
-              <option value="overdue">{t('loans.statusOverdue')}</option>
-            </select>
-            <select
-              className={uiStyles.loanFilterSelect}
+              onChange={(e) => setFilterStatus(e.currentTarget.value)}
+            />
+            <SelectField
+              label={t('items.category')}
+              options={[
+                { value: '', label: t('loans.filterAllCategories') },
+                ...categories.map((cat) => ({ value: cat, label: cat })),
+              ]}
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-            >
-              <option value="">{t('loans.filterAllCategories')}</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-            <select
-              className={uiStyles.loanFilterSelect}
+              onChange={(e) => setFilterCategory(e.currentTarget.value)}
+            />
+            <SelectField
+              label={t('loans.filterBorrower')}
+              options={[
+                { value: '', label: t('loans.filterBorrower') },
+                ...borrowers.map((b) => ({ value: b, label: b })),
+              ]}
               value={filterBorrower}
-              onChange={(e) => setFilterBorrower(e.target.value)}
-            >
-              <option value="">{t('loans.filterBorrower')}</option>
-              {borrowers.map((b) => (
-                <option key={b} value={b}>{b}</option>
-              ))}
-            </select>
+              onChange={(e) => setFilterBorrower(e.currentTarget.value)}
+            />
             <div className={uiStyles.loanToolbarActions}>
-              <button className={uiStyles.loanFilterIconBtn} title={t('loans.filterDueDate')}>
+              <Button variant="subtle" className={uiStyles.loanFilterIconBtn} title={t('loans.filterDueDate')}>
                 <IconClipboardList size={14} />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -386,20 +385,21 @@ function LoansPage() {
                           </td>
                           <td className={uiStyles.td}>
                             <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-                              <button className={uiStyles.loanActionBtn} title={t('loans.viewDetail')}>
+                              <Button variant="subtle" className={uiStyles.loanActionBtn} title={t('loans.viewDetail')}>
                                 <IconEye size={13} />
-                              </button>
+                              </Button>
                               {status === 'active' || status === 'overdue' || status === 'due_soon' ? (
-                                <button
+                                <Button
+                                  variant="subtle"
                                   className={uiStyles.loanActionBtn}
                                   onClick={() => setReturnLoanId(loan.id)}
                                 >
                                   {t('loans.returnItem')}
-                                </button>
+                                </Button>
                               ) : null}
-                              <button className={uiStyles.loanActionMore} title={t('common.more', { defaultValue: 'More' })}>
+                              <Button variant="subtle" className={uiStyles.loanActionMore} title={t('common.more', { defaultValue: 'More' })}>
                                 <IconDotsVertical size={14} />
-                              </button>
+                              </Button>
                             </div>
                           </td>
                         </tr>
@@ -458,16 +458,17 @@ function LoansPage() {
                       </span>
                     </div>
                     <div className={uiStyles.loanMobileRow}>
-                      <button className={uiStyles.loanActionBtn}>
+                      <Button variant="subtle" className={uiStyles.loanActionBtn}>
                         <IconEye size={13} /> {t('loans.viewDetail')}
-                      </button>
+                      </Button>
                       {(status === 'active' || status === 'overdue' || status === 'due_soon') && (
-                        <button
+                        <Button
+                          variant="subtle"
                           className={uiStyles.loanActionBtn}
                           onClick={() => setReturnLoanId(loan.id)}
                         >
                           {t('loans.returnItem')}
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -487,12 +488,9 @@ function LoansPage() {
                   <IconAlertTriangle size={16} color="var(--havit-danger)" />
                   <h3 className={uiStyles.loanBottomTitle}>{t('loans.overdueReminder')}</h3>
                 </div>
-                <button style={{
-                  background: 'transparent', border: 0, color: 'var(--havit-accent)',
-                  fontSize: '0.82rem', cursor: 'pointer', fontWeight: 500,
-                }}>
+                <Button variant="subtle" style={{ fontWeight: 500 }}>
                   {t('loans.viewAllOverdue')}
-                </button>
+                </Button>
               </div>
               <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
                 {metrics.overdueCount} {t('loans.overdueReminderHint')}

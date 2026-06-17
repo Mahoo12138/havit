@@ -19,6 +19,7 @@ import {
   Button,
   Card,
   Dialog,
+  SelectField,
   Stack,
   Spinner,
   StackTight,
@@ -193,37 +194,51 @@ function VirtualAssetsPage() {
             <div className={uiStyles.sectionHead}>
               <div className={uiStyles.vaFilterRow}>
                 <div className={uiStyles.vaFilterRowLeft}>
-                  <select className={uiStyles.vaFilterSelect}>
-                    <option>{t('virtualAssets.allStatus')}</option>
-                  </select>
-                  <select className={uiStyles.vaFilterSelect}>
-                    <option>{t('virtualAssets.allCategories')}</option>
-                  </select>
-                  <select className={uiStyles.vaFilterSelect}>
-                    <option>{t('virtualAssets.allUsers')}</option>
-                  </select>
-                  <select className={uiStyles.vaFilterSelect}>
-                    <option>{t('virtualAssets.sortByExpiration')}</option>
-                  </select>
+                  <SelectField
+                    label={t('items.status')}
+                    options={[{ value: '', label: t('virtualAssets.allStatus') }]}
+                    value=""
+                    onChange={() => {}}
+                  />
+                  <SelectField
+                    label={t('items.category')}
+                    options={[{ value: '', label: t('virtualAssets.allCategories') }]}
+                    value=""
+                    onChange={() => {}}
+                  />
+                  <SelectField
+                    label={t('common.user')}
+                    options={[{ value: '', label: t('virtualAssets.allUsers') }]}
+                    value=""
+                    onChange={() => {}}
+                  />
+                  <SelectField
+                    label={t('common.sort')}
+                    options={[{ value: '', label: t('virtualAssets.sortByExpiration') }]}
+                    value=""
+                    onChange={() => {}}
+                  />
                 </div>
                 <div className={uiStyles.vaFilterRowRight}>
                   <div className={uiStyles.vaViewToggle}>
-                    <button
+                    <Button
+                      variant="subtle"
                       className={uiStyles.vaViewToggleBtn}
                       data-active={viewMode === 'list' || undefined}
                       onClick={() => setViewMode('list')}
                     >
                       <IconList size={14} />
                       {t('virtualAssets.listView')}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="subtle"
                       className={uiStyles.vaViewToggleBtn}
                       data-active={viewMode === 'cards' || undefined}
                       onClick={() => setViewMode('cards')}
                     >
                       <IconCalendar size={14} />
                       {t('virtualAssets.calendarView')}
-                    </button>
+                    </Button>
                   </div>
                   <Button variant="subtle" leftSection={<IconDownload size={14} />}>
                     {t('virtualAssets.export')}
@@ -298,9 +313,9 @@ function VirtualAssetsPage() {
                             >
                               {t('virtualAssets.viewDetails')}
                             </Button>
-                            <button className={uiStyles.iconButton}>
+                            <Button variant="subtle" className={uiStyles.iconButton}>
                               <IconDots size={14} />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -380,14 +395,15 @@ function VirtualAssetsPage() {
               }}>
                 <span>共 {filteredItems.length} 项</span>
                 <div style={{ display: 'flex', gap: '4px' }}>
-                  <button className={uiStyles.iconButton}>&lt;</button>
-                  <button
+                  <Button variant="subtle" className={uiStyles.iconButton}>&lt;</Button>
+                  <Button
+                    variant="subtle"
                     className={uiStyles.iconButton}
                     style={{ background: 'var(--havit-accent-soft)', color: 'var(--havit-accent-ink)' }}
                   >
                     1
-                  </button>
-                  <button className={uiStyles.iconButton}>&gt;</button>
+                  </Button>
+                  <Button variant="subtle" className={uiStyles.iconButton}>&gt;</Button>
                 </div>
               </div>
             )}

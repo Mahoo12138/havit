@@ -636,9 +636,9 @@ function LocationDetail({
               const CIcon = cm.icon;
               const cCount = subtreeCount(c.id);
               return (
-                <button
+                <Button
+                  variant="subtle"
                   key={c.id}
-                  type="button"
                   className={uiStyles.childChip}
                   onClick={() => onSelectChild(c.id)}
                 >
@@ -649,7 +649,7 @@ function LocationDetail({
                   {cCount > 0 && (
                     <span className={uiStyles.childChipCount}>{cCount}</span>
                   )}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -904,9 +904,9 @@ function TypeChoiceGrid({
           const disabled = parentType !== null && !canNestUnder(parentType, locationType.value);
           const active = value === locationType.value;
           return (
-            <button
+            <Button
+              variant="subtle"
               key={locationType.value}
-              type="button"
               className={uiStyles.typeChoiceCard}
               data-active={active}
               disabled={disabled}
@@ -924,7 +924,7 @@ function TypeChoiceGrid({
                 <span className={uiStyles.typeChoiceLabel}>{locationTypeLabel(locationType.value, t)}</span>
                 <span className={uiStyles.typeChoiceDesc}>{locationTypeDesc(locationType.value, t)}</span>
               </span>
-            </button>
+            </Button>
           );
         })}
       </div>

@@ -285,41 +285,37 @@ function EssentialsPage() {
                   <div className={uiStyles.sectionHead}>
                     <h3 className={uiStyles.sectionTitle}>{t('essentials.edcItems')}</h3>
                     <div className={uiStyles.essentialsToolbarRight}>
-                      <select
+                      <SelectField
+                        label={t('items.status')}
+                        options={[
+                          { value: 'all', label: t('essentials.allStatus') },
+                          { value: 'carry', label: t('essentials.carry') },
+                          { value: 'bag', label: t('essentials.travelBag') },
+                          { value: 'home', label: t('essentials.homeBaseShort') },
+                          { value: 'away', label: t('essentials.notOnPersonShort') },
+                        ]}
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        style={{
-                          padding: '4px 8px',
-                          border: `1px solid var(--havit-line)`,
-                          borderRadius: 'var(--havit-radius2)',
-                          background: 'var(--havit-panel)',
-                          fontSize: '0.82rem',
-                          color: 'var(--havit-text)',
-                        }}
-                      >
-                        <option value="all">{t('essentials.allStatus')}</option>
-                        <option value="carry">{t('essentials.carry')}</option>
-                        <option value="bag">{t('essentials.travelBag')}</option>
-                        <option value="home">{t('essentials.homeBaseShort')}</option>
-                        <option value="away">{t('essentials.notOnPersonShort')}</option>
-                      </select>
+                        onChange={(e) => setStatusFilter(e.currentTarget.value)}
+                      />
                       <div className={uiStyles.essentialsViewToggle}>
-                        <button
+                        <Button
+                          variant="subtle"
                           className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'list' || undefined}
                           onClick={() => setViewMode('list')}
                         >
                           <IconList size={14} />
                           {t('essentials.listView')}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="subtle"
                           className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'cards' || undefined}
                           onClick={() => setViewMode('cards')}
                         >
                           <IconLayoutGrid size={14} />
                           {t('essentials.cardView')}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -385,17 +381,18 @@ function EssentialsPage() {
                               今天 08:30
                             </span>
                             <div style={{ display: 'flex', gap: '4px' }}>
-                              <button
+                              <Button
+                                variant="subtle"
                                 className={uiStyles.iconButton}
                                 title={t('essentials.returnHome')}
                                 disabled={statusType === 'home' || returnHomeMutation.isPending}
                                 onClick={() => returnHomeMutation.mutate(item.id)}
                               >
                                 <IconHome size={14} />
-                              </button>
-                              <button className={uiStyles.iconButton} title="More">
+                              </Button>
+                              <Button variant="subtle" className={uiStyles.iconButton} title="More">
                                 <span style={{ fontSize: '1rem', lineHeight: 1 }}>···</span>
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         );
@@ -435,16 +432,17 @@ function EssentialsPage() {
                   >
                     <span>共 {filteredItems.length} 项</span>
                     <div style={{ display: 'flex', gap: '4px' }}>
-                      <button className={uiStyles.iconButton}>&lt;</button>
-                      <button
+                      <Button variant="subtle" className={uiStyles.iconButton}>&lt;</Button>
+                      <Button
+                        variant="subtle"
                         className={uiStyles.iconButton}
                         style={{ background: 'var(--havit-accent-soft)', color: 'var(--havit-accent-ink)' }}
                       >
                         1
-                      </button>
-                      <button className={uiStyles.iconButton}>2</button>
-                      <button className={uiStyles.iconButton}>3</button>
-                      <button className={uiStyles.iconButton}>&gt;</button>
+                      </Button>
+                      <Button variant="subtle" className={uiStyles.iconButton}>2</Button>
+                      <Button variant="subtle" className={uiStyles.iconButton}>3</Button>
+                      <Button variant="subtle" className={uiStyles.iconButton}>&gt;</Button>
                     </div>
                   </div>
                 </div>
@@ -560,18 +558,9 @@ function EssentialsPage() {
                     </div>
                   </div>
                   <div style={{ padding: `${uiStyles.stack ? '' : ''} 0.75rem 1rem`, textAlign: 'center' }}>
-                    <button
-                      style={{
-                        background: 'transparent',
-                        border: 0,
-                        color: 'var(--havit-accent)',
-                        fontSize: '0.82rem',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                      }}
-                    >
+                    <Button variant="subtle" style={{ fontWeight: 500 }}>
                       {t('essentials.viewAllReminders')}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </Card>

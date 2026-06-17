@@ -18,7 +18,6 @@ import {
   IconSearch,
 } from '@tabler/icons-react';
 import {
-  Button,
   Card,
   DatePickerField,
   Dialog,
@@ -32,6 +31,7 @@ import {
   uiStyles,
   useToast,
 } from '../components/ui';
+import { Button } from '../components/ui/button'
 import { itemsApi, locationsApi, type Item, type Location } from '../api/client';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
 import { CategoryTabs } from '../features/categories/CategoryTabs';
@@ -217,7 +217,7 @@ function AssetsPage() {
           >
             {t('assets.create')}
           </Button>
-          <Button variant="subtle" leftSection={<IconPrinter size={14} />}>
+          <Button variant="primary" leftSection={<IconPrinter size={14} />}>
             {t('assets.printQR')}
           </Button>
         </div>
@@ -287,45 +287,47 @@ function AssetsPage() {
                           onChange={(e) => setSearchQuery(e.currentTarget.value)}
                         />
                       </span>
-                      <select
-                        className={uiStyles.vaFilterSelect}
+                      <SelectField
+                        label={t('assets.status')}
+                        options={[
+                          { value: 'all', label: t('assets.allStatuses') },
+                          { value: 'in_use', label: t('assets.inUse') },
+                          { value: 'stored', label: t('assets.stored') },
+                          { value: 'maintenance', label: t('assets.maintenance') },
+                        ]}
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                      >
-                        <option value="all">{t('assets.allStatuses')}</option>
-                        <option value="in_use">{t('assets.inUse')}</option>
-                        <option value="stored">{t('assets.stored')}</option>
-                        <option value="maintenance">{t('assets.maintenance')}</option>
-                      </select>
-                      <select
-                        className={uiStyles.vaFilterSelect}
+                        onChange={(e) => setStatusFilter(e.currentTarget.value)}
+                      />
+                      <SelectField
+                        label={t('assets.location')}
+                        options={[
+                          { value: 'all', label: t('assets.allLocations') },
+                          ...locOptions,
+                        ]}
                         value={locationFilter}
-                        onChange={(e) => setLocationFilter(e.target.value)}
-                      >
-                        <option value="all">{t('assets.allLocations')}</option>
-                        {locOptions.map((opt) => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
-                        ))}
-                      </select>
+                        onChange={(e) => setLocationFilter(e.currentTarget.value)}
+                      />
                     </div>
                     <div className={uiStyles.vaFilterRowRight}>
                       <div className={uiStyles.essentialsViewToggle}>
-                        <button
+                        <Button
+                          variant="subtle"
                           className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'list' || undefined}
                           onClick={() => setViewMode('list')}
                         >
                           <IconList size={14} />
                           {t('assets.listView')}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="subtle"
                           className={uiStyles.essentialsViewToggleBtn}
                           data-active={viewMode === 'cards' || undefined}
                           onClick={() => setViewMode('cards')}
                         >
                           <IconLayoutGrid size={14} />
                           {t('assets.cardView')}
-                        </button>
+                        </Button>
                       </div>
                       <Button variant="subtle">
                         {t('assets.export')}
@@ -428,9 +430,9 @@ function AssetsPage() {
                                   >
                                     {t('assets.viewDetails')}
                                   </Button>
-                                  <button className={uiStyles.iconButton}>
+                                  <Button variant="subtle" className={uiStyles.iconButton}>
                                     <IconDots size={14} />
-                                  </button>
+                                  </Button>
                                 </div>
                               </td>
                             </tr>
@@ -539,14 +541,15 @@ function AssetsPage() {
                   }}>
                     <span>共 {filteredItems.length} 项</span>
                     <div style={{ display: 'flex', gap: '4px' }}>
-                      <button className={uiStyles.iconButton}>&lt;</button>
-                      <button
+                      <Button variant="subtle" className={uiStyles.iconButton}>&lt;</Button>
+                      <Button
+                        variant="subtle"
                         className={uiStyles.iconButton}
                         style={{ background: 'var(--havit-accent-soft)', color: 'var(--havit-accent-ink)' }}
                       >
                         1
-                      </button>
-                      <button className={uiStyles.iconButton}>&gt;</button>
+                      </Button>
+                      <Button variant="subtle" className={uiStyles.iconButton}>&gt;</Button>
                     </div>
                   </div>
                 )}

@@ -217,9 +217,9 @@ function AbnormalPage() {
                 {t('abnormal.totalItems', { count: total })}
               </span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
-                <button className={uiStyles.abnormalActionBtn} title={t('abnormal.exportReport')}>
+                <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.exportReport')}>
                   <IconDownload size={13} /> {t('abnormal.exportReport')}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -308,13 +308,13 @@ function AbnormalPage() {
                         <td className={uiStyles.td}>
                           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                             <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                              <button className={uiStyles.abnormalActionBtn}>
+                              <Button variant="subtle" className={uiStyles.abnormalActionBtn}>
                                 <IconEye size={13} />
-                              </button>
+                              </Button>
                             </Link>
-                            <button className={uiStyles.abnormalMoreBtn}>
+                            <Button variant="subtle" className={uiStyles.abnormalMoreBtn}>
                               <IconDotsVertical size={14} />
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -327,29 +327,32 @@ function AbnormalPage() {
             {/* Pagination */}
             {totalPages > 1 && (
               <div className={uiStyles.abnormalPagination}>
-                <button
+                <Button
+                  variant="subtle"
                   className={uiStyles.abnormalPageBtn}
                   disabled={page === 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
                   <IconChevronLeft size={12} />
-                </button>
+                </Button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
+                  <Button
+                    variant="subtle"
                     key={p}
                     className={`${uiStyles.abnormalPageBtn}${p === page ? ' active' : ''}`}
                     onClick={() => setPage(p)}
                   >
                     {p}
-                  </button>
+                  </Button>
                 ))}
-                <button
+                <Button
+                  variant="subtle"
                   className={uiStyles.abnormalPageBtn}
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 >
                   <IconChevronRight size={12} />
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -385,37 +388,40 @@ function AbnormalPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flexShrink: 0 }}>
                   <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                    <button className={uiStyles.abnormalActionBtn}><IconEye size={12} /></button>
+                    <Button variant="subtle" className={uiStyles.abnormalActionBtn}><IconEye size={12} /></Button>
                   </Link>
-                  <button className={uiStyles.abnormalMoreBtn}><IconDotsVertical size={12} /></button>
+                  <Button variant="subtle" className={uiStyles.abnormalMoreBtn}><IconDotsVertical size={12} /></Button>
                 </div>
               </div>
             ))}
             {totalPages > 1 && (
               <div className={uiStyles.abnormalPagination}>
-                <button
+                <Button
+                  variant="subtle"
                   className={uiStyles.abnormalPageBtn}
                   disabled={page === 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                 >
                   <IconChevronLeft size={12} />
-                </button>
+                </Button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <button
+                  <Button
+                    variant="subtle"
                     key={p}
                     className={`${uiStyles.abnormalPageBtn}${p === page ? ' active' : ''}`}
                     onClick={() => setPage(p)}
                   >
                     {p}
-                  </button>
+                  </Button>
                 ))}
-                <button
+                <Button
+                  variant="subtle"
                   className={uiStyles.abnormalPageBtn}
                   disabled={page === totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 >
                   <IconChevronRight size={12} />
-                </button>
+                </Button>
               </div>
             )}
           </Card>
@@ -434,10 +440,10 @@ function AbnormalPage() {
               { icon: '📄', label: t('abnormal.actionExportClaim') },
               { icon: '📋', label: t('abnormal.actionViewFlow') },
             ].map((action) => (
-              <button className={uiStyles.abnormalQuickBtn} key={action.label}>
+               <Button variant="subtle" className={uiStyles.abnormalQuickBtn} key={action.label}>
                 <span>{action.icon}</span>
                 <span>{action.label}</span>
-              </button>
+              </Button>
             ))}
           </div>
         </Card>

@@ -257,11 +257,11 @@ function ItemDetail() {
             </div>
             <div className={uiStyles.itemThumbStrip}>
               {photos.map((photo, idx) => (
-                <button
+                <Button
+                  variant="subtle"
                   key={photo.id}
                   className={uiStyles.itemThumb}
                   data-active={idx === photoIdx || undefined}
-                  type="button"
                   onClick={() => setSelectedPhotoIdx(idx)}
                   aria-label={photo.filename}
                 >
@@ -270,10 +270,10 @@ function ItemDetail() {
                     src={photo.url}
                     alt={photo.filename}
                   />
-                </button>
+                </Button>
               ))}
-              <button
-                type="button"
+              <Button
+                variant="subtle"
                 className={uiStyles.itemThumbAdd}
                 disabled={!isOnline || uploadPhoto.isPending}
                 onClick={() => fileInputRef.current?.click()}
@@ -287,7 +287,7 @@ function ItemDetail() {
                 ) : (
                   <IconPhotoPlus size={20} />
                 )}
-              </button>
+              </Button>
             </div>
             <input
               ref={fileInputRef}
@@ -397,15 +397,15 @@ function ItemDetail() {
                 {currentTags.map((tag) => (
                   <span className={uiStyles.tagChip} key={tag.id}>
                     {tag.name}
-                    <button
+                    <Button
+                      variant="subtle"
                       className={uiStyles.tagRemove}
-                      type="button"
                       onClick={() => removeTag(tag.id)}
                       disabled={!isOnline || replaceTags.isPending}
                       title={t('items.removeTag')}
                     >
                       <IconX size={13} />
-                    </button>
+                    </Button>
                   </span>
                 ))}
                 {currentTags.length === 0 && (
@@ -425,15 +425,15 @@ function ItemDetail() {
                 {currentTags.map((tag) => (
                   <span className={uiStyles.tagChip} key={tag.id}>
                     {tag.name}
-                    <button
+                    <Button
+                      variant="subtle"
                       className={uiStyles.tagRemove}
-                      type="button"
                       onClick={() => removeTag(tag.id)}
                       disabled={!isOnline || replaceTags.isPending}
                       title={t('items.removeTag')}
                     >
                       <IconX size={13} />
-                    </button>
+                    </Button>
                   </span>
                 ))}
                 {currentTags.length === 0 && (
@@ -932,15 +932,14 @@ function MetadataSection({ itemId, item }: { itemId: string; item: Item }) {
                   >
                     {value}
                   </span>
-                  <button
-                    type="button"
+                  <Button
+                    variant="subtle"
                     onClick={() => handleRemove(key)}
                     disabled={!isOnline || updateMutation.isPending}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', color: 'var(--color-text-muted)' }}
                     title={t('common.delete')}
                   >
                     <IconTrash size={14} />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
