@@ -7,11 +7,11 @@ import {
   IconBox,
   IconMap2,
   IconPlus,
-  IconSettings,
-  IconMenu2,
   IconX,
   IconLogout,
   IconInfoCircle,
+  IconSearch,
+  IconUser,
 } from '@tabler/icons-react';
 import { ScrollArea, RowBetween, Alert } from '../components/ui';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
@@ -43,8 +43,9 @@ export function MobileShell({ systemStatus }: ShellProps) {
     { to: '/', label: t('nav.dashboard'), icon: IconHome },
     { to: '/assets', label: t('nav.assets'), icon: IconBox },
     { to: '/locations', label: t('nav.locations'), icon: IconMap2 },
-    { to: '/settings', label: t('nav.settings'), icon: IconSettings },
+    { to: '/settings', label: t('nav.profile', { defaultValue: '我的' }), icon: IconUser },
   ];
+  const pageTitle = getMobileTitle(path, t);
 
   async function handleLogout() {
     try {
@@ -56,33 +57,46 @@ export function MobileShell({ systemStatus }: ShellProps) {
     window.location.href = '/login';
   }
 
+  function handlePrimaryAction() {
+    const event = new CustomEvent<{ path: string; handled: boolean }>(
+      'havit:mobile-primary-action',
+      { detail: { path, handled: false } },
+    );
+    window.dispatchEvent(event);
+    if (!event.detail.handled) navigate({ to: '/capture' });
+  }
+
   return (
     <div className={s.shell}>
       {/* Top Bar */}
       <header className={s.topBar}>
+        <h1 className={s.topBarTitle}>{pageTitle}</h1>
+        <div className={s.topBarActions}>
+          <button
+            type="button"
+            className={s.topBarIconBtn}
+            onClick={() => navigate({ to: '/search' })}
+            aria-label={t('common.search')}
+          >
+            <IconSearch size={20} />
+          </button>
+          <button
+            type="button"
+            className={s.topBarIconBtn}
+            onClick={handlePrimaryAction}
+            aria-label={t('nav.capture')}
+          >
+            <IconPlus size={21} />
+          </button>
+        </div>
         <button
           type="button"
+          className={s.topBarAvatar}
           onClick={() => setDrawerOpen(true)}
-          style={{ background: 'transparent', border: 0, color: 'inherit', cursor: 'pointer', padding: 0, display: 'grid', placeItems: 'center' }}
           aria-label={t('common.toggleNav')}
         >
-          <IconMenu2 size={20} />
-        </button>
-        <input
-          className={s.topBarSearch}
-          type="search"
-          placeholder={t('search.placeholder')}
-          aria-label={t('common.search')}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              const q = (e.target as HTMLInputElement).value.trim();
-              if (q) navigate({ to: '/search', search: { q } as never });
-            }
-          }}
-        />
-        <span className={s.topBarAvatar} aria-label={username}>
           {initials}
-        </span>
+        </button>
       </header>
 
       {/* Main Content */}
@@ -105,7 +119,7 @@ export function MobileShell({ systemStatus }: ShellProps) {
 
       {/* Bottom Navigation */}
       <nav className={s.bottomNav}>
-        {bottomItems.map((item) => {
+        {bottomItems.slice(0, 2).map((item) => {
           const Icon = item.icon;
           const active = item.to === '/' ? path === '/' : path.startsWith(item.to);
           return (
@@ -124,11 +138,27 @@ export function MobileShell({ systemStatus }: ShellProps) {
         <button
           type="button"
           className={s.fabBtn}
-          onClick={() => navigate({ to: '/capture' })}
+          onClick={handlePrimaryAction}
           aria-label={t('nav.capture')}
         >
           <IconPlus size={22} />
         </button>
+        <span className={s.bottomNavCenterGap} aria-hidden />
+        {bottomItems.slice(2).map((item) => {
+          const Icon = item.icon;
+          const active = item.to === '/' ? path === '/' : path.startsWith(item.to);
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              className={s.bottomNavItem}
+              data-active={active}
+            >
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Drawer */}
@@ -209,4 +239,18 @@ export function MobileShell({ systemStatus }: ShellProps) {
       )}
     </div>
   );
+}
+
+function getMobileTitle(path: string, t: ReturnType<typeof useTranslation>['t']): string {
+  if (path === '/') return t('dashboard.title');
+  if (path.startsWith('/assets')) return t('nav.assets');
+  if (path.startsWith('/locations')) return t('locations.title');
+  if (path.startsWith('/virtual-assets')) return t('nav.virtualAssets');
+  if (path.startsWith('/tags')) return t('tags.title');
+  if (path.startsWith('/credentials')) return t('nav.credentials');
+  if (path.startsWith('/abnormal')) return t('abnormal.title');
+  if (path.startsWith('/settings')) return t('nav.settings');
+  if (path.startsWith('/search')) return t('search.title');
+  if (path.startsWith('/capture')) return t('nav.capture');
+  return 'Havit';
 }

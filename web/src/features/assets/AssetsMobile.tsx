@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
-  IconPlus, IconPackage, IconMapPin, IconShieldCheck, IconAlertTriangle,
+  IconPackage, IconMapPin, IconShieldCheck, IconAlertTriangle,
   IconSearch, IconFilter, IconX,
 } from '@tabler/icons-react';
 import { SelectField, Spinner, TextField, TreeSelectField } from '../../components/ui';
@@ -22,6 +22,18 @@ export function AssetsMobile() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+
+  useEffect(() => {
+    function handlePrimaryAction(event: Event) {
+      const custom = event as CustomEvent<{ path: string; handled: boolean }>;
+      if (!custom.detail?.path.startsWith('/assets')) return;
+      custom.detail.handled = true;
+      if (isOnline) setShowCreate(true);
+    }
+
+    window.addEventListener('havit:mobile-primary-action', handlePrimaryAction);
+    return () => window.removeEventListener('havit:mobile-primary-action', handlePrimaryAction);
+  }, [isOnline]);
 
   const filteredItems = useMemo(() => {
     let items = allItems;
@@ -104,17 +116,6 @@ export function AssetsMobile() {
           })}
         </div>
       )}
-
-      {/* FAB */}
-      <button
-        type="button"
-        className={s.fab}
-        onClick={() => setShowCreate(true)}
-        disabled={!isOnline}
-        aria-label={t('assets.create')}
-      >
-        <IconPlus size={22} />
-      </button>
 
       {/* Create overlay */}
       {showCreate && (

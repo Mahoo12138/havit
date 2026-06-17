@@ -29,21 +29,13 @@ export const greetingSub = style({
 
 /* KPI horizontal scroll strip */
 export const kpiScroll = style({
-  display: 'flex',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: themeVars.space3,
-  overflowX: 'auto',
-  scrollSnapType: 'x mandatory',
-  WebkitOverflowScrolling: 'touch',
   paddingBottom: themeVars.space1,
-  selectors: {
-    '&::-webkit-scrollbar': { display: 'none' },
-  },
 });
 
 export const kpiCard = style({
-  flex: '0 0 auto',
-  scrollSnapAlign: 'start',
-  width: '8.5rem',
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space2,

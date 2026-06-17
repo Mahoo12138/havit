@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +30,7 @@ import {
 import { itemsApi, type Item, type VirtualCredential, type VirtualAddonPurchase } from '../api/client';
 import { useNetworkStatus } from '../utils/useNetworkStatus';
 import { CategoryTabs } from '../features/categories/CategoryTabs';
+import { useDevice } from '../lib/device';
 
 export const Route = createFileRoute('/virtual-assets')({
   component: VirtualAssetsPage,
@@ -68,9 +69,11 @@ function VirtualAssetsPage() {
   const queryClient = useQueryClient();
   const toast = useToast();
   const isOnline = useNetworkStatus();
+  const device = useDevice();
   const [activeTab, setActiveTab] = useState<VaTab>('all');
   const [opened, setOpened] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
+  const effectiveViewMode = device === 'mobile' ? 'cards' : viewMode;
 
   const [form, setForm] = useState({
     name: '',
@@ -79,6 +82,18 @@ function VirtualAssetsPage() {
     price: '',
     currency: 'CNY',
   });
+
+  useEffect(() => {
+    function handlePrimaryAction(event: Event) {
+      const custom = event as CustomEvent<{ path: string; handled: boolean }>;
+      if (!custom.detail?.path.startsWith('/virtual-assets')) return;
+      custom.detail.handled = true;
+      if (isOnline) setOpened(true);
+    }
+
+    window.addEventListener('havit:mobile-primary-action', handlePrimaryAction);
+    return () => window.removeEventListener('havit:mobile-primary-action', handlePrimaryAction);
+  }, [isOnline]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['items', 'virtual'],
@@ -121,7 +136,7 @@ function VirtualAssetsPage() {
 
   return (
     <Stack>
-      <div className={uiStyles.pageHeader}>
+      <div className={`${uiStyles.pageHeader} ${uiStyles.mobileHidden}`}>
         <StackTight>
           <h2 className="page-heading">{t('virtualAssets.title')}</h2>
           <p className="page-kicker">{t('virtualAssets.description')}</p>
@@ -224,7 +239,7 @@ function VirtualAssetsPage() {
                     <Button
                       variant="subtle"
                       className={uiStyles.vaViewToggleBtn}
-                      data-active={viewMode === 'list' || undefined}
+                      data-active={effectiveViewMode === 'list' || undefined}
                       onClick={() => setViewMode('list')}
                     >
                       <IconList size={14} />
@@ -233,7 +248,7 @@ function VirtualAssetsPage() {
                     <Button
                       variant="subtle"
                       className={uiStyles.vaViewToggleBtn}
-                      data-active={viewMode === 'cards' || undefined}
+                      data-active={effectiveViewMode === 'cards' || undefined}
                       onClick={() => setViewMode('cards')}
                     >
                       <IconCalendar size={14} />
@@ -247,7 +262,7 @@ function VirtualAssetsPage() {
               </div>
             </div>
 
-            {viewMode === 'list' ? (
+            {effectiveViewMode === 'list' ? (
               <div style={{ overflowX: 'auto' }}>
                 <table className={uiStyles.vaTable}>
                   <thead>

@@ -10,18 +10,12 @@ export const page = style({
 
 /* Stats scroll */
 export const statsScroll = style({
-  display: 'flex',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: themeVars.space3,
-  overflowX: 'auto',
-  scrollSnapType: 'x mandatory',
-  WebkitOverflowScrolling: 'touch',
-  selectors: { '&::-webkit-scrollbar': { display: 'none' } },
 });
 
 export const statTile = style({
-  flex: '0 0 auto',
-  scrollSnapAlign: 'start',
-  width: '7.5rem',
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space1,

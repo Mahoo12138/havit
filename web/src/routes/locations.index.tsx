@@ -145,6 +145,18 @@ function LocationsPage() {
   const [pendingDelete, setPendingDelete] = useState<Location | null>(null);
   const [qrViewLocation, setQrViewLocation] = useState<Location | null>(null);
 
+  useEffect(() => {
+    function handlePrimaryAction(event: Event) {
+      const custom = event as CustomEvent<{ path: string; handled: boolean }>;
+      if (!custom.detail?.path.startsWith('/locations')) return;
+      custom.detail.handled = true;
+      if (isOnline) setCreateDialog({ open: true, parent: null });
+    }
+
+    window.addEventListener('havit:mobile-primary-action', handlePrimaryAction);
+    return () => window.removeEventListener('havit:mobile-primary-action', handlePrimaryAction);
+  }, [isOnline]);
+
   const tree = useQuery({
     queryKey: ['locations'],
     queryFn: () => locationsApi.tree(),
@@ -262,7 +274,7 @@ function LocationsPage() {
 
   return (
     <Stack>
-      <div className={uiStyles.pageHeader}>
+      <div className={`${uiStyles.pageHeader} ${uiStyles.mobileHidden}`}>
         <StackTight>
           <h2 className="page-heading">{t('locations.title')}</h2>
           <p className="page-kicker">

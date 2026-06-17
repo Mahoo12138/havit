@@ -14,44 +14,51 @@ export const topBar = style({
   zIndex: 10,
   display: 'flex',
   alignItems: 'center',
-  gap: themeVars.space3,
-  height: '3.25rem',
-  padding: `0 ${themeVars.space4}`,
+  gap: themeVars.space2,
+  minHeight: '3.25rem',
+  padding: `max(0.35rem, env(safe-area-inset-top)) ${themeVars.space4} 0.45rem`,
   borderBottom: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
 });
 
-export const topBarBrand = style({
-  display: 'grid',
-  width: '1.75rem',
-  height: '1.75rem',
-  placeItems: 'center',
-  borderRadius: themeVars.radius2,
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
-  color: '#ffffff',
-  fontSize: '0.8rem',
-  fontWeight: 800,
+export const topBarTitle = style({
+  flex: 1,
+  minWidth: 0,
+  margin: 0,
+  color: themeVars.ink,
+  fontSize: '1.2rem',
+  fontWeight: 750,
+  lineHeight: 1.15,
+  letterSpacing: '-0.015em',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+});
+
+export const topBarActions = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space1,
   flex: '0 0 auto',
 });
 
-export const topBarSearch = style({
-  flex: 1,
-  height: '2.1rem',
-  boxSizing: 'border-box',
-  border: `1px solid ${themeVars.line}`,
+export const topBarIconBtn = style({
+  width: '2.25rem',
+  height: '2.25rem',
+  display: 'inline-grid',
+  placeItems: 'center',
+  border: 0,
   borderRadius: themeVars.radius2,
-  background: themeVars.bgSoft,
-  color: themeVars.text,
-  font: 'inherit',
-  fontSize: '0.88rem',
-  padding: `0 ${themeVars.space3}`,
-  outline: 'none',
+  background: 'transparent',
+  color: themeVars.ink,
+  cursor: 'pointer',
   selectors: {
-    '&::placeholder': { color: themeVars.muted },
-    '&:focus': {
-      borderColor: themeVars.accent,
+    '&:active': {
+      background: themeVars.lineSoft,
+    },
+    '&:focus-visible': {
+      outline: 'none',
       boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
-      background: themeVars.panel,
     },
   },
 });
@@ -68,6 +75,8 @@ export const topBarAvatar = style({
   fontWeight: 700,
   flex: '0 0 auto',
   cursor: 'pointer',
+  border: 0,
+  padding: 0,
 });
 
 export const content = style({
@@ -83,13 +92,13 @@ export const bottomNav = style({
   left: 0,
   right: 0,
   zIndex: 20,
-  display: 'flex',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
   alignItems: 'center',
-  justifyContent: 'space-around',
-  height: '3.75rem',
+  minHeight: '3.75rem',
   borderTop: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
-  paddingBottom: 'env(safe-area-inset-bottom, 0)',
+  paddingBottom: 'env(safe-area-inset-bottom, 0px)',
 });
 
 export const bottomNavItem = style({
@@ -98,7 +107,8 @@ export const bottomNavItem = style({
   alignItems: 'center',
   justifyContent: 'center',
   gap: '2px',
-  flex: 1,
+  minWidth: 0,
+  minHeight: '3.45rem',
   padding: `${themeVars.space1} 0`,
   color: themeVars.muted,
   textDecoration: 'none',
@@ -120,21 +130,29 @@ export const bottomNavItem = style({
 });
 
 export const fabBtn = style({
-  width: '2.75rem',
-  height: '2.75rem',
+  position: 'absolute',
+  left: '50%',
+  top: '-1.25rem',
+  transform: 'translateX(-50%)',
+  width: '3.15rem',
+  height: '3.15rem',
   borderRadius: '999px',
   display: 'grid',
   placeItems: 'center',
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
+  background: '#1f2937',
   color: '#ffffff',
   border: 0,
-  marginTop: '-1.25rem',
-  boxShadow: `0 4px 16px rgba(13, 148, 136, 0.35)`,
+  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.25)',
   cursor: 'pointer',
-  transition: 'transform 160ms ease',
+  transition: 'transform 160ms ease, background-color 160ms ease',
   selectors: {
-    '&:hover': { transform: 'scale(1.06)' },
+    '&:hover': { background: '#111827' },
+    '&:active': { transform: 'translateX(-50%) scale(0.96)' },
   },
+});
+
+export const bottomNavCenterGap = style({
+  minHeight: '3.45rem',
 });
 
 /* Drawer */

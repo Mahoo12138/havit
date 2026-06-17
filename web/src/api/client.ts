@@ -83,6 +83,7 @@ export interface ImportError {
 export interface ImportResult {
   total: number;
   created: number;
+  skipped: number;
   failed: number;
   errors?: ImportError[];
 }

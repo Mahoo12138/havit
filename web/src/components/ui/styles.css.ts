@@ -1,5 +1,7 @@
 ﻿import { style, styleVariants, keyframes } from '@vanilla-extract/css';
 
+import { globalStyle } from '@vanilla-extract/css';
+
 import { themeVars } from '../../styles/theme.css';
 
 export const center = style({
@@ -104,6 +106,7 @@ export const button = style({
   fontSize: '0.88rem',
   fontWeight: 600,
   letterSpacing: '-0.005em',
+  whiteSpace: 'nowrap',
   cursor: 'pointer',
   transition:
     'background-color 180ms ease, border-color 180ms ease, color 180ms ease, opacity 180ms ease, box-shadow 180ms ease',
@@ -1345,7 +1348,16 @@ export const dashboardStats = style({
       gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
     },
     '(max-width: 40em)': {
-      gridTemplateColumns: '1fr',
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+      gap: themeVars.space3,
+    },
+  },
+});
+
+export const mobileHidden = style({
+  '@media': {
+    '(max-width: 48em)': {
+      display: 'none',
     },
   },
 });
@@ -2116,6 +2128,9 @@ export const locationLayout = style({
     '(max-width: 64em)': {
       gridTemplateColumns: '1fr',
     },
+    '(max-width: 48em)': {
+      gap: themeVars.space3,
+    },
   },
 });
 
@@ -2249,6 +2264,7 @@ export const locationDetailPane = style({
   display: 'flex',
   flexDirection: 'column',
   minWidth: 0,
+  overflow: 'hidden',
 });
 
 export const locationDetailHead = style({
@@ -2259,6 +2275,12 @@ export const locationDetailHead = style({
   padding: `${themeVars.space3} ${themeVars.space5}`,
   borderBottom: `1px solid ${themeVars.lineSoft}`,
   flexWrap: 'wrap',
+  '@media': {
+    '(max-width: 48em)': {
+      alignItems: 'stretch',
+      padding: themeVars.space3,
+    },
+  },
 });
 
 export const breadcrumb = style({
@@ -2268,6 +2290,9 @@ export const breadcrumb = style({
   color: themeVars.muted,
   fontSize: '0.85rem',
   minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const breadcrumbItem = style({
@@ -2290,6 +2315,18 @@ export const detailToolbar = style({
   alignItems: 'center',
   gap: themeVars.space2,
   flexShrink: 0,
+  '@media': {
+    '(max-width: 48em)': {
+      width: '100%',
+      overflowX: 'auto',
+      paddingBottom: themeVars.space1,
+      WebkitOverflowScrolling: 'touch',
+    },
+  },
+});
+
+globalStyle(`${detailToolbar} > *`, {
+  flex: '0 0 auto',
 });
 
 export const locationHero = style({
@@ -2298,6 +2335,12 @@ export const locationHero = style({
   gap: themeVars.space4,
   padding: themeVars.space5,
   flexWrap: 'wrap',
+  '@media': {
+    '(max-width: 48em)': {
+      gap: themeVars.space3,
+      padding: themeVars.space4,
+    },
+  },
 });
 
 export const locationHeroIcon = styleVariants({
@@ -2377,6 +2420,11 @@ export const locationHeroName = style({
   color: themeVars.ink,
   letterSpacing: '-0.015em',
   lineHeight: 1.2,
+  '@media': {
+    '(max-width: 48em)': {
+      fontSize: '1.25rem',
+    },
+  },
 });
 
 export const locationHeroSub = style({
@@ -2474,7 +2522,9 @@ export const metaGrid = style({
   padding: `0 ${themeVars.space5} ${themeVars.space5}`,
   '@media': {
     '(max-width: 36em)': {
-      gridTemplateColumns: '1fr',
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+      gap: themeVars.space2,
+      padding: `0 ${themeVars.space4} ${themeVars.space4}`,
     },
   },
 });
@@ -2487,12 +2537,22 @@ export const metaChip = style({
   borderRadius: themeVars.radius2,
   border: `1px solid ${themeVars.lineSoft}`,
   background: themeVars.bgSoft,
+  '@media': {
+    '(max-width: 36em)': {
+      padding: themeVars.space2,
+    },
+  },
 });
 
 export const metaChipLabel = style({
   color: themeVars.muted,
   fontSize: '0.74rem',
   fontWeight: 500,
+  '@media': {
+    '(max-width: 36em)': {
+      fontSize: '0.68rem',
+    },
+  },
 });
 
 export const metaChipValue = style({
@@ -2501,6 +2561,11 @@ export const metaChipValue = style({
   fontWeight: 700,
   letterSpacing: '-0.02em',
   fontVariantNumeric: 'tabular-nums',
+  '@media': {
+    '(max-width: 36em)': {
+      fontSize: '1.15rem',
+    },
+  },
 });
 
 export const detailBody = style({
@@ -2553,7 +2618,9 @@ export const detailItemRow = style({
   },
   '@media': {
     '(max-width: 48em)': {
-      gridTemplateColumns: '3rem minmax(0, 1fr) auto',
+      gridTemplateColumns: '2.5rem minmax(0, 1fr) auto',
+      gap: themeVars.space2,
+      padding: `${themeVars.space3} ${themeVars.space4}`,
     },
   },
 });
@@ -5318,6 +5385,13 @@ export const vaKpiTile = style({
   borderRadius: themeVars.radius3,
   boxShadow: themeVars.shadowSoft,
   minWidth: 0,
+  '@media': {
+    '(max-width: 40em)': {
+      alignItems: 'flex-start',
+      gap: themeVars.space2,
+      padding: themeVars.space3,
+    },
+  },
 });
 
 export const vaKpiIcon = styleVariants({
@@ -5398,6 +5472,11 @@ export const vaKpiValue = style({
 export const vaKpiNote = style({
   color: themeVars.muted,
   fontSize: '0.72rem',
+  '@media': {
+    '(max-width: 40em)': {
+      display: 'none',
+    },
+  },
 });
 
 export const vaFilterRow = style({
@@ -5409,6 +5488,10 @@ export const vaFilterRow = style({
     '(max-width: 48em)': {
       gap: themeVars.space2,
     },
+    '(max-width: 40em)': {
+      alignItems: 'stretch',
+      flexDirection: 'column',
+    },
   },
 });
 
@@ -5419,6 +5502,12 @@ export const vaFilterRowLeft = style({
   flex: '1 1 auto',
   minWidth: 0,
   flexWrap: 'wrap',
+  '@media': {
+    '(max-width: 40em)': {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
+  },
 });
 
 export const vaFilterRowRight = style({
@@ -5426,6 +5515,13 @@ export const vaFilterRowRight = style({
   alignItems: 'center',
   gap: themeVars.space2,
   flexShrink: 0,
+  '@media': {
+    '(max-width: 40em)': {
+      justifyContent: 'space-between',
+      overflowX: 'auto',
+      WebkitOverflowScrolling: 'touch',
+    },
+  },
 });
 
 export const vaFilterSelect = style({
@@ -5633,6 +5729,9 @@ export const vaBottomCards = style({
     '(max-width: 72em)': {
       gridTemplateColumns: '1fr',
     },
+    '(max-width: 40em)': {
+      gap: themeVars.space3,
+    },
   },
 });
 
@@ -5641,6 +5740,11 @@ export const vaBottomCard = style({
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius3,
   background: themeVars.panel,
+  '@media': {
+    '(max-width: 40em)': {
+      padding: themeVars.space4,
+    },
+  },
 });
 
 export const vaBottomCardTitle = style({
