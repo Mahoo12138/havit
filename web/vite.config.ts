@@ -1,13 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { TanStackRouterVite } from '@tanstack/router-vite-plugin';
+import { tanstackRouter } from '@tanstack/router-vite-plugin';
 import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
 
 export default defineConfig({
   plugins: [
-    TanStackRouterVite(),
+    tanstackRouter({
+      routesDirectory: "./src/routes",
+      generatedRouteTree: "./src/routeTree.gen.ts",
+      routeFileIgnorePrefix: "-",
+      quoteStyle: "single"
+    }),
     vanillaExtractPlugin(),
     react(),
     VitePWA({
