@@ -3442,37 +3442,56 @@ export const tooltip = style({
 
 /* ---------- ScrollArea (Base UI) ---------- */
 
+const scrollbarThumb = `color-mix(in srgb, ${themeVars.muted} 42%, transparent)`;
+const scrollbarThumbHover = `color-mix(in srgb, ${themeVars.accent} 34%, ${themeVars.muted})`;
+const scrollbarTrack = `color-mix(in srgb, ${themeVars.lineSoft} 42%, transparent)`;
+
 const scrollbarBase = style({
   display: 'flex',
-  padding: '2px',
+  touchAction: 'none',
+  userSelect: 'none',
+  padding: 2,
   background: 'transparent',
-  transition: 'background 180ms ease, opacity 180ms ease',
-  opacity: 0,
+  opacity: 0.62,
+  transition: 'background-color 160ms ease, opacity 160ms ease',
   selectors: {
     '&:hover': {
-      background: 'transparent',
+      opacity: 1,
     },
     '&[data-state="visible"]': {
+      opacity: 1,
+    },
+    '&[data-scrolling]': {
       opacity: 1,
     },
   },
 });
 
 export const scrollAreaRoot = style({
+  position: 'relative',
   display: 'flex',
   flexDirection: 'column',
   minHeight: 0,
   flex: '1 1 auto',
+  overflow: 'hidden',
 });
 
 export const scrollAreaViewport = style({
   flex: '1 1 auto',
   minHeight: 0,
+  width: '100%',
+  height: '100%',
   overflow: 'auto',
+  outline: 'none',
+  borderRadius: 'inherit',
+  WebkitOverflowScrolling: 'touch',
   scrollbarWidth: 'none',
   selectors: {
     '&::-webkit-scrollbar': {
       display: 'none',
+    },
+    '&:focus-visible': {
+      boxShadow: `inset 0 0 0 3px ${themeVars.focusRing}`,
     },
   },
 });
@@ -3480,11 +3499,13 @@ export const scrollAreaViewport = style({
 export const scrollAreaScrollbarVert = style([
   scrollbarBase,
   {
-    width: 8,
-    borderRadius: 4,
+    width: 10,
+    height: '100%',
+    borderLeft: '1px solid transparent',
+    borderRadius: 999,
     selectors: {
       '&:hover': {
-        background: 'rgba(0,0,0,0.04)',
+        background: scrollbarTrack,
       },
     },
   },
@@ -3493,25 +3514,30 @@ export const scrollAreaScrollbarVert = style([
 export const scrollAreaScrollbarHoriz = style([
   scrollbarBase,
   {
-    height: 8,
-    borderRadius: 4,
+    height: 10,
+    width: '100%',
+    borderTop: '1px solid transparent',
+    borderRadius: 999,
     flexDirection: 'column',
     selectors: {
       '&:hover': {
-        background: 'rgba(0,0,0,0.04)',
+        background: scrollbarTrack,
       },
     },
   },
 ]);
 
 export const scrollAreaThumb = style({
+  position: 'relative',
   flex: '1 1 auto',
-  borderRadius: 4,
-  background: themeVars.line,
-  minHeight: 32,
+  borderRadius: 999,
+  background: scrollbarThumb,
+  minHeight: 28,
+  minWidth: 28,
+  transition: 'background-color 160ms ease',
   selectors: {
     '&:hover': {
-      background: themeVars.muted,
+      background: scrollbarThumbHover,
     },
   },
 });
@@ -6486,4 +6512,3 @@ export const selScrollArrow = style({
   color: themeVars.muted,
   zIndex: 10,
 });
-

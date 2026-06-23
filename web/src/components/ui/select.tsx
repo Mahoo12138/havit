@@ -4,7 +4,7 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import type { ComponentProps } from "react"
 import { IconCheck, IconChevronDown, IconChevronUp } from "@tabler/icons-react"
 
-import * as s from "./styles.css"
+import * as s from "./select.css"
 
 function cx(...classes: Array<string | undefined | false | null>) {
   return classes.filter(Boolean).join(" ")
@@ -16,7 +16,7 @@ function SelectGroup({ className, ...props }: Omit<SelectPrimitive.Group.Props, 
   return (
     <SelectPrimitive.Group
       data-slot="select-group"
-      className={cx(s.selectGroup, className)}
+      className={cx(s.group, className)}
       {...props}
     />
   )
@@ -26,7 +26,7 @@ function SelectValue({ className, ...props }: Omit<SelectPrimitive.Value.Props, 
   return (
     <SelectPrimitive.Value
       data-slot="select-value"
-      className={cx(s.selectValue, className)}
+      className={cx(s.value, className)}
       {...props}
     />
   )
@@ -46,16 +46,15 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cx(
-        s.selectTrigger,
-        s.selectTriggerShadcn,
-        s.selectTriggerSize[size],
+        s.trigger,
+        s.triggerSize[size],
         className,
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon
-        render={<IconChevronDown size={16} className={s.selectChevron} />}
+        render={<IconChevronDown size={16} className={s.chevron} />}
       />
     </SelectPrimitive.Trigger>
   )
@@ -83,12 +82,12 @@ function SelectContent({
         align={align}
         alignOffset={alignOffset}
         alignItemWithTrigger={alignItemWithTrigger}
-        className={s.selectPositioner}
+        className={s.positioner}
       >
         <SelectPrimitive.Popup
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
-          className={cx(s.selectPopup, className)}
+          className={cx(s.popup, className)}
           {...props}
         >
           <SelectScrollUpButton />
@@ -107,7 +106,7 @@ function SelectLabel({
   return (
     <SelectPrimitive.GroupLabel
       data-slot="select-label"
-      className={cx(s.selectLabel, className)}
+      className={cx(s.label, className)}
       {...props}
     />
   )
@@ -121,15 +120,15 @@ function SelectItem({
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
-      className={cx(s.selectItem, className)}
+      className={cx(s.item, className)}
       {...props}
     >
-      <SelectPrimitive.ItemText className={s.selectItemText}>
+      <SelectPrimitive.ItemText className={s.itemText}>
         {children}
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
         render={
-          <span className={s.selectItemIndicator}>
+          <span className={s.itemIndicator}>
             <IconCheck size={14} />
           </span>
         }
@@ -145,7 +144,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cx(s.selectSeparator, className)}
+      className={cx(s.separator, className)}
       {...props}
     />
   )
@@ -158,7 +157,7 @@ function SelectScrollUpButton({
   return (
     <SelectPrimitive.ScrollUpArrow
       data-slot="select-scroll-up-button"
-      className={cx(s.selectScrollArrow, className)}
+      className={cx(s.scrollArrow, className)}
       {...props}
     >
       <IconChevronUp size={14} />
@@ -173,7 +172,7 @@ function SelectScrollDownButton({
   return (
     <SelectPrimitive.ScrollDownArrow
       data-slot="select-scroll-down-button"
-      className={cx(s.selectScrollArrow, className)}
+      className={cx(s.scrollArrow, className)}
       {...props}
     >
       <IconChevronDown size={14} />

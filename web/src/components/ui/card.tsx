@@ -1,6 +1,6 @@
 import type { HTMLAttributes } from "react"
 
-import * as s from "./styles.css"
+import * as s from "./card.css"
 
 function cx(...classes: Array<string | undefined | false | null>) {
   return classes.filter(Boolean).join(" ")
@@ -9,15 +9,17 @@ function cx(...classes: Array<string | undefined | false | null>) {
 function Card({
   className,
   size = "default",
+  padded,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { size?: "default" | "sm" }) {
+}: HTMLAttributes<HTMLDivElement> & { size?: "default" | "sm"; padded?: boolean }) {
   return (
     <div
       data-slot="card"
       data-size={size}
       className={cx(
-        s.cardRoot,
-        size === "sm" ? s.cardSizeSm : undefined,
+        s.root,
+        size === "sm" ? s.sizeSm : undefined,
+        padded ? s.padded : undefined,
         className,
       )}
       {...props}
@@ -32,7 +34,7 @@ function CardHeader({
   return (
     <div
       data-slot="card-header"
-      className={cx(s.cardHeader, className)}
+      className={cx(s.header, className)}
       {...props}
     />
   )
@@ -45,7 +47,7 @@ function CardTitle({
   return (
     <div
       data-slot="card-title"
-      className={cx(s.cardTitle, className)}
+      className={cx(s.title, className)}
       {...props}
     />
   )
@@ -58,7 +60,7 @@ function CardDescription({
   return (
     <div
       data-slot="card-description"
-      className={cx(s.cardDescription, className)}
+      className={cx(s.description, className)}
       {...props}
     />
   )
@@ -71,7 +73,7 @@ function CardAction({
   return (
     <div
       data-slot="card-action"
-      className={cx(s.cardAction, className)}
+      className={cx(s.action, className)}
       {...props}
     />
   )
@@ -84,7 +86,7 @@ function CardContent({
   return (
     <div
       data-slot="card-content"
-      className={cx(s.cardContent, className)}
+      className={cx(s.content, className)}
       {...props}
     />
   )
@@ -97,7 +99,7 @@ function CardFooter({
   return (
     <div
       data-slot="card-footer"
-      className={cx(s.cardFooter, className)}
+      className={cx(s.footer, className)}
       {...props}
     />
   )
@@ -112,4 +114,3 @@ export {
   CardDescription,
   CardContent,
 }
-

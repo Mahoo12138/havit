@@ -1,7 +1,7 @@
 # Havit — 技术架构规划
 
-**版本** v0.5  
-**关联文档** havit-product-design.md v0.5
+**版本** v0.6  
+**关联文档** havit-product-design.md v0.6
 
 ---
 
@@ -23,7 +23,8 @@
 | 样式 | Vanilla Extract | 零运行时 CSS-in-TS，编译时类型安全 |
 | PWA 离线策略 | 仅离线读缓存（Offline Read Only） | 离线写复杂度过高，M3 前明确不做 |
 | 部署 | 单容器 Docker / 裸二进制 | 极简，无强制 compose 依赖 |
-| 认证 | JWT + 本地用户表 | 自部署场景，不依赖外部 OAuth |
+| 认证 | JWT（短寿命会话）+ PAT（长期静态密钥） | 双轨制：Bearer Token 拒绝 Cookie，兼容多端非同源前端 |
+| 资产分类 | 独立 categories 表（扁平单层） | 与资产类型（行为模型）解耦，驱动前端动态 Tab 导航 |
 
 ---
 
@@ -322,12 +323,36 @@ CREATE TABLE tags (
     color   TEXT
 );
 
+-- 资产分类（扁平单层，不允许嵌套）
+-- 描述物品"是什么"（现实属性），与 items.type（行为模型：耐用品/消耗品/EDC/虚拟）完全解耦
+CREATE TABLE categories (
+    id          TEXT PRIMARY KEY,
+    name        TEXT NOT NULL,
+    icon        TEXT,                  -- 对应前端图标库 key（如 Lucide 的 'smartphone'）
+    root_type   TEXT NOT NULL CHECK(root_type IN ('physical', 'virtual')),
+    is_system   INTEGER NOT NULL DEFAULT 0,  -- 1=系统预设只读锁定，0=用户自建
+    sort_order  INTEGER NOT NULL DEFAULT 0,
+    created_at  INTEGER NOT NULL
+);
+
+-- 系统预设分类种子数据（迁移文件中随 Schema 一并写入，而非 demo seed）
+INSERT INTO categories (id, name, icon, root_type, is_system, created_at) VALUES
+('cat_furniture',   '家具',     'sofa',         'physical', 1, strftime('%s','now')),
+('cat_appliances',  '电器',     'refrigerator', 'physical', 1, strftime('%s','now')),
+('cat_digital_hw',  '数码硬件', 'smartphone',   'physical', 1, strftime('%s','now')),
+('cat_clothing',    '衣物',     'shirt',        'physical', 1, strftime('%s','now')),
+('cat_medicine',    '医药',     'pill',         'physical', 1, strftime('%s','now')),
+('cat_games',       '游戏',     'gamepad-2',    'virtual',  1, strftime('%s','now')),
+('cat_ebooks',      '电子书',   'book-open',    'virtual',  1, strftime('%s','now')),
+('cat_software',    '独立软件', 'code',         'virtual',  1, strftime('%s','now'));
+
 -- 物品主表
 CREATE TABLE items (
     id              TEXT PRIMARY KEY,   -- ULID
     name            TEXT NOT NULL,
     description     TEXT,
-    category        TEXT,
+    category_id     TEXT REFERENCES categories(id) ON DELETE SET NULL,
+    -- 分类删除时物品不会被级联删除，category_id 置空后前端展示为"未分类"
     type            TEXT NOT NULL,
     -- 'durable' | 'consumable_a' | 'consumable_b' | 'edc' | 'virtual'
     status          TEXT NOT NULL DEFAULT 'in_stock',

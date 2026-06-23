@@ -20,14 +20,19 @@
     "@tanstack/react-router": "^1.58.0",
     "@vanilla-extract/css": "^1.20.1",
     "@zxing/browser": "^0.2.0",
+    "class-variance-authority": "^0.7.1",
     "i18next": "^26.3.1",
     "i18next-browser-languagedetector": "^8.2.1",
     "ky": "^1.7.2",
     "lucide-react": "^1.20.0",
+    "next-themes": "^0.4.6",
     "qrcode": "^1.5.4",
     "react": "^18.3.1",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^18.3.1",
-    "react-i18next": "^17.0.8"
+    "react-i18next": "^17.0.8",
+    "sonner": "^2.0.7",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
