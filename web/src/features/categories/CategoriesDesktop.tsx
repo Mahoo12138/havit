@@ -9,15 +9,15 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Button,
   Dialog,
   Stack,
   StackTight,
-  TextField,
-  SelectField,
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { SelectField } from '../../components/ui/select-field';
+import { TextField } from '../../components/ui/text-field';
 import { categoriesApi, type Category } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 

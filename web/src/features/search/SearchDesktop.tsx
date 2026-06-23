@@ -1,7 +1,11 @@
 ﻿import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconSearch, IconSparkles } from '@tabler/icons-react';
-import { Card, Row, Spinner, Stack, StatusBadge, TextField, uiStyles } from '../../components/ui';
+import { Row, Stack, uiStyles } from '../../components/ui';
+import { Card } from '../../components/ui/card';
+import { Spinner } from '../../components/ui/spinner';
+import { StatusBadge } from '../../components/ui/status-badge';
+import { TextField } from '../../components/ui/text-field';
 import { DataCard, FeatureHeader, MetricStrip } from '../m2/components';
 import type { SearchResult } from '../../api/client';
 

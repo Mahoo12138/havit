@@ -16,7 +16,7 @@ import {
   IconPlus,
   type Icon,
 } from '@tabler/icons-react';
-import { Badge } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
 import type { Item } from '../../api/client';
 import {
   useDashboardData,

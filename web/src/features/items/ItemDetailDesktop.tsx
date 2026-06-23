@@ -8,9 +8,17 @@ import {
   IconShieldCheck, IconShoppingCart, IconTag, IconTrash, IconX,
 } from '@tabler/icons-react';
 import {
-  Badge, Button, Card, Dialog, SelectField, Spinner, Stack, ScrollArea,
-  StackTight, StatusBadge, TextField, uiStyles,
+  Dialog, Stack,
+  StackTight, uiStyles,
 } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { ScrollArea } from '../../components/ui/scroll-area';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { StatusBadge } from '../../components/ui/status-badge';
+import { TextField } from '../../components/ui/text-field';
 import {
   containerApi, itemsApi, suppliesExtendedApi, loansApi, virtualAssetsApi,
   type Attachment, type Item,

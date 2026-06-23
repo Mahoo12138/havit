@@ -4,9 +4,6 @@ import { IconFileImport, IconInfoCircle } from '@tabler/icons-react';
 import { useRef, useState } from 'react';
 import {
   Alert,
-  Badge,
-  Button,
-  Card,
   Code,
   Row,
   Stack,
@@ -14,6 +11,9 @@ import {
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { importApi, type ImportResult } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 

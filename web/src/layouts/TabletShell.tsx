@@ -13,14 +13,14 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import {
-  Badge,
-  Button,
   RowBetween,
-  ScrollArea,
-  SelectField,
   Alert,
   uiStyles,
 } from '../components/ui';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { SelectField } from '../components/ui/select-field';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
 import { getNavSections, formatToday } from './nav-data';
 

@@ -4,8 +4,11 @@ import {
   IconPackage, IconMapPin, IconShieldCheck, IconAlertTriangle,
   IconSearch, IconFilter, IconX,
 } from '@tabler/icons-react';
-import { SelectField, Spinner, TextField, TreeSelectField } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { TextField } from '../../components/ui/text-field';
+import { TreeSelectField } from '../../components/ui/tree-select-field';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { CategoryTabs } from '../../features/categories/CategoryTabs';
 import { useAssetsData, getWarrantyStatus, formatPrice } from './useAssetsData';

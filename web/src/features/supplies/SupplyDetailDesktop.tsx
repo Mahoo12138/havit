@@ -21,19 +21,19 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react';
 import {
-  Button,
-  Card,
-  DatePickerField,
   Dialog,
-  SelectField,
-  Spinner,
   Stack,
   StackTight,
-  TextField,
-  TextareaField,
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { DatePickerField } from '../../components/ui/date-picker-field';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { TextareaField } from '../../components/ui/textarea-field';
+import { TextField } from '../../components/ui/text-field';
 import {
   itemsApi,
   locationsApi,

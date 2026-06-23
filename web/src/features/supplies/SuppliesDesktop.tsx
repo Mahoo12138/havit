@@ -17,21 +17,21 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react';
 import {
-  Button,
-  Card,
-  DatePickerField,
   Dialog,
-  SelectField,
-  Spinner,
   Stack,
   StackTight,
-  Tabs,
-  TextField,
-  TextareaField,
-  TreeSelectField,
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { DatePickerField } from '../../components/ui/date-picker-field';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { TabsNav } from '../../components/ui/tabs-nav';
+import { TextareaField } from '../../components/ui/textarea-field';
+import { TextField } from '../../components/ui/text-field';
+import { TreeSelectField } from '../../components/ui/tree-select-field';
 import {
   itemsApi,
   locationsApi,
@@ -359,7 +359,7 @@ export function SuppliesDesktop() {
         </div>
       </div>
 
-      <Tabs
+      <TabsNav
         value={activeTab}
         onChange={(v) => setActiveTab(v as SupplyTab)}
         tabs={tabItems}

@@ -5,14 +5,14 @@ import { IconInfoCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
   Alert,
-  Button,
-  Card,
   Stack,
   StackTight,
-  TextField,
   uiStyles,
   useToast,
 } from '../components/ui';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { TextField } from '../components/ui/text-field';
 import { authApi, setToken } from '../api/client';
 
 export const Route = createFileRoute('/login')({

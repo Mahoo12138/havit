@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { IconCamera, IconPlayerStop } from '@tabler/icons-react';
-import { Button, uiStyles } from '../../components/ui';
+import { uiStyles } from '../../components/ui';
+import { Button } from '../../components/ui/button';
 
 interface QrScannerProps {
   onDetected: (raw: string) => void;

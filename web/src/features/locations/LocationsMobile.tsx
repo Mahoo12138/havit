@@ -5,7 +5,8 @@ import {
   IconChevronRight, IconMapPin, IconMapPlus, IconPackage, IconPhoto,
   IconPlus, IconX,
 } from '@tabler/icons-react';
-import { Button, TextField } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { TextField } from '../../components/ui/text-field';
 import type { Location } from '../../api/client';
 import {
   allowedChildTypes, getLocationTypeMeta, LOCATION_TYPES, type LocationType,

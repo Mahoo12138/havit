@@ -9,7 +9,7 @@ import { ToastProvider } from './components/ui';
 import { DeviceProvider } from './lib/device';
 import { routeTree } from './routeTree.gen';
 
-import './styles.css'
+// import './styles.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {

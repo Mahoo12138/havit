@@ -8,14 +8,14 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Button,
   Dialog,
   Stack,
   StackTight,
-  TextField,
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { TextField } from '../../components/ui/text-field';
 import { tagsApi, type Tag } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 

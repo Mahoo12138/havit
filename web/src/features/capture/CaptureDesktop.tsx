@@ -4,7 +4,11 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { IconBarcode, IconCamera, IconEdit, IconPlayerStop } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { Badge, Button, Card, StackTight, TextField, uiStyles } from '../../components/ui';
+import { StackTight, uiStyles } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { TextField } from '../../components/ui/text-field';
 import { DataCard, FeatureHeader } from '../m2/components';
 import { barcodeApi, aiApi, itemsApi } from '../../api/client';
 

@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Card, Spinner, Stack, Tabs, uiStyles } from '../../components/ui';
+import { Stack, uiStyles } from '../../components/ui';
+import { Card } from '../../components/ui/card';
+import { Spinner } from '../../components/ui/spinner';
+import { TabsNav } from '../../components/ui/tabs-nav';
 import { DataCard, FeatureHeader, MetricStrip } from '../m2/components';
 import { suppliesExtendedApi, itemsApi, virtualAssetsApi, type VirtualCredential } from '../../api/client';
 
@@ -43,7 +46,7 @@ export function CredentialsDesktop() {
         meta={t('credentials.meta')}
       />
 
-      <Tabs
+      <TabsNav
         value={tab}
         onChange={(v) => setTab(v as 'warranty' | 'credentials')}
         tabs={[

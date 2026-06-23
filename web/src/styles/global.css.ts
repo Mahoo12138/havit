@@ -12,6 +12,36 @@ globalStyle('*, *::before, *::after', {
   outlineColor: themeVars.focusRing,
 });
 
+globalStyle('*', {
+  scrollbarWidth: 'thin',
+  scrollbarColor: `color-mix(in srgb, ${themeVars.muted} 42%, transparent) transparent`,
+});
+
+globalStyle('*::-webkit-scrollbar', {
+  width: '10px',
+  height: '10px',
+});
+
+globalStyle('*::-webkit-scrollbar-track', {
+  background: 'transparent',
+});
+
+globalStyle('*::-webkit-scrollbar-thumb', {
+  minHeight: '28px',
+  border: '3px solid transparent',
+  borderRadius: '999px',
+  backgroundClip: 'content-box',
+  backgroundColor: `color-mix(in srgb, ${themeVars.muted} 42%, transparent)`,
+});
+
+globalStyle('*::-webkit-scrollbar-thumb:hover', {
+  backgroundColor: `color-mix(in srgb, ${themeVars.accent} 34%, ${themeVars.muted})`,
+});
+
+globalStyle('*::-webkit-scrollbar-corner', {
+  background: 'transparent',
+});
+
 globalStyle('#root', {
   isolation: 'isolate',
 });

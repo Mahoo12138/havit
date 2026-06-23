@@ -16,7 +16,9 @@ import {
   IconPlus,
   type Icon,
 } from '@tabler/icons-react';
-import { Badge, ScrollArea, uiStyles } from '../../components/ui';
+import { uiStyles } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
+import { ScrollArea } from '../../components/ui/scroll-area';
 import type { Item, Location } from '../../api/client';
 import {
   useDashboardData,

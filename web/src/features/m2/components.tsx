@@ -1,4 +1,6 @@
-import { Badge, Card, Row, RowBetween, Stack, StackTight, uiStyles } from '../../components/ui';
+import { Row, RowBetween, Stack, StackTight, uiStyles } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
+import { Card } from '../../components/ui/card';
 import type { ReactNode } from 'react';
 
 export function FeatureHeader({

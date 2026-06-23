@@ -3,6 +3,7 @@ import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-route
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
+  IconChevronLeft,
   IconHome,
   IconBox,
   IconMap2,
@@ -13,7 +14,8 @@ import {
   IconSearch,
   IconUser,
 } from '@tabler/icons-react';
-import { ScrollArea, RowBetween, Alert } from '../components/ui';
+import { RowBetween, Alert } from '../components/ui';
+import { ScrollArea } from '../components/ui/scroll-area';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
 import { getNavSections } from './nav-data';
 import * as s from './mobileShell.css';
@@ -46,6 +48,7 @@ export function MobileShell({ systemStatus }: ShellProps) {
     { to: '/settings', label: t('nav.profile', { defaultValue: '我的' }), icon: IconUser },
   ];
   const pageTitle = getMobileTitle(path, t);
+  const showBack = isMobileSubPage(path);
 
   async function handleLogout() {
     try {
@@ -66,10 +69,28 @@ export function MobileShell({ systemStatus }: ShellProps) {
     if (!event.detail.handled) navigate({ to: '/capture' });
   }
 
+  function handleBack() {
+    if (window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    navigate({ to: getMobileBackFallback(path) });
+  }
+
   return (
     <div className={s.shell}>
       {/* Top Bar */}
       <header className={s.topBar}>
+        {showBack && (
+          <button
+            type="button"
+            className={s.topBarIconBtn}
+            onClick={handleBack}
+            aria-label={t('common.back')}
+          >
+            <IconChevronLeft size={22} />
+          </button>
+        )}
         <h1 className={s.topBarTitle}>{pageTitle}</h1>
         <div className={s.topBarActions}>
           <button
@@ -245,12 +266,55 @@ function getMobileTitle(path: string, t: ReturnType<typeof useTranslation>['t'])
   if (path === '/') return t('dashboard.title');
   if (path.startsWith('/assets')) return t('nav.assets');
   if (path.startsWith('/locations')) return t('locations.title');
+  if (path.startsWith('/items/')) return t('items.title');
+  if (path.startsWith('/supplies/')) return t('nav.supplies');
   if (path.startsWith('/virtual-assets')) return t('nav.virtualAssets');
   if (path.startsWith('/tags')) return t('tags.title');
   if (path.startsWith('/credentials')) return t('nav.credentials');
   if (path.startsWith('/abnormal')) return t('abnormal.title');
+  if (path.startsWith('/loans')) return t('nav.loans');
+  if (path.startsWith('/essentials')) return t('nav.essentials');
+  if (path.startsWith('/supplies')) return t('nav.supplies');
+  if (path.startsWith('/categories')) return t('nav.categories');
+  if (path.startsWith('/operations')) return t('nav.operations');
+  if (path.startsWith('/import')) return t('nav.import');
+  if (path.startsWith('/qr-print')) return t('nav.qrPrint');
+  if (path.startsWith('/location-scan')) return t('nav.locationScan');
   if (path.startsWith('/settings')) return t('nav.settings');
   if (path.startsWith('/search')) return t('search.title');
   if (path.startsWith('/capture')) return t('nav.capture');
   return 'Havit';
+}
+
+const MOBILE_TOP_LEVEL_PATHS = new Set([
+  '/',
+  '/assets',
+  '/locations',
+  '/settings',
+  '/virtual-assets',
+  '/tags',
+  '/credentials',
+  '/abnormal',
+  '/loans',
+  '/essentials',
+  '/supplies',
+  '/categories',
+  '/operations',
+]);
+
+function normalizePath(path: string): string {
+  return path.length > 1 && path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
+function isMobileSubPage(path: string): boolean {
+  return !MOBILE_TOP_LEVEL_PATHS.has(normalizePath(path));
+}
+
+function getMobileBackFallback(path: string): '/' | '/assets' | '/locations' | '/settings' {
+  if (path.startsWith('/items/')) return '/assets';
+  if (path.startsWith('/locations') || path.startsWith('/qr-print') || path.startsWith('/location-scan')) {
+    return '/locations';
+  }
+  if (path.startsWith('/settings')) return '/settings';
+  return '/';
 }

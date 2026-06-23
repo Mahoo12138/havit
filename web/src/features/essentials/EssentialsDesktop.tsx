@@ -16,17 +16,17 @@ import {
   IconCheckbox,
 } from '@tabler/icons-react';
 import {
-  Button,
-  Card,
   Dialog,
-  SelectField,
-  Spinner,
   Stack,
   StackTight,
-  Tabs,
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { TabsNav } from '../../components/ui/tabs-nav';
 import { essentialsBulkApi, itemsApi, suppliesExtendedApi, locationsApi } from '../../api/client';
 
 type ViewMode = 'list' | 'cards';
@@ -216,7 +216,7 @@ export function EssentialsDesktop() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onChange={(v) => setActiveTab(v as EssentialsTab)} tabs={tabItems} />
+      <TabsNav value={activeTab} onChange={(v) => setActiveTab(v as EssentialsTab)} tabs={tabItems} />
 
       {isLoading ? (
         <Spinner />

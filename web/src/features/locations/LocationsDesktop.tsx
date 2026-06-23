@@ -6,8 +6,11 @@ import {
   IconPhoto, IconPlus, IconPrinter, IconQrcode, IconTrash,
 } from '@tabler/icons-react';
 import {
-  Button, Dialog, Row, ScrollArea, Stack, StackTight, TextField, uiStyles,
+  Dialog, Row, Stack, StackTight, uiStyles,
 } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { ScrollArea } from '../../components/ui/scroll-area';
+import { TextField } from '../../components/ui/text-field';
 import type { Location } from '../../api/client';
 import {
   LOCATION_TYPES, allowedChildTypes, canNestUnder, getLocationTypeMeta, type LocationType,

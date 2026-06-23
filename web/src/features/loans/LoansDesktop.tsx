@@ -2,7 +2,14 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { IconPlus, IconSettings, IconDotsVertical, IconAlertTriangle, IconClipboardList, IconEye } from '@tabler/icons-react';
-import { Button, Card, DatePickerField, Dialog, SelectField, Spinner, Stack, Tabs, TextField, uiStyles } from '../../components/ui';
+import { Dialog, Stack, uiStyles } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { DatePickerField } from '../../components/ui/date-picker-field';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { TabsNav } from '../../components/ui/tabs-nav';
+import { TextField } from '../../components/ui/text-field';
 import { itemsApi, loansApi, type Loan } from '../../api/client';
 
 type TabKey = 'active' | 'returned' | 'overdue' | 'all';
@@ -237,7 +244,7 @@ export function LoansDesktop() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onChange={(v) => setActiveTab(v as TabKey)} tabs={tabs} />
+      <TabsNav value={activeTab} onChange={(v) => setActiveTab(v as TabKey)} tabs={tabs} />
 
       {isLoading ? (
         <Spinner />

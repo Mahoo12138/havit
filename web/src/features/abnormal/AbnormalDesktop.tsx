@@ -12,7 +12,10 @@ import {
   IconChevronRight,
   IconDownload,
 } from '@tabler/icons-react';
-import { Button, Card, Spinner, Stack, uiStyles } from '../../components/ui';
+import { Stack, uiStyles } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { Spinner } from '../../components/ui/spinner';
 import { abnormalApi } from '../../api/client';
 
 const PAGE_SIZE = 10;

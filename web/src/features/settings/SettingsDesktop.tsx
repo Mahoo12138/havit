@@ -4,19 +4,19 @@ import { useTranslation } from 'react-i18next';
 import { IconTrash, IconUserPlus, IconLock, IconKey, IconCopy, IconShieldOff, IconUser } from '@tabler/icons-react';
 import { useDevice } from '../../lib/device';
 import {
-  Badge,
-  Button,
   Dialog,
-  Spinner,
-  ScrollArea,
-  SelectField,
   Stack,
   StackTight,
-  Tabs,
-  TextField,
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { ScrollArea } from '../../components/ui/scroll-area';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { TabsNav } from '../../components/ui/tabs-nav';
+import { TextField } from '../../components/ui/text-field';
 import { DataCard, FeatureHeader } from '../m2/components';
 import {
   authApi,
@@ -60,7 +60,7 @@ export function SettingsDesktop() {
         title={t('settings.title')}
         description={t('settings.description')}
       />
-      <Tabs value={activeTab} onChange={setActiveTab} tabs={tabs} />
+      <TabsNav value={activeTab} onChange={setActiveTab} tabs={tabs} />
 
       {activeTab === 'preferences' && <PreferencesTab />}
       {activeTab === 'api-tokens' && <APITokensTab />}

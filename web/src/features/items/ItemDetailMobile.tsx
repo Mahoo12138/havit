@@ -7,7 +7,11 @@ import {
   IconHistory, IconKey, IconMapPin, IconPackage, IconPhotoPlus,
   IconShieldCheck, IconShoppingCart, IconTag, IconX,
 } from '@tabler/icons-react';
-import { Badge, Button, SelectField, Spinner, StatusBadge, TextField } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { StatusBadge } from '../../components/ui/status-badge';
 import {
   containerApi, itemsApi, suppliesExtendedApi, loansApi, virtualAssetsApi,
   type Attachment, type Item,

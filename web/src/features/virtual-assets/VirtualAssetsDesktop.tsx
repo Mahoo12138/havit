@@ -16,17 +16,17 @@ import {
   IconEye,
 } from '@tabler/icons-react';
 import {
-  Button,
-  Card,
   Dialog,
-  SelectField,
   Stack,
-  Spinner,
   StackTight,
-  TextField,
   uiStyles,
   useToast,
 } from '../../components/ui';
+import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
+import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
+import { TextField } from '../../components/ui/text-field';
 import { itemsApi, type Item, type VirtualCredential, type VirtualAddonPurchase } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { CategoryTabs } from '../categories/CategoryTabs';

@@ -6,10 +6,15 @@ import {
   IconEye, IconDots, IconSearch,
 } from '@tabler/icons-react';
 import {
-  Card, DatePickerField, Dialog, SelectField, Spinner, Stack, StackTight,
-  TextField, TextareaField, TreeSelectField, uiStyles,
+  Card, Dialog, Spinner, Stack, StackTight, uiStyles,
 } from '../../components/ui';
+
 import { Button } from '../../components/ui/button';
+import { DatePickerField } from '../../components/ui/date-picker-field';
+import { SelectField } from '../../components/ui/select-field';
+import { TextareaField } from '../../components/ui/textarea-field';
+import { TextField } from '../../components/ui/text-field';
+import { TreeSelectField } from '../../components/ui/tree-select-field';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { CategoryTabs } from '../../features/categories/CategoryTabs';
 import { useAssetsData, getWarrantyStatus, formatDate, formatPrice } from './useAssetsData';
