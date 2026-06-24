@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { itemsApi, locationsApi, type Item, type Location } from '../../api/client';
-import { useToast } from '../../components/ui';
+import { useToast } from '../../components/ui/use-toast';
 
 export interface AssetItem extends Item {
   attachments?: Array<{ url: string; type: string }>;

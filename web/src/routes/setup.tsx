@@ -4,15 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { IconShieldCheck } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
-  Alert,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../components/ui';
+import { Alert } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { TextField } from '../components/ui/text-field';
+import { useToast } from '../components/ui/use-toast';
 import { authApi } from '../api/client';
 
 export const Route = createFileRoute('/setup')({
@@ -44,7 +44,7 @@ function SetupPage() {
 
   return (
     <main className={`${uiStyles.center} auth-screen`}>
-      <Card className="auth-card">
+      <Card className="auth-card" padded>
         <Stack>
           <StackTight className={uiStyles.textCenter}>
             <h1 className={`${uiStyles.heading} page-heading`}>{t('auth.setupTitle')}</h1>

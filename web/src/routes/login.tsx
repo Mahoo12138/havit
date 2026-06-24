@@ -4,15 +4,15 @@ import { useTranslation } from 'react-i18next';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useState } from 'react';
 import {
-  Alert,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../components/ui';
+import { Alert } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { TextField } from '../components/ui/text-field';
+import { useToast } from '../components/ui/use-toast';
 import { authApi, setToken } from '../api/client';
 
 export const Route = createFileRoute('/login')({
@@ -44,7 +44,7 @@ function LoginPage() {
 
   return (
     <main className={`${uiStyles.center} auth-screen`}>
-      <Card className="auth-card">
+      <Card className="auth-card" padded>
         <Stack>
           <StackTight className={uiStyles.textCenter}>
             <h1 className={`${uiStyles.heading} page-heading`}>{t('auth.login')} Havit</h1>

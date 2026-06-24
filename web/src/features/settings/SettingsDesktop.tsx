@@ -4,19 +4,19 @@ import { useTranslation } from 'react-i18next';
 import { IconTrash, IconUserPlus, IconLock, IconKey, IconCopy, IconShieldOff, IconUser } from '@tabler/icons-react';
 import { useDevice } from '../../lib/device';
 import {
-  Dialog,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../../components/ui';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Dialog } from '../../components/ui/dialog-compat';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextField } from '../../components/ui/text-field';
+import { useToast } from '../../components/ui/use-toast';
 import { DataCard, FeatureHeader } from '../m2/components';
 import {
   authApi,

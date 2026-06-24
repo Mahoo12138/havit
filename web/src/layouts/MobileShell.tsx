@@ -14,7 +14,8 @@ import {
   IconSearch,
   IconUser,
 } from '@tabler/icons-react';
-import { RowBetween, Alert } from '../components/ui';
+import { RowBetween } from '../components/ui';
+import { Alert } from '../components/ui/alert';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
 import { getNavSections } from './nav-data';
@@ -121,22 +122,24 @@ export function MobileShell({ systemStatus }: ShellProps) {
       </header>
 
       {/* Main Content */}
-      <main className={s.content}>
-        <div className="page-shell">
-          {systemStatus.mode === 'demo' && (
-            <div style={{ marginBottom: '0.75rem' }}>
-              <Alert icon={<IconInfoCircle size={18} />}>
-                <RowBetween>
-                  <strong>{t('demo.mode')}</strong>
-                  <span>{t('demo.version')} {systemStatus.version}</span>
-                </RowBetween>
-                <div>{t('demo.description')}</div>
-              </Alert>
-            </div>
-          )}
-          <Outlet />
-        </div>
-      </main>
+      <ScrollArea className={s.content}>
+        <main className={s.contentInner}>
+          <div className="page-shell">
+            {systemStatus.mode === 'demo' && (
+              <div style={{ marginBottom: '0.75rem' }}>
+                <Alert icon={<IconInfoCircle size={18} />}>
+                  <RowBetween>
+                    <strong>{t('demo.mode')}</strong>
+                    <span>{t('demo.version')} {systemStatus.version}</span>
+                  </RowBetween>
+                  <div>{t('demo.description')}</div>
+                </Alert>
+              </div>
+            )}
+            <Outlet />
+          </div>
+        </main>
+      </ScrollArea>
 
       {/* Bottom Navigation */}
       <nav className={s.bottomNav}>

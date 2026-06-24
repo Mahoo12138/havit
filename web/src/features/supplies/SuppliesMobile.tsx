@@ -6,12 +6,12 @@ import {
   IconAlertTriangle, IconCheck, IconMinus, IconPackage, IconPlus,
   IconShoppingBag, IconTrendingUp, IconX,
 } from '@tabler/icons-react';
-import { useToast } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextField } from '../../components/ui/text-field';
 import { TreeSelectField } from '../../components/ui/tree-select-field';
+import { useToast } from '../../components/ui/use-toast';
 import { itemsApi, locationsApi, suppliesExtendedApi, type Item, type Location } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import * as s from '../assets/assetsMobile.css';

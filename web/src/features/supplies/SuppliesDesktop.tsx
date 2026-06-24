@@ -17,21 +17,22 @@ import {
   IconTrendingUp,
 } from '@tabler/icons-react';
 import {
-  Dialog,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
+import { Dialog } from '../../components/ui/dialog-compat';
+import { Field, FieldLabel } from '../../components/ui/field';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
 import { TreeSelectField } from '../../components/ui/tree-select-field';
+import { useToast } from '../../components/ui/use-toast';
 import {
   itemsApi,
   locationsApi,
@@ -41,6 +42,7 @@ import {
   type PurchaseEvent,
 } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
+import * as localStyles from './SuppliesDesktop.css';
 
 type SupplyTab = 'overview' | 'typeA' | 'typeB' | 'restock';
 type SupplyKind = 'predictive_supplies' | 'tracked_spares';
@@ -1102,9 +1104,9 @@ function AddSupplyDialog({
   return (
     <Dialog open title={t('supplies.addSupplyTitle')} onClose={onClose}>
       <Stack>
-        <div className={uiStyles.field}>
-          <span className={uiStyles.label}>{t('supplies.chooseType')}</span>
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
+        <Field>
+          <FieldLabel>{t('supplies.chooseType')}</FieldLabel>
+          <div className={localStyles.typeOptionGroup}>
             {(
               [
                 {
@@ -1121,23 +1123,8 @@ function AddSupplyDialog({
             ).map((opt) => (
               <label
                 key={opt.value}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.5rem',
-                  padding: '0.6rem 0.75rem',
-                  border: `1px solid ${
-                    kind === opt.value
-                      ? 'var(--havit-accent)'
-                      : 'var(--havit-line)'
-                  }`,
-                  borderRadius: 'var(--havit-radius2)',
-                  cursor: 'pointer',
-                  background:
-                    kind === opt.value
-                      ? 'var(--havit-accent-soft)'
-                      : 'transparent',
-                }}
+                className={localStyles.typeOption}
+                data-selected={kind === opt.value || undefined}
               >
                 <input
                   type="radio"
@@ -1146,22 +1133,14 @@ function AddSupplyDialog({
                   onChange={() => setKind(opt.value)}
                   style={{ marginTop: '3px' }}
                 />
-                <div
-                  style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
-                >
-                  <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                    {opt.label}
-                  </span>
-                  <span
-                    style={{ color: 'var(--havit-muted)', fontSize: '0.78rem' }}
-                  >
-                    {opt.hint}
-                  </span>
+                <div className={localStyles.typeOptionText}>
+                  <span className={localStyles.typeOptionLabel}>{opt.label}</span>
+                  <span className={localStyles.typeOptionHint}>{opt.hint}</span>
                 </div>
               </label>
             ))}
           </div>
-        </div>
+        </Field>
 
         <TextField
           label={t('supplies.supplyName')}

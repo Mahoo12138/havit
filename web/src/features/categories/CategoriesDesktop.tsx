@@ -9,15 +9,17 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Dialog,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../../components/ui';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Dialog } from '../../components/ui/dialog-compat';
+import { Input } from '../../components/ui/input';
 import { SelectField } from '../../components/ui/select-field';
 import { TextField } from '../../components/ui/text-field';
+import { useToast } from '../../components/ui/use-toast';
 import { categoriesApi, type Category } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 
@@ -176,7 +178,7 @@ export function CategoriesDesktop() {
               <span className={uiStyles.tagsSearchIcon} aria-hidden>
                 <IconSearch size={15} />
               </span>
-              <input
+              <Input
                 className={uiStyles.tagsSearchInput}
                 type="search"
                 value={search}
@@ -220,14 +222,14 @@ export function CategoriesDesktop() {
                         <div className={uiStyles.tagsTableNameCell}>
                           <span className={uiStyles.tagsName}>{cat.name}</span>
                           {cat.is_system ? (
-                            <span className={uiStyles.badge} style={{ marginLeft: '0.5rem', fontSize: '0.7rem' }}>
+                            <Badge variant="secondary" style={{ marginLeft: '0.5rem', fontSize: '0.7rem' }}>
                               <IconLock size={11} style={{ marginRight: 3, verticalAlign: 'middle' }} />
                               {t('categories.systemBadge')}
-                            </span>
+                            </Badge>
                           ) : (
-                            <span className={uiStyles.badge} style={{ marginLeft: '0.5rem', fontSize: '0.7rem' }}>
+                            <Badge variant="secondary" style={{ marginLeft: '0.5rem', fontSize: '0.7rem' }}>
                               {t('categories.customBadge')}
-                            </span>
+                            </Badge>
                           )}
                         </div>
                       </td>

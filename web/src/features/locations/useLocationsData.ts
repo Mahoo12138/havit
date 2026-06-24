@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { itemsApi, locationsApi, type Location } from '../../api/client';
 import { type LocationType } from '../../features/locations/types';
-import { useToast } from '../../components/ui';
+import { useToast } from '../../components/ui/use-toast';
 
 /* ── Index ── */
 

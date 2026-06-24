@@ -5,6 +5,7 @@ import {
   IconSearch, IconFilter, IconX,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { TextField } from '../../components/ui/text-field';
@@ -64,7 +65,7 @@ export function AssetsMobile() {
       <div className={s.filterBar}>
         <span className={s.searchWrap}>
           <IconSearch size={16} className={s.searchIcon} />
-          <input className={s.searchInput} placeholder={t('search.placeholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.currentTarget.value)} />
+          <Input className={s.searchInput} placeholder={t('search.placeholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.currentTarget.value)} />
         </span>
         <button type="button" className={s.filterBtn} onClick={() => setShowFilters(!showFilters)} aria-label={t('assets.status')}>
           <IconFilter size={16} />

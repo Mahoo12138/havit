@@ -6,12 +6,16 @@ import {
   IconEye, IconDots, IconSearch,
 } from '@tabler/icons-react';
 import {
-  Card, Dialog, Spinner, Stack, StackTight, uiStyles,
+  Stack, StackTight, uiStyles,
 } from '../../components/ui';
 
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
+import { Dialog } from '../../components/ui/dialog-compat';
+import { Input } from '../../components/ui/input';
 import { SelectField } from '../../components/ui/select-field';
+import { Spinner } from '../../components/ui/spinner';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
 import { TreeSelectField } from '../../components/ui/tree-select-field';
@@ -76,7 +80,7 @@ export function AssetsDesktop() {
                     <div className={uiStyles.vaFilterRowLeft}>
                       <span className={uiStyles.searchControl}>
                         <IconSearch size={16} className={uiStyles.searchIcon} />
-                        <input className={[uiStyles.input, uiStyles.searchInput].join(' ')} placeholder={t('search.placeholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.currentTarget.value)} />
+                        <Input className={uiStyles.searchInput} placeholder={t('search.placeholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.currentTarget.value)} />
                       </span>
                       <SelectField label={t('assets.status')} options={[{ value: 'all', label: t('assets.allStatuses') }, { value: 'in_use', label: t('assets.inUse') }, { value: 'stored', label: t('assets.stored') }, { value: 'maintenance', label: t('assets.maintenance') }]} value={statusFilter} onChange={(e) => setStatusFilter(e.currentTarget.value)} />
                       <SelectField label={t('assets.location')} options={[{ value: 'all', label: t('assets.allLocations') }, ...locOptions]} value={locationFilter} onChange={(e) => setLocationFilter(e.currentTarget.value)} />

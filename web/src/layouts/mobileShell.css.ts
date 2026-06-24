@@ -4,7 +4,9 @@ import { themeVars } from '../styles/theme.css';
 export const shell = style({
   display: 'flex',
   flexDirection: 'column',
+  height: '100dvh',
   minHeight: '100dvh',
+  overflow: 'hidden',
   background: themeVars.bg,
 });
 
@@ -82,6 +84,10 @@ export const topBarAvatar = style({
 export const content = style({
   flex: 1,
   minWidth: 0,
+  minHeight: 0,
+});
+
+export const contentInner = style({
   padding: `0 ${themeVars.space4}`,
   paddingBottom: '4.5rem',
 });

@@ -14,11 +14,12 @@ import {
 } from '@tabler/icons-react';
 import {
   RowBetween,
-  Alert,
   uiStyles,
 } from '../components/ui';
+import { Alert } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { SelectField } from '../components/ui/select-field';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
@@ -179,7 +180,7 @@ export function TabletShell({ systemStatus }: ShellProps) {
             <span className={uiStyles.headerSearchIcon} aria-hidden>
               <IconSearch size={16} />
             </span>
-            <input
+            <Input
               className={uiStyles.headerSearchInput}
               name="q"
               type="search"

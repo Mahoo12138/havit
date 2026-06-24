@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css';
+import { globalStyle, style } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
 
 export const page = style({
@@ -84,6 +84,11 @@ export const searchInput = style({
       boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
     },
   },
+});
+
+globalStyle(`${searchWrap} [data-slot="input"]`, {
+  background: themeVars.bgSoft,
+  paddingLeft: '2.25rem',
 });
 
 export const filterBtn = style({

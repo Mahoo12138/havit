@@ -8,14 +8,16 @@ import {
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Dialog,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { Dialog } from '../../components/ui/dialog-compat';
+import { FieldLabel } from '../../components/ui/field';
+import { Input } from '../../components/ui/input';
 import { TextField } from '../../components/ui/text-field';
+import { useToast } from '../../components/ui/use-toast';
 import { tagsApi, type Tag } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 
@@ -205,7 +207,7 @@ export function TagsDesktop() {
               <span className={uiStyles.tagsSearchIcon} aria-hidden>
                 <IconSearch size={15} />
               </span>
-              <input
+              <Input
                 className={uiStyles.tagsSearchInput}
                 type="search"
                 value={search}
@@ -500,7 +502,7 @@ function TagFormDialog({
             placeholder={t('tags.fieldNamePlaceholder')}
           />
           <div>
-            <label className={uiStyles.label}>{t('tags.fieldColor')}</label>
+            <FieldLabel>{t('tags.fieldColor')}</FieldLabel>
             <div className={uiStyles.tagsColorPalette}>
               {COLOR_PRESETS.map((preset) => (
                 <button
@@ -513,7 +515,7 @@ function TagFormDialog({
                   aria-label={preset}
                 />
               ))}
-              <input
+              <Input
                 type="text"
                 className={uiStyles.tagsHexInput}
                 value={color}

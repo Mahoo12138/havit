@@ -8,12 +8,13 @@ import {
   IconShieldCheck, IconShoppingCart, IconTag, IconTrash, IconX,
 } from '@tabler/icons-react';
 import {
-  Dialog, Stack,
+  Stack,
   StackTight, uiStyles,
 } from '../../components/ui';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { Dialog } from '../../components/ui/dialog-compat';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';

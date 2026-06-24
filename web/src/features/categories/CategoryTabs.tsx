@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Popover as BasePopover } from '@base-ui/react/popover';
 import { IconDots } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
-import { uiStyles } from '../../components/ui';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { categoriesApi } from '../../api/client';
+import * as s from './CategoryTabs.css';
 
 interface CategoryTabsProps {
   rootType: 'physical' | 'virtual';
@@ -17,6 +17,7 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const [visibleCount, setVisibleCount] = useState<number>(Infinity);
+  const [overflowOpen, setOverflowOpen] = useState(false);
 
   const { data } = useQuery({
     queryKey: ['categories'],
@@ -79,9 +80,8 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
   return (
     <div
       ref={containerRef}
-      className={uiStyles.tabsList}
+      className={s.root}
       role="tablist"
-      style={{ position: 'relative', overflow: 'hidden' }}
     >
       {allTabs.map((tab, i) => {
         const isHidden = hasOverflow && i >= visibleCount;
@@ -90,55 +90,39 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
             key={tab.key}
             ref={(el) => { tabsRef.current[i] = el; }}
             role="tab"
-            className={uiStyles.tab}
+            className={`${s.tab}${isHidden ? ` ${s.hiddenTab}` : ''}`}
             data-selected={(isHidden ? overflowActive && value === tab.key : value === tab.key) || undefined}
             aria-selected={value === tab.key}
             onClick={() => onChange(tab.key)}
-            style={isHidden ? { position: 'absolute', visibility: 'hidden', pointerEvents: 'none' } : undefined}
           >
             {tab.label}
           </button>
         );
       })}
       {hasOverflow && (
-        <BasePopover.Root>
-          <BasePopover.Trigger
-            className={uiStyles.tab}
+        <Popover open={overflowOpen} onOpenChange={setOverflowOpen}>
+          <PopoverTrigger
+            className={s.tab}
             data-selected={overflowActive || undefined}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
           >
             <IconDots size={16} />
-          </BasePopover.Trigger>
-          <BasePopover.Portal>
-            <BasePopover.Positioner className={uiStyles.selectPositioner} sideOffset={6}>
-              <BasePopover.Popup
-                className={uiStyles.selectPopup}
-                style={{ minWidth: '10rem', padding: '0.25rem' }}
+          </PopoverTrigger>
+          <PopoverContent className={s.overflowPopup} sideOffset={6}>
+            {overflowTabs.map((tab) => (
+              <button
+                key={tab.key}
+                className={s.overflowItem}
+                data-selected={value === tab.key || undefined}
+                onClick={() => {
+                  onChange(tab.key);
+                  setOverflowOpen(false);
+                }}
               >
-                {overflowTabs.map((tab) => (
-                  <button
-                    key={tab.key}
-                    className={uiStyles.selectItem}
-                    data-highlighted={value === tab.key || undefined}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      textAlign: 'left',
-                      background: value === tab.key ? 'var(--havit-accent-soft)' : 'transparent',
-                      border: 'none',
-                      font: 'inherit',
-                      color: value === tab.key ? 'var(--havit-accent-ink)' : 'inherit',
-                      fontWeight: value === tab.key ? 600 : 400,
-                    }}
-                    onClick={() => onChange(tab.key)}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </BasePopover.Popup>
-            </BasePopover.Positioner>
-          </BasePopover.Portal>
-        </BasePopover.Root>
+                {tab.label}
+              </button>
+            ))}
+          </PopoverContent>
+        </Popover>
       )}
     </div>
   );

@@ -5,7 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router';
 
 import './i18n';
 import './styles/global.css';
-import { ToastProvider } from './components/ui';
+import { ToastProvider } from './components/ui/toast-provider';
 import { DeviceProvider } from './lib/device';
 import { routeTree } from './routeTree.gen';
 

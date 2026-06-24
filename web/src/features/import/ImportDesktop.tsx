@@ -3,17 +3,17 @@ import { useTranslation } from 'react-i18next';
 import { IconFileImport, IconInfoCircle } from '@tabler/icons-react';
 import { useRef, useState } from 'react';
 import {
-  Alert,
-  Code,
   Row,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../../components/ui';
+import { Alert } from '../../components/ui/alert';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { Code } from '../../components/ui/code';
+import { useToast } from '../../components/ui/use-toast';
 import { importApi, type ImportResult } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 

@@ -6,9 +6,11 @@ import {
   IconPhoto, IconPlus, IconPrinter, IconQrcode, IconTrash,
 } from '@tabler/icons-react';
 import {
-  Dialog, Row, Stack, StackTight, uiStyles,
+  Row, Stack, StackTight, uiStyles,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { Dialog } from '../../components/ui/dialog-compat';
+import { FieldLabel } from '../../components/ui/field';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { TextField } from '../../components/ui/text-field';
 import type { Location } from '../../api/client';
@@ -301,7 +303,7 @@ function TypeChoiceGrid({ value, onChange, parentType }: { value: LocationType; 
   const { t } = useTranslation();
   return (
     <div>
-      <span className={uiStyles.label} style={{ display: 'block', marginBottom: '0.5rem' }}>{t('locations.type')}</span>
+      <FieldLabel style={{ display: 'block', marginBottom: '0.5rem' }}>{t('locations.type')}</FieldLabel>
       <div className={uiStyles.typeChoiceGrid}>
         {LOCATION_TYPES.map((lt) => { const Icon = lt.icon; const disabled = parentType !== null && !canNestUnder(parentType, lt.value); const active = value === lt.value; return (
           <Button variant="subtle" key={lt.value} className={uiStyles.typeChoiceCard} data-active={active} disabled={disabled} onClick={() => onChange(lt.value)} title={disabled ? t('locations.cannotNest', { parent: locationTypeLabel(getLocationTypeMeta(parentType ?? '').value, t), child: locationTypeLabel(lt.value, t) }) : undefined}>
@@ -317,7 +319,7 @@ function TypeChoiceGrid({ value, onChange, parentType }: { value: LocationType; 
 function SwitchRow({ label, hint, checked, onChange }: { label: string; hint?: ReactNode; checked: boolean; onChange: (next: boolean) => void }) {
   return (
     <div className={uiStyles.switchRow}>
-      <StackTight><span className={uiStyles.label}>{label}</span>{hint && <span className={uiStyles.help}>{hint}</span>}</StackTight>
+      <StackTight><FieldLabel>{label}</FieldLabel>{hint && <span className={uiStyles.help}>{hint}</span>}</StackTight>
       <span role="switch" aria-checked={checked} tabIndex={0} className={uiStyles.switchTrack} data-checked={checked} onClick={() => onChange(!checked)} onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); onChange(!checked); } }}><span className={uiStyles.switchThumb} /></span>
     </div>
   );

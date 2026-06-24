@@ -15,6 +15,14 @@ import {
 import { Stack, uiStyles } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import { Spinner } from '../../components/ui/spinner';
 import { abnormalApi } from '../../api/client';
 
@@ -28,6 +36,46 @@ const PROCESSING_STATUS_OPTIONS = [
   { key: 'scrapped', labelKey: 'abnormal.progressScrapped' },
   { key: 'closed', labelKey: 'abnormal.progressClosed' },
 ];
+
+function InlineSelect({
+  value,
+  placeholder,
+  options,
+  onChange,
+  autoFocus,
+}: {
+  value: string;
+  placeholder: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+  autoFocus?: boolean;
+}) {
+  return (
+    <Select
+      value={value || null}
+      onValueChange={(nextValue) => onChange(nextValue ?? '')}
+      items={[{ value: null, label: placeholder }, ...options]}
+    >
+      <SelectTrigger
+        size="sm"
+        className={uiStyles.abnormalFilterSelect}
+        autoFocus={autoFocus}
+      >
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        <SelectGroup>
+          <SelectItem value={null}>{placeholder}</SelectItem>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
 
 const PROGRESS_COLORS: Record<string, string> = {
   reporting: '#3b82f6',
@@ -191,27 +239,23 @@ export function AbnormalDesktop() {
           <div>
             {/* Filter bar */}
             <div className={uiStyles.abnormalFilterBar}>
-              <select
-                className={uiStyles.abnormalFilterSelect}
+              <InlineSelect
                 value={typeFilter}
-                onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }}
-              >
-                <option value="">{t('abnormal.filterAllTypes')}</option>
-                <option value="lost">{t('abnormal.typeLost')}</option>
-                <option value="stolen">{t('abnormal.typeStolen')}</option>
-                <option value="unreturned">{t('abnormal.typeUnreturned')}</option>
-                <option value="damaged">{t('abnormal.typeDamaged')}</option>
-              </select>
-              <select
-                className={uiStyles.abnormalFilterSelect}
+                placeholder={t('abnormal.filterAllTypes')}
+                options={[
+                  { value: 'lost', label: t('abnormal.typeLost') },
+                  { value: 'stolen', label: t('abnormal.typeStolen') },
+                  { value: 'unreturned', label: t('abnormal.typeUnreturned') },
+                  { value: 'damaged', label: t('abnormal.typeDamaged') },
+                ]}
+                onChange={(nextValue) => { setTypeFilter(nextValue); setPage(1); }}
+              />
+              <InlineSelect
                 value={statusFilter}
-                onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              >
-                <option value="">{t('abnormal.filterAllStatus')}</option>
-                {PROCESSING_STATUS_OPTIONS.map((opt) => (
-                  <option key={opt.key} value={opt.key}>{t(opt.labelKey)}</option>
-                ))}
-              </select>
+                placeholder={t('abnormal.filterAllStatus')}
+                options={PROCESSING_STATUS_OPTIONS.map((opt) => ({ value: opt.key, label: t(opt.labelKey) }))}
+                onChange={(nextValue) => { setStatusFilter(nextValue); setPage(1); }}
+              />
               <span style={{ fontSize: '0.75rem', color: 'var(--havit-muted)' }}>
                 {t('abnormal.totalItems', { count: total })}
               </span>
@@ -278,21 +322,17 @@ export function AbnormalDesktop() {
                         </td>
                         <td className={uiStyles.td}>
                           {updateId === item.abnormal_id ? (
-                            <select
-                              className={uiStyles.abnormalFilterSelect}
+                            <InlineSelect
                               value={updateStatus}
-                              onChange={(e) => setUpdateStatus(e.target.value)}
-                              onBlur={() => {
-                                if (updateStatus) updateMutation.mutate({ id: item.abnormal_id, status: updateStatus });
+                              placeholder={t('abnormal.selectStatus')}
+                              options={PROCESSING_STATUS_OPTIONS.map((opt) => ({ value: opt.key, label: t(opt.labelKey) }))}
+                              autoFocus
+                              onChange={(nextValue) => {
+                                setUpdateStatus(nextValue);
+                                if (nextValue) updateMutation.mutate({ id: item.abnormal_id, status: nextValue });
                                 setUpdateId(null);
                               }}
-                              autoFocus
-                            >
-                              <option value="">{t('abnormal.selectStatus')}</option>
-                              {PROCESSING_STATUS_OPTIONS.map((opt) => (
-                                <option key={opt.key} value={opt.key}>{t(opt.labelKey)}</option>
-                              ))}
-                            </select>
+                            />
                           ) : (
                             <span
                               className={getProgressBadgeClass(item.processing_status)}

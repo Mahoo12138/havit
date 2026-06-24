@@ -5,7 +5,7 @@ import {
   containerApi, itemsApi, suppliesExtendedApi, loansApi, virtualAssetsApi,
   locationsApi, tagsApi, type Attachment, type Item, type Location, type Tag,
 } from '../../api/client';
-import { useToast } from '../../components/ui';
+import { useToast } from '../../components/ui/use-toast';
 
 /* ── Helpers ── */
 

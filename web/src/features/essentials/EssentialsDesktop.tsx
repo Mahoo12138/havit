@@ -16,17 +16,17 @@ import {
   IconCheckbox,
 } from '@tabler/icons-react';
 import {
-  Dialog,
   Stack,
   StackTight,
   uiStyles,
-  useToast,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { Dialog } from '../../components/ui/dialog-compat';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
+import { useToast } from '../../components/ui/use-toast';
 import { essentialsBulkApi, itemsApi, suppliesExtendedApi, locationsApi } from '../../api/client';
 
 type ViewMode = 'list' | 'cards';
