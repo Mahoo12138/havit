@@ -1,8 +1,8 @@
-import { style, styleVariants } from '@vanilla-extract/css';
+import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
-const base = style({
+export const base = style({
   display: 'inline-flex',
   minHeight: '1.25rem',
   width: 'fit-content',
@@ -24,12 +24,13 @@ const base = style({
       outline: 'none',
       boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
     },
-    '& svg': {
-      pointerEvents: 'none',
-      width: '0.75rem',
-      height: '0.75rem',
-    },
   },
+});
+
+globalStyle(`${base} svg`, {
+  pointerEvents: 'none',
+  width: '0.75rem',
+  height: '0.75rem',
 });
 
 export const variant = styleVariants({

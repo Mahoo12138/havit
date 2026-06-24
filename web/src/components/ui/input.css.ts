@@ -6,15 +6,15 @@ export const root = style({
   display: 'flex',
   width: '100%',
   minWidth: 0,
-  height: '2rem',
+  height: '2.25rem',
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius2,
-  background: 'transparent',
+  background: themeVars.panel,
   color: themeVars.text,
-  padding: '0.25rem 0.625rem',
+  padding: '0 0.75rem',
   font: 'inherit',
-  fontSize: '1rem',
-  lineHeight: 1.5,
+  fontSize: '0.875rem',
+  lineHeight: 1,
   outline: 'none',
   transition: 'border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease',
   selectors: {
@@ -28,7 +28,7 @@ export const root = style({
     '&:disabled': {
       pointerEvents: 'none',
       cursor: 'not-allowed',
-      background: `color-mix(in srgb, ${themeVars.lineSoft} 70%, transparent)`,
+      background: themeVars.bgSoft,
       opacity: 0.5,
     },
     '&[aria-invalid="true"]': {
@@ -44,11 +44,6 @@ export const root = style({
       font: 'inherit',
       fontSize: '0.875rem',
       fontWeight: 600,
-    },
-  },
-  '@media': {
-    '(min-width: 48em)': {
-      fontSize: '0.875rem',
     },
   },
 });

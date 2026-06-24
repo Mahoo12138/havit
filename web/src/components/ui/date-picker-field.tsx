@@ -1,4 +1,5 @@
-import { TextField } from './text-field';
+import { DatePicker } from './date-picker';
+import { Field, FieldError, FieldLabel } from './field';
 
 function DatePickerField({
   label,
@@ -8,6 +9,7 @@ function DatePickerField({
   required,
   disabled,
   id,
+  error,
 }: {
   label: string;
   value: string;
@@ -16,18 +18,24 @@ function DatePickerField({
   required?: boolean;
   disabled?: boolean;
   id?: string;
+  error?: string | null;
 }) {
+  const inputId = id ?? label;
+
   return (
-    <TextField
-      id={id}
-      label={label}
-      type="date"
-      value={value}
-      onChange={(event) => onChange(event.currentTarget.value)}
-      placeholder={placeholder}
-      required={required}
-      disabled={disabled}
-    />
+    <Field data-invalid={!!error}>
+      <FieldLabel htmlFor={inputId}>{label}</FieldLabel>
+      <DatePicker
+        id={inputId}
+        aria-invalid={!!error}
+        aria-required={required}
+        disabled={disabled}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+      />
+      {error && <FieldError>{error}</FieldError>}
+    </Field>
   );
 }
 

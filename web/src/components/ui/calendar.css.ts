@@ -1,4 +1,4 @@
-import { style } from '@vanilla-extract/css';
+import { globalStyle, style } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
@@ -101,15 +101,14 @@ export const captionLabelDropdown = style([
     alignItems: 'center',
     gap: themeVars.space1,
     borderRadius: cellRadius,
-    selectors: {
-      '& svg': {
-        width: '0.875rem',
-        height: '0.875rem',
-        color: themeVars.muted,
-      },
-    },
   },
 ]);
+
+globalStyle(`${captionLabelDropdown} svg`, {
+  width: '0.875rem',
+  height: '0.875rem',
+  color: themeVars.muted,
+});
 
 export const monthGrid = style({
   width: '100%',
@@ -164,25 +163,23 @@ export const day = style({
   padding: 0,
   textAlign: 'center',
   userSelect: 'none',
-  selectors: {
-    '&:first-child[data-selected="true"] button': {
-      borderTopLeftRadius: cellRadius,
-      borderBottomLeftRadius: cellRadius,
-    },
-    '&:last-child[data-selected="true"] button': {
-      borderTopRightRadius: cellRadius,
-      borderBottomRightRadius: cellRadius,
-    },
-  },
 });
 
-export const dayWithWeekNumber = style({
-  selectors: {
-    '&:nth-child(2)[data-selected="true"] button': {
-      borderTopLeftRadius: cellRadius,
-      borderBottomLeftRadius: cellRadius,
-    },
-  },
+globalStyle(`${day}:first-child[data-selected="true"] button`, {
+  borderTopLeftRadius: cellRadius,
+  borderBottomLeftRadius: cellRadius,
+});
+
+globalStyle(`${day}:last-child[data-selected="true"] button`, {
+  borderTopRightRadius: cellRadius,
+  borderBottomRightRadius: cellRadius,
+});
+
+export const dayWithWeekNumber = style({});
+
+globalStyle(`${dayWithWeekNumber}:nth-child(2)[data-selected="true"] button`, {
+  borderTopLeftRadius: cellRadius,
+  borderBottomLeftRadius: cellRadius,
 });
 
 export const rangeStart = style({
@@ -307,9 +304,10 @@ export const dayButton = style({
       background: themeVars.accent,
       color: themeVars.onAccent,
     },
-    '& > span': {
-      fontSize: '0.75rem',
-      opacity: 0.7,
-    },
   },
+});
+
+globalStyle(`${dayButton} > span`, {
+  fontSize: '0.75rem',
+  opacity: 0.7,
 });

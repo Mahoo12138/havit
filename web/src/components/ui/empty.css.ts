@@ -1,4 +1,4 @@
-import { style, styleVariants } from '@vanilla-extract/css';
+import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
@@ -25,18 +25,17 @@ export const header = style({
   gap: themeVars.space2,
 });
 
-const mediaBase = style({
+export const mediaBase = style({
   marginBottom: themeVars.space2,
   display: 'flex',
   flexShrink: 0,
   alignItems: 'center',
   justifyContent: 'center',
-  selectors: {
-    '& svg': {
-      pointerEvents: 'none',
-      flexShrink: 0,
-    },
-  },
+});
+
+globalStyle(`${mediaBase} svg`, {
+  pointerEvents: 'none',
+  flexShrink: 0,
 });
 
 export const media = styleVariants({
@@ -49,14 +48,13 @@ export const media = styleVariants({
       borderRadius: themeVars.radius2,
       background: themeVars.lineSoft,
       color: themeVars.ink,
-      selectors: {
-        '& svg': {
-          width: '1rem',
-          height: '1rem',
-        },
-      },
     },
   ],
+});
+
+globalStyle(`${media.icon} svg`, {
+  width: '1rem',
+  height: '1rem',
 });
 
 export const title = style({

@@ -1,4 +1,4 @@
-import { style, styleVariants } from '@vanilla-extract/css';
+import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
@@ -118,13 +118,14 @@ export const trigger = style({
     '[data-variant="line"] &[data-selected]::after, [data-variant="line"] &[data-active]::after': {
       opacity: 1,
     },
-    '& svg': {
-      pointerEvents: 'none',
-      width: '1rem',
-      height: '1rem',
-      flexShrink: 0,
-    },
   },
+});
+
+globalStyle(`${trigger} svg`, {
+  pointerEvents: 'none',
+  width: '1rem',
+  height: '1rem',
+  flexShrink: 0,
 });
 
 export const content = style({

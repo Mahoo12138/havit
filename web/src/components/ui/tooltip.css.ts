@@ -1,4 +1,4 @@
-import { keyframes, style } from '@vanilla-extract/css';
+import { globalStyle, keyframes, style } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
@@ -36,13 +36,14 @@ export const content = style({
     '&[data-ending-style]': {
       animation: `${exit} 100ms ease-in`,
     },
-    '& [data-slot="kbd"]': {
-      position: 'relative',
-      isolation: 'isolate',
-      zIndex: 50,
-      borderRadius: '2px',
-    },
   },
+});
+
+globalStyle(`${content} [data-slot="kbd"]`, {
+  position: 'relative',
+  isolation: 'isolate',
+  zIndex: 50,
+  borderRadius: '2px',
 });
 
 export const arrow = style({

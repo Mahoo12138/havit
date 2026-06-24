@@ -1,4 +1,5 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
+import * as React from 'react';
 import type { ReactNode } from 'react';
 
 import * as s from './button.css';
@@ -43,24 +44,31 @@ type ButtonProps = Omit<ButtonPrimitive.Props, 'className'> & {
   leftSection?: ReactNode;
 };
 
-function Button({
-  className,
-  variant = 'default',
-  size = 'default',
-  leftSection,
-  children,
-  ...props
-}: ButtonProps) {
-  return (
-    <ButtonPrimitive
-      data-slot="button"
-      className={buttonVariants({ variant, size, className })}
-      {...props}
-    >
-      {leftSection}
-      {children}
-    </ButtonPrimitive>
-  );
-}
+const Button = React.forwardRef<React.ElementRef<typeof ButtonPrimitive>, ButtonProps>(
+  (
+    {
+      className,
+      variant = 'default',
+      size = 'default',
+      leftSection,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    return (
+      <ButtonPrimitive
+        ref={ref}
+        data-slot="button"
+        className={buttonVariants({ variant, size, className })}
+        {...props}
+      >
+        {leftSection && <span data-icon="inline-start">{leftSection}</span>}
+        {children}
+      </ButtonPrimitive>
+    );
+  },
+);
+Button.displayName = 'Button';
 
 export { Button, buttonVariants };

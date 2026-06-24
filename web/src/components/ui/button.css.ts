@@ -1,20 +1,19 @@
-import { style, styleVariants } from '@vanilla-extract/css';
+import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
-const base = style({
+export const base = style({
   display: 'inline-flex',
   flexShrink: 0,
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '0.375rem',
+  gap: '0.5rem',
   border: '1px solid transparent',
   borderRadius: themeVars.radius2,
-  backgroundClip: 'padding-box',
   color: themeVars.text,
   font: 'inherit',
   fontSize: '0.875rem',
-  fontWeight: 600,
+  fontWeight: 500,
   lineHeight: 1,
   whiteSpace: 'nowrap',
   outline: 'none',
@@ -27,6 +26,10 @@ const base = style({
       borderColor: themeVars.accent,
       boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
     },
+    '&[aria-invalid="true"]': {
+      borderColor: themeVars.danger,
+      boxShadow: `0 0 0 3px ${themeVars.dangerSoft}`,
+    },
     '&:active:not([aria-haspopup])': {
       transform: 'translateY(1px)',
     },
@@ -35,11 +38,21 @@ const base = style({
       opacity: 0.5,
       cursor: 'not-allowed',
     },
-    '& svg': {
-      pointerEvents: 'none',
-      flexShrink: 0,
-    },
   },
+});
+
+globalStyle(`${base} svg`, {
+  pointerEvents: 'none',
+  width: '1rem',
+  height: '1rem',
+  flexShrink: 0,
+});
+
+globalStyle(`${base} [data-icon]`, {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
 });
 
 export const variant = styleVariants({
@@ -157,12 +170,12 @@ export const variant = styleVariants({
 });
 
 export const size = styleVariants({
-  default: { height: '2rem', padding: '0 0.625rem' },
-  xs: { height: '1.5rem', gap: '0.25rem', padding: '0 0.5rem', fontSize: '0.75rem' },
-  sm: { height: '1.75rem', gap: '0.25rem', padding: '0 0.625rem', fontSize: '0.8rem' },
-  lg: { height: '2.25rem', padding: '0 0.75rem' },
-  icon: { width: '2rem', height: '2rem', padding: 0 },
-  'icon-xs': { width: '1.5rem', height: '1.5rem', padding: 0 },
-  'icon-sm': { width: '1.75rem', height: '1.75rem', padding: 0 },
-  'icon-lg': { width: '2.25rem', height: '2.25rem', padding: 0 },
+  default: { height: '2.25rem', padding: '0 1rem' },
+  xs: { height: '1.75rem', gap: '0.375rem', padding: '0 0.75rem', fontSize: '0.75rem' },
+  sm: { height: '2rem', gap: '0.375rem', padding: '0 0.75rem', fontSize: '0.8125rem' },
+  lg: { height: '2.5rem', padding: '0 1.5rem' },
+  icon: { width: '2.25rem', height: '2.25rem', padding: 0 },
+  'icon-xs': { width: '1.75rem', height: '1.75rem', padding: 0 },
+  'icon-sm': { width: '2rem', height: '2rem', padding: 0 },
+  'icon-lg': { width: '2.5rem', height: '2.5rem', padding: 0 },
 });
