@@ -23,7 +23,7 @@ export const trigger = style({
   justifyContent: 'space-between',
   gap: '0.375rem',
   width: 'fit-content',
-  height: '2rem',
+  height: '2.25rem',
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius2,
   background: 'transparent',
@@ -54,8 +54,8 @@ export const trigger = style({
 export const triggerSize = styleVariants({
   default: {},
   sm: {
-    height: '1.75rem',
-    fontSize: '0.8rem',
+    height: '2rem',
+    fontSize: '0.8125rem',
   },
 });
 

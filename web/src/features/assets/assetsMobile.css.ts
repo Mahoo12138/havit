@@ -1,4 +1,4 @@
-import { globalStyle, style } from '@vanilla-extract/css';
+import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
 
 export const page = style({
@@ -18,11 +18,12 @@ export const statsScroll = style({
 export const statTile = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: themeVars.space1,
+  gap: '0.3rem',
   padding: themeVars.space3,
   borderRadius: themeVars.radius3,
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
+  boxShadow: themeVars.shadowSoft,
 });
 
 export const statIcon = style({
@@ -33,15 +34,39 @@ export const statIcon = style({
   borderRadius: themeVars.radius2,
 });
 
+export const statIconTone = styleVariants({
+  teal: {
+    background: themeVars.accentSoft,
+    color: themeVars.accentInk,
+  },
+  green: {
+    background: themeVars.successSoft,
+    color: themeVars.success,
+  },
+  orange: {
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+  },
+  red: {
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
+  },
+});
+
 export const statValue = style({
-  fontSize: '1.1rem',
-  fontWeight: 700,
+  fontSize: '1.25rem',
+  lineHeight: 1.1,
+  fontWeight: 760,
   color: themeVars.ink,
+  fontVariantNumeric: 'tabular-nums',
 });
 
 export const statLabel = style({
   fontSize: '0.68rem',
   color: themeVars.muted,
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
 });
 
 /* Filter bar */
@@ -49,6 +74,7 @@ export const filterBar = style({
   display: 'flex',
   gap: themeVars.space2,
   alignItems: 'center',
+  paddingTop: themeVars.space1,
 });
 
 export const searchWrap = style({
@@ -97,26 +123,41 @@ export const filterBtn = style({
   display: 'grid',
   placeItems: 'center',
   border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius2,
   background: themeVars.panel,
   color: themeVars.muted,
-  cursor: 'pointer',
   flex: '0 0 auto',
-  selectors: { '&:hover': { color: themeVars.ink, background: themeVars.bgSoft } },
 });
 
 export const filterPanel = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: themeVars.space2,
   padding: themeVars.space3,
   borderRadius: themeVars.radius2,
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
+  boxShadow: themeVars.shadowSoft,
+});
+
+export const filterSelectTrigger = style({
+  width: '100%',
 });
 
 /* Item count */
 export const itemCount = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: themeVars.space3,
   fontSize: '0.78rem',
   color: themeVars.muted,
   fontWeight: 500,
+});
+
+globalStyle(`${itemCount} strong`, {
+  color: themeVars.ink,
+  fontWeight: 650,
+  fontVariantNumeric: 'tabular-nums',
 });
 
 /* Card list */
@@ -134,11 +175,13 @@ export const card = style({
   borderRadius: themeVars.radius3,
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
+  boxShadow: themeVars.shadowSoft,
   textDecoration: 'none',
   color: 'inherit',
-  transition: 'background-color 120ms ease',
+  transition: 'background-color 160ms ease, border-color 160ms ease, transform 120ms ease',
   selectors: {
-    '&:hover': { background: themeVars.bgSoft, textDecoration: 'none' },
+    '&:hover': { background: themeVars.bgSoft, borderColor: themeVars.line, textDecoration: 'none' },
+    '&:active': { transform: 'translateY(1px)' },
   },
 });
 
@@ -155,8 +198,9 @@ export const cardThumb = style({
   display: 'grid',
   placeItems: 'center',
   borderRadius: themeVars.radius2,
-  background: themeVars.bgSoft,
+  background: `linear-gradient(145deg, ${themeVars.bgSoft}, ${themeVars.lineSoft})`,
   color: themeVars.muted,
+  border: `1px solid ${themeVars.lineSoft}`,
 });
 
 export const cardMeta = style({
@@ -168,8 +212,8 @@ export const cardMeta = style({
 });
 
 export const cardName = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: '0.9rem',
+  fontWeight: 650,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -179,6 +223,9 @@ export const cardName = style({
 export const cardSub = style({
   fontSize: '0.72rem',
   color: themeVars.muted,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const cardPrice = style({
@@ -193,6 +240,9 @@ export const cardFooter = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
+  gap: themeVars.space2,
+  paddingTop: themeVars.space1,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
 });
 
 export const cardLocation = style({
@@ -201,6 +251,10 @@ export const cardLocation = style({
   gap: '4px',
   fontSize: '0.72rem',
   color: themeVars.muted,
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const emptyState = style({
@@ -208,6 +262,53 @@ export const emptyState = style({
   color: themeVars.muted,
   padding: `${themeVars.space6} 0`,
   fontSize: '0.88rem',
+});
+
+export const warrantyBadge = styleVariants({
+  active: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    padding: '1px 6px',
+    borderRadius: '999px',
+    fontSize: '0.68rem',
+    fontWeight: 650,
+    background: themeVars.successSoft,
+    color: themeVars.success,
+  },
+  expiring: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    padding: '1px 6px',
+    borderRadius: '999px',
+    fontSize: '0.68rem',
+    fontWeight: 650,
+    background: themeVars.warningSoft,
+    color: themeVars.warning,
+  },
+  expired: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    padding: '1px 6px',
+    borderRadius: '999px',
+    fontSize: '0.68rem',
+    fontWeight: 650,
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
+  },
+  none: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '3px',
+    padding: '1px 6px',
+    borderRadius: '999px',
+    fontSize: '0.68rem',
+    fontWeight: 650,
+    background: themeVars.lineSoft,
+    color: themeVars.muted,
+  },
 });
 
 /* FAB */

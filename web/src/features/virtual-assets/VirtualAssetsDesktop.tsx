@@ -1,50 +1,51 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
-  IconPlus,
-  IconSettings,
-  IconList,
-  IconCalendar,
-  IconDownload,
-  IconBrandSteam,
-  IconBrandApple,
   IconBook,
+  IconBrandApple,
+  IconBrandSteam,
   IconDots,
-  IconPackage,
+  IconDownload,
   IconEye,
+  IconLayoutGrid,
+  IconList,
+  IconPackage,
+  IconPlus,
+  IconSearch,
+  IconSettings,
+  type TablerIcon,
 } from '@tabler/icons-react';
-import {
-  Stack,
-  StackTight,
-  uiStyles,
-} from '../../components/ui';
+import { Stack } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
-import { SelectField } from '../../components/ui/select-field';
+import { Input } from '../../components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import { Spinner } from '../../components/ui/spinner';
 import { TextField } from '../../components/ui/text-field';
-import { useToast } from '../../components/ui/use-toast';
-import { itemsApi, type Item, type VirtualCredential, type VirtualAddonPurchase } from '../../api/client';
+import { itemsApi, type Item, type VirtualAddonPurchase, type VirtualCredential } from '../../api/client';
+import { useDevice } from '../../lib/device';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { CategoryTabs } from '../categories/CategoryTabs';
-import { useDevice } from '../../lib/device';
+import { useToast } from '../../components/ui/use-toast';
+import * as s from './VirtualAssetsDesktop.css';
 
 type VaTab = string;
+type KpiTone = keyof typeof s.kpiIcon;
 
 interface VaItem extends Item {
   credentials?: VirtualCredential[];
   addons?: VirtualAddonPurchase[];
-}
-
-function getPlatformBadgeClass(platform: string): string {
-  const p = platform.toLowerCase();
-  if (p.includes('steam') || p.includes('gog')) return uiStyles.vaPlatformBadgeSteam;
-  if (p.includes('app store') || p.includes('apple')) return uiStyles.vaPlatformBadgeAppStore;
-  if (p.includes('kindle') || p.includes('amazon')) return uiStyles.vaPlatformBadgeKindle;
-  return uiStyles.vaPlatformBadge;
 }
 
 function formatPrice(price?: number, currency?: string): string {
@@ -56,8 +57,16 @@ function formatPrice(price?: number, currency?: string): string {
 
 function formatDate(ts?: number): string {
   if (!ts) return '—';
-  const d = new Date(ts * 1000);
-  return d.toISOString().split('T')[0];
+  const date = new Date(ts * 1000);
+  return date.toISOString().split('T')[0];
+}
+
+function platformTone(platform?: string): keyof typeof s.badge {
+  const value = (platform ?? '').toLowerCase();
+  if (value.includes('steam') || value.includes('gog')) return 'blue';
+  if (value.includes('apple') || value.includes('app store')) return 'neutral';
+  if (value.includes('kindle') || value.includes('amazon')) return 'amber';
+  return 'green';
 }
 
 export function VirtualAssetsDesktop() {
@@ -69,6 +78,8 @@ export function VirtualAssetsDesktop() {
   const [activeTab, setActiveTab] = useState<VaTab>('all');
   const [opened, setOpened] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const effectiveViewMode = device === 'mobile' ? 'cards' : viewMode;
 
   const [form, setForm] = useState({
@@ -108,449 +119,339 @@ export function VirtualAssetsDesktop() {
       setForm({ name: '', platform: '', account: '', price: '', currency: 'CNY' });
       setOpened(false);
     },
-    onError: (e: Error) => toast.show(t('items.createFailed', { error: e.message })),
+    onError: (error: Error) => toast.show(t('items.createFailed', { error: error.message })),
   });
 
   const allItems: VaItem[] = data?.items ?? [];
 
+  const categoryOptions = useMemo(() => {
+    const categories = new Set(allItems.map((item) => item.category).filter(Boolean));
+    return Array.from(categories).map((category) => ({ value: category as string, label: category as string }));
+  }, [allItems]);
+
   const filteredItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
     let items = allItems;
-    if (activeTab !== 'all') {
-      items = items.filter((i) => i.category === activeTab);
+    if (activeTab !== 'all') items = items.filter((item) => item.category === activeTab);
+    if (statusFilter !== 'all') items = items.filter((item) => item.status === statusFilter);
+    if (query) {
+      items = items.filter((item) => {
+        const haystack = [item.name, item.category, item.serial_number].filter(Boolean).join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
     }
     return items;
-  }, [allItems, activeTab]);
+  }, [activeTab, allItems, searchQuery, statusFilter]);
 
   const stats = useMemo(() => {
     const total = allItems.length;
-    const totalValue = allItems.reduce((sum, i) => sum + (i.purchase_price ?? 0), 0);
-    const inUseCount = allItems.filter((i) => i.status === 'in_use').length;
-    const archivedCount = allItems.filter((i) => i.status === 'archived').length;
-    const pendingCount = allItems.filter((i) => i.status === 'pending' || i.status === 'inactive').length;
+    const totalValue = allItems.reduce((sum, item) => sum + (item.purchase_price ?? 0), 0);
+    const inUseCount = allItems.filter((item) => item.status === 'in_use').length;
+    const archivedCount = allItems.filter((item) => item.status === 'archived').length;
+    const pendingCount = allItems.filter((item) => item.status === 'pending' || item.status === 'inactive').length;
     return { total, totalValue, inUseCount, archivedCount, pendingCount };
   }, [allItems]);
 
+  const recentItems = filteredItems.slice(0, 3);
+
   return (
-    <Stack>
-      <div className={`${uiStyles.pageHeader} ${uiStyles.mobileHidden}`}>
-        <StackTight>
-          <h2 className="page-heading">{t('virtualAssets.title')}</h2>
-          <p className="page-kicker">{t('virtualAssets.description')}</p>
-        </StackTight>
-        <div className={uiStyles.pageActions}>
-          <Button
-            variant="primary"
-            leftSection={<IconPlus size={14} />}
-            onClick={() => setOpened(true)}
-            disabled={!isOnline}
-          >
+    <div className={s.page}>
+      <header className={s.desktopHeader}>
+        <div className={s.titleBlock}>
+          <h2 className={s.title}>{t('virtualAssets.title')}</h2>
+          <p className={s.subtitle}>{t('virtualAssets.description')}</p>
+        </div>
+        <div className={s.headerActions}>
+          <Button variant="outline" leftSection={<IconSettings size={14} />}>{t('virtualAssets.settings')}</Button>
+          <Button leftSection={<IconPlus size={14} />} onClick={() => setOpened(true)} disabled={!isOnline}>
             {t('virtualAssets.create')}
           </Button>
-          <Button variant="subtle" leftSection={<IconSettings size={14} />}>
-            {t('virtualAssets.settings')}
-          </Button>
         </div>
-      </div>
+      </header>
 
-      <CategoryTabs rootType="virtual" value={activeTab} onChange={(v) => setActiveTab(v)} />
+      <CategoryTabs rootType="virtual" value={activeTab} onChange={(value) => setActiveTab(value)} />
 
       {isLoading ? (
         <Spinner />
       ) : (
         <>
-          <div className={uiStyles.vaKpiStrip}>
-            <div className={uiStyles.vaKpiTile}>
-              <span className={uiStyles.vaKpiIcon.blue}>
-                <IconPackage size={18} />
-              </span>
-              <div className={uiStyles.vaKpiMeta}>
-                <span className={uiStyles.vaKpiLabel}>{t('virtualAssets.totalAssets')}</span>
-                <span className={uiStyles.vaKpiValue}>{stats.total}</span>
-                <span className={uiStyles.vaKpiNote}>{t('virtualAssets.totalAssetsHint')}</span>
-              </div>
-            </div>
-            <div className={uiStyles.vaKpiTile}>
-              <span className={uiStyles.vaKpiIcon.green}>
-                <IconBrandSteam size={18} />
-              </span>
-              <div className={uiStyles.vaKpiMeta}>
-                <span className={uiStyles.vaKpiLabel}>{t('virtualAssets.inUse')}</span>
-                <span className={uiStyles.vaKpiValue}>{stats.inUseCount}</span>
-                <span className={uiStyles.vaKpiNote}>{t('virtualAssets.inUseHint')}</span>
-              </div>
-            </div>
-            <div className={uiStyles.vaKpiTile}>
-              <span className={uiStyles.vaKpiIcon.teal}>
-                <IconBook size={18} />
-              </span>
-              <div className={uiStyles.vaKpiMeta}>
-                <span className={uiStyles.vaKpiLabel}>{t('virtualAssets.archived')}</span>
-                <span className={uiStyles.vaKpiValue}>{stats.archivedCount}</span>
-                <span className={uiStyles.vaKpiNote}>{t('virtualAssets.archivedHint')}</span>
-              </div>
-            </div>
-            <div className={uiStyles.vaKpiTile}>
-              <span className={uiStyles.vaKpiIcon.orange}>
-                <IconBrandApple size={18} />
-              </span>
-              <div className={uiStyles.vaKpiMeta}>
-                <span className={uiStyles.vaKpiLabel}>{t('virtualAssets.pendingActivation')}</span>
-                <span className={uiStyles.vaKpiValue}>{stats.pendingCount}</span>
-                <span className={uiStyles.vaKpiNote}>{t('virtualAssets.pendingActivationHint')}</span>
-              </div>
-            </div>
-          </div>
+          <section className={s.kpiGrid} aria-label={t('virtualAssets.assetOverview')}>
+            <KpiTile icon={IconPackage} tone="blue" label={t('virtualAssets.totalAssets')} value={stats.total} note={t('virtualAssets.totalAssetsHint')} />
+            <KpiTile icon={IconBrandSteam} tone="green" label={t('virtualAssets.inUse')} value={stats.inUseCount} note={t('virtualAssets.inUseHint')} />
+            <KpiTile icon={IconBook} tone="teal" label={t('virtualAssets.archived')} value={stats.archivedCount} note={t('virtualAssets.archivedHint')} />
+            <KpiTile icon={IconBrandApple} tone="orange" label={t('virtualAssets.pendingActivation')} value={stats.pendingCount} note={t('virtualAssets.pendingActivationHint')} />
+          </section>
 
-          <Card className="surface-card" padded={false}>
-            <div className={uiStyles.sectionHead}>
-              <div className={uiStyles.vaFilterRow}>
-                <div className={uiStyles.vaFilterRowLeft}>
-                  <SelectField
-                    label={t('items.status')}
-                    options={[{ value: '', label: t('virtualAssets.allStatus') }]}
-                    value=""
-                    onChange={() => {}}
+          <Card className={s.ledgerCard} padded={false}>
+            <div className={s.toolbar}>
+              <div className={s.toolbarLeft}>
+                <span className={s.searchWrap}>
+                  <IconSearch size={16} className={s.searchIcon} />
+                  <Input
+                    className={s.searchInput}
+                    placeholder={t('search.placeholder')}
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.currentTarget.value)}
                   />
-                  <SelectField
-                    label={t('items.category')}
-                    options={[{ value: '', label: t('virtualAssets.allCategories') }]}
-                    value=""
-                    onChange={() => {}}
-                  />
-                  <SelectField
-                    label={t('common.user')}
-                    options={[{ value: '', label: t('virtualAssets.allUsers') }]}
-                    value=""
-                    onChange={() => {}}
-                  />
-                  <SelectField
-                    label={t('common.sort')}
-                    options={[{ value: '', label: t('virtualAssets.sortByExpiration') }]}
-                    value=""
-                    onChange={() => {}}
-                  />
-                </div>
-                <div className={uiStyles.vaFilterRowRight}>
-                  <div className={uiStyles.vaViewToggle}>
-                    <Button
-                      variant="subtle"
-                      className={uiStyles.vaViewToggleBtn}
-                      data-active={effectiveViewMode === 'list' || undefined}
-                      onClick={() => setViewMode('list')}
-                    >
-                      <IconList size={14} />
-                      {t('virtualAssets.listView')}
-                    </Button>
-                    <Button
-                      variant="subtle"
-                      className={uiStyles.vaViewToggleBtn}
-                      data-active={effectiveViewMode === 'cards' || undefined}
-                      onClick={() => setViewMode('cards')}
-                    >
-                      <IconCalendar size={14} />
-                      {t('virtualAssets.calendarView')}
-                    </Button>
-                  </div>
-                  <Button variant="subtle" leftSection={<IconDownload size={14} />}>
-                    {t('virtualAssets.export')}
+                </span>
+                <FilterSelect
+                  label={t('items.status')}
+                  options={[
+                    { value: 'all', label: t('virtualAssets.allStatus') },
+                    { value: 'in_use', label: t('virtualAssets.inUse') },
+                    { value: 'archived', label: t('virtualAssets.archived') },
+                    { value: 'inactive', label: t('virtualAssets.pendingActivation') },
+                  ]}
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                />
+                <FilterSelect
+                  label={t('items.category')}
+                  options={[{ value: 'all', label: t('virtualAssets.allCategories') }, ...categoryOptions]}
+                  value={activeTab}
+                  onChange={setActiveTab}
+                />
+              </div>
+              <div className={s.toolbarRight}>
+                <div className={s.viewToggle}>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className={s.viewToggleButton}
+                    data-active={effectiveViewMode === 'list' || undefined}
+                    onClick={() => setViewMode('list')}
+                    aria-label={t('virtualAssets.listView')}
+                  >
+                    <IconList size={14} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className={s.viewToggleButton}
+                    data-active={effectiveViewMode === 'cards' || undefined}
+                    onClick={() => setViewMode('cards')}
+                    aria-label={t('virtualAssets.calendarView')}
+                  >
+                    <IconLayoutGrid size={14} />
                   </Button>
                 </div>
+                <Button variant="outline" size="sm" leftSection={<IconDownload size={14} />}>{t('virtualAssets.export')}</Button>
               </div>
             </div>
 
             {effectiveViewMode === 'list' ? (
-              <div style={{ overflowX: 'auto' }}>
-                <table className={uiStyles.vaTable}>
-                  <thead>
-                    <tr>
-                      <th className={uiStyles.vaTableHead}>{t('virtualAssets.itemName')}</th>
-                      <th className={uiStyles.vaTableHead}>{t('virtualAssets.platformAccount')}</th>
-                      <th className={uiStyles.vaTableHead}>{t('virtualAssets.purchaseDate')}</th>
-                      <th className={uiStyles.vaTableHead}>{t('virtualAssets.price')}</th>
-                      <th className={uiStyles.vaTableHead}>{t('virtualAssets.statusTags')}</th>
-                      <th className={uiStyles.vaTableHead}>{t('virtualAssets.action')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredItems.map((item) => (
-                      <tr className={uiStyles.vaTableRow} key={item.id}>
-                        <td className={uiStyles.vaTableCell}>
-                          <div className={uiStyles.vaItemInfo}>
-                            <div className={uiStyles.vaItemThumb}>
-                              <IconPackage size={16} />
-                            </div>
-                            <div>
-                              <Link
-                                to="/items/$itemId"
-                                params={{ itemId: item.id }}
-                                className={uiStyles.vaItemName}
-                                style={{ color: 'inherit', textDecoration: 'none' }}
-                              >
-                                {item.name}
-                              </Link>
-                              {item.category && (
-                                <span className={uiStyles.vaItemCategory}>{item.category}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className={uiStyles.vaTableCell}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <span className={getPlatformBadgeClass(item.category ?? '')}>
-                              {item.category ?? '—'}
-                            </span>
-                            <span style={{ fontSize: '0.75rem', color: 'var(--havit-muted)' }}>
-                              {item.serial_number ?? '—'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className={uiStyles.vaTableCell} style={{ fontSize: '0.82rem', color: 'var(--havit-muted)' }}>
-                          {formatDate(item.purchase_date)}
-                        </td>
-                        <td className={uiStyles.vaTableCell} style={{ fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
-                          {formatPrice(item.purchase_price, item.purchase_currency)}
-                        </td>
-                        <td className={uiStyles.vaTableCell}>
-                          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                            <span className={uiStyles.vaDlcBadgeMulti}>{t('virtualAssets.multiDLC')}</span>
-                            <span className={uiStyles.vaDlcBadge}>{t('virtualAssets.steamGGOG')}</span>
-                          </div>
-                        </td>
-                        <td className={uiStyles.vaTableCell}>
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                            <Button
-                              variant="quiet"
-                              leftSection={<IconEye size={12} />}
-                            >
-                              {t('virtualAssets.viewDetails')}
-                            </Button>
-                            <Button variant="subtle" className={uiStyles.iconButton}>
-                              <IconDots size={14} />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredItems.length === 0 && (
-                      <tr>
-                        <td className={uiStyles.vaTableCell} colSpan={6} style={{ textAlign: 'center', color: 'var(--havit-muted)', padding: '2rem' }}>
-                          {t('virtualAssets.noItems')}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+              <VirtualAssetTable items={filteredItems} t={t} />
             ) : (
-              <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {filteredItems.map((item) => (
-                  <div className={uiStyles.vaMobileCard} key={item.id}>
-                    <div className={uiStyles.vaMobileCardHeader}>
-                      <div className={uiStyles.vaItemThumb}>
-                        <IconPackage size={18} />
-                      </div>
-                      <div className={uiStyles.vaMobileCardMeta}>
-                        <Link
-                          to="/items/$itemId"
-                          params={{ itemId: item.id }}
-                          className={uiStyles.vaItemName}
-                          style={{ color: 'inherit', textDecoration: 'none' }}
-                        >
-                          {item.name}
-                        </Link>
-                        <div className={uiStyles.vaMobileCardBadges}>
-                          <span className={getPlatformBadgeClass(item.category ?? '')}>
-                            [{item.category ?? '—'}]
-                          </span>
-                          {item.serial_number && (
-                            <span style={{ fontSize: '0.72rem', color: 'var(--havit-muted)' }}>
-                              {item.serial_number}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div className={uiStyles.vaMobileCardDate}>
-                          {t('virtualAssets.purchaseDate')} {formatDate(item.purchase_date)}
-                        </div>
-                      </div>
-                      <div className={uiStyles.vaMobileCardPrice}>
-                        {formatPrice(item.purchase_price, item.purchase_currency)}
-                      </div>
-                    </div>
-                    <div className={uiStyles.vaMobileCardBadges}>
-                      <span className={uiStyles.vaDlcBadgeMulti}>{t('virtualAssets.multiDLC')}</span>
-                      <span className={uiStyles.vaDlcBadge}>{t('virtualAssets.steamGGOG')}</span>
-                    </div>
-                  </div>
-                ))}
-                {filteredItems.length === 0 && (
-                  <div style={{ textAlign: 'center', color: 'var(--havit-muted)', padding: '2rem' }}>
-                    {t('virtualAssets.noItems')}
-                  </div>
-                )}
-              </div>
+              <VirtualAssetCards items={filteredItems} t={t} className={s.cardListDesktop} />
             )}
+            <VirtualAssetCards items={filteredItems} t={t} className={s.cardList} />
 
             {filteredItems.length > 0 && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '0.75rem 1.5rem',
-                borderTop: '1px solid var(--havit-line-soft)',
-                fontSize: '0.82rem',
-                color: 'var(--havit-muted)',
-              }}>
+              <div className={s.footerBar}>
                 <span>共 {filteredItems.length} 项</span>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  <Button variant="subtle" className={uiStyles.iconButton}>&lt;</Button>
-                  <Button
-                    variant="subtle"
-                    className={uiStyles.iconButton}
-                    style={{ background: 'var(--havit-accent-soft)', color: 'var(--havit-accent-ink)' }}
-                  >
-                    1
-                  </Button>
-                  <Button variant="subtle" className={uiStyles.iconButton}>&gt;</Button>
+                <div className={s.pagination}>
+                  <Button variant="ghost" size="icon-xs" aria-label="Previous page">&lt;</Button>
+                  <Button variant="outline" size="icon-xs">1</Button>
+                  <Button variant="ghost" size="icon-xs" aria-label="Next page">&gt;</Button>
                 </div>
               </div>
             )}
           </Card>
 
-          <div className={uiStyles.vaBottomCards}>
-            <div className={uiStyles.vaBottomCard}>
-              <h4 className={uiStyles.vaBottomCardTitle}>{t('virtualAssets.assetOverview')}</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <div>
-                  <div className={uiStyles.vaBottomStatLabel}>{t('virtualAssets.assetOverviewTotal')}</div>
-                  <div className={uiStyles.vaBottomStatValue}>{stats.total}</div>
+          <section className={s.insightsGrid}>
+            <Card className={s.insightCard}>
+              <h3 className={s.insightTitle}>{t('virtualAssets.assetOverview')}</h3>
+              <div className={s.insightSub}>{t('virtualAssets.noConversion')}</div>
+              <div className={s.miniList}>
+                <div className={s.miniRow}>
+                  <span className={s.muted}>{t('virtualAssets.assetOverviewTotal')}</span>
+                  <span className={s.price}>{stats.total}</span>
+                  <span />
                 </div>
-                <div>
-                  <div className={uiStyles.vaBottomStatLabel}>{t('virtualAssets.assetOverviewValue')}</div>
-                  <div className={uiStyles.vaBottomStatValue}>¥{stats.totalValue.toLocaleString()}</div>
-                  <div className={uiStyles.vaBottomStatNote}>{t('virtualAssets.noConversion')}</div>
+                <div className={s.miniRow}>
+                  <span className={s.muted}>{t('virtualAssets.assetOverviewValue')}</span>
+                  <span className={s.price}>¥{stats.totalValue.toLocaleString()}</span>
+                  <span className={s.badge.neutral}>CNY</span>
                 </div>
+                {recentItems.map((item) => (
+                  <div className={s.miniRow} key={item.id}>
+                    <span className={s.itemName}>{item.name}</span>
+                    <span className={s.muted}>{formatDate(item.purchase_date)}</span>
+                    <span className={s.price}>{formatPrice(item.purchase_price, item.purchase_currency)}</span>
+                  </div>
+                ))}
               </div>
-            </div>
+            </Card>
 
-            <div className={uiStyles.vaBottomCard}>
-              <h4 className={uiStyles.vaBottomCardTitle}>{t('virtualAssets.platformDistribution')}</h4>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '1.5rem',
-                padding: '1rem 0',
-              }}>
-                <div style={{
-                  width: '8rem',
-                  height: '8rem',
-                  borderRadius: '50%',
-                  background: `conic-gradient(
-                    var(--havit-info) 0% 35%,
-                    var(--havit-accent) 35% 55%,
-                    var(--havit-warning) 55% 75%,
-                    var(--havit-violet) 75% 85%,
-                    var(--havit-muted) 85% 100%
-                  )`,
-                  display: 'grid',
-                  placeItems: 'center',
-                  flexShrink: 0,
-                }}>
-                  <div style={{
-                    width: '5rem',
-                    height: '5rem',
-                    borderRadius: '50%',
-                    background: 'var(--havit-panel)',
-                    display: 'grid',
-                    placeItems: 'center',
-                  }}>
-                    <IconPackage size={20} style={{ color: 'var(--havit-muted)' }} />
-                  </div>
+            <Card className={s.insightCard}>
+              <h3 className={s.insightTitle}>{t('virtualAssets.platformDistribution')}</h3>
+              <div className={s.distribution}>
+                <div className={s.donut}>
+                  <div className={s.donutInner}><IconPackage size={20} /></div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.78rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: 'var(--havit-info)' }} />
-                    <span>Steam</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: 'var(--havit-accent)' }} />
-                    <span>App Store</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: 'var(--havit-warning)' }} />
-                    <span>PlayStation</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: 'var(--havit-violet)' }} />
-                    <span>Nintendo</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ width: '0.5rem', height: '0.5rem', borderRadius: '999px', background: 'var(--havit-muted)' }} />
-                    <span>Other</span>
-                  </div>
+                <div className={s.legend}>
+                  <span className={s.legendItem}><span className={s.legendDot.blue} />Steam / GOG</span>
+                  <span className={s.legendItem}><span className={s.legendDot.teal} />App Store</span>
+                  <span className={s.legendItem}><span className={s.legendDot.amber} />PlayStation</span>
+                  <span className={s.legendItem}><span className={s.legendDot.violet} />Other</span>
                 </div>
               </div>
-            </div>
-
-            <div className={uiStyles.vaBottomCard}>
-              <h4 className={uiStyles.vaBottomCardTitle}>{t('virtualAssets.addonStats')}</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div>
-                  <div className={uiStyles.vaBottomStatLabel}>{t('virtualAssets.recentAddon')}</div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--havit-text)' }}>
-                    Cyberpunk 2077: Phantom Liberty (CNY 99.0)
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div>
-                    <div className={uiStyles.vaBottomStatLabel}>{t('virtualAssets.addonCount')}</div>
-                    <div className={uiStyles.vaBottomStatValue}>8</div>
-                  </div>
-                  <div>
-                    <div className={uiStyles.vaBottomStatLabel}>{t('virtualAssets.addonTotalSpend')}</div>
-                    <div className={uiStyles.vaBottomStatValue}>¥890.00</div>
-                    <div className={uiStyles.vaBottomStatNote}>$120.00</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            </Card>
+          </section>
         </>
       )}
 
-      <Dialog
-        open={opened}
-        onClose={() => setOpened(false)}
-        title={t('virtualAssets.create')}
-      >
+      <Dialog open={opened} onClose={() => setOpened(false)} title={t('virtualAssets.create')}>
         <Stack>
-          <TextField
-            label={t('items.name')}
-            required
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.currentTarget.value })}
-          />
-          <TextField
-            label={t('virtualAssets.platformAccount')}
-            value={form.platform}
-            onChange={(e) => setForm({ ...form, platform: e.currentTarget.value })}
-          />
-          <div className={uiStyles.formActions}>
-            <Button variant="quiet" onClick={() => setOpened(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              disabled={!form.name || !isOnline || create.isPending}
-              onClick={() => create.mutate()}
-            >
+          <TextField label={t('items.name')} required value={form.name} onChange={(event) => setForm({ ...form, name: event.currentTarget.value })} />
+          <TextField label={t('virtualAssets.platformAccount')} value={form.platform} onChange={(event) => setForm({ ...form, platform: event.currentTarget.value })} />
+          <div className={s.formActions}>
+            <Button variant="outline" onClick={() => setOpened(false)}>{t('common.cancel')}</Button>
+            <Button disabled={!form.name || !isOnline || create.isPending} onClick={() => create.mutate()}>
               {create.isPending ? t('common.loading') : t('common.save')}
             </Button>
           </div>
         </Stack>
       </Dialog>
-    </Stack>
+    </div>
+  );
+}
+
+function KpiTile({ icon: Icon, tone, label, value, note }: {
+  icon: TablerIcon;
+  tone: KpiTone;
+  label: string;
+  value: number;
+  note: string;
+}) {
+  return (
+    <article className={s.kpiTile}>
+      <div className={s.kpiMeta}>
+        <span className={s.kpiLabel}>{label}</span>
+        <strong className={s.kpiValue}>{value}</strong>
+        <span className={s.kpiNote}>{note}</span>
+      </div>
+      <span className={s.kpiIcon[tone]}><Icon size={18} /></span>
+    </article>
+  );
+}
+
+function VirtualAssetTable({ items, t }: { items: VaItem[]; t: (key: string, params?: any) => string }) {
+  return (
+    <div className={s.tableScroll}>
+      <table className={s.table}>
+        <thead>
+          <tr>
+            <th className={s.tableHead}>{t('virtualAssets.itemName')}</th>
+            <th className={s.tableHead}>{t('virtualAssets.platformAccount')}</th>
+            <th className={s.tableHead}>{t('virtualAssets.purchaseDate')}</th>
+            <th className={s.tableHead}>{t('virtualAssets.price')}</th>
+            <th className={s.tableHead}>{t('virtualAssets.statusTags')}</th>
+            <th className={s.tableHead}>{t('virtualAssets.action')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => (
+            <tr className={s.tableRow} key={item.id}>
+              <td className={s.tableCell}>
+                <div className={s.itemInfo}>
+                  <div className={s.itemThumb}><IconPackage size={16} /></div>
+                  <div className={s.itemMeta}>
+                    <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
+                    <span className={s.itemSub}>{item.category ?? '—'}</span>
+                  </div>
+                </div>
+              </td>
+              <td className={s.tableCell}>
+                <div className={s.itemMeta}>
+                  <span className={s.badge[platformTone(item.category)]}>{item.category ?? '—'}</span>
+                  <span className={s.itemSub}>{item.serial_number ?? '—'}</span>
+                </div>
+              </td>
+              <td className={`${s.tableCell} ${s.muted}`}>{formatDate(item.purchase_date)}</td>
+              <td className={`${s.tableCell} ${s.price}`}>{formatPrice(item.purchase_price, item.purchase_currency)}</td>
+              <td className={s.tableCell}>
+                <div className={s.badges}>
+                  <span className={s.badge.blue}>{t('virtualAssets.multiDLC')}</span>
+                  <span className={s.badge.amber}>{t('virtualAssets.steamGGOG')}</span>
+                </div>
+              </td>
+              <td className={s.tableCell}>
+                <div className={s.actionGroup}>
+                  <Button variant="outline" size="sm" leftSection={<IconEye size={12} />}>{t('virtualAssets.viewDetails')}</Button>
+                  <Button variant="ghost" size="icon-sm" aria-label={t('virtualAssets.action')}><IconDots size={14} /></Button>
+                </div>
+              </td>
+            </tr>
+          ))}
+          {items.length === 0 && (
+            <tr>
+              <td className={s.tableCell} colSpan={6}>
+                <div className={s.empty}>{t('virtualAssets.noItems')}</div>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function FilterSelect({ label, options, value, onChange }: {
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Select
+      value={value}
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === 'string') onChange(nextValue);
+      }}
+      items={options}
+    >
+      <SelectTrigger className={s.filterSelectTrigger} size="sm" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        <SelectGroup>
+          <SelectLabel>{label}</SelectLabel>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
+
+function VirtualAssetCards({ items, t, className }: { items: VaItem[]; t: (key: string, params?: any) => string; className: string }) {
+  if (items.length === 0) return <div className={`${className} ${s.empty}`}>{t('virtualAssets.noItems')}</div>;
+
+  return (
+    <div className={className}>
+      {items.map((item) => (
+        <Link key={item.id} to="/items/$itemId" params={{ itemId: item.id }} className={s.assetCard}>
+          <div className={s.cardHeader}>
+            <span className={s.itemThumb}><IconPackage size={18} /></span>
+            <span className={s.itemMeta}>
+              <span className={s.itemName}>{item.name}</span>
+              <span className={s.itemSub}>{item.category ?? '—'}{item.serial_number ? ` · ${item.serial_number}` : ''}</span>
+            </span>
+            <span className={s.price}>{formatPrice(item.purchase_price, item.purchase_currency)}</span>
+          </div>
+          <div className={s.cardBody}>
+            <span className={s.muted}>{formatDate(item.purchase_date)}</span>
+            <span className={s.badges}>
+              <span className={s.badge[platformTone(item.category)]}>{item.category ?? '—'}</span>
+              <span className={s.badge.blue}>{t('virtualAssets.multiDLC')}</span>
+            </span>
+          </div>
+        </Link>
+      ))}
+    </div>
   );
 }

@@ -144,9 +144,9 @@ export function LocationsMobile() {
       )}
 
       {/* FAB */}
-      <button type="button" className={s.fab} onClick={() => setShowCreate(true)} disabled={!isOnline} aria-label={t('locations.addRoot')}>
+      <Button type="button" variant="ghost" size="icon" className={s.fab} onClick={() => setShowCreate(true)} disabled={!isOnline} aria-label={t('locations.addRoot')}>
         <IconPlus size={22} />
-      </button>
+      </Button>
 
       {/* Create overlay */}
       {showCreate && (
@@ -229,7 +229,7 @@ function CreateOverlay({ parent, onClose, onSubmit, pending, isOnline }: {
     <div className={s.overlay}>
       <div className={s.overlayHeader}>
         <h3 className={s.overlayTitle}>{title}</h3>
-        <button type="button" className={s.overlayClose} onClick={onClose}><IconX size={18} /></button>
+        <Button type="button" variant="ghost" size="icon" className={s.overlayClose} onClick={onClose}><IconX size={18} /></Button>
       </div>
       <div className={s.overlayBody}>
         <div>
@@ -240,9 +240,10 @@ function CreateOverlay({ parent, onClose, onSubmit, pending, isOnline }: {
               if (!lt) return null;
               const active = type === lt.value;
               return (
-                <button
+                <Button
                   key={lt.value}
                   type="button"
+                  variant="ghost"
                   onClick={() => setType(lt.value)}
                   style={{
                     padding: '0.5rem 0.75rem', borderRadius: 'var(--havit-radius-2)',
@@ -253,7 +254,7 @@ function CreateOverlay({ parent, onClose, onSubmit, pending, isOnline }: {
                   }}
                 >
                   {locationTypeLabel(lt.value, t)}
-                </button>
+                </Button>
               );
             })}
           </div>

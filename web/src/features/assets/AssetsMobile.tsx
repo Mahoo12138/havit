@@ -6,7 +6,15 @@ import {
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { SelectField } from '../../components/ui/select-field';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import { Spinner } from '../../components/ui/spinner';
 import { TextField } from '../../components/ui/text-field';
 import { TreeSelectField } from '../../components/ui/tree-select-field';
@@ -24,6 +32,7 @@ export function AssetsMobile() {
 
   const [activeTab, setActiveTab] = useState<AssetTab>('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [locationFilter, setLocationFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
 
@@ -43,8 +52,9 @@ export function AssetsMobile() {
     let items = allItems;
     if (activeTab !== 'all') items = items.filter((i) => i.category === activeTab);
     if (statusFilter !== 'all') items = items.filter((i) => i.status === statusFilter);
+    if (locationFilter !== 'all') items = items.filter((i) => i.location_id === locationFilter);
     return items;
-  }, [allItems, activeTab, statusFilter]);
+  }, [allItems, activeTab, locationFilter, statusFilter]);
 
   if (isLoading) return <div className={s.page}><Spinner /></div>;
 
@@ -67,25 +77,32 @@ export function AssetsMobile() {
           <IconSearch size={16} className={s.searchIcon} />
           <Input className={s.searchInput} placeholder={t('search.placeholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.currentTarget.value)} />
         </span>
-        <button type="button" className={s.filterBtn} onClick={() => setShowFilters(!showFilters)} aria-label={t('assets.status')}>
+        <Button type="button" variant="ghost" size="icon" className={s.filterBtn} onClick={() => setShowFilters(!showFilters)} aria-label={t('assets.status')}>
           <IconFilter size={16} />
-        </button>
+        </Button>
       </div>
 
       {showFilters && (
         <div className={s.filterPanel}>
-          <SelectField
+          <FilterSelect
             label={t('assets.status')}
             options={[{ value: 'all', label: t('assets.allStatuses') }, { value: 'in_use', label: t('assets.inUse') }, { value: 'stored', label: t('assets.stored') }, { value: 'maintenance', label: t('assets.maintenance') }]}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.currentTarget.value)}
+            onChange={setStatusFilter}
+          />
+          <FilterSelect
+            label={t('assets.location')}
+            options={[{ value: 'all', label: t('assets.allLocations') }, ...locOptions]}
+            value={locationFilter}
+            onChange={setLocationFilter}
           />
         </div>
       )}
 
       {/* Item count */}
       <div className={s.itemCount}>
-        {filteredItems.length} {t('common.items')}
+        <span>{t('assets.overview')}</span>
+        <strong>{filteredItems.length} {t('common.items')}</strong>
       </div>
 
       {/* Card list */}
@@ -126,9 +143,9 @@ export function AssetsMobile() {
         <div className={s.overlay}>
           <div className={s.overlayHeader}>
             <h3 className={s.overlayTitle}>{t('assets.create')}</h3>
-            <button type="button" className={s.overlayClose} onClick={() => setShowCreate(false)} aria-label={t('common.close')}>
+            <Button type="button" variant="ghost" size="icon" className={s.overlayClose} onClick={() => setShowCreate(false)} aria-label={t('common.close')}>
               <IconX size={18} />
-            </button>
+            </Button>
           </div>
           <div className={s.overlayBody}>
             <TextField label={t('items.name')} required value={form.name} onChange={(e) => setForm({ ...form, name: e.currentTarget.value })} />
@@ -150,11 +167,9 @@ export function AssetsMobile() {
 }
 
 function StatTile({ icon: Icon, value, label, tone }: { icon: any; value: number; label: string; tone: 'teal' | 'green' | 'orange' | 'red' }) {
-  const bgMap = { teal: 'var(--havit-accent-soft)', green: 'var(--havit-success-soft)', orange: 'var(--havit-warning-soft)', red: 'var(--havit-danger-soft)' };
-  const colorMap = { teal: 'var(--havit-accent-ink)', green: 'var(--havit-success)', orange: 'var(--havit-warning)', red: 'var(--havit-danger)' };
   return (
     <div className={s.statTile}>
-      <span className={s.statIcon} style={{ background: bgMap[tone], color: colorMap[tone] }}><Icon size={16} /></span>
+      <span className={`${s.statIcon} ${s.statIconTone[tone]}`}><Icon size={16} /></span>
       <span className={s.statValue}>{value}</span>
       <span className={s.statLabel}>{label}</span>
     </div>
@@ -162,16 +177,41 @@ function StatTile({ icon: Icon, value, label, tone }: { icon: any; value: number
 }
 
 function MobileWarrantyBadge({ ws, t }: { ws: string; t: (key: string) => string }) {
-  const bgMap: Record<string, string> = { active: 'var(--havit-success-soft)', expiring: 'var(--havit-warning-soft)', expired: 'var(--havit-danger-soft)' };
-  const colorMap: Record<string, string> = { active: 'var(--havit-success)', expiring: 'var(--havit-warning)', expired: 'var(--havit-danger)' };
+  const tone = ws === 'active' || ws === 'expiring' || ws === 'expired' ? ws : 'none';
   return (
-    <span style={{
-      display: 'inline-flex', alignItems: 'center', gap: '3px', padding: '1px 6px',
-      borderRadius: '999px', fontSize: '0.68rem', fontWeight: 600,
-      background: bgMap[ws] ?? 'var(--havit-line-soft)',
-      color: colorMap[ws] ?? 'var(--havit-muted)',
-    }}>
+    <span className={s.warrantyBadge[tone]}>
       {t(`assets.warranty${ws.charAt(0).toUpperCase() + ws.slice(1)}`)}
     </span>
+  );
+}
+
+function FilterSelect({ label, options, value, onChange }: {
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Select
+      value={value}
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === 'string') onChange(nextValue);
+      }}
+      items={options}
+    >
+      <SelectTrigger className={s.filterSelectTrigger} size="sm" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        <SelectGroup>
+          <SelectLabel>{label}</SelectLabel>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { IconDots } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import { Button } from '../../components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { categoriesApi } from '../../api/client';
 import * as s from './CategoryTabs.css';
 
@@ -15,7 +17,6 @@ interface CategoryTabsProps {
 export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
-  const tabsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const [visibleCount, setVisibleCount] = useState<number>(Infinity);
   const [overflowOpen, setOverflowOpen] = useState(false);
 
@@ -41,12 +42,12 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
     const container = containerRef.current;
     if (!container) return;
     const containerWidth = container.clientWidth;
+    const tabEls = Array.from(container.querySelectorAll<HTMLElement>('[data-slot="tabs-trigger"]'));
     // Reserve space for the "..." button (approx 40px)
     const moreButtonWidth = 40;
     let usedWidth = 0;
     let count = 0;
-    for (const el of tabsRef.current) {
-      if (!el) continue;
+    for (const el of tabEls) {
       const tabWidth = el.offsetWidth + 4; // gap
       if (usedWidth + tabWidth + moreButtonWidth > containerWidth && count > 0) {
         break;
@@ -78,52 +79,56 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
   }, [allTabs.length]);
 
   return (
-    <div
-      ref={containerRef}
-      className={s.root}
-      role="tablist"
-    >
-      {allTabs.map((tab, i) => {
-        const isHidden = hasOverflow && i >= visibleCount;
-        return (
-          <button
-            key={tab.key}
-            ref={(el) => { tabsRef.current[i] = el; }}
-            role="tab"
-            className={`${s.tab}${isHidden ? ` ${s.hiddenTab}` : ''}`}
-            data-selected={(isHidden ? overflowActive && value === tab.key : value === tab.key) || undefined}
-            aria-selected={value === tab.key}
-            onClick={() => onChange(tab.key)}
-          >
-            {tab.label}
-          </button>
-        );
-      })}
-      {hasOverflow && (
-        <Popover open={overflowOpen} onOpenChange={setOverflowOpen}>
-          <PopoverTrigger
-            className={s.tab}
-            data-selected={overflowActive || undefined}
-          >
-            <IconDots size={16} />
-          </PopoverTrigger>
-          <PopoverContent className={s.overflowPopup} sideOffset={6}>
-            {overflowTabs.map((tab) => (
-              <button
+    <div ref={containerRef} className={s.root}>
+      <Tabs
+        value={value}
+        onValueChange={(nextValue) => {
+          if (typeof nextValue === 'string') onChange(nextValue);
+        }}
+      >
+        <TabsList variant="line" className={s.list}>
+          {allTabs.map((tab, i) => {
+            const isHidden = hasOverflow && i >= visibleCount;
+            return (
+              <TabsTrigger
                 key={tab.key}
-                className={s.overflowItem}
-                data-selected={value === tab.key || undefined}
-                onClick={() => {
-                  onChange(tab.key);
-                  setOverflowOpen(false);
-                }}
+                value={tab.key}
+                className={`${s.tab}${isHidden ? ` ${s.hiddenTab}` : ''}`}
+                data-selected={(isHidden ? overflowActive && value === tab.key : value === tab.key) || undefined}
               >
                 {tab.label}
-              </button>
-            ))}
-          </PopoverContent>
-        </Popover>
-      )}
+              </TabsTrigger>
+            );
+          })}
+          {hasOverflow && (
+            <Popover open={overflowOpen} onOpenChange={setOverflowOpen}>
+              <PopoverTrigger
+                className={s.tab}
+                data-selected={overflowActive || undefined}
+              >
+                <IconDots size={16} />
+              </PopoverTrigger>
+              <PopoverContent className={s.overflowPopup} sideOffset={6}>
+                {overflowTabs.map((tab) => (
+                  <Button
+                    key={tab.key}
+                    variant="ghost"
+                    size="sm"
+                    className={s.overflowItem}
+                    data-selected={value === tab.key || undefined}
+                    onClick={() => {
+                      onChange(tab.key);
+                      setOverflowOpen(false);
+                    }}
+                  >
+                    {tab.label}
+                  </Button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
+        </TabsList>
+      </Tabs>
     </div>
   );
 }

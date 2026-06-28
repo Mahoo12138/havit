@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { IconPrinter, IconQrcode } from '@tabler/icons-react';
 import { uiStyles } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { Checkbox } from '../../components/ui/checkbox';
 import { useToast } from '../../components/ui/use-toast';
 import { FeatureHeader } from '../m2/components';
 import { QrPrintLabel } from '../qr/QrPrintLabel';
@@ -161,10 +162,9 @@ export function QrPrintDesktop() {
                   cursor: 'pointer',
                 }}
               >
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={selected.has(loc.id)}
-                  onChange={() => toggleOne(loc.id)}
+                  onCheckedChange={() => toggleOne(loc.id)}
                 />
                 <span style={{ flex: 1 }}>{loc.path ? `${loc.path} → ${loc.name}` : loc.name}</span>
                 <span className={uiStyles.muted}>

@@ -505,8 +505,10 @@ function TagFormDialog({
             <FieldLabel>{t('tags.fieldColor')}</FieldLabel>
             <div className={uiStyles.tagsColorPalette}>
               {COLOR_PRESETS.map((preset) => (
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-sm"
                   key={preset}
                   className={uiStyles.tagsPaletteSwatch}
                   style={{ background: preset }}

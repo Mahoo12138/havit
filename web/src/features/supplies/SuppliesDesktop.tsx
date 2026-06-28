@@ -26,6 +26,7 @@ import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Field, FieldLabel } from '../../components/ui/field';
+import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
@@ -1106,7 +1107,12 @@ function AddSupplyDialog({
       <Stack>
         <Field>
           <FieldLabel>{t('supplies.chooseType')}</FieldLabel>
-          <div className={localStyles.typeOptionGroup}>
+          <RadioGroup
+            className={localStyles.typeOptionGroup}
+            name="supply-kind"
+            value={kind}
+            onValueChange={(nextValue) => setKind(nextValue as SupplyKind)}
+          >
             {(
               [
                 {
@@ -1126,20 +1132,14 @@ function AddSupplyDialog({
                 className={localStyles.typeOption}
                 data-selected={kind === opt.value || undefined}
               >
-                <input
-                  type="radio"
-                  name="supply-kind"
-                  checked={kind === opt.value}
-                  onChange={() => setKind(opt.value)}
-                  style={{ marginTop: '3px' }}
-                />
+                <RadioGroupItem className={localStyles.typeOptionRadio} value={opt.value} />
                 <div className={localStyles.typeOptionText}>
                   <span className={localStyles.typeOptionLabel}>{opt.label}</span>
                   <span className={localStyles.typeOptionHint}>{opt.hint}</span>
                 </div>
               </label>
             ))}
-          </div>
+          </RadioGroup>
         </Field>
 
         <TextField

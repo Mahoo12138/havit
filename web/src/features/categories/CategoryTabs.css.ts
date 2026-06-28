@@ -3,12 +3,19 @@ import { style } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
 
 export const root = style({
+  marginBottom: themeVars.space4,
+});
+
+export const list = style({
   position: 'relative',
   display: 'flex',
+  width: '100%',
   gap: themeVars.space1,
   overflow: 'hidden',
   borderBottom: `1px solid ${themeVars.line}`,
-  marginBottom: themeVars.space4,
+  height: 'auto',
+  padding: 0,
+  justifyContent: 'flex-start',
 });
 
 export const tab = style({
@@ -18,6 +25,7 @@ export const tab = style({
   gap: themeVars.space1,
   border: 0,
   borderBottom: '2px solid transparent',
+  borderRadius: 0,
   background: 'transparent',
   color: themeVars.muted,
   cursor: 'pointer',
@@ -26,6 +34,8 @@ export const tab = style({
   fontWeight: 500,
   marginBottom: '-1px',
   padding: `${themeVars.space2} ${themeVars.space3}`,
+  height: 'auto',
+  flex: '0 0 auto',
   transition: 'color 160ms ease, border-color 160ms ease',
   selectors: {
     '&:hover': {
@@ -35,6 +45,7 @@ export const tab = style({
       borderBottomColor: themeVars.accent,
       color: themeVars.accent,
       fontWeight: 600,
+      background: 'transparent',
     },
     '&:focus-visible': {
       outline: 'none',

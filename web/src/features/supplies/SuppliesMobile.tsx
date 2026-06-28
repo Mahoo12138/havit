@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
-  IconAlertTriangle, IconCheck, IconMinus, IconPackage, IconPlus,
-  IconShoppingBag, IconTrendingUp, IconX,
+  IconAlertTriangle, IconMinus, IconPackage, IconPlus,
+  IconShoppingBag, IconX,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
 import { Spinner } from '../../components/ui/spinner';
@@ -17,8 +17,6 @@ import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import * as s from '../assets/assetsMobile.css';
 
 type SupplyTab = 'overview' | 'typeA' | 'typeB' | 'restock';
-
-const DAY = 24 * 60 * 60;
 
 function getStockStatus(item: Item): 'normal' | 'sufficient' | 'low' | 'below' {
   if (item.current_stock == null || item.min_stock_threshold == null) return 'normal';
@@ -151,9 +149,9 @@ export function SuppliesMobile() {
       )}
 
       {/* FAB */}
-      <button type="button" className={s.fab} onClick={() => setAddOpen(true)} disabled={!isOnline} aria-label={t('supplies.addItem')}>
+      <Button type="button" variant="ghost" size="icon" className={s.fab} onClick={() => setAddOpen(true)} disabled={!isOnline} aria-label={t('supplies.addItem')}>
         <IconPlus size={22} />
-      </button>
+      </Button>
 
       {/* Simplified create overlay */}
       {addOpen && (
@@ -197,7 +195,7 @@ function MobileAddOverlay({ locationTree, isOnline, onClose }: { locationTree: L
     <div className={s.overlay}>
       <div className={s.overlayHeader}>
         <h3 className={s.overlayTitle}>{t('supplies.addSupplyTitle')}</h3>
-        <button type="button" className={s.overlayClose} onClick={onClose}><IconX size={18} /></button>
+        <Button type="button" variant="ghost" size="icon" className={s.overlayClose} onClick={onClose}><IconX size={18} /></Button>
       </div>
       <div className={s.overlayBody}>
         <TextField label={t('supplies.supplyName')} placeholder={t('supplies.supplyNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />

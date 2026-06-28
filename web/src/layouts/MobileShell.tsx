@@ -16,6 +16,7 @@ import {
 } from '@tabler/icons-react';
 import { RowBetween } from '../components/ui';
 import { Alert } from '../components/ui/alert';
+import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
 import { getNavSections } from './nav-data';
@@ -83,42 +84,50 @@ export function MobileShell({ systemStatus }: ShellProps) {
       {/* Top Bar */}
       <header className={s.topBar}>
         {showBack && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             className={s.topBarIconBtn}
             onClick={handleBack}
             aria-label={t('common.back')}
           >
             <IconChevronLeft size={22} />
-          </button>
+          </Button>
         )}
         <h1 className={s.topBarTitle}>{pageTitle}</h1>
         <div className={s.topBarActions}>
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             className={s.topBarIconBtn}
             onClick={() => navigate({ to: '/search' })}
             aria-label={t('common.search')}
           >
             <IconSearch size={20} />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             className={s.topBarIconBtn}
             onClick={handlePrimaryAction}
             aria-label={t('nav.capture')}
           >
             <IconPlus size={21} />
-          </button>
+          </Button>
         </div>
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           className={s.topBarAvatar}
           onClick={() => setDrawerOpen(true)}
           aria-label={t('common.toggleNav')}
         >
           {initials}
-        </button>
+        </Button>
       </header>
 
       {/* Main Content */}
@@ -159,14 +168,16 @@ export function MobileShell({ systemStatus }: ShellProps) {
           );
         })}
         {/* FAB */}
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           className={s.fabBtn}
           onClick={handlePrimaryAction}
           aria-label={t('nav.capture')}
         >
           <IconPlus size={22} />
-        </button>
+        </Button>
         <span className={s.bottomNavCenterGap} aria-hidden />
         {bottomItems.slice(2).map((item) => {
           const Icon = item.icon;
@@ -199,14 +210,16 @@ export function MobileShell({ systemStatus }: ShellProps) {
                 <IconHome size={17} />
               </span>
               <span className={s.drawerBrandText}>Havit</span>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 className={s.drawerCloseBtn}
                 onClick={() => setDrawerOpen(false)}
                 aria-label={t('common.close')}
               >
                 <IconX size={16} />
-              </button>
+              </Button>
             </div>
 
             <ScrollArea className={s.drawerScroll}>
@@ -249,14 +262,16 @@ export function MobileShell({ systemStatus }: ShellProps) {
                   v{systemStatus.version}
                 </span>
               </div>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 className={s.drawerLogoutBtn}
                 onClick={handleLogout}
                 aria-label={t('auth.logout')}
               >
                 <IconLogout size={16} />
-              </button>
+              </Button>
             </div>
           </aside>
         </>

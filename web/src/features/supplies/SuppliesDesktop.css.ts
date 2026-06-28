@@ -31,6 +31,10 @@ export const typeOptionText = style({
   gap: '2px',
 });
 
+export const typeOptionRadio = style({
+  marginTop: '3px',
+});
+
 export const typeOptionLabel = style({
   color: themeVars.text,
   fontSize: '0.88rem',
