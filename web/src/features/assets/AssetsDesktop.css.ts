@@ -230,8 +230,8 @@ export const viewToggle = style({
   alignItems: 'center',
   boxSizing: 'border-box',
   height: '2rem',
-  padding: 0,
-  border: 0,
+  padding: '1px',
+  border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius2,
   background: themeVars.lineSoft,
   overflow: 'hidden',
@@ -242,9 +242,9 @@ export const filterSelectTrigger = style({
 });
 
 export const viewToggleButton = style({
-  width: '2rem',
-  height: '2rem',
-  borderRadius: 0,
+  width: '1.75rem',
+  height: '1.75rem',
+  borderRadius: themeVars.radius1,
   selectors: {
     '&[data-active="true"]': {
       background: themeVars.panel,
@@ -464,11 +464,31 @@ export const sideColumn = style({
       position: 'sticky',
       top: `calc(${themeVars.shellHeaderH} + ${themeVars.space4})`,
     },
+    '(max-width: 76em)': {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+      alignItems: 'stretch',
+    },
+    '(max-width: 52em)': {
+      display: 'flex',
+      flexDirection: 'column',
+    },
   },
 });
 
 export const sideCard = style({
   padding: themeVars.space4,
+});
+
+export const sideCardWide = style({
+  '@media': {
+    '(max-width: 76em)': {
+      gridColumn: '1 / -1',
+    },
+    '(max-width: 52em)': {
+      gridColumn: 'auto',
+    },
+  },
 });
 
 export const sideTitle = style({

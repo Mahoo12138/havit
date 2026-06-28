@@ -226,7 +226,7 @@ export function AssetsDesktop() {
                 </div>
               </Card>
 
-              <Card className={s.sideCard}>
+              <Card className={`${s.sideCard} ${s.sideCardWide}`}>
                 <h3 className={s.sideTitle}>{t('assets.locationBreakdown')}</h3>
                 <div className={s.sideList}>
                   {locationBreakdown.length === 0 ? (
