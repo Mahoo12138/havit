@@ -86,7 +86,7 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
           if (typeof nextValue === 'string') onChange(nextValue);
         }}
       >
-        <TabsList variant="line" className={s.list}>
+        <TabsList className={s.list}>
           {allTabs.map((tab, i) => {
             const isHidden = hasOverflow && i >= visibleCount;
             return (

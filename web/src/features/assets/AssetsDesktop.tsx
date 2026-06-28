@@ -52,6 +52,8 @@ export function AssetsDesktop() {
     allItems,
     locData,
     locOptions,
+    categoryOptions,
+    defaultCurrency,
     stats,
     warrantyAlerts,
     locationBreakdown,
@@ -245,19 +247,15 @@ export function AssetsDesktop() {
       <Dialog open={opened} onClose={() => setOpened(false)} title={t('assets.create')}>
         <Stack>
           <TextField label={t('items.name')} required value={form.name} onChange={(event) => setForm({ ...form, name: event.currentTarget.value })} />
-          <TextField label={t('items.category')} value={form.category} onChange={(event) => setForm({ ...form, category: event.currentTarget.value })} />
+          <SelectField label={t('items.category')} placeholder={t('assets.selectCategory')} options={categoryOptions} value={form.category} onChange={(event) => setForm({ ...form, category: event.currentTarget.value })} />
           <TreeSelectField label={t('assets.location')} tree={locData?.tree ?? []} placeholder={t('items.selectLocation')} required value={form.location_id} onChange={(value) => setForm({ ...form, location_id: value })} />
           <TextField label={t('assets.serialNumberLabel')} value={form.serial_number} onChange={(event) => setForm({ ...form, serial_number: event.currentTarget.value })} />
           <DatePickerField label={t('assets.warrantyExpiry')} value={form.warranty_expires_at} onChange={(value) => setForm({ ...form, warranty_expires_at: value })} />
-          <TextField label={t('assets.warrantyContact')} value={form.warranty_contact} onChange={(event) => setForm({ ...form, warranty_contact: event.currentTarget.value })} />
-          <div className={s.purchaseRow}>
-            <TextField label={t('assets.purchasePrice')} type="number" value={form.purchase_price} onChange={(event) => setForm({ ...form, purchase_price: event.currentTarget.value })} />
-            <SelectField label={t('items.currency')} options={[{ value: 'CNY', label: '¥ CNY' }, { value: 'USD', label: '$ USD' }]} value={form.purchase_currency} onChange={(event) => setForm({ ...form, purchase_currency: event.currentTarget.value })} />
-          </div>
-          <TextareaField label={t('items.description')} value={form.description} onChange={(event) => setForm({ ...form, description: event.currentTarget.value })} />
+          <TextField label={t('assets.purchasePriceWithCurrency', { currency: defaultCurrency })} type="number" value={form.purchase_price} onChange={(event) => setForm({ ...form, purchase_price: event.currentTarget.value })} />
+          <TextareaField label={t('assets.notes')} placeholder={t('assets.notesPlaceholder')} value={form.description} onChange={(event) => setForm({ ...form, description: event.currentTarget.value })} />
           <div className={s.formActions}>
             <Button variant="outline" onClick={() => setOpened(false)}>{t('common.cancel')}</Button>
-            <Button disabled={!form.name || !form.location_id || !isOnline || create.isPending} title={!isOnline ? t('assets.offlineWarning') : undefined} onClick={() => create.mutate()}>
+            <Button disabled={!form.name || !form.location_id || !isOnline || create.isPending} title={!isOnline ? t('assets.offlineWarning') : undefined} onClick={() => create.mutate(undefined, { onSuccess: () => setOpened(false) })}>
               {create.isPending ? t('common.loading') : t('common.save')}
             </Button>
           </div>

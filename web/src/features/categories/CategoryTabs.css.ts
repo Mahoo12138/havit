@@ -9,47 +9,44 @@ export const root = style({
 export const list = style({
   position: 'relative',
   display: 'flex',
-  width: '100%',
-  gap: themeVars.space1,
+  width: 'max-content',
+  maxWidth: '100%',
   overflow: 'hidden',
-  borderBottom: `1px solid ${themeVars.line}`,
-  height: 'auto',
-  padding: 0,
   justifyContent: 'flex-start',
 });
 
 export const tab = style({
   display: 'inline-flex',
+  minHeight: '1.75rem',
   alignItems: 'center',
   justifyContent: 'center',
   gap: themeVars.space1,
-  border: 0,
-  borderBottom: '2px solid transparent',
-  borderRadius: 0,
+  border: '1px solid transparent',
+  borderRadius: themeVars.radius1,
   background: 'transparent',
   color: themeVars.muted,
   cursor: 'pointer',
   font: 'inherit',
-  fontSize: '0.88rem',
-  fontWeight: 500,
-  marginBottom: '-1px',
-  padding: `${themeVars.space2} ${themeVars.space3}`,
-  height: 'auto',
+  fontSize: '0.875rem',
+  lineHeight: 1.25,
+  padding: '0.25rem 0.75rem',
   flex: '0 0 auto',
-  transition: 'color 160ms ease, border-color 160ms ease',
+  transition: 'background-color 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease',
   selectors: {
     '&:hover': {
+      background: `color-mix(in srgb, ${themeVars.panel} 48%, transparent)`,
       color: themeVars.text,
     },
     '&[data-selected]': {
-      borderBottomColor: themeVars.accent,
-      color: themeVars.accent,
+      background: themeVars.panel,
+      color: themeVars.ink,
       fontWeight: 600,
-      background: 'transparent',
+      boxShadow: themeVars.shadowSoft,
     },
     '&:focus-visible': {
-      outline: 'none',
+      borderColor: themeVars.accent,
       boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
+      outline: `1px solid ${themeVars.accent}`,
     },
   },
 });
@@ -82,8 +79,8 @@ export const overflowItem = style({
   transition: 'background-color 140ms ease, color 140ms ease',
   selectors: {
     '&:hover, &[data-selected]': {
-      background: themeVars.accentSoft,
-      color: themeVars.accentInk,
+      background: themeVars.secondaryBg,
+      color: themeVars.ink,
     },
     '&[data-selected]': {
       fontWeight: 600,

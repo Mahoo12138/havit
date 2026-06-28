@@ -320,6 +320,90 @@ export const overlayBody = style({
   gap: themeVars.space4,
 });
 
+export const parentNote = style({
+  padding: themeVars.space3,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.bgSoft,
+  color: themeVars.muted,
+  fontSize: '0.78rem',
+  lineHeight: 1.5,
+});
+
+export const typeLabel = style({
+  display: 'block',
+  marginBottom: themeVars.space2,
+  color: themeVars.ink,
+  fontSize: '0.82rem',
+  fontWeight: 600,
+});
+
+export const typeChoiceGrid = style({
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: themeVars.space2,
+});
+
+export const typeChoiceCard = style({
+  display: 'grid',
+  gridTemplateColumns: '2rem minmax(0, 1fr)',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  width: '100%',
+  minHeight: '3.75rem',
+  height: 'auto',
+  padding: themeVars.space3,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.panel,
+  color: themeVars.text,
+  textAlign: 'left',
+  whiteSpace: 'normal',
+  lineHeight: 1.3,
+  selectors: {
+    '&[data-active="true"]': {
+      borderColor: themeVars.accent,
+      background: themeVars.accentSoft,
+      boxShadow: `inset 0 0 0 1px ${themeVars.accent}`,
+    },
+  },
+});
+
+export const typeChoiceIcon = style({
+  width: '2rem',
+  height: '2rem',
+  display: 'grid',
+  placeItems: 'center',
+  borderRadius: themeVars.radius1,
+  background: themeVars.bgSoft,
+  color: themeVars.text,
+  selectors: {
+    [`${typeChoiceCard}[data-active="true"] &`]: {
+      background: themeVars.panel,
+      color: themeVars.accentInk,
+    },
+  },
+});
+
+export const typeChoiceBody = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  minWidth: 0,
+});
+
+export const typeChoiceName = style({
+  color: themeVars.ink,
+  fontSize: '0.88rem',
+  fontWeight: 650,
+});
+
+export const typeChoiceDesc = style({
+  color: themeVars.muted,
+  fontSize: '0.72rem',
+  lineHeight: 1.4,
+});
+
 export const overlayActions = style({
   display: 'flex',
   justifyContent: 'flex-end',

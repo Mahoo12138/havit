@@ -14,6 +14,7 @@ import {
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import {
   useLocationsData, breadcrumbOf, locationTypeLabel, formatPrice,
+  locationTypeDesc,
 } from './useLocationsData';
 import * as s from './locationsMobile.css';
 
@@ -155,7 +156,7 @@ export function LocationsMobile() {
           onClose={() => setShowCreate(false)}
           onSubmit={(payload) => {
             createMutation.mutate(payload, {
-              onSuccess: (created) => { setCurrentId(created.id); },
+              onSuccess: (created) => { setCurrentId(created.id); setShowCreate(false); },
             });
           }}
           pending={createMutation.isPending}
@@ -232,28 +233,33 @@ function CreateOverlay({ parent, onClose, onSubmit, pending, isOnline }: {
         <Button type="button" variant="ghost" size="icon" className={s.overlayClose} onClick={onClose}><IconX size={18} /></Button>
       </div>
       <div className={s.overlayBody}>
+        <div className={s.parentNote}>
+          {parent
+            ? t('locations.parentContext', { name: parent.name, type: locationTypeLabel(parent.type, t) })
+            : t('locations.parentContextRoot')}
+        </div>
         <div>
-          <span style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.82rem', fontWeight: 500 }}>{t('locations.type')}</span>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <span className={s.typeLabel}>{t('locations.type')}</span>
+          <div className={s.typeChoiceGrid}>
             {allowed.map((allowedType) => {
               const lt = LOCATION_TYPES.find((l) => l.value === allowedType);
               if (!lt) return null;
+              const TypeIcon = lt.icon;
               const active = type === lt.value;
               return (
                 <Button
                   key={lt.value}
                   type="button"
-                  variant="ghost"
+                  variant="subtle"
+                  className={s.typeChoiceCard}
+                  data-active={active || undefined}
                   onClick={() => setType(lt.value)}
-                  style={{
-                    padding: '0.5rem 0.75rem', borderRadius: 'var(--havit-radius-2)',
-                    border: active ? '2px solid var(--havit-accent)' : '1px solid var(--havit-line)',
-                    background: active ? 'var(--havit-accent-soft)' : 'var(--havit-bg-soft)',
-                    cursor: 'pointer', fontSize: '0.82rem', fontWeight: active ? 600 : 400,
-                    color: active ? 'var(--havit-accent-ink)' : 'var(--havit-text)',
-                  }}
                 >
-                  {locationTypeLabel(lt.value, t)}
+                  <span className={s.typeChoiceIcon}><TypeIcon size={16} /></span>
+                  <span className={s.typeChoiceBody}>
+                    <span className={s.typeChoiceName}>{locationTypeLabel(lt.value, t)}</span>
+                    <span className={s.typeChoiceDesc}>{locationTypeDesc(lt.value, t)}</span>
+                  </span>
                 </Button>
               );
             })}

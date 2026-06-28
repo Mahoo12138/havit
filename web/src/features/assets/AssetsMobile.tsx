@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from '../../components/ui/select';
 import { Spinner } from '../../components/ui/spinner';
+import { SelectField } from '../../components/ui/select-field';
+import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
 import { TreeSelectField } from '../../components/ui/tree-select-field';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
@@ -27,7 +29,7 @@ type AssetTab = string;
 
 export function AssetsMobile() {
   const data = useAssetsData();
-  const { t, isLoading, allItems, locData, locOptions, stats, searchQuery, setSearchQuery, form, setForm, create } = data;
+  const { t, isLoading, allItems, locData, locOptions, categoryOptions, defaultCurrency, stats, searchQuery, setSearchQuery, form, setForm, create } = data;
   const isOnline = useNetworkStatus();
 
   const [activeTab, setActiveTab] = useState<AssetTab>('all');
@@ -149,13 +151,14 @@ export function AssetsMobile() {
           </div>
           <div className={s.overlayBody}>
             <TextField label={t('items.name')} required value={form.name} onChange={(e) => setForm({ ...form, name: e.currentTarget.value })} />
-            <TextField label={t('items.category')} value={form.category} onChange={(e) => setForm({ ...form, category: e.currentTarget.value })} />
+            <SelectField label={t('items.category')} placeholder={t('assets.selectCategory')} options={categoryOptions} value={form.category} onChange={(e) => setForm({ ...form, category: e.currentTarget.value })} />
             <TreeSelectField label={t('assets.location')} tree={locData?.tree ?? []} placeholder={t('items.selectLocation')} required value={form.location_id} onChange={(v) => setForm({ ...form, location_id: v })} />
             <TextField label={t('assets.serialNumberLabel')} value={form.serial_number} onChange={(e) => setForm({ ...form, serial_number: e.currentTarget.value })} />
-            <TextField label={t('assets.purchasePrice')} type="number" value={form.purchase_price} onChange={(e) => setForm({ ...form, purchase_price: e.currentTarget.value })} />
+            <TextField label={t('assets.purchasePriceWithCurrency', { currency: defaultCurrency })} type="number" value={form.purchase_price} onChange={(e) => setForm({ ...form, purchase_price: e.currentTarget.value })} />
+            <TextareaField label={t('assets.notes')} placeholder={t('assets.notesPlaceholder')} value={form.description} onChange={(e) => setForm({ ...form, description: e.currentTarget.value })} />
             <div className={s.overlayActions}>
               <Button variant="quiet" onClick={() => setShowCreate(false)}>{t('common.cancel')}</Button>
-              <Button disabled={!form.name || !form.location_id || !isOnline || create.isPending} onClick={() => { create.mutate(); setShowCreate(false); }}>
+              <Button disabled={!form.name || !form.location_id || !isOnline || create.isPending} onClick={() => create.mutate(undefined, { onSuccess: () => setShowCreate(false) })}>
                 {create.isPending ? t('common.loading') : t('common.save')}
               </Button>
             </div>

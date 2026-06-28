@@ -2266,6 +2266,8 @@ export const switchRow = style({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: themeVars.space3,
+  minHeight: '2.5rem',
+  padding: `${themeVars.space2} 0`,
 });
 
 export const switchTrack = style({
@@ -2302,15 +2304,24 @@ export const switchThumb = style({
 
 export const typeChoiceGrid = style({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(10rem, 1fr))',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: themeVars.space2,
+  '@media': {
+    '(max-width: 34em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
 });
 
 export const typeChoiceCard = style({
-  display: 'flex',
-  alignItems: 'flex-start',
+  display: 'grid',
+  gridTemplateColumns: '2rem minmax(0, 1fr)',
+  alignItems: 'center',
   gap: themeVars.space2,
   padding: themeVars.space3,
+  width: '100%',
+  minHeight: '3.75rem',
+  height: 'auto',
   borderRadius: themeVars.radius2,
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
@@ -2318,7 +2329,9 @@ export const typeChoiceCard = style({
   cursor: 'pointer',
   textAlign: 'left',
   font: 'inherit',
-  transition: 'border-color 140ms ease, background-color 140ms ease',
+  lineHeight: 1.3,
+  whiteSpace: 'normal',
+  transition: 'border-color 140ms ease, background-color 140ms ease, color 140ms ease, box-shadow 140ms ease',
   selectors: {
     '&:hover:not(:disabled)': {
       borderColor: `color-mix(in srgb, ${themeVars.accent} 32%, ${themeVars.line})`,
@@ -2327,6 +2340,7 @@ export const typeChoiceCard = style({
     '&[data-active="true"]': {
       borderColor: themeVars.accent,
       background: themeVars.accentSoft,
+      boxShadow: `inset 0 0 0 1px ${themeVars.accent}`,
     },
     '&:disabled': {
       opacity: 0.4,
@@ -2344,6 +2358,13 @@ export const typeChoiceIcon = style({
   background: themeVars.bgSoft,
   color: themeVars.text,
   flex: '0 0 auto',
+  transition: 'background-color 140ms ease, color 140ms ease',
+  selectors: {
+    [`${typeChoiceCard}[data-active="true"] &`]: {
+      background: themeVars.panel,
+      color: themeVars.accentInk,
+    },
+  },
 });
 
 export const typeChoiceBody = style({
@@ -2363,6 +2384,24 @@ export const typeChoiceDesc = style({
   fontSize: '0.72rem',
   color: themeVars.muted,
   lineHeight: 1.4,
+});
+
+export const locationParentNote = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: themeVars.space3,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.bgSoft,
+});
+
+export const locationParentNoteText = style({
+  minWidth: 0,
+  color: themeVars.muted,
+  fontSize: '0.82rem',
+  lineHeight: 1.5,
 });
 
 /* ---------- Item Detail page ---------- */

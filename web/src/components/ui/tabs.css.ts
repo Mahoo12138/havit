@@ -15,14 +15,17 @@ export const root = style({
 const listBase = style({
   display: 'inline-flex',
   width: 'fit-content',
+  maxWidth: '100%',
   alignItems: 'center',
   justifyContent: 'center',
+  overflowX: 'auto',
+  scrollbarWidth: 'none',
   borderRadius: themeVars.radius2,
-  padding: '3px',
+  padding: '4px',
   color: themeVars.muted,
   selectors: {
     '[data-orientation="horizontal"] &': {
-      height: '2rem',
+      minHeight: '2.25rem',
     },
     '[data-orientation="vertical"] &': {
       height: 'fit-content',
@@ -31,11 +34,15 @@ const listBase = style({
   },
 });
 
+globalStyle(`${listBase}::-webkit-scrollbar`, {
+  display: 'none',
+});
+
 export const listVariant = styleVariants({
   default: [
     listBase,
     {
-      background: themeVars.secondaryBg,
+      background: themeVars.line,
     },
   ],
   line: [
@@ -52,18 +59,19 @@ export const trigger = style({
   position: 'relative',
   display: 'inline-flex',
   flex: 1,
-  height: 'calc(100% - 1px)',
+  minHeight: '1.75rem',
   alignItems: 'center',
   justifyContent: 'center',
   gap: '0.375rem',
   border: '1px solid transparent',
-  borderRadius: '6px',
+  borderRadius: themeVars.radius1,
   background: 'transparent',
-  color: `color-mix(in srgb, ${themeVars.text} 60%, transparent)`,
-  padding: '0.125rem 0.375rem',
+  color: themeVars.muted,
+  padding: '0.25rem 0.75rem',
   font: 'inherit',
   fontSize: '0.875rem',
-  fontWeight: 600,
+  fontWeight: 500,
+  lineHeight: 1.25,
   whiteSpace: 'nowrap',
   outline: 'none',
   cursor: 'pointer',
@@ -71,6 +79,7 @@ export const trigger = style({
   selectors: {
     '&:hover': {
       color: themeVars.text,
+      background: `color-mix(in srgb, ${themeVars.panel} 48%, transparent)`,
     },
     '&:focus-visible': {
       borderColor: themeVars.accent,
@@ -84,6 +93,7 @@ export const trigger = style({
     '&[data-selected], &[data-active]': {
       background: themeVars.panel,
       color: themeVars.ink,
+      fontWeight: 600,
       boxShadow: themeVars.shadowSoft,
     },
     '[data-orientation="vertical"] &': {

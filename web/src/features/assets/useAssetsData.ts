@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { itemsApi, locationsApi, type Item, type Location } from '../../api/client';
+import { categoriesApi, itemsApi, locationsApi, preferencesApi, type Item, type Location } from '../../api/client';
 import { useToast } from '../../components/ui/use-toast';
 
 export interface AssetItem extends Item {
@@ -63,6 +63,17 @@ export function useAssetsData() {
     queryFn: () => locationsApi.tree(),
   });
 
+  const { data: categoriesData } = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => categoriesApi.list(),
+  });
+
+  const { data: preferences } = useQuery({
+    queryKey: ['preferences'],
+    queryFn: () => preferencesApi.get(),
+    staleTime: 60_000,
+  });
+
   const [form, setForm] = useState({
     name: '',
     category: '',
@@ -70,17 +81,17 @@ export function useAssetsData() {
     location_id: '',
     serial_number: '',
     warranty_expires_at: '',
-    warranty_contact: '',
     purchase_price: '',
-    purchase_currency: 'CNY',
   });
 
   const resetForm = () =>
     setForm({
       name: '', category: '', description: '', location_id: '',
-      serial_number: '', warranty_expires_at: '', warranty_contact: '',
-      purchase_price: '', purchase_currency: 'CNY',
+      serial_number: '', warranty_expires_at: '',
+      purchase_price: '',
     });
+
+  const defaultCurrency = preferences?.default_currency || 'CNY';
 
   const create = useMutation({
     mutationFn: () =>
@@ -94,9 +105,8 @@ export function useAssetsData() {
         warranty_expires_at: form.warranty_expires_at
           ? Math.floor(new Date(form.warranty_expires_at).getTime() / 1000)
           : undefined,
-        warranty_contact: form.warranty_contact || undefined,
         purchase_price: form.purchase_price ? Number(form.purchase_price) : undefined,
-        purchase_currency: form.purchase_currency || undefined,
+        purchase_currency: form.purchase_price ? defaultCurrency : undefined,
       }),
     onSuccess: () => {
       toast.show(t('items.created'));
@@ -107,7 +117,13 @@ export function useAssetsData() {
   });
 
   const allItems: AssetItem[] = data?.items ?? [];
-  const locOptions = flatten(locData?.tree);
+  const locOptions = useMemo(() => flatten(locData?.tree), [locData?.tree]);
+  const categoryOptions = useMemo(
+    () => (categoriesData?.categories ?? [])
+      .filter((category) => category.root_type === 'physical')
+      .map((category) => ({ value: category.name, label: category.name })),
+    [categoriesData?.categories],
+  );
 
   const stats = useMemo(() => {
     const total = allItems.length;
@@ -143,6 +159,8 @@ export function useAssetsData() {
     allItems,
     locData,
     locOptions,
+    categoryOptions,
+    defaultCurrency,
     stats,
     warrantyAlerts,
     locationBreakdown,

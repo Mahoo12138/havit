@@ -112,10 +112,10 @@ export function LocationsDesktop() {
         </section>
       </div>
 
-      <CreateLocationDialog state={createDialog} onClose={() => setCreateDialog({ open: false, parent: null })} onSubmit={(p) => { createMutation.mutate(p, { onSuccess: (created) => { if (created.parent_id) setExpanded((prev) => new Set(prev).add(created.parent_id!)); setSelectedId(created.id); } }); }} pending={createMutation.isPending} isOnline={isOnline} />
-      <EditLocationDialog state={editDialog} index={index} onClose={() => setEditDialog({ open: false, location: null })} onSubmit={(p) => editMutation.mutate(p)} pending={editMutation.isPending} isOnline={isOnline} />
+      <CreateLocationDialog state={createDialog} onClose={() => setCreateDialog({ open: false, parent: null })} onSubmit={(p) => { createMutation.mutate(p, { onSuccess: (created) => { if (created.parent_id) setExpanded((prev) => new Set(prev).add(created.parent_id!)); setSelectedId(created.id); setCreateDialog({ open: false, parent: null }); } }); }} pending={createMutation.isPending} isOnline={isOnline} />
+      <EditLocationDialog state={editDialog} index={index} onClose={() => setEditDialog({ open: false, location: null })} onSubmit={(p) => editMutation.mutate(p, { onSuccess: () => setEditDialog({ open: false, location: null }) })} pending={editMutation.isPending} isOnline={isOnline} />
       <LocationQrDialog location={qrViewLocation} onClose={() => setQrViewLocation(null)} />
-      <ConfirmDeleteDialog target={pendingDelete} onCancel={() => setPendingDelete(null)} onConfirm={(id) => { deleteMutation.mutate(id, { onSuccess: () => { if (selectedId === id) { const pid = index.parentMap.get(id); setSelectedId(pid ?? null); } } }); }} pending={deleteMutation.isPending} />
+      <ConfirmDeleteDialog target={pendingDelete} onCancel={() => setPendingDelete(null)} onConfirm={(id) => { deleteMutation.mutate(id, { onSuccess: () => { if (selectedId === id) { const pid = index.parentMap.get(id); setSelectedId(pid ?? null); } setPendingDelete(null); } }); }} pending={deleteMutation.isPending} />
     </Stack>
   );
 }
@@ -176,7 +176,7 @@ function LocationDetail({ location, breadcrumb, children, directItems, childrenT
           {canHaveChildren && <Button variant="quiet" leftSection={<IconMapPlus size={15} />} onClick={onAddChild} disabled={!isOnline}>{t('locations.addChild')}</Button>}
           <Button variant="quiet" leftSection={<IconQrcode size={15} />} onClick={onGenerateQr} disabled={!isOnline || qrPending} title={location.qr_code ? t('locations.hasQR') : t('locations.generateQR')}>{location.qr_code ? t('locations.viewQR') : qrPending ? t('locations.generating') : t('locations.qrCode')}</Button>
           <Button variant="quiet" leftSection={<IconEdit size={15} />} onClick={onEdit} disabled={!isOnline}>{t('locations.edit')}</Button>
-          <Button variant="subtle" leftSection={<IconTrash size={15} />} onClick={onDelete} disabled={!isOnline}>{t('locations.delete')}</Button>
+          <Button variant="destructive" leftSection={<IconTrash size={15} />} onClick={onDelete} disabled={!isOnline}>{t('locations.delete')}</Button>
         </div>
       </header>
       <div className={uiStyles.locationHero}>
@@ -265,6 +265,7 @@ function CreateLocationDialog({ state, onClose, onSubmit, pending, isOnline }: {
   return (
     <Dialog open={state.open} onClose={onClose} title={title}>
       <Stack>
+        <LocationParentNote parent={state.parent} />
         <TypeChoiceGrid value={type} onChange={setType} parentType={state.parent?.type ?? null} />
         <TextField label={t('locations.name')} required value={name} onChange={(e) => setName(e.currentTarget.value)} placeholder={t('locations.namePlaceholder')} />
         <SwitchRow label={t('locations.privatePosition')} hint={t('locations.privateHint')} checked={isPrivate} onChange={setIsPrivate} />
@@ -274,6 +275,21 @@ function CreateLocationDialog({ state, onClose, onSubmit, pending, isOnline }: {
         </div>
       </Stack>
     </Dialog>
+  );
+}
+
+function LocationParentNote({ parent }: { parent: Location | null }) {
+  const { t } = useTranslation();
+  const meta = parent ? getLocationTypeMeta(parent.type) : null;
+  return (
+    <div className={uiStyles.locationParentNote}>
+      <span className={uiStyles.locationParentNoteText}>
+        {parent
+          ? t('locations.parentContext', { name: parent.name, type: locationTypeLabel(parent.type, t) })
+          : t('locations.parentContextRoot')}
+      </span>
+      {meta && <span className={uiStyles.typeBadge[meta.tone]}>{locationTypeLabel(parent!.type, t)}</span>}
+    </div>
   );
 }
 
@@ -301,12 +317,13 @@ function EditLocationDialog({ state, index, onClose, onSubmit, pending, isOnline
 
 function TypeChoiceGrid({ value, onChange, parentType }: { value: LocationType; onChange: (t: LocationType) => void; parentType: string | null }) {
   const { t } = useTranslation();
+  const choices = LOCATION_TYPES.filter((lt) => parentType === null || canNestUnder(parentType, lt.value));
   return (
     <div>
       <FieldLabel style={{ display: 'block', marginBottom: '0.5rem' }}>{t('locations.type')}</FieldLabel>
       <div className={uiStyles.typeChoiceGrid}>
-        {LOCATION_TYPES.map((lt) => { const Icon = lt.icon; const disabled = parentType !== null && !canNestUnder(parentType, lt.value); const active = value === lt.value; return (
-          <Button variant="subtle" key={lt.value} className={uiStyles.typeChoiceCard} data-active={active} disabled={disabled} onClick={() => onChange(lt.value)} title={disabled ? t('locations.cannotNest', { parent: locationTypeLabel(getLocationTypeMeta(parentType ?? '').value, t), child: locationTypeLabel(lt.value, t) }) : undefined}>
+        {choices.map((lt) => { const Icon = lt.icon; const active = value === lt.value; return (
+          <Button variant="subtle" key={lt.value} className={uiStyles.typeChoiceCard} data-active={active} onClick={() => onChange(lt.value)}>
             <span className={uiStyles.typeChoiceIcon}><Icon size={16} /></span>
             <span className={uiStyles.typeChoiceBody}><span className={uiStyles.typeChoiceLabel}>{locationTypeLabel(lt.value, t)}</span><span className={uiStyles.typeChoiceDesc}>{locationTypeDesc(lt.value, t)}</span></span>
           </Button>
@@ -333,7 +350,7 @@ function ConfirmDeleteDialog({ target, onCancel, onConfirm, pending }: { target:
         <p style={{ margin: 0, lineHeight: 1.55 }}>{t('locations.deleteWarning')}</p>
         <div className={uiStyles.formActions}>
           <Button variant="quiet" onClick={onCancel}>{t('locations.cancel')}</Button>
-          <Button disabled={!target || pending} onClick={() => target && onConfirm(target.id)}>{pending ? t('locations.deleting') : t('locations.confirmDelete')}</Button>
+          <Button variant="destructive" disabled={!target || pending} onClick={() => target && onConfirm(target.id)}>{pending ? t('locations.deleting') : t('locations.delete')}</Button>
         </div>
       </Stack>
     </Dialog>
