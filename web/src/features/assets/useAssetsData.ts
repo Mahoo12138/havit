@@ -77,17 +77,19 @@ export function useAssetsData() {
   const [form, setForm] = useState({
     name: '',
     category: '',
+    status: 'in_stock',
     description: '',
     location_id: '',
     serial_number: '',
     warranty_expires_at: '',
+    purchase_date: '',
     purchase_price: '',
   });
 
   const resetForm = () =>
     setForm({
-      name: '', category: '', description: '', location_id: '',
-      serial_number: '', warranty_expires_at: '',
+      name: '', category: '', status: 'in_stock', description: '', location_id: '',
+      serial_number: '', warranty_expires_at: '', purchase_date: '',
       purchase_price: '',
     });
 
@@ -98,12 +100,16 @@ export function useAssetsData() {
       itemsApi.create({
         name: form.name,
         type: 'durable',
+        status: form.status || 'in_stock',
         category: form.category || undefined,
         description: form.description || undefined,
         location_id: form.location_id || undefined,
         serial_number: form.serial_number || undefined,
         warranty_expires_at: form.warranty_expires_at
           ? Math.floor(new Date(form.warranty_expires_at).getTime() / 1000)
+          : undefined,
+        purchase_date: form.purchase_date
+          ? Math.floor(new Date(form.purchase_date).getTime() / 1000)
           : undefined,
         purchase_price: form.purchase_price ? Number(form.purchase_price) : undefined,
         purchase_currency: form.purchase_price ? defaultCurrency : undefined,
@@ -114,6 +120,25 @@ export function useAssetsData() {
       resetForm();
     },
     onError: (e: Error) => toast.show(t('items.createFailed', { error: e.message })),
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => itemsApi.update(id, { status }),
+    onSuccess: (next) => {
+      toast.show(t('items.statusUpdated'));
+      queryClient.setQueryData(['item', next.id], next);
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
+    onError: (e: Error) => toast.show(t('items.statusUpdateFailed', { error: e.message })),
+  });
+
+  const archive = useMutation({
+    mutationFn: (id: string) => itemsApi.archive(id),
+    onSuccess: () => {
+      toast.show(t('items.archived'));
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
+    onError: (e: Error) => toast.show(t('assets.archiveFailed', { error: e.message })),
   });
 
   const allItems: AssetItem[] = data?.items ?? [];
@@ -170,5 +195,7 @@ export function useAssetsData() {
     setForm,
     resetForm,
     create,
+    updateStatus,
+    archive,
   };
 }

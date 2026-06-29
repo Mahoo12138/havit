@@ -2,8 +2,11 @@ import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
-  containerApi, itemsApi, suppliesExtendedApi, loansApi, virtualAssetsApi,
-  locationsApi, tagsApi, type Attachment, type Item, type Location, type Tag,
+  itemsApi,
+  locationsApi,
+  tagsApi,
+  type Location,
+  type Tag,
 } from '../../api/client';
 import { useToast } from '../../components/ui/use-toast';
 

@@ -1,11 +1,24 @@
-import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
-import { useTranslation } from 'react-i18next';
+import type { ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
-  IconAlertTriangle, IconArchive, IconCalendar, IconClipboardList,
-  IconHistory, IconKey, IconMapPin, IconPackage, IconPhotoPlus,
-  IconShieldCheck, IconShoppingCart, IconTag, IconX,
+  IconAlertTriangle,
+  IconArchive,
+  IconBell,
+  IconCalendar,
+  IconChevronRight,
+  IconClipboardList,
+  IconDots,
+  IconEdit,
+  IconHistory,
+  IconKey,
+  IconMapPin,
+  IconPackage,
+  IconPhotoPlus,
+  IconQrcode,
+  IconRoute,
+  IconShieldCheck,
+  IconShoppingCart,
 } from '@tabler/icons-react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -13,158 +26,177 @@ import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { StatusBadge } from '../../components/ui/status-badge';
 import {
-  containerApi, itemsApi, suppliesExtendedApi, loansApi, virtualAssetsApi,
-  type Attachment, type Item,
+  loansApi,
+  suppliesExtendedApi,
+  virtualAssetsApi,
+  type Item,
 } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
-import { useItemDetailData, formatDate, formatDateTime, formatPrice } from './useItemDetailData';
+import { formatDate, formatDateTime, formatPrice, useItemDetailData } from './useItemDetailData';
 import * as s from './itemDetailMobile.css';
 
 export function ItemDetailMobile({ itemId }: { itemId: string }) {
   const d = useItemDetailData(itemId);
-  const { t, item, it, locationPath, photos, photoIdx, currentPhoto, setSelectedPhotoIdx, currentTags, statusOptions, fileInputRef, handlePhotoPick, archive, updateStatus, uploadPhoto } = d;
+  const {
+    t,
+    item,
+    locationPath,
+    photos,
+    photoIdx,
+    currentPhoto,
+    setSelectedPhotoIdx,
+    currentTags,
+    statusOptions,
+    fileInputRef,
+    handlePhotoPick,
+    archive,
+    updateStatus,
+    uploadPhoto,
+  } = d;
   const isOnline = useNetworkStatus();
 
   if (item.isLoading) return <div className={s.page}><Spinner /></div>;
   if (item.error || !item.data) return <div className={s.page}><p>{t('errors.not_found')}</p></div>;
 
-  const data = item.data!;
+  const data = item.data;
   const typeLabel = t(`items.${data.type}`, data.type);
   const isConsumable = data.type === 'predictive_supplies' || data.type === 'tracked_spares';
   const isVirtual = data.type === 'virtual';
+  const warranty = getWarrantyView(data, t);
 
   return (
     <div className={s.page}>
-      {/* Photo gallery */}
-      <div className={s.photoScroll}>
-        {photos.length === 0 ? (
-          <div className={s.photoSlide}>
-            <div className={s.photoEmpty}>
-              <IconPhotoPlus size={24} />
-              <span>{t('items.noPhotoYet')}</span>
-            </div>
-          </div>
-        ) : (
-          photos.map((photo, idx) => (
-            <div key={photo.id} className={s.photoWrap} onClick={() => setSelectedPhotoIdx(idx)}>
-              <div className={s.photoSlide}>
-                <img className={s.photoImg} src={photo.url} alt={photo.filename} />
-              </div>
-              {idx === photoIdx && photos.length > 1 && (
-                <span className={s.photoCount}>{photoIdx + 1}/{photos.length}</span>
-              )}
-            </div>
-          ))
-        )}
-        {isOnline && (
-          <div className={s.photoSlide} onClick={() => fileInputRef.current?.click()} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className={s.photoEmpty}>
-              {uploadPhoto.isPending ? <Spinner /> : <IconPhotoPlus size={24} />}
-              <span>{t('items.uploadPhotoHint')}</span>
-            </div>
-          </div>
-        )}
-      </div>
-      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { handlePhotoPick(e.currentTarget.files?.[0]); e.currentTarget.value = ''; }} />
-
-      {/* Hero card */}
-      <div className={s.heroCard}>
-        <h2 className={s.heroName}>{data.name}</h2>
-        <div className={s.heroBadges}>
-          <StatusBadge status={data.status} />
-          <span style={{ fontSize: '0.78rem', color: 'var(--havit-muted)' }}>{typeLabel}</span>
-          {data.category && <span style={{ fontSize: '0.78rem', color: 'var(--havit-muted)' }}>· {data.category}</span>}
-        </div>
-
-        <div className={s.specGrid}>
-          <div className={s.specItem}><span className={s.specLabel}>{t('items.location')}</span><span className={s.specValue}>{locationPath ?? t('common.notSet')}</span></div>
-          <div className={s.specItem}><span className={s.specLabel}>{t('items.purchasePrice')}</span><span className={s.specValue}>{formatPrice(data.purchase_price, data.purchase_currency, t)}</span></div>
-          <div className={s.specItem}><span className={s.specLabel}>{t('items.serialNumber')}</span><span className={s.specValue}>{data.serial_number ?? t('common.notSet')}</span></div>
-          <div className={s.specItem}><span className={s.specLabel}>{t('itemDetail.purchasedAt')}</span><span className={s.specValue}>{formatDate(data.purchase_date) ?? t('common.notSet')}</span></div>
-        </div>
-
-        {data.description && <p className={s.description}>{data.description}</p>}
-
-        <div className={s.actionBar}>
-          {data.status === 'stolen' && <Button variant="subtle" onClick={() => { suppliesExtendedApi.claimPdf(itemId).then((blob) => { const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${data.name}-insurance-claim.pdf`; a.click(); URL.revokeObjectURL(url); }); }}>{t('items.downloadClaim')}</Button>}
-          <Button variant="quiet" leftSection={<IconArchive size={14} />} onClick={() => archive.mutate()} disabled={!isOnline || archive.isPending}>{t('items.archive')}</Button>
-        </div>
+      <div className={s.mobileTopActions}>
+        <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')}><IconEdit size={17} /></Button>
+        <Button variant="ghost" size="icon-sm" aria-label={t('itemDetail.more')}><IconDots size={17} /></Button>
       </div>
 
-      {/* Status */}
-      <div className={s.section}>
-        <div className={s.sectionHead}><h3 className={s.sectionTitle}><IconMapPin size={14} />{t('itemDetail.statusAndLocation')}</h3></div>
-        <div className={s.statusWrap}>
-          <SelectField label={t('items.switchStatus')} options={statusOptions} value={data.status} disabled={!isOnline || updateStatus.isPending} onChange={(e) => updateStatus.mutate(e.currentTarget.value)} />
+      <section className={s.hero}>
+        <div className={s.photoFrame}>
+          {currentPhoto ? <img className={s.heroPhoto} src={currentPhoto.url} alt={currentPhoto.filename} /> : <PhotoEmpty />}
+          {photos.length > 0 && <span className={s.photoCount}>{photoIdx + 1}/{photos.length}</span>}
         </div>
-      </div>
-
-      {/* Tags */}
-      <div className={s.section}>
-        <div className={s.sectionHead}><h3 className={s.sectionTitle}><IconTag size={14} />{t('items.tags')}</h3></div>
-        <div className={s.sectionBody}>
-          {currentTags.length === 0 ? (
-            <div className={s.sectionEmpty}>{t('items.noTags')}</div>
-          ) : (
-            <div className={s.tagList}>
-              {currentTags.map((tag: any) => <span key={tag.id} className={s.tagChip}>{tag.name}</span>)}
-            </div>
+        <div className={s.thumbStrip}>
+          {photos.map((photo, idx) => (
+            <button key={photo.id} type="button" className={s.thumbButton} data-active={idx === photoIdx || undefined} onClick={() => setSelectedPhotoIdx(idx)} aria-label={photo.filename}>
+              <img className={s.thumbImg} src={photo.url} alt="" />
+            </button>
+          ))}
+          {isOnline && (
+            <button type="button" className={s.thumbAdd} onClick={() => fileInputRef.current?.click()} disabled={uploadPhoto.isPending} aria-label={t('common.upload')}>
+              {uploadPhoto.isPending ? <Spinner /> : <IconPhotoPlus size={18} />}
+            </button>
           )}
         </div>
-      </div>
+        <input ref={fileInputRef} type="file" accept="image/*" className={s.hiddenInput} onChange={(event) => { handlePhotoPick(event.currentTarget.files?.[0]); event.currentTarget.value = ''; }} />
 
-      {/* Warranty */}
+        <div className={s.summary}>
+          <h1 className={s.title}>{data.name}</h1>
+          <div className={s.badgeRow}>
+            <StatusBadge status={data.status} />
+            <span className={s.typeBadge}>{typeLabel}</span>
+            {data.category && <span className={s.categoryBadge}>{data.category}</span>}
+          </div>
+          <div className={s.tagRow}>
+            {currentTags.map((tag: any) => <span className={s.tagChip} key={tag.id}>#{tag.name}</span>)}
+            {currentTags.length === 0 && <span className={s.mutedText}>{t('items.noTags')}</span>}
+          </div>
+
+          <div className={s.specList}>
+            <SpecRow label={t('items.status')}><StatusBadge status={data.status} /></SpecRow>
+            <SpecRow label={t('itemDetail.currentLocation')}>{locationPath ?? t('common.notSet')}</SpecRow>
+            <SpecRow label={t('itemDetail.qrCode')}><span className={s.qrChip}>{data.id.slice(0, 8).toUpperCase()}<IconQrcode size={14} /></span></SpecRow>
+            <SpecRow label={t('itemDetail.purchasedAt')}>{formatDate(data.purchase_date) ?? t('common.notSet')}</SpecRow>
+            <SpecRow label={t('items.purchasePrice')}>{formatPrice(data.purchase_price, data.purchase_currency, t)}</SpecRow>
+            <SpecRow label={t('itemDetail.warrantyExpiry')}>{warranty.summary}</SpecRow>
+          </div>
+        </div>
+      </section>
+
+      <section className={s.actionList}>
+        <ActionRow icon={<IconRoute size={16} />} label={t('itemDetail.locationPath')} value={locationPath} />
+        <ActionRow icon={<IconShieldCheck size={16} />} label={t('itemDetail.warranty')} value={warranty.summary} />
+        <ActionRow icon={<IconHistory size={16} />} label={t('itemDetail.events')} />
+        <ActionRow icon={<IconClipboardList size={16} />} label={t('itemDetail.loans')} />
+        <ActionRow icon={<IconBell size={16} />} label={t('itemDetail.tasks')} value="2" />
+        <ActionRow icon={<IconPackage size={16} />} label={t('itemDetail.relatedAssets')} value="1" />
+      </section>
+
+      <section className={s.section}>
+        <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconMapPin size={15} />{t('itemDetail.statusAndLocation')}</h2></div>
+        <div className={s.sectionBody}>
+          <SelectField label={t('items.switchStatus')} options={statusOptions} value={data.status} disabled={!isOnline || updateStatus.isPending} onChange={(event) => updateStatus.mutate(event.currentTarget.value)} />
+        </div>
+      </section>
+
       <WarrantySection item={data} />
-
-      {/* Consumable */}
       {isConsumable && <ConsumableSection itemId={itemId} item={data} />}
-
-      {/* Virtual */}
       {isVirtual && <VirtualSection itemId={itemId} />}
-
-      {/* Loans */}
       <LoansSection itemId={itemId} />
-
-      {/* Events */}
       <EventsSection itemId={itemId} />
 
-      {/* Timestamps */}
-      <div className={s.section}>
-        <div className={s.sectionHead}><h3 className={s.sectionTitle}><IconCalendar size={14} />{t('itemDetail.timestamps')}</h3></div>
+      <section className={s.section}>
+        <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconCalendar size={15} />{t('itemDetail.timestamps')}</h2></div>
         <div className={s.sectionBody}>
-          <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.createdAt')}</span><span className={s.kvValue}>{formatDateTime(data.created_at)}</span></div>
-          <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.updatedAt')}</span><span className={s.kvValue}>{formatDateTime(data.updated_at)}</span></div>
+          <SpecRow label={t('itemDetail.createdAt')}>{formatDateTime(data.created_at)}</SpecRow>
+          <SpecRow label={t('itemDetail.updatedAt')}>{formatDateTime(data.updated_at)}</SpecRow>
         </div>
+      </section>
+
+      <div className={s.bottomBar}>
+        <Button variant="quiet" leftSection={<IconMapPin size={15} />}>{t('itemDetail.moveLocation')}</Button>
+        <Button>{t('common.edit')}</Button>
+        <Button variant="quiet" size="icon-sm" aria-label={t('itemDetail.more')} onClick={() => archive.mutate()} disabled={!isOnline || archive.isPending}><IconArchive size={16} /></Button>
       </div>
     </div>
   );
 }
 
-/* ── Sub-components ── */
+function PhotoEmpty() {
+  const { t } = useTranslation();
+  return (
+    <div className={s.photoEmpty}>
+      <IconPackage size={34} />
+      <span>{t('items.noPhotoYet')}</span>
+    </div>
+  );
+}
+
+function SpecRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className={s.specRow}>
+      <span className={s.specLabel}>{label}</span>
+      <span className={s.specValue}>{children}</span>
+    </div>
+  );
+}
+
+function ActionRow({ icon, label, value }: { icon: ReactNode; label: string; value?: ReactNode }) {
+  return (
+    <button type="button" className={s.actionRow}>
+      <span className={s.actionIcon}>{icon}</span>
+      <span className={s.actionLabel}>{label}</span>
+      {value && <span className={s.actionValue}>{value}</span>}
+      <IconChevronRight size={15} className={s.chevron} />
+    </button>
+  );
+}
 
 function WarrantySection({ item }: { item: Item }) {
   const { t } = useTranslation();
-  const expiresAt = item.warranty_expires_at;
-  const now = Date.now() / 1000;
-  const daysLeft = expiresAt != null ? Math.floor((expiresAt - now) / 86400) : null;
-  const state = daysLeft == null ? null : daysLeft < 0 ? 'expired' : daysLeft <= 30 ? 'expiring' : 'active';
+  const warranty = getWarrantyView(item, t);
   return (
-    <div className={s.section}>
+    <section className={s.section}>
       <div className={s.sectionHead}>
-        <h3 className={s.sectionTitle}><IconShieldCheck size={14} />{t('itemDetail.warranty')}</h3>
-        {state === 'active' && <Badge>{t('itemDetail.warrantyActive')}</Badge>}
-        {state === 'expiring' && <span style={{ fontSize: '0.72rem', color: 'var(--havit-warning)', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><IconAlertTriangle size={12} />{t('itemDetail.warrantyExpiring')}</span>}
+        <h2 className={s.sectionTitle}><IconShieldCheck size={15} />{t('itemDetail.warranty')}</h2>
+        {warranty.tone === 'danger' && <span className={s.warningText}><IconAlertTriangle size={12} />{t('itemDetail.warrantyExpired')}</span>}
       </div>
       <div className={s.sectionBody}>
-        {expiresAt ? (
-          <>
-            <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.warrantyExpiry')}</span><span className={s.kvValue}>{formatDate(expiresAt)}</span></div>
-            {daysLeft != null && <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.daysLeft')}</span><span className={s.kvValue}>{daysLeft >= 0 ? t('itemDetail.daysCount', { count: daysLeft }) : t('itemDetail.warrantyExpired')}</span></div>}
-            <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.warrantyContact')}</span><span className={s.kvValue}>{item.warranty_contact ?? t('common.notSet')}</span></div>
-          </>
-        ) : <div className={s.sectionEmpty}>{t('itemDetail.noWarranty')}</div>}
+        <SpecRow label={t('itemDetail.warrantyExpiry')}>{warranty.expiresAt ? formatDate(warranty.expiresAt) : t('common.notSet')}</SpecRow>
+        <SpecRow label={t('itemDetail.daysLeft')}>{warranty.summary}</SpecRow>
+        <SpecRow label={t('itemDetail.warrantyContact')}>{item.warranty_contact ?? t('common.notSet')}</SpecRow>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -172,22 +204,15 @@ function ConsumableSection({ itemId, item }: { itemId: string; item: Item }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const useOne = useMutation({ mutationFn: () => suppliesExtendedApi.useOne(itemId), onSuccess: (next) => qc.setQueryData(['item', itemId], next) });
-  const stock = item.current_stock ?? 0;
-  const min = item.min_stock_threshold ?? 0;
-  const low = min > 0 && stock <= min;
   return (
-    <div className={s.section}>
-      <div className={s.sectionHead}>
-        <h3 className={s.sectionTitle}><IconShoppingCart size={14} />{t('itemDetail.consumable')}</h3>
-        {low && <span style={{ fontSize: '0.72rem', color: 'var(--havit-warning)', display: 'inline-flex', alignItems: 'center', gap: '3px' }}><IconAlertTriangle size={12} />{t('itemDetail.belowThreshold')}</span>}
-      </div>
+    <section className={s.section}>
+      <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconShoppingCart size={15} />{t('itemDetail.consumable')}</h2></div>
       <div className={s.sectionBody}>
-        <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.currentStock')}</span><span className={s.kvValue}>{stock} {t('common.pieces')}</span></div>
-        <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.minStock')}</span><span className={s.kvValue}>{item.min_stock_threshold ?? '—'}</span></div>
-        <div className={s.kvRow}><span className={s.kvLabel}>{t('itemDetail.lifespanDays')}</span><span className={s.kvValue}>{item.lifespan_days ?? '—'}</span></div>
-        {item.type === 'tracked_spares' && <Button leftSection={<IconShoppingCart size={15} />} onClick={() => useOne.mutate()} disabled={useOne.isPending || stock <= 0} style={{ marginTop: '0.5rem' }}>{t('itemDetail.useOne')}</Button>}
+        <SpecRow label={t('itemDetail.currentStock')}>{item.current_stock ?? 0} {t('common.pieces')}</SpecRow>
+        <SpecRow label={t('itemDetail.minStock')}>{item.min_stock_threshold ?? '—'}</SpecRow>
+        {item.type === 'tracked_spares' && <Button leftSection={<IconShoppingCart size={15} />} onClick={() => useOne.mutate()} disabled={useOne.isPending || (item.current_stock ?? 0) <= 0}>{t('itemDetail.useOne')}</Button>}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -196,12 +221,17 @@ function VirtualSection({ itemId }: { itemId: string }) {
   const creds = useQuery({ queryKey: ['item', itemId, 'credentials'], queryFn: () => virtualAssetsApi.listCredentials(itemId) });
   const credentials = creds.data?.credentials ?? [];
   return (
-    <div className={s.section}>
-      <div className={s.sectionHead}><h3 className={s.sectionTitle}><IconKey size={14} />{t('itemDetail.platformCredentials')}</h3></div>
+    <section className={s.section}>
+      <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconKey size={15} />{t('itemDetail.platformCredentials')}</h2></div>
       <div className={s.sectionBody}>
-        {creds.isLoading ? <Spinner /> : credentials.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noCredentials')}</div> : credentials.map((c: any) => <div key={c.id} className={s.loanCard}><span className={s.loanName}>{c.platform}</span>{c.account && <span className={s.loanMeta}>{t('itemDetail.accountLabel')}: {c.account}</span>}</div>)}
+        {creds.isLoading ? <Spinner /> : credentials.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noCredentials')}</div> : credentials.map((credential: any) => (
+          <div key={credential.id} className={s.compactCard}>
+            <span className={s.compactTitle}>{credential.platform}</span>
+            {credential.account && <span className={s.compactSub}>{t('itemDetail.accountLabel')}: {credential.account}</span>}
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -210,12 +240,17 @@ function LoansSection({ itemId }: { itemId: string }) {
   const { data, isLoading } = useQuery({ queryKey: ['item', itemId, 'loans'], queryFn: () => loansApi.listForItem(itemId) });
   const loans = data?.loans ?? [];
   return (
-    <div className={s.section}>
-      <div className={s.sectionHead}><h3 className={s.sectionTitle}><IconClipboardList size={14} />{t('itemDetail.loans')}</h3>{loans.length > 0 && <span style={{ fontSize: '0.72rem', color: 'var(--havit-muted)' }}>{loans.length}</span>}</div>
+    <section className={s.section}>
+      <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconClipboardList size={15} />{t('itemDetail.loans')}</h2>{loans.length > 0 && <Badge>{loans.length}</Badge>}</div>
       <div className={s.sectionBody}>
-        {isLoading ? <Spinner /> : loans.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noLoans')}</div> : loans.map((loan: any) => <div key={loan.id} className={s.loanCard}><div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span className={s.loanName}>{loan.borrower_name}</span><Badge>{t(`status.${loan.status}`, loan.status)}</Badge></div><span className={s.loanMeta}>{t('itemDetail.loanDate')}: {formatDate(loan.loaned_at)}{loan.due_at && ` · ${t('itemDetail.expectedReturn')}: ${formatDate(loan.due_at)}`}</span></div>)}
+        {isLoading ? <Spinner /> : loans.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noLoans')}</div> : loans.map((loan: any) => (
+          <div key={loan.id} className={s.compactCard}>
+            <span className={s.compactTitle}>{loan.borrower_name}</span>
+            <span className={s.compactSub}>{formatDate(loan.loaned_at)}{loan.due_at ? ` / ${formatDate(loan.due_at)}` : ''}</span>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -224,11 +259,23 @@ function EventsSection({ itemId }: { itemId: string }) {
   const { data, isLoading } = useQuery({ queryKey: ['item', itemId, 'events'], queryFn: () => suppliesExtendedApi.listEvents(itemId) });
   const events = data?.events ?? [];
   return (
-    <div className={s.section}>
-      <div className={s.sectionHead}><h3 className={s.sectionTitle}><IconHistory size={14} />{t('itemDetail.events')}</h3></div>
+    <section className={s.section}>
+      <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconHistory size={15} />{t('itemDetail.events')}</h2></div>
       <div className={s.sectionBody}>
-        {isLoading ? <Spinner /> : events.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noEvents')}</div> : events.map((ev: any) => <div key={ev.id} className={s.timelineRow}><span className={s.timelineTitle}>{t(`events.${ev.event_type}`, ev.event_type)}</span><span className={s.timelineMeta}>{formatDateTime(ev.created_at)}</span></div>)}
+        {isLoading ? <Spinner /> : events.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noEvents')}</div> : events.slice(0, 4).map((event: any) => (
+          <div key={event.id} className={s.timelineRow}>
+            <span className={s.timelineTitle}>{String(t(`events.${event.event_type}`, event.event_type))}</span>
+            <span className={s.timelineMeta}>{formatDateTime(event.created_at)}</span>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
+}
+
+function getWarrantyView(item: Item, t: (key: string, params?: any) => string) {
+  if (!item.warranty_expires_at) return { expiresAt: undefined, summary: t('itemDetail.noWarranty'), tone: 'neutral' as const };
+  const daysLeft = Math.floor((item.warranty_expires_at - Date.now() / 1000) / 86400);
+  if (daysLeft < 0) return { expiresAt: item.warranty_expires_at, summary: t('itemDetail.warrantyExpired'), tone: 'danger' as const };
+  return { expiresAt: item.warranty_expires_at, summary: t('itemDetail.daysCount', { count: daysLeft }), tone: daysLeft <= 30 ? 'warning' as const : 'success' as const };
 }

@@ -235,6 +235,7 @@ export const tableScroll = style({
 
 export const table = style({
   width: '100%',
+  minWidth: '56rem',
   borderCollapse: 'separate',
   borderSpacing: 0,
 });
@@ -257,6 +258,7 @@ export const tableCell = style({
   color: themeVars.text,
   fontSize: '0.85rem',
   verticalAlign: 'middle',
+  whiteSpace: 'nowrap',
 });
 
 export const tableRow = style({
@@ -328,6 +330,74 @@ export const actionGroup = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space1,
+});
+
+export const iconMenuButton = style({
+  width: '2rem',
+  height: '2rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: 0,
+  borderRadius: themeVars.radius1,
+  background: 'transparent',
+  color: themeVars.muted,
+  cursor: 'pointer',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+      color: themeVars.ink,
+    },
+    '&:focus-visible': {
+      outline: `2px solid ${themeVars.accent}`,
+      outlineOffset: 2,
+    },
+  },
+});
+
+export const actionMenu = style({
+  width: '13rem',
+  gap: themeVars.space1,
+  padding: themeVars.space2,
+});
+
+export const actionItem = style({
+  width: '100%',
+  minHeight: '2rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  border: 0,
+  borderRadius: themeVars.radius1,
+  background: 'transparent',
+  color: themeVars.text,
+  padding: `0 ${themeVars.space2}`,
+  font: 'inherit',
+  fontSize: '0.82rem',
+  textAlign: 'left',
+  cursor: 'pointer',
+  selectors: {
+    '&:hover:not(:disabled)': {
+      background: themeVars.bgSoft,
+      color: themeVars.ink,
+    },
+    '&:disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.48,
+    },
+  },
+});
+
+export const actionDanger = style({
+  color: themeVars.danger,
+});
+
+export const actionDot = style({
+  width: '0.45rem',
+  height: '0.45rem',
+  borderRadius: '999px',
+  background: themeVars.accent,
+  flex: '0 0 auto',
 });
 
 export const cardsGrid = style({
@@ -473,6 +543,27 @@ export const sideTitle = style({
   fontWeight: 720,
 });
 
+export const sideHeader = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: themeVars.space3,
+});
+
+export const sideLink = style({
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.15rem',
+  color: themeVars.accentInk,
+  fontSize: '0.78rem',
+  fontWeight: 650,
+  textDecoration: 'none',
+  whiteSpace: 'nowrap',
+  selectors: {
+    '&:hover': { color: themeVars.accent },
+  },
+});
+
 export const sideList = style({
   display: 'flex',
   flexDirection: 'column',
@@ -569,11 +660,27 @@ export const empty = style({
 });
 
 export const formActions = style({
+  gridColumn: '1 / -1',
   display: 'flex',
   justifyContent: 'flex-end',
   gap: themeVars.space2,
   paddingTop: themeVars.space3,
   borderTop: `1px solid ${themeVars.lineSoft}`,
+});
+
+export const formGrid = style({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+  gap: themeVars.space3,
+  '@media': {
+    '(max-width: 40em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+});
+
+export const formWide = style({
+  gridColumn: '1 / -1',
 });
 
 export const purchaseRow = style({
