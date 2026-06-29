@@ -1,8 +1,8 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {
-  IconChevronRight, IconEdit, IconMapPin, IconMapPlus, IconPackage,
+  IconEdit, IconMapPin, IconMapPlus, IconPackage,
   IconPhoto, IconPlus, IconPrinter, IconQrcode, IconTrash,
 } from '@tabler/icons-react';
 import {
@@ -13,6 +13,16 @@ import { Dialog } from '../../components/ui/dialog-compat';
 import { FieldLabel } from '../../components/ui/field';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { TextField } from '../../components/ui/text-field';
+import {
+  Tree,
+  TreeGroup,
+  TreeGroupLabel,
+  TreeItem,
+  TreeItemChevron,
+  TreeItemCount,
+  TreeItemIcon,
+  TreeItemLabel,
+} from '../../components/ui/tree';
 import type { Location } from '../../api/client';
 import {
   LOCATION_TYPES, allowedChildTypes, canNestUnder, getLocationTypeMeta, type LocationType,
@@ -87,10 +97,10 @@ export function LocationsDesktop() {
           <ScrollArea className={uiStyles.locationTreeBody}>
             {tree.isPending ? <div className={uiStyles.reminderEmpty}>{t('locations.loading')}</div>
             : index.roots.length === 0 ? <div className={uiStyles.reminderEmpty}>{t('locations.noLocationsHint')}</div>
-            : <>
+            : <Tree aria-label={t('locations.tree')} indent={14}>
                 {physicalRoots.length > 0 && <TreeSection label={t('locations.physicalPositions')} nodes={physicalRoots} index={index} expanded={expanded} selectedId={selectedId} onSelect={setSelectedId} onToggle={toggleExpand} subtreeCount={subtreeItemCount} />}
                 {virtualRoots.length > 0 && <TreeSection label={t('locations.virtualPositions')} nodes={virtualRoots} index={index} expanded={expanded} selectedId={selectedId} onSelect={setSelectedId} onToggle={toggleExpand} subtreeCount={subtreeItemCount} />}
-              </>}
+              </Tree>}
           </ScrollArea>
         </aside>
 
@@ -124,10 +134,10 @@ export function LocationsDesktop() {
 
 function TreeSection({ label, nodes, index, expanded, selectedId, onSelect, onToggle, subtreeCount }: { label: string; nodes: Location[]; index: LocationIndex; expanded: Set<string>; selectedId: string | null; onSelect: (id: string) => void; onToggle: (id: string) => void; subtreeCount: (id: string) => number }) {
   return (
-    <div className={uiStyles.locationTreeGroup}>
-      <div className={uiStyles.locationTreeGroupLabel}>{label}</div>
+    <TreeGroup>
+      <TreeGroupLabel>{label}</TreeGroupLabel>
       {nodes.map((node) => <TreeNode key={node.id} node={node} depth={0} index={index} expanded={expanded} selectedId={selectedId} onSelect={onSelect} onToggle={onToggle} subtreeCount={subtreeCount} />)}
-    </div>
+    </TreeGroup>
   );
 }
 
@@ -137,14 +147,34 @@ function TreeNode({ node, depth, index, expanded, selectedId, onSelect, onToggle
   const kids = index.childrenMap.get(node.id) ?? [];
   const isExpanded = expanded.has(node.id);
   const count = subtreeCount(node.id);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
+    if (kids.length === 0) return;
+    if (event.key === 'ArrowRight' && !isExpanded) {
+      event.preventDefault();
+      onToggle(node.id);
+    }
+    if (event.key === 'ArrowLeft' && isExpanded) {
+      event.preventDefault();
+      onToggle(node.id);
+    }
+  }
+
   return (
     <div>
-      <div className={uiStyles.locationTreeRow} data-active={selectedId === node.id} onClick={() => onSelect(node.id)} style={{ paddingLeft: `calc(${depth * 14}px + 0.5rem)` }} role="button" tabIndex={0}>
-        <span className={uiStyles.locationTreeRowChevron} data-expanded={isExpanded} data-empty={kids.length === 0} onClick={(e) => { e.stopPropagation(); if (kids.length > 0) onToggle(node.id); }}><IconChevronRight size={13} /></span>
-        <Icon size={15} style={{ color: 'currentColor', opacity: 0.85 }} />
-        <span className={uiStyles.locationTreeRowName}>{node.name}</span>
-        {count > 0 && <span className={uiStyles.locationTreeRowCount}>{count}</span>}
-      </div>
+      <TreeItem
+        depth={depth}
+        selected={selectedId === node.id}
+        expanded={isExpanded}
+        folder={kids.length > 0}
+        onClick={() => onSelect(node.id)}
+        onKeyDown={handleKeyDown}
+      >
+        <TreeItemChevron expanded={isExpanded} empty={kids.length === 0} onToggle={() => { if (kids.length > 0) onToggle(node.id); }} />
+        <TreeItemIcon><Icon size={15} /></TreeItemIcon>
+        <TreeItemLabel>{node.name}</TreeItemLabel>
+        {count > 0 && <TreeItemCount>{count}</TreeItemCount>}
+      </TreeItem>
       {isExpanded && kids.map((k) => <TreeNode key={k.id} node={k} depth={depth + 1} index={index} expanded={expanded} selectedId={selectedId} onSelect={onSelect} onToggle={onToggle} subtreeCount={subtreeCount} />)}
     </div>
   );

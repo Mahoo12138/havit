@@ -1,227 +1,255 @@
+import { createContext, useContext, type CSSProperties, type HTMLAttributes, type MouseEvent, type ReactNode } from 'react';
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
+import type { ItemInstance, TreeInstance } from '@headless-tree/core';
+import { IconChevronRight, IconMinus, IconPlus } from '@tabler/icons-react';
 
-import { createContext, useContext } from "react"
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
-import { ItemInstance } from "@headless-tree/core"
+import * as s from './tree.css';
 
-import { cn } from "@/lib/utils"
-import { IconChevronDown, IconMinus, IconPlus } from '@tabler/icons-react'
+type ToggleIconType = 'chevron' | 'plus-minus';
 
-type ToggleIconType = "chevron" | "plus-minus"
-
-interface TreeContextValue<T = any> {
-  indent: number
-  currentItem?: ItemInstance<T>
-  tree?: any
-  toggleIconType?: ToggleIconType
+interface TreeContextValue<T = unknown> {
+  indent: number;
+  currentItem?: ItemInstance<T>;
+  tree?: TreeInstance<T>;
+  toggleIconType: ToggleIconType;
 }
 
 const TreeContext = createContext<TreeContextValue>({
-  indent: 20,
+  indent: 14,
   currentItem: undefined,
   tree: undefined,
-  toggleIconType: "plus-minus",
-})
+  toggleIconType: 'chevron',
+});
 
-function useTreeContext<T = any>() {
-  return useContext(TreeContext) as TreeContextValue<T>
+function cx(...classes: Array<string | undefined | false | null>) {
+  return classes.filter(Boolean).join(' ');
 }
 
-interface TreeProps extends React.HTMLAttributes<HTMLDivElement> {
-  indent?: number
-  tree?: any
-  toggleIconType?: ToggleIconType
+function useTreeContext<T = unknown>() {
+  return useContext(TreeContext) as TreeContextValue<T>;
+}
+
+interface TreeProps extends HTMLAttributes<HTMLDivElement> {
+  indent?: number;
+  tree?: TreeInstance<unknown>;
+  toggleIconType?: ToggleIconType;
 }
 
 function Tree({
-  indent = 20,
+  indent = 14,
   tree,
   className,
-  toggleIconType = "chevron",
+  style,
+  toggleIconType = 'chevron',
   ...props
 }: TreeProps) {
-  const containerProps =
-    tree && typeof tree.getContainerProps === "function"
-      ? tree.getContainerProps()
-      : {}
-  const mergedProps = { ...props, ...containerProps }
-
-  // Extract style from mergedProps to merge with our custom styles
-  const { style: propStyle, ...otherProps } = mergedProps
-
-  // Merge styles
+  const containerProps = tree?.getContainerProps?.() ?? {};
+  const mergedProps = mergeProps<'div'>(containerProps, props);
+  const { style: containerStyle, ...otherProps } = mergedProps;
   const mergedStyle = {
-    ...propStyle,
-    "--tree-indent": `${indent}px`,
-  } as React.CSSProperties
+    ...containerStyle,
+    ...style,
+    '--tree-indent': `${indent}px`,
+  } as CSSProperties;
 
   return (
     <TreeContext.Provider value={{ indent, tree, toggleIconType }}>
       <div
+        role="tree"
         data-slot="tree"
         style={mergedStyle}
-        className={cn("flex flex-col", className)}
+        className={cx(s.root, className)}
         {...otherProps}
       />
     </TreeContext.Provider>
-  )
+  );
 }
 
-interface TreeItemProps<T = any> extends Omit<
-  useRender.ComponentProps<"button">,
-  "indent"
-> {
-  item: ItemInstance<T>
-  indent?: number
+function TreeGroup({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div role="group" data-slot="tree-group" className={cx(s.group, className)} {...props} />;
 }
 
-function TreeItem<T = any>({
+function TreeGroupLabel({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div data-slot="tree-group-label" className={cx(s.groupLabel, className)} {...props} />;
+}
+
+interface TreeItemProps<T = unknown> extends Omit<useRender.ComponentProps<'button'>, 'indent'> {
+  item?: ItemInstance<T>;
+  depth?: number;
+  selected?: boolean;
+  expanded?: boolean;
+  folder?: boolean;
+  disabled?: boolean;
+  dragTarget?: boolean;
+  searchMatch?: boolean;
+}
+
+function TreeItem<T = unknown>({
   item,
+  depth,
+  selected,
+  expanded,
+  folder,
+  disabled,
+  dragTarget,
+  searchMatch,
   className,
+  style,
   render,
   children,
   ...props
 }: TreeItemProps<T>) {
-  const parentContext = useTreeContext<T>()
-  const { indent } = parentContext
-
-  const itemProps = typeof item.getProps === "function" ? item.getProps() : {}
-  const mergedProps = { ...props, children, ...itemProps }
-
-  // Extract style from mergedProps to merge with our custom styles
-  const { style: propStyle, ...otherProps } = mergedProps
-
-  // Merge styles
+  const parentContext = useTreeContext<T>();
+  const level = depth ?? item?.getItemMeta?.().level ?? 0;
+  const itemProps = item?.getProps?.() ?? {};
+  const itemExpanded = expanded ?? item?.isExpanded?.() ?? false;
+  const itemFolder = folder ?? item?.isFolder?.() ?? false;
+  const itemSelected = selected ?? item?.isSelected?.() ?? false;
+  const itemDragTarget = dragTarget ?? item?.isDragTarget?.() ?? false;
+  const itemSearchMatch = searchMatch ?? item?.isMatchingSearch?.() ?? false;
+  const itemFocused = item?.isFocused?.() ?? undefined;
+  const mergedProps = mergeProps<'button'>(
+    {
+      type: 'button',
+      role: 'treeitem',
+      'aria-expanded': itemFolder ? itemExpanded : undefined,
+      disabled,
+    },
+    itemProps,
+    props,
+  );
+  const { style: itemStyle, ...otherProps } = mergedProps;
   const mergedStyle = {
-    ...propStyle,
-    "--tree-padding": `${item.getItemMeta().level * indent}px`,
-  } as React.CSSProperties
-
-  const defaultProps = {
-    "data-slot": "tree-item",
-    style: mergedStyle,
-    className: cn(
-      "z-10 ps-(--tree-padding) outline-hidden select-none not-last:pb-0.5 focus:z-20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    ),
-    "data-focus":
-      typeof item.isFocused === "function"
-        ? item.isFocused() || false
-        : undefined,
-    "data-folder":
-      typeof item.isFolder === "function"
-        ? item.isFolder() || false
-        : undefined,
-    "data-selected":
-      typeof item.isSelected === "function"
-        ? item.isSelected() || false
-        : undefined,
-    "data-drag-target":
-      typeof item.isDragTarget === "function"
-        ? item.isDragTarget() || false
-        : undefined,
-    "data-search-match":
-      typeof item.isMatchingSearch === "function"
-        ? item.isMatchingSearch() || false
-        : undefined,
-    "aria-expanded": item.isExpanded(),
-  }
+    ...itemStyle,
+    ...style,
+    '--tree-item-depth': level,
+  } as CSSProperties;
 
   return (
     <TreeContext.Provider value={{ ...parentContext, currentItem: item }}>
       {useRender({
-        defaultTagName: "button",
+        defaultTagName: 'button',
         render,
-        props: mergeProps<"button">(defaultProps, otherProps),
+        props: mergeProps<'button'>(
+          {
+            'data-slot': 'tree-item',
+            'data-focus': itemFocused || undefined,
+            'data-folder': itemFolder || undefined,
+            'data-selected': itemSelected || undefined,
+            'data-drag-target': itemDragTarget || undefined,
+            'data-search-match': itemSearchMatch || undefined,
+            'data-disabled': disabled || undefined,
+            style: mergedStyle,
+            className: cx(s.item, className),
+            children,
+          },
+          otherProps,
+        ),
       })}
     </TreeContext.Provider>
-  )
+  );
 }
 
-interface TreeItemLabelProps<
-  T = any,
-> extends React.HTMLAttributes<HTMLSpanElement> {
-  item?: ItemInstance<T>
+interface TreeItemChevronProps extends HTMLAttributes<HTMLSpanElement> {
+  expanded?: boolean;
+  empty?: boolean;
+  onToggle?: (event: MouseEvent<HTMLSpanElement>) => void;
 }
 
-function TreeItemLabel<T = any>({
+function TreeItemChevron({
+  expanded,
+  empty,
+  onToggle,
+  className,
+  onClick,
+  ...props
+}: TreeItemChevronProps) {
+  return (
+    <span
+      data-slot="tree-item-chevron"
+      data-expanded={expanded || undefined}
+      data-empty={empty || undefined}
+      className={cx(s.chevron, className)}
+      onClick={(event) => {
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        event.stopPropagation();
+        onToggle?.(event);
+      }}
+      {...props}
+    >
+      <IconChevronRight size={13} />
+    </span>
+  );
+}
+
+function TreeItemIcon({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
+  return <span data-slot="tree-item-icon" className={cx(s.itemIcon, className)} {...props} />;
+}
+
+interface TreeItemLabelProps<T = unknown> extends HTMLAttributes<HTMLSpanElement> {
+  item?: ItemInstance<T>;
+}
+
+function TreeItemLabel<T = unknown>({
   item: propItem,
   children,
   className,
   ...props
 }: TreeItemLabelProps<T>) {
-  const { currentItem, toggleIconType } = useTreeContext<T>()
-  const item = propItem || currentItem
-
-  if (!item) {
-    console.warn("TreeItemLabel: No item provided via props or context")
-    return null
-  }
+  const { currentItem, toggleIconType } = useTreeContext<T>();
+  const item = propItem || currentItem;
+  const isFolder = item?.isFolder?.() ?? false;
+  const isExpanded = item?.isExpanded?.() ?? false;
 
   return (
-    <span
-      data-slot="tree-item-label"
-      className={cn(
-        "in-focus-visible:ring-ring/50 bg-background hover:bg-accent in-data-[selected=true]:bg-accent in-data-[selected=true]:text-accent-foreground in-data-[drag-target=true]:bg-accent flex items-center gap-1 transition-colors not-in-data-[folder=true]:ps-7 in-focus-visible:ring-[3px] in-data-[search-match=true]:bg-blue-50! [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        "style-vega:rounded-sm style-maia:rounded-sm style-nova:rounded-sm style-lyra:rounded-none style-mira:rounded-sm",
-        "style-vega:py-1.5 style-maia:py-1.5 style-nova:py-1.5 style-lyra:py-1.5 style-mira:py-1",
-        "style-vega:px-2 style-maia:px-2 style-nova:px-2 style-lyra:px-2 style-mira:px-1.5",
-        "style-vega:text-sm style-maia:text-sm style-nova:text-sm style-lyra:text-xs style-mira:text-xs/relaxed",
-        className
+    <span data-slot="tree-item-label" className={cx(s.label, className)} {...props}>
+      {isFolder && toggleIconType === 'plus-minus' && (
+        isExpanded ? <IconMinus size={14} strokeWidth={1.5} /> : <IconPlus size={14} strokeWidth={1.5} />
       )}
-      {...props}
-    >
-      {item.isFolder() &&
-        (toggleIconType === "plus-minus" ? (
-          item.isExpanded() ? (
-            <IconMinus
-              className="text-muted-foreground size-3.5"
-              stroke="currentColor"
-              strokeWidth="1"
-            />
-          ) : (
-            <IconPlus
-              className="text-muted-foreground size-3.5"
-              stroke="currentColor"
-              strokeWidth="1"
-            />
-          )
-        ) : (
-          <IconChevronDown
-            className="text-muted-foreground size-4 in-aria-[expanded=false]:-rotate-90"
-          />
-        ))}
-      {children ||
-        (typeof item.getItemName === "function" ? item.getItemName() : null)}
+      {children ?? item?.getItemName?.() ?? null}
     </span>
-  )
+  );
 }
 
-function TreeDragLine({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  const { tree } = useTreeContext()
+function TreeItemCount({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
+  return <span data-slot="tree-item-count" className={cx(s.count, className)} {...props} />;
+}
 
-  if (!tree || typeof tree.getDragLineStyle !== "function") {
-    console.warn(
-      "TreeDragLine: No tree provided via context or tree does not have getDragLineStyle method"
-    )
-    return null
-  }
+function TreeDragLine({ className, style, ...props }: HTMLAttributes<HTMLDivElement>) {
+  const { tree } = useTreeContext();
+  const dragLine = tree?.getDragLineStyle?.();
+  if (!dragLine) return null;
 
-  const dragLine = tree.getDragLineStyle()
   return (
     <div
-      style={dragLine}
-      className={cn(
-        "bg-primary before:bg-background before:border-primary absolute z-30 -mt-px h-0.5 w-[unset] before:absolute before:-top-[3px] before:left-0 before:size-2 before:border-2",
-        "style-vega:before:rounded-full style-maia:before:rounded-full style-nova:before:rounded-full style-lyra:before:rounded-none style-mira:before:rounded-full",
-        className
-      )}
+      data-slot="tree-drag-line"
+      style={{ ...dragLine, ...style }}
+      className={cx(s.dragLine, className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Tree, TreeItem, TreeItemLabel, TreeDragLine }
+export {
+  AssistiveTreeDescription,
+  useTree,
+} from '@headless-tree/react';
+
+export type {
+  ItemInstance,
+  TreeInstance,
+} from '@headless-tree/core';
+
+export {
+  Tree,
+  TreeGroup,
+  TreeGroupLabel,
+  TreeItem,
+  TreeItemChevron,
+  TreeItemCount,
+  TreeItemIcon,
+  TreeItemLabel,
+  TreeDragLine,
+};
