@@ -225,33 +225,8 @@ export const searchInput = style({
   paddingLeft: '2.25rem',
 });
 
-export const viewToggle = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  boxSizing: 'border-box',
-  height: '2rem',
-  padding: '1px',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius2,
-  background: themeVars.lineSoft,
-  overflow: 'hidden',
-});
-
 export const filterSelectTrigger = style({
   width: '7.5rem',
-});
-
-export const viewToggleButton = style({
-  width: '1.75rem',
-  height: '1.75rem',
-  borderRadius: themeVars.radius1,
-  selectors: {
-    '&[data-active="true"]': {
-      background: themeVars.panel,
-      color: themeVars.accentInk,
-      boxShadow: themeVars.shadowSoft,
-    },
-  },
 });
 
 export const tableScroll = style({

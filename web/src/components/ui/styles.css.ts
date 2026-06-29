@@ -3444,38 +3444,6 @@ export const essentialsToolbarDivider = style({
   background: themeVars.line,
 });
 
-export const essentialsViewToggle = style({
-  display: 'inline-flex',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius2,
-  overflow: 'hidden',
-});
-
-export const essentialsViewToggleBtn = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: themeVars.space1,
-  padding: `${themeVars.space1} ${themeVars.space3}`,
-  border: 0,
-  background: 'transparent',
-  color: themeVars.muted,
-  fontSize: '0.82rem',
-  fontWeight: 500,
-  cursor: 'pointer',
-  transition: 'background-color 140ms ease, color 140ms ease',
-  selectors: {
-    '&:hover': {
-      background: themeVars.bgSoft,
-      color: themeVars.text,
-    },
-    '&[data-active="true"]': {
-      background: themeVars.accentSoft,
-      color: themeVars.accentInk,
-    },
-  },
-});
-
 export const essentialsItemRow = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 1.5fr) minmax(0, 1fr) auto',
@@ -5001,38 +4969,6 @@ export const vaFilterSelect = style({
     },
     '&:focus': {
       borderColor: themeVars.accent,
-    },
-  },
-});
-
-export const vaViewToggle = style({
-  display: 'inline-flex',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius2,
-  overflow: 'hidden',
-});
-
-export const vaViewToggleBtn = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: themeVars.space1,
-  padding: `${themeVars.space1} ${themeVars.space3}`,
-  border: 0,
-  background: 'transparent',
-  color: themeVars.muted,
-  fontSize: '0.82rem',
-  fontWeight: 500,
-  cursor: 'pointer',
-  transition: 'background-color 140ms ease, color 140ms ease',
-  selectors: {
-    '&:hover': {
-      background: themeVars.bgSoft,
-      color: themeVars.text,
-    },
-    '&[data-active="true"]': {
-      background: themeVars.accentSoft,
-      color: themeVars.accentInk,
     },
   },
 });

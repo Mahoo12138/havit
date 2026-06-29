@@ -239,14 +239,6 @@ export const searchInput = style({
 });
 
 export const viewToggle = style({
-  display: 'inline-flex',
-  boxSizing: 'border-box',
-  height: '2rem',
-  padding: 0,
-  borderRadius: themeVars.radius2,
-  border: 0,
-  background: themeVars.lineSoft,
-  overflow: 'hidden',
   '@media': {
     '(max-width: 40em)': { display: 'none' },
   },
@@ -257,19 +249,6 @@ export const filterSelectTrigger = style({
   '@media': {
     '(max-width: 40em)': {
       width: '100%',
-    },
-  },
-});
-
-export const viewToggleButton = style({
-  width: '2rem',
-  height: '2rem',
-  borderRadius: 0,
-  selectors: {
-    '&[data-active="true"]': {
-      background: themeVars.panel,
-      color: themeVars.accentInk,
-      boxShadow: themeVars.shadowSoft,
     },
   },
 });

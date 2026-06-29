@@ -19,6 +19,7 @@ import {
 } from '@tabler/icons-react';
 import { Stack } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { ButtonGroup } from '../../components/ui/button-group';
 import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
@@ -213,11 +214,10 @@ export function VirtualAssetsDesktop() {
                 />
               </div>
               <div className={s.toolbarRight}>
-                <div className={s.viewToggle}>
+                <ButtonGroup className={s.viewToggle} aria-label={t('virtualAssets.calendarView')}>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon-sm"
-                    className={s.viewToggleButton}
                     data-active={effectiveViewMode === 'list' || undefined}
                     onClick={() => setViewMode('list')}
                     aria-label={t('virtualAssets.listView')}
@@ -225,16 +225,15 @@ export function VirtualAssetsDesktop() {
                     <IconList size={14} />
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="icon-sm"
-                    className={s.viewToggleButton}
                     data-active={effectiveViewMode === 'cards' || undefined}
                     onClick={() => setViewMode('cards')}
                     aria-label={t('virtualAssets.calendarView')}
                   >
                     <IconLayoutGrid size={14} />
                   </Button>
-                </div>
+                </ButtonGroup>
                 <Button variant="outline" size="sm" leftSection={<IconDownload size={14} />}>{t('virtualAssets.export')}</Button>
               </div>
             </div>

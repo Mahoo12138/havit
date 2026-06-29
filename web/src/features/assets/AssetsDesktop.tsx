@@ -18,6 +18,7 @@ import {
 } from '@tabler/icons-react';
 import { Stack } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { ButtonGroup } from '../../components/ui/button-group';
 import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
@@ -149,11 +150,10 @@ export function AssetsDesktop() {
                   />
                 </div>
                 <div className={s.toolbarRight}>
-                  <div className={s.viewToggle} aria-label={t('assets.cardView')}>
+                  <ButtonGroup aria-label={t('assets.cardView')}>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon-sm"
-                      className={s.viewToggleButton}
                       data-active={viewMode === 'list' || undefined}
                       onClick={() => setViewMode('list')}
                       aria-label={t('assets.listView')}
@@ -161,16 +161,15 @@ export function AssetsDesktop() {
                       <IconList size={14} />
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="icon-sm"
-                      className={s.viewToggleButton}
                       data-active={viewMode === 'cards' || undefined}
                       onClick={() => setViewMode('cards')}
                       aria-label={t('assets.cardView')}
                     >
                       <IconLayoutGrid size={14} />
                     </Button>
-                  </div>
+                  </ButtonGroup>
                   <Button variant="outline" size="sm">{t('assets.export')}</Button>
                 </div>
               </div>

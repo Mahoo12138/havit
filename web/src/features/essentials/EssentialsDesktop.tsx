@@ -16,6 +16,7 @@ import {
   IconCheckbox,
 } from '@tabler/icons-react';
 import {
+  ButtonGroup,
   Stack,
   StackTight,
   uiStyles,
@@ -292,10 +293,10 @@ export function EssentialsDesktop() {
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.currentTarget.value)}
                       />
-                      <div className={uiStyles.essentialsViewToggle}>
+                      <ButtonGroup aria-label={t('essentials.cardView')}>
                         <Button
-                          variant="subtle"
-                          className={uiStyles.essentialsViewToggleBtn}
+                          variant="outline"
+                          size="sm"
                           data-active={viewMode === 'list' || undefined}
                           onClick={() => setViewMode('list')}
                         >
@@ -303,15 +304,15 @@ export function EssentialsDesktop() {
                           {t('essentials.listView')}
                         </Button>
                         <Button
-                          variant="subtle"
-                          className={uiStyles.essentialsViewToggleBtn}
+                          variant="outline"
+                          size="sm"
                           data-active={viewMode === 'cards' || undefined}
                           onClick={() => setViewMode('cards')}
                         >
                           <IconLayoutGrid size={14} />
                           {t('essentials.cardView')}
                         </Button>
-                      </div>
+                      </ButtonGroup>
                     </div>
                   </div>
                   {viewMode === 'list' ? (
