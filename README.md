@@ -34,7 +34,7 @@ pnpm build        # 产物 -> internal/static/dist (被 go:embed)
 | `release` (默认) | 空库时强制跳转 `/setup` 创建 Owner；非空库正常启动 |
 | `demo` | 空库时注入演示种子数据（账号 `admin@havit.local` / `havit-demo`）；非空库 fatal 拒绝启动，保护现有数据 |
 
-种子数据中预置：5 件物品（覆盖 durable / consumable_a / consumable_b / edc）、二级位置树、`@随身` 虚拟节点、低库存滤芯、逾期未还借出记录。
+种子数据中预置：5 件物品（覆盖 durable / predictive_supplies / tracked_spares / essentials）、二级位置树、`@随身` 虚拟节点、低库存滤芯、逾期未还借出记录。
 
 ```
 HAVIT_MODE=demo ./havit       # 演示站
