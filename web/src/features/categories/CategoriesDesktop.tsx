@@ -1,19 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  IconArmchair2,
+  IconBook,
+  IconBox,
+  IconCategory2,
+  IconCode,
+  IconDeviceDesktop,
+  IconDeviceMobile,
+  IconDotsCircleHorizontal,
   IconEdit,
-  IconLock,
+  IconFolder,
+  IconDeviceGamepad2,
+  IconPill,
   IconPlus,
   IconSearch,
+  IconShirt,
+  IconTools,
   IconTrash,
+  type Icon,
 } from '@tabler/icons-react';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Stack,
-  StackTight,
-  uiStyles,
-} from '../../components/ui';
-import { Badge } from '../../components/ui/badge';
+import { Stack } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
@@ -22,8 +30,12 @@ import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
 import { categoriesApi, type Category } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
+import * as s from './categoriesPage.css';
 
-async function extractApiError(err: unknown, fallback: string): Promise<string> {
+type RootFilter = 'all' | 'physical' | 'virtual';
+type IconTone = keyof typeof s.iconTone;
+
+export async function extractApiError(err: unknown, fallback: string): Promise<string> {
   const anyErr = err as { response?: Response; message?: string };
   if (anyErr?.response) {
     try {
@@ -46,12 +58,55 @@ interface CatFormState {
   root_type: string;
 }
 
+const ICON_MAP: Record<string, Icon> = {
+  sofa: IconArmchair2,
+  refrigerator: IconBox,
+  smartphone: IconDeviceMobile,
+  shirt: IconShirt,
+  pill: IconPill,
+  'gamepad-2': IconDeviceGamepad2,
+  'book-open': IconBook,
+  code: IconCode,
+  tools: IconTools,
+  folder: IconFolder,
+};
+
+const TONES: IconTone[] = ['blue', 'green', 'orange', 'violet', 'teal'];
+
+function iconFor(cat: Pick<Category, 'icon' | 'root_type'>): Icon {
+  const key = cat.icon?.trim().toLowerCase();
+  if (key && ICON_MAP[key]) return ICON_MAP[key];
+  return cat.root_type === 'virtual' ? IconDeviceDesktop : IconFolder;
+}
+
+function toneFor(index: number): IconTone {
+  return TONES[index % TONES.length];
+}
+
+export function CategoryGlyph({
+  category,
+  tone = 'green',
+  size = 18,
+}: {
+  category: Pick<Category, 'icon' | 'root_type'>;
+  tone?: IconTone;
+  size?: number;
+}) {
+  const Icon = iconFor(category);
+  return (
+    <span className={`${s.iconTile} ${s.iconTone[tone]}`} aria-hidden>
+      <Icon size={size} />
+    </span>
+  );
+}
+
 export function CategoriesDesktop() {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const toast = useToast();
   const isOnline = useNetworkStatus();
   const [search, setSearch] = useState('');
+  const [rootFilter, setRootFilter] = useState<RootFilter>('physical');
   const [createOpen, setCreateOpen] = useState(false);
   const [editCat, setEditCat] = useState<Category | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
@@ -63,28 +118,48 @@ export function CategoriesDesktop() {
 
   const cats = catsQuery.data?.categories ?? [];
 
-  const filtered = useMemo(() => {
+  const visibleCats = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return cats;
-    return cats.filter((c) => c.name.toLowerCase().includes(q));
-  }, [cats, search]);
+    return cats.filter((cat) => {
+      if (rootFilter !== 'all' && cat.root_type !== rootFilter) return false;
+      if (!q) return true;
+      return cat.name.toLowerCase().includes(q);
+    });
+  }, [cats, rootFilter, search]);
 
   const stats = useMemo(() => {
-    const total = cats.length;
     const physical = cats.filter((c) => c.root_type === 'physical').length;
     const virtual = cats.filter((c) => c.root_type === 'virtual').length;
-    const custom = cats.filter((c) => !c.is_system).length;
-    return { total, physical, virtual, custom };
+    const linked = cats.reduce((sum, cat) => sum + cat.usage_count, 0);
+    return { total: cats.length, physical, virtual, linked };
   }, [cats]);
 
-  const systemCats = useMemo(
-    () => cats.filter((c) => c.is_system),
-    [cats],
-  );
-  const customCats = useMemo(
-    () => cats.filter((c) => !c.is_system),
-    [cats],
-  );
+  const kpiCards = useMemo(() => {
+    const rootCats = rootFilter === 'all'
+      ? cats
+      : cats.filter((cat) => cat.root_type === rootFilter);
+    const top = [...rootCats]
+      .sort((a, b) => b.usage_count - a.usage_count || a.name.localeCompare(b.name))
+      .slice(0, 4);
+    return [
+      {
+        key: 'all',
+        label: t('categories.kpiTotal'),
+        value: rootCats.length,
+        hint: t('categories.kpiTotalHint'),
+        icon: IconCategory2,
+        tone: 'blue' as IconTone,
+      },
+      ...top.map((cat, index) => ({
+        key: cat.id,
+        label: cat.name,
+        value: cat.usage_count,
+        hint: t('categories.usageBadge', { count: cat.usage_count }),
+        icon: iconFor(cat),
+        tone: toneFor(index + 1),
+      })),
+    ].slice(0, 5);
+  }, [cats, rootFilter, t]);
 
   const createMutation = useMutation({
     mutationFn: (body: { name: string; icon?: string; root_type: string }) =>
@@ -106,6 +181,7 @@ export function CategoriesDesktop() {
     onSuccess: () => {
       toast.show(t('categories.updated'));
       qc.invalidateQueries({ queryKey: ['categories'] });
+      qc.invalidateQueries({ queryKey: ['items'] });
       setEditCat(null);
     },
     onError: async (e) => {
@@ -119,6 +195,7 @@ export function CategoriesDesktop() {
     onSuccess: () => {
       toast.show(t('categories.deleted'));
       qc.invalidateQueries({ queryKey: ['categories'] });
+      qc.invalidateQueries({ queryKey: ['items'] });
       setPendingDelete(null);
     },
     onError: async (e) => {
@@ -128,218 +205,134 @@ export function CategoriesDesktop() {
   });
 
   return (
-    <Stack>
-      <div className={uiStyles.pageHeader}>
-        <StackTight>
-          <h2 className="page-heading">{t('categories.title')}</h2>
-          <p className="page-kicker">{t('categories.description')}</p>
-        </StackTight>
-        <div className={uiStyles.pageActions}>
-          <Button
-            variant="primary"
-            leftSection={<IconPlus size={15} />}
-            onClick={() => setCreateOpen(true)}
-            disabled={!isOnline}
-            title={!isOnline ? t('categories.offlineDisabled') : undefined}
-          >
-            {t('categories.addCategory')}
-          </Button>
+    <div className={s.page}>
+      <header className={s.desktopHeader}>
+        <div className={s.headerCopy}>
+          <h2 className={s.title}>{t('categories.title')}</h2>
+          <p className={s.description}>{t('categories.description')}</p>
         </div>
-      </div>
+        <SearchBox value={search} onChange={setSearch} />
+        <Button
+          variant="primary"
+          leftSection={<IconPlus size={15} />}
+          onClick={() => setCreateOpen(true)}
+          disabled={!isOnline}
+          title={!isOnline ? t('categories.offlineDisabled') : undefined}
+        >
+          {t('categories.addCategory')}
+        </Button>
+      </header>
 
-      <div className={uiStyles.tagsKpiGrid}>
-        <KpiCard
-          label={t('categories.kpiTotal')}
-          value={stats.total}
-          hint={t('categories.kpiTotalHint')}
-        />
-        <KpiCard
-          label={t('categories.kpiPhysical')}
-          value={stats.physical}
-          hint={t('categories.kpiPhysicalHint')}
-          accent
-        />
-        <KpiCard
-          label={t('categories.kpiVirtual')}
-          value={stats.virtual}
-          hint={t('categories.kpiVirtualHint')}
-        />
-        <KpiCard
-          label={t('categories.kpiCustom')}
-          value={stats.custom}
-          hint={t('categories.kpiCustomHint')}
-        />
-      </div>
+      <CategoryTabs value={rootFilter} onChange={setRootFilter} />
 
-      <div className={uiStyles.tagsLayout}>
-        <section className={uiStyles.tagsListCard}>
-          <div className={uiStyles.tagsListToolbar}>
-            <div className={uiStyles.tagsSearchWrap}>
-              <span className={uiStyles.tagsSearchIcon} aria-hidden>
-                <IconSearch size={15} />
-              </span>
-              <Input
-                className={uiStyles.tagsSearchInput}
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('categories.searchPlaceholder')}
-                aria-label={t('categories.searchAria')}
-              />
-            </div>
+      <div className={s.kpiGrid}>
+        {kpiCards.map(({ key, label, value, hint, icon: Icon, tone }) => (
+          <div key={key} className={s.kpiCard}>
+            <span className={`${s.iconTile} ${s.iconTone[tone]}`} aria-hidden>
+              <Icon size={18} />
+            </span>
+            <span className={s.kpiMeta}>
+              <span className={s.kpiLabel}>{label}</span>
+              <span className={s.kpiValue}>{value}</span>
+              <span className={s.kpiHint}>{hint}</span>
+            </span>
           </div>
+        ))}
+      </div>
 
-          <div className={uiStyles.tagsTableWrap}>
-            <table className={uiStyles.tagsTable}>
-              <thead>
+      <section className={s.panel}>
+        <div className={s.toolbar}>
+          <span className={s.resultMeta}>
+            {t('categories.resultSummary', {
+              count: visibleCats.length,
+              total: cats.length,
+              linked: stats.linked,
+            })}
+          </span>
+          <span className={s.resultMeta}>
+            {t('categories.rootSummary', {
+              physical: stats.physical,
+              virtual: stats.virtual,
+            })}
+          </span>
+        </div>
+
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <thead>
+              <tr>
+                <th className={s.tableHead}>{t('categories.colName')}</th>
+                <th className={s.tableHead}>{t('categories.colRootType')}</th>
+                <th className={s.tableHead}>{t('categories.colUsage')}</th>
+                <th className={s.tableHead} style={{ textAlign: 'right' }}>
+                  {t('categories.colActions')}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {catsQuery.isPending ? (
                 <tr>
-                  <th className={uiStyles.tagsTableHead}>{t('categories.colName')}</th>
-                  <th className={uiStyles.tagsTableHead}>{t('categories.colIcon')}</th>
-                  <th className={uiStyles.tagsTableHead}>{t('categories.colRootType')}</th>
-                  <th className={uiStyles.tagsTableHead}>{t('categories.colUsage')}</th>
-                  <th className={uiStyles.tagsTableHead} style={{ textAlign: 'right' }}>
-                    {t('categories.colActions')}
-                  </th>
+                  <td colSpan={4} className={s.empty}>
+                    {t('categories.loading')}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {catsQuery.isPending ? (
-                  <tr>
-                    <td colSpan={5} className={uiStyles.tagsEmptyState}>
-                      {t('categories.loading')}
-                    </td>
-                  </tr>
-                ) : filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className={uiStyles.tagsEmptyState}>
-                      {cats.length === 0 ? t('categories.emptyAll') : t('categories.emptyFiltered')}
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map((cat) => (
-                    <tr key={cat.id} className={uiStyles.tagsTableRow}>
-                      <td className={uiStyles.tagsTableCell}>
-                        <div className={uiStyles.tagsTableNameCell}>
-                          <span className={uiStyles.tagsName}>{cat.name}</span>
-                          {cat.is_system ? (
-                            <Badge variant="secondary" style={{ marginLeft: '0.5rem', fontSize: '0.7rem' }}>
-                              <IconLock size={11} style={{ marginRight: 3, verticalAlign: 'middle' }} />
-                              {t('categories.systemBadge')}
-                            </Badge>
-                          ) : (
-                            <Badge variant="secondary" style={{ marginLeft: '0.5rem', fontSize: '0.7rem' }}>
-                              {t('categories.customBadge')}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className={uiStyles.tagsTableCell}>
-                        <code style={{ fontSize: '0.78rem', opacity: 0.7 }}>
-                          {cat.icon ?? '—'}
-                        </code>
-                      </td>
-                      <td className={uiStyles.tagsTableCell}>
-                        {cat.root_type === 'physical'
-                          ? t('categories.rootTypePhysical')
-                          : t('categories.rootTypeVirtual')}
-                      </td>
-                      <td className={uiStyles.tagsTableCell}>
-                        <span
-                          className={
-                            cat.usage_count > 0
-                              ? uiStyles.tagsUsageBadgeActive
-                              : uiStyles.tagsUsageBadge
-                          }
-                        >
-                          {t('categories.usageBadge', { count: cat.usage_count })}
+              ) : visibleCats.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className={s.empty}>
+                    {cats.length === 0 ? t('categories.emptyAll') : t('categories.emptyFiltered')}
+                  </td>
+                </tr>
+              ) : (
+                visibleCats.map((cat, index) => (
+                  <tr key={cat.id} className={s.tableRow}>
+                    <td className={s.tableCell}>
+                      <span className={s.nameCell}>
+                        <CategoryGlyph category={cat} tone={toneFor(index)} />
+                        <span className={s.nameMeta}>
+                          <span className={s.name}>{cat.name}</span>
+                          <span className={s.sub}>{cat.icon || t('categories.defaultIcon')}</span>
                         </span>
-                      </td>
-                      <td className={uiStyles.tagsTableCell}>
-                        <div className={uiStyles.tagsRowActions}>
-                          <Button
-                            variant="subtle"
-                            leftSection={<IconEdit size={14} />}
-                            onClick={() => setEditCat(cat)}
-                            disabled={!isOnline || cat.is_system}
-                          >
-                            {t('common.edit')}
-                          </Button>
-                          <Button
-                            variant="subtle"
-                            leftSection={<IconTrash size={14} />}
-                            onClick={() => setPendingDelete(cat)}
-                            disabled={!isOnline || cat.is_system}
-                          >
-                            {t('common.delete')}
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <aside className={uiStyles.tagsRail}>
-          <div className={uiStyles.tagsRailCard}>
-            <h3 className={uiStyles.tagsRailTitle}>{t('categories.railSummary')}</h3>
-            <div className={uiStyles.tagsMiniKpi}>
-              <span className={uiStyles.tagsMiniKpiLabel}>{t('categories.kpiPhysical')}</span>
-              <span className={uiStyles.tagsMiniKpiValue}>{stats.physical}</span>
-            </div>
-            <div className={uiStyles.tagsMiniKpi}>
-              <span className={uiStyles.tagsMiniKpiLabel}>{t('categories.kpiVirtual')}</span>
-              <span className={uiStyles.tagsMiniKpiValue}>{stats.virtual}</span>
-            </div>
-            <div className={uiStyles.tagsMiniKpi}>
-              <span className={uiStyles.tagsMiniKpiLabel}>{t('categories.kpiCustom')}</span>
-              <span className={uiStyles.tagsMiniKpiValue}>{stats.custom}</span>
-            </div>
-          </div>
-
-          <div className={uiStyles.tagsRailCard}>
-            <h3 className={uiStyles.tagsRailTitle}>{t('categories.railSystem')}</h3>
-            {systemCats.length === 0 ? (
-              <div className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>—</div>
-            ) : (
-              systemCats.map((cat) => (
-                <div key={cat.id} className={uiStyles.tagsRailItem}>
-                  <span className={uiStyles.tagsRailItemName}>{cat.name}</span>
-                  <span className={uiStyles.tagsRailItemMeta}>
-                    {cat.root_type === 'physical' ? '🌍' : '☁️'}{' '}
-                    {t('categories.usageBadge', { count: cat.usage_count })}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className={uiStyles.tagsRailCard}>
-            <h3 className={uiStyles.tagsRailTitle}>{t('categories.railCustom')}</h3>
-            {customCats.length === 0 ? (
-              <div className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>—</div>
-            ) : (
-              customCats.map((cat) => (
-                <div key={cat.id} className={uiStyles.tagsRailItem}>
-                  <span className={uiStyles.tagsRailItemName}>{cat.name}</span>
-                  <span className={uiStyles.tagsRailItemMeta}>
-                    {cat.root_type === 'physical' ? '🌍' : '☁️'}{' '}
-                    {t('categories.usageBadge', { count: cat.usage_count })}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        </aside>
-      </div>
+                      </span>
+                    </td>
+                    <td className={s.tableCell}>{rootTypeLabel(cat.root_type, t)}</td>
+                    <td className={s.tableCell}>
+                      <span className={s.usage}>
+                        {t('categories.usageBadge', { count: cat.usage_count })}
+                      </span>
+                    </td>
+                    <td className={s.tableCell}>
+                      <div className={s.actions}>
+                        <Button
+                          variant="subtle"
+                          leftSection={<IconEdit size={14} />}
+                          onClick={() => setEditCat(cat)}
+                          disabled={!isOnline}
+                        >
+                          {t('common.edit')}
+                        </Button>
+                        <Button
+                          variant="subtle"
+                          leftSection={<IconTrash size={14} />}
+                          onClick={() => setPendingDelete(cat)}
+                          disabled={!isOnline}
+                        >
+                          {t('common.delete')}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <CatFormDialog
         open={createOpen}
         title={t('categories.dialogCreateTitle')}
         submitLabel={t('categories.dialogCreateSubmit')}
-        initial={{ name: '', icon: '', root_type: 'physical' }}
+        initial={{ name: '', icon: '', root_type: rootFilter === 'virtual' ? 'virtual' : 'physical' }}
         submitting={createMutation.isPending}
         onClose={() => setCreateOpen(false)}
         onSubmit={(values) =>
@@ -373,70 +366,72 @@ export function CategoriesDesktop() {
         }}
       />
 
-      <Dialog
-        open={pendingDelete !== null}
-        title={t('categories.dialogDeleteTitle')}
+      <DeleteDialog
+        category={pendingDelete}
+        submitting={deleteMutation.isPending}
         onClose={() => setPendingDelete(null)}
-      >
-        {pendingDelete && (
-          <Stack>
-            <p>
-              {t('categories.deleteConfirm', { name: pendingDelete.name })}
-            </p>
-            {pendingDelete.is_system && (
-              <div className={uiStyles.tagsDeleteWarn}>
-                {t('categories.deleteSystemWarn')}
-              </div>
-            )}
-            <div className={uiStyles.tagsDialogActions}>
-              <Button variant="quiet" onClick={() => setPendingDelete(null)}>
-                {t('common.cancel')}
-              </Button>
-              <Button
-                onClick={() => deleteMutation.mutate(pendingDelete.id)}
-                disabled={deleteMutation.isPending || pendingDelete.is_system}
-              >
-                {t('common.delete')}
-              </Button>
-            </div>
-          </Stack>
-        )}
-      </Dialog>
-    </Stack>
-  );
-}
-
-interface KpiCardProps {
-  label: string;
-  value: number | string;
-  hint?: string;
-  accent?: boolean;
-}
-
-function KpiCard({ label, value, hint, accent }: KpiCardProps) {
-  const valueClass = accent
-    ? uiStyles.tagsKpiValueAccent
-    : uiStyles.tagsKpiValue;
-  return (
-    <div className={uiStyles.tagsKpiCard}>
-      <span className={uiStyles.tagsKpiLabel}>{label}</span>
-      <span className={valueClass}>{value}</span>
-      {hint && <span className={uiStyles.tagsKpiHint}>{hint}</span>}
+        onConfirm={(id) => deleteMutation.mutate(id)}
+      />
     </div>
   );
 }
 
-interface CatFormDialogProps {
-  open: boolean;
-  title: string;
-  submitLabel: string;
-  initial: CatFormState;
-  submitting: boolean;
-  onClose: () => void;
-  onSubmit: (values: CatFormState) => void;
+function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className={s.searchWrap}>
+      <IconSearch className={s.searchIcon} size={16} />
+      <Input
+        className={s.searchInput}
+        type="search"
+        value={value}
+        onChange={(e) => onChange(e.currentTarget.value)}
+        placeholder={t('categories.searchPlaceholder')}
+        aria-label={t('categories.searchAria')}
+      />
+    </div>
+  );
 }
 
-function CatFormDialog({
+function CategoryTabs({
+  value,
+  onChange,
+}: {
+  value: RootFilter;
+  onChange: (value: RootFilter) => void;
+}) {
+  const { t } = useTranslation();
+  const tabs: Array<{ value: RootFilter; label: string }> = [
+    { value: 'physical', label: t('categories.rootTypePhysical') },
+    { value: 'virtual', label: t('categories.rootTypeVirtual') },
+    { value: 'all', label: t('categories.all') },
+  ];
+  return (
+    <div className={s.tabs} role="tablist" aria-label={t('categories.rootFilter')}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.value}
+          type="button"
+          className={s.tab}
+          data-active={value === tab.value || undefined}
+          onClick={() => onChange(tab.value)}
+          role="tab"
+          aria-selected={value === tab.value}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+export function rootTypeLabel(rootType: string, t: ReturnType<typeof useTranslation>['t']): string {
+  return rootType === 'virtual'
+    ? t('categories.rootTypeVirtual')
+    : t('categories.rootTypePhysical');
+}
+
+export function CatFormDialog({
   open,
   title,
   submitLabel,
@@ -444,7 +439,15 @@ function CatFormDialog({
   submitting,
   onClose,
   onSubmit,
-}: CatFormDialogProps) {
+}: {
+  open: boolean;
+  title: string;
+  submitLabel: string;
+  initial: CatFormState;
+  submitting: boolean;
+  onClose: () => void;
+  onSubmit: (values: CatFormState) => void;
+}) {
   const { t } = useTranslation();
   const [name, setName] = useState(initial.name);
   const [icon, setIcon] = useState(initial.icon);
@@ -456,14 +459,13 @@ function CatFormDialog({
       setIcon(initial.icon);
       setRootType(initial.root_type);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [initial.icon, initial.name, initial.root_type, open]);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) return;
-    onSubmit({ name: trimmed, icon, root_type: rootType });
+    onSubmit({ name: trimmed, icon: icon.trim(), root_type: rootType });
   }
 
   return (
@@ -493,7 +495,7 @@ function CatFormDialog({
               { value: 'virtual', label: t('categories.rootTypeVirtual') },
             ]}
           />
-          <div className={uiStyles.tagsDialogActions}>
+          <div className={s.overlayActions}>
             <Button type="button" variant="quiet" onClick={onClose}>
               {t('common.cancel')}
             </Button>
@@ -509,4 +511,39 @@ function CatFormDialog({
       </form>
     </Dialog>
   );
+}
+
+export function DeleteDialog({
+  category,
+  submitting,
+  onClose,
+  onConfirm,
+}: {
+  category: Category | null;
+  submitting: boolean;
+  onClose: () => void;
+  onConfirm: (id: string) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Dialog open={category !== null} title={t('categories.dialogDeleteTitle')} onClose={onClose}>
+      {category && (
+        <Stack>
+          <p>{t('categories.deleteConfirm', { name: category.name })}</p>
+          <div className={s.overlayActions}>
+            <Button variant="quiet" onClick={onClose}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={() => onConfirm(category.id)} disabled={submitting}>
+              {t('common.delete')}
+            </Button>
+          </div>
+        </Stack>
+      )}
+    </Dialog>
+  );
+}
+
+export function MobileMoreIcon() {
+  return <IconDotsCircleHorizontal size={18} />;
 }
