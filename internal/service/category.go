@@ -70,9 +70,6 @@ func (s *CategoryService) Update(ctx context.Context, id string, in CategoryUpda
 	if err != nil {
 		return nil, err
 	}
-	if current.IsSystem {
-		return nil, apperr.Wrapf(apperr.CodeForbidden, http.StatusForbidden, "system preset categories cannot be modified")
-	}
 
 	name := strings.TrimSpace(in.Name)
 	if name == "" {
@@ -96,10 +93,34 @@ func (s *CategoryService) Update(ctx context.Context, id string, in CategoryUpda
 		icon = strings.TrimSpace(in.Icon)
 	}
 
-	if _, err := s.db.ExecContext(ctx,
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx,
 		`UPDATE categories SET name = ?, icon = ?, root_type = ? WHERE id = ?`,
 		name, icon, rootType, id,
 	); err != nil {
+		return nil, err
+	}
+	if name != current.Name {
+		now := time.Now().Unix()
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE items SET category = ?, updated_at = ? WHERE category = ?`,
+			name, now, current.Name,
+		); err != nil {
+			return nil, err
+		}
+		if _, err := tx.ExecContext(ctx,
+			`UPDATE items_fts SET category = ? WHERE item_id IN (SELECT id FROM items WHERE category = ?)`,
+			name, name,
+		); err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return s.Get(ctx, id)
@@ -110,11 +131,28 @@ func (s *CategoryService) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	if current.IsSystem {
-		return apperr.Wrapf(apperr.CodeForbidden, http.StatusForbidden, "system preset categories cannot be deleted")
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
 	}
-	_, err = s.db.ExecContext(ctx, `DELETE FROM categories WHERE id = ?`, id)
-	return err
+	defer tx.Rollback()
+
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE items_fts SET category = '' WHERE item_id IN (SELECT id FROM items WHERE category = ?)`,
+		current.Name,
+	); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE items SET category = NULL, updated_at = ? WHERE category = ?`,
+		time.Now().Unix(), current.Name,
+	); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, `DELETE FROM categories WHERE id = ?`, id); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (s *CategoryService) List(ctx context.Context) ([]*model.Category, error) {
@@ -124,7 +162,7 @@ func (s *CategoryService) List(ctx context.Context) ([]*model.Category, error) {
 		FROM categories c
 		LEFT JOIN items i ON i.category = c.name
 		GROUP BY c.id
-		ORDER BY c.is_system DESC, c.name ASC
+		ORDER BY c.name ASC
 	`)
 	if err != nil {
 		return nil, err

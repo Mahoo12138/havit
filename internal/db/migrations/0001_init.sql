@@ -251,16 +251,16 @@ CREATE VIRTUAL TABLE items_fts USING fts5(
     tokenize='trigram'
 );
 
--- Seed system preset categories
+-- Seed default categories
 INSERT INTO categories (id, name, icon, root_type, is_system, created_at) VALUES
-('cat_furniture',  '家具',      'sofa',         'physical', 1, strftime('%s','now')),
-('cat_appliances', '电器',      'refrigerator', 'physical', 1, strftime('%s','now')),
-('cat_digital_hw', '数码硬件',  'smartphone',   'physical', 1, strftime('%s','now')),
-('cat_clothing',   '衣物',      'shirt',        'physical', 1, strftime('%s','now')),
-('cat_medical',    '医药',      'pill',         'physical', 1, strftime('%s','now')),
-('cat_games',      '游戏',      'gamepad-2',    'virtual',  1, strftime('%s','now')),
-('cat_ebooks',     '电子书',    'book-open',    'virtual',  1, strftime('%s','now')),
-('cat_software',   '独立软件',  'code',         'virtual',  1, strftime('%s','now'));
+('cat_furniture',  '家具',      'sofa',         'physical', 0, strftime('%s','now')),
+('cat_appliances', '电器',      'refrigerator', 'physical', 0, strftime('%s','now')),
+('cat_digital_hw', '数码硬件',  'smartphone',   'physical', 0, strftime('%s','now')),
+('cat_clothing',   '衣物',      'shirt',        'physical', 0, strftime('%s','now')),
+('cat_medical',    '医药',      'pill',         'physical', 0, strftime('%s','now')),
+('cat_games',      '游戏',      'gamepad-2',    'virtual',  0, strftime('%s','now')),
+('cat_ebooks',     '电子书',    'book-open',    'virtual',  0, strftime('%s','now')),
+('cat_software',   '独立软件',  'code',         'virtual',  0, strftime('%s','now'));
 
 -- +goose Down
 DROP TABLE IF EXISTS api_tokens;
