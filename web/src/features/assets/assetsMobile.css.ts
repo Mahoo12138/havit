@@ -5,6 +5,8 @@ export const page = style({
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space3,
+  width: '100%',
+  minWidth: 0,
   paddingBottom: '5rem',
 });
 
@@ -13,22 +15,38 @@ export const statsScroll = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: themeVars.space3,
+  minWidth: 0,
+  '@media': {
+    '(max-width: 22em)': {
+      gap: themeVars.space2,
+    },
+  },
 });
 
 export const statTile = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.3rem',
-  padding: themeVars.space3,
-  borderRadius: themeVars.radius3,
+  minWidth: 0,
+  display: 'grid',
+  gridTemplateColumns: '1.75rem minmax(0, 1fr)',
+  gridTemplateRows: 'auto auto',
+  columnGap: themeVars.space2,
+  rowGap: '0.05rem',
+  alignItems: 'center',
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderRadius: themeVars.radius2,
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   boxShadow: themeVars.shadowSoft,
+  '@media': {
+    '(max-width: 22em)': {
+      padding: themeVars.space2,
+    },
+  },
 });
 
 export const statIcon = style({
   width: '1.75rem',
   height: '1.75rem',
+  gridRow: '1 / 3',
   display: 'inline-grid',
   placeItems: 'center',
   borderRadius: themeVars.radius2,
@@ -54,7 +72,7 @@ export const statIconTone = styleVariants({
 });
 
 export const statValue = style({
-  fontSize: '1.25rem',
+  fontSize: '1.08rem',
   lineHeight: 1.1,
   fontWeight: 760,
   color: themeVars.ink,
@@ -62,7 +80,7 @@ export const statValue = style({
 });
 
 export const statLabel = style({
-  fontSize: '0.68rem',
+  fontSize: '0.72rem',
   color: themeVars.muted,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
@@ -75,10 +93,12 @@ export const filterBar = style({
   gap: themeVars.space2,
   alignItems: 'center',
   paddingTop: themeVars.space1,
+  minWidth: 0,
 });
 
 export const searchWrap = style({
   flex: 1,
+  minWidth: 0,
   position: 'relative',
 });
 
@@ -137,6 +157,12 @@ export const filterPanel = style({
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   boxShadow: themeVars.shadowSoft,
+  minWidth: 0,
+  '@media': {
+    '(max-width: 24em)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
 });
 
 export const filterSelectTrigger = style({
@@ -168,6 +194,7 @@ export const cardList = style({
 });
 
 export const card = style({
+  minWidth: 0,
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space2,
@@ -186,9 +213,16 @@ export const card = style({
 });
 
 export const cardHeader = style({
-  display: 'flex',
+  display: 'grid',
+  gridTemplateColumns: '2.25rem minmax(0, 1fr) auto',
   alignItems: 'center',
   gap: themeVars.space3,
+  minWidth: 0,
+  '@media': {
+    '(max-width: 22em)': {
+      gap: themeVars.space2,
+    },
+  },
 });
 
 export const cardThumb = style({
@@ -229,11 +263,21 @@ export const cardSub = style({
 });
 
 export const cardPrice = style({
-  flex: '0 0 auto',
   fontSize: '0.82rem',
   fontWeight: 600,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
+  maxWidth: '6.5rem',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  textAlign: 'right',
+  '@media': {
+    '(max-width: 22em)': {
+      maxWidth: '5.25rem',
+      fontSize: '0.76rem',
+    },
+  },
 });
 
 export const cardFooter = style({
@@ -243,6 +287,8 @@ export const cardFooter = style({
   gap: themeVars.space2,
   paddingTop: themeVars.space1,
   borderTop: `1px solid ${themeVars.lineSoft}`,
+  minWidth: 0,
+  flexWrap: 'wrap',
 });
 
 export const cardLocation = style({
@@ -252,6 +298,7 @@ export const cardLocation = style({
   fontSize: '0.72rem',
   color: themeVars.muted,
   minWidth: 0,
+  flex: '1 1 8rem',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -342,6 +389,7 @@ export const overlay = style({
   display: 'flex',
   flexDirection: 'column',
   background: themeVars.bg,
+  minWidth: 0,
 });
 
 export const overlayHeader = style({
@@ -350,6 +398,7 @@ export const overlayHeader = style({
   justifyContent: 'space-between',
   padding: `${themeVars.space4}`,
   borderBottom: `1px solid ${themeVars.line}`,
+  paddingTop: 'max(1rem, env(safe-area-inset-top))',
 });
 
 export const overlayTitle = style({
@@ -375,10 +424,11 @@ export const overlayClose = style({
 export const overlayBody = style({
   flex: 1,
   overflow: 'auto',
-  padding: themeVars.space4,
+  padding: `${themeVars.space4} ${themeVars.space4} calc(${themeVars.space4} + env(safe-area-inset-bottom))`,
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space4,
+  minWidth: 0,
 });
 
 export const overlayActions = style({
@@ -387,4 +437,9 @@ export const overlayActions = style({
   gap: themeVars.space3,
   paddingTop: themeVars.space4,
   borderTop: `1px solid ${themeVars.line}`,
+  flexWrap: 'wrap',
+});
+
+globalStyle(`${overlayActions} > *`, {
+  flex: '1 1 8rem',
 });

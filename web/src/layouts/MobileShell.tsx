@@ -51,6 +51,7 @@ export function MobileShell({ systemStatus }: ShellProps) {
   ];
   const pageTitle = getMobileTitle(path, t);
   const showBack = isMobileSubPage(path);
+  const showBottomNav = !showBack;
 
   async function handleLogout() {
     try {
@@ -150,51 +151,51 @@ export function MobileShell({ systemStatus }: ShellProps) {
         </main>
       </ScrollArea>
 
-      {/* Bottom Navigation */}
-      <nav className={s.bottomNav}>
-        {bottomItems.slice(0, 2).map((item) => {
-          const Icon = item.icon;
-          const active = item.to === '/' ? path === '/' : path.startsWith(item.to);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={s.bottomNavItem}
-              data-active={active}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-        {/* FAB */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={s.fabBtn}
-          onClick={handlePrimaryAction}
-          aria-label={t('nav.capture')}
-        >
-          <IconPlus size={22} />
-        </Button>
-        <span className={s.bottomNavCenterGap} aria-hidden />
-        {bottomItems.slice(2).map((item) => {
-          const Icon = item.icon;
-          const active = item.to === '/' ? path === '/' : path.startsWith(item.to);
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              className={s.bottomNavItem}
-              data-active={active}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
+      {showBottomNav && (
+        <nav className={s.bottomNav}>
+          {bottomItems.slice(0, 2).map((item) => {
+            const Icon = item.icon;
+            const active = item.to === '/' ? path === '/' : path.startsWith(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={s.bottomNavItem}
+                data-active={active}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={s.fabBtn}
+            onClick={handlePrimaryAction}
+            aria-label={t('nav.capture')}
+          >
+            <IconPlus size={22} />
+          </Button>
+          <span className={s.bottomNavCenterGap} aria-hidden />
+          {bottomItems.slice(2).map((item) => {
+            const Icon = item.icon;
+            const active = item.to === '/' ? path === '/' : path.startsWith(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={s.bottomNavItem}
+                data-active={active}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      )}
 
       {/* Drawer */}
       {drawerOpen && (

@@ -5,44 +5,73 @@ export const page = style({
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space3,
+  width: '100%',
+  minWidth: 0,
   paddingBottom: '5.5rem',
 });
 
 export const mobileTopActions = style({
+  position: 'absolute',
+  top: themeVars.space3,
+  left: themeVars.space3,
+  right: themeVars.space3,
+  zIndex: 2,
   display: 'flex',
-  justifyContent: 'flex-end',
+  justifyContent: 'space-between',
   gap: themeVars.space1,
+  pointerEvents: 'none',
+});
+
+export const heroAction = style({
+  pointerEvents: 'auto',
+  background: `color-mix(in srgb, ${themeVars.panel} 84%, transparent)`,
+  border: `1px solid ${themeVars.lineSoft}`,
+  color: themeVars.ink,
 });
 
 export const hero = style({
+  position: 'relative',
+  minWidth: 0,
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius3,
   background: themeVars.panel,
   overflow: 'hidden',
+  boxShadow: themeVars.shadowSoft,
 });
 
 export const photoFrame = style({
   position: 'relative',
   display: 'grid',
   placeItems: 'center',
-  minHeight: '14rem',
-  aspectRatio: '4 / 3',
+  height: 'min(64vw, 16.25rem)',
+  minHeight: '10.5rem',
+  aspectRatio: '16 / 9',
   background: `linear-gradient(180deg, ${themeVars.bgSoft}, ${themeVars.panel})`,
+  overflow: 'hidden',
+  selectors: {
+    '&[data-empty]': {
+      height: 'auto',
+      minHeight: '6.25rem',
+      aspectRatio: 'auto',
+    },
+  },
 });
 
 export const heroPhoto = style({
   width: '100%',
   height: '100%',
   objectFit: 'contain',
+  objectPosition: 'center',
+  background: themeVars.bgSoft,
 });
 
 export const photoEmpty = style({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
-  gap: themeVars.space2,
+  gap: themeVars.space1,
   color: themeVars.muted,
-  fontSize: '0.84rem',
+  fontSize: '0.78rem',
 });
 
 export const photoCount = style({
@@ -61,13 +90,14 @@ export const thumbStrip = style({
   display: 'flex',
   gap: themeVars.space2,
   overflowX: 'auto',
-  padding: `${themeVars.space3} ${themeVars.space3} 0`,
+  padding: `${themeVars.space2} ${themeVars.space3} 0`,
+  scrollbarWidth: 'none',
 });
 
 export const thumbButton = style({
   flex: '0 0 auto',
-  width: '3rem',
-  height: '3rem',
+  width: '2.5rem',
+  height: '2.5rem',
   padding: 0,
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius1,
@@ -89,8 +119,8 @@ export const thumbImg = style({
 
 export const thumbAdd = style({
   flex: '0 0 auto',
-  width: '3rem',
-  height: '3rem',
+  width: '2.5rem',
+  height: '2.5rem',
   display: 'grid',
   placeItems: 'center',
   border: `1px dashed ${themeVars.line}`,
@@ -106,15 +136,16 @@ export const hiddenInput = style({
 export const summary = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: themeVars.space3,
-  padding: themeVars.space4,
+  gap: themeVars.space2,
+  padding: `${themeVars.space3} ${themeVars.space4} ${themeVars.space4}`,
+  minWidth: 0,
 });
 
 export const title = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '1.3rem',
-  lineHeight: 1.2,
+  fontSize: '1.55rem',
+  lineHeight: 1.12,
   fontWeight: 760,
   letterSpacing: 0,
   textWrap: 'balance',
@@ -174,17 +205,18 @@ export const mutedText = style({
 });
 
 export const specList = style({
-  display: 'flex',
-  flexDirection: 'column',
+  display: 'grid',
+  gridTemplateColumns: '1fr',
   borderTop: `1px solid ${themeVars.lineSoft}`,
+  marginTop: themeVars.space1,
 });
 
 export const specRow = style({
   display: 'grid',
-  gridTemplateColumns: '6rem minmax(0, 1fr)',
-  gap: themeVars.space3,
+  gridTemplateColumns: '5.75rem minmax(0, 1fr)',
+  gap: themeVars.space2,
   alignItems: 'center',
-  minHeight: '2.2rem',
+  minHeight: '1.9rem',
   borderBottom: `1px solid ${themeVars.lineSoft}`,
 });
 
@@ -199,6 +231,7 @@ export const specValue = style({
   fontWeight: 600,
   textAlign: 'right',
   overflowWrap: 'anywhere',
+  minWidth: 0,
 });
 
 export const qrChip = style({
@@ -214,29 +247,39 @@ export const qrChip = style({
 });
 
 export const actionList = style({
-  display: 'flex',
-  flexDirection: 'column',
-  border: `1px solid ${themeVars.line}`,
+  display: 'grid',
+  gridTemplateColumns: '1fr',
+  gap: themeVars.space2,
+  border: 0,
   borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  overflow: 'hidden',
+  background: 'transparent',
+  padding: 0,
+  '@media': {
+    '(min-width: 26em)': {
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
+  },
 });
 
 export const actionRow = style({
   display: 'grid',
-  gridTemplateColumns: '1.75rem minmax(0, 1fr) auto auto',
+  gridTemplateColumns: '1.6rem minmax(0, 1fr) auto auto',
   alignItems: 'center',
   gap: themeVars.space2,
   minHeight: '3rem',
-  border: 0,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  border: `1px solid ${themeVars.lineSoft}`,
+  borderRadius: themeVars.radius2,
   background: themeVars.panel,
   color: themeVars.text,
-  padding: `0 ${themeVars.space4}`,
+  padding: `0 ${themeVars.space3}`,
   textAlign: 'left',
+  font: 'inherit',
+  minWidth: 0,
+  cursor: 'pointer',
+  boxShadow: themeVars.shadowSoft,
   selectors: {
-    '&:last-child': {
-      borderBottom: 0,
+    '&:hover, &:active': {
+      background: themeVars.lineSoft,
     },
   },
 });
@@ -249,13 +292,20 @@ export const actionIcon = style({
 
 export const actionLabel = style({
   color: themeVars.ink,
-  fontSize: '0.9rem',
+  fontSize: '0.88rem',
   fontWeight: 650,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const actionValue = style({
   color: themeVars.muted,
-  fontSize: '0.8rem',
+  fontSize: '0.78rem',
+  maxWidth: '8rem',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const chevron = style({
@@ -263,10 +313,12 @@ export const chevron = style({
 });
 
 export const section = style({
+  minWidth: 0,
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius3,
   background: themeVars.panel,
   overflow: 'hidden',
+  boxShadow: themeVars.shadowSoft,
 });
 
 export const sectionHead = style({
@@ -292,7 +344,7 @@ export const sectionTitle = style({
 export const sectionBody = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: themeVars.space3,
+  gap: themeVars.space2,
   padding: themeVars.space4,
 });
 
@@ -368,7 +420,8 @@ export const bottomBar = style({
   display: 'grid',
   gridTemplateColumns: '1fr 1fr auto',
   gap: themeVars.space2,
-  padding: `${themeVars.space3} ${themeVars.space4}`,
+  padding: `${themeVars.space2} ${themeVars.space4} calc(${themeVars.space2} + env(safe-area-inset-bottom, 0px))`,
   borderTop: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
+  boxShadow: '0 -6px 18px rgba(15, 23, 42, 0.06)',
 });

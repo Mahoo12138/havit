@@ -511,10 +511,13 @@ export const sideColumn = style({
     },
     '(max-width: 76em)': {
       display: 'grid',
-      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
       alignItems: 'stretch',
     },
-    '(max-width: 52em)': {
+    '(max-width: 58em)': {
+      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    },
+    '(max-width: 44em)': {
       display: 'flex',
       flexDirection: 'column',
     },
@@ -528,10 +531,10 @@ export const sideCard = style({
 export const sideCardWide = style({
   '@media': {
     '(max-width: 76em)': {
-      gridColumn: '1 / -1',
-    },
-    '(max-width: 52em)': {
       gridColumn: 'auto',
+    },
+    '(max-width: 58em)': {
+      gridColumn: '1 / -1',
     },
   },
 });

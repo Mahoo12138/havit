@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { IconDots } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
@@ -25,25 +25,30 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
     queryFn: () => categoriesApi.list(),
   });
 
-  const allCats = data?.categories ?? [];
-  const cats = allCats.filter((c) => c.root_type === rootType);
+  const allTabs = useMemo(() => {
+    const allCats = data?.categories ?? [];
+    const cats = allCats.filter((c) => c.root_type === rootType);
+    return [
+      { key: 'all', label: t('categories.all') },
+      ...cats.map((c) => ({ key: c.name, label: c.name })),
+    ];
+  }, [data?.categories, rootType, t]);
 
-  // Build tab list: "全部" first, then category tabs
-  const allTabs = [
-    { key: 'all', label: t('categories.all') },
-    ...cats.map((c) => ({ key: c.name, label: c.name })),
-  ];
-
-  const overflowTabs = allTabs.slice(visibleCount);
+  const activeIndex = allTabs.findIndex((tab) => tab.key === value);
+  const baseHasOverflow = allTabs.length > visibleCount;
+  const pinActiveOverflow = baseHasOverflow && activeIndex >= visibleCount && activeIndex >= 0;
+  const visibleLimit = pinActiveOverflow ? Math.max(0, visibleCount - 1) : visibleCount;
+  const overflowTabs = baseHasOverflow
+    ? allTabs.filter((_, index) => index >= visibleLimit && !(pinActiveOverflow && index === activeIndex))
+    : [];
   const hasOverflow = overflowTabs.length > 0;
-  const overflowActive = overflowTabs.some((tab) => tab.key === value);
 
   const measure = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
     const containerWidth = container.clientWidth;
     const tabEls = Array.from(container.querySelectorAll<HTMLElement>('[data-slot="tabs-trigger"]'));
-    // Reserve space for the "..." button (approx 40px)
+    // Reserve space for the overflow trigger.
     const moreButtonWidth = 40;
     let usedWidth = 0;
     let count = 0;
@@ -88,13 +93,15 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
       >
         <TabsList className={s.list}>
           {allTabs.map((tab, i) => {
-            const isHidden = hasOverflow && i >= visibleCount;
+            const isPinned = pinActiveOverflow && i === activeIndex;
+            const isHidden = hasOverflow && !isPinned && i >= visibleLimit;
             return (
               <TabsTrigger
                 key={tab.key}
                 value={tab.key}
                 className={`${s.tab}${isHidden ? ` ${s.hiddenTab}` : ''}`}
-                data-selected={(isHidden ? overflowActive && value === tab.key : value === tab.key) || undefined}
+                data-pinned={isPinned || undefined}
+                data-selected={value === tab.key || undefined}
               >
                 {tab.label}
               </TabsTrigger>
@@ -103,8 +110,7 @@ export function CategoryTabs({ rootType, value, onChange }: CategoryTabsProps) {
           {hasOverflow && (
             <Popover open={overflowOpen} onOpenChange={setOverflowOpen}>
               <PopoverTrigger
-                className={s.tab}
-                data-selected={overflowActive || undefined}
+                className={`${s.tab} ${s.overflowTrigger}`}
               >
                 <IconDots size={16} />
               </PopoverTrigger>

@@ -66,13 +66,12 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
 
   return (
     <div className={s.page}>
-      <div className={s.mobileTopActions}>
-        <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')}><IconEdit size={17} /></Button>
-        <Button variant="ghost" size="icon-sm" aria-label={t('itemDetail.more')}><IconDots size={17} /></Button>
-      </div>
-
       <section className={s.hero}>
-        <div className={s.photoFrame}>
+        <div className={s.mobileTopActions}>
+          <Button variant="ghost" size="icon-sm" aria-label={t('common.edit')} className={s.heroAction}><IconEdit size={17} /></Button>
+          <Button variant="ghost" size="icon-sm" aria-label={t('itemDetail.more')} className={s.heroAction}><IconDots size={17} /></Button>
+        </div>
+        <div className={s.photoFrame} data-empty={!currentPhoto || undefined}>
           {currentPhoto ? <img className={s.heroPhoto} src={currentPhoto.url} alt={currentPhoto.filename} /> : <PhotoEmpty />}
           {photos.length > 0 && <span className={s.photoCount}>{photoIdx + 1}/{photos.length}</span>}
         </div>
@@ -88,7 +87,7 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
             </button>
           )}
         </div>
-        <input ref={fileInputRef} type="file" accept="image/*" className={s.hiddenInput} onChange={(event) => { handlePhotoPick(event.currentTarget.files?.[0]); event.currentTarget.value = ''; }} />
+        <input ref={fileInputRef} type="file" accept="image/*" hidden className={s.hiddenInput} onChange={(event) => { handlePhotoPick(event.currentTarget.files?.[0]); event.currentTarget.value = ''; }} />
 
         <div className={s.summary}>
           <h1 className={s.title}>{data.name}</h1>
