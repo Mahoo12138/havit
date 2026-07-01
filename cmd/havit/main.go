@@ -104,6 +104,7 @@ func main() {
 	r.Use(chimiddleware.RealIP)
 	r.Use(chimiddleware.Logger)
 	r.Use(chimiddleware.Recoverer)
+	r.Use(chimiddleware.Compress(5, "text/html", "text/css", "text/javascript", "application/javascript", "application/json", "image/svg+xml"))
 	r.Use(chimiddleware.Timeout(30 * time.Second))
 	if cfg.Server.CORSOrigins != "" {
 		r.Use(authmw.CORS(cfg.Server.CORSOrigins))
