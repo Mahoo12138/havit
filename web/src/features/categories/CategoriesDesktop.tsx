@@ -1,23 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  IconArmchair2,
-  IconBook,
-  IconBox,
-  IconCategory2,
-  IconCode,
-  IconDeviceDesktop,
-  IconDeviceMobile,
   IconDotsCircleHorizontal,
   IconEdit,
-  IconFolder,
-  IconDeviceGamepad2,
-  IconPill,
   IconPlus,
   IconSearch,
-  IconShirt,
-  IconTools,
   IconTrash,
-  type Icon,
 } from '@tabler/icons-react';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +15,9 @@ import { Input } from '../../components/ui/input';
 import { SelectField } from '../../components/ui/select-field';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
+import { AssetIcon } from '../../lib/asset-icons/AssetIcon';
+import { defaultAssetIconId } from '../../lib/asset-icons/catalog';
+import { IconPickerField } from '../../lib/asset-icons/IconPickerField';
 import { categoriesApi, type Category } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import * as s from './categoriesPage.css';
@@ -58,26 +48,7 @@ interface CatFormState {
   root_type: string;
 }
 
-const ICON_MAP: Record<string, Icon> = {
-  sofa: IconArmchair2,
-  refrigerator: IconBox,
-  smartphone: IconDeviceMobile,
-  shirt: IconShirt,
-  pill: IconPill,
-  'gamepad-2': IconDeviceGamepad2,
-  'book-open': IconBook,
-  code: IconCode,
-  tools: IconTools,
-  folder: IconFolder,
-};
-
 const TONES: IconTone[] = ['blue', 'green', 'orange', 'violet', 'teal'];
-
-function iconFor(cat: Pick<Category, 'icon' | 'root_type'>): Icon {
-  const key = cat.icon?.trim().toLowerCase();
-  if (key && ICON_MAP[key]) return ICON_MAP[key];
-  return cat.root_type === 'virtual' ? IconDeviceDesktop : IconFolder;
-}
 
 function toneFor(index: number): IconTone {
   return TONES[index % TONES.length];
@@ -92,10 +63,14 @@ export function CategoryGlyph({
   tone?: IconTone;
   size?: number;
 }) {
-  const Icon = iconFor(category);
   return (
     <span className={`${s.iconTile} ${s.iconTone[tone]}`} aria-hidden>
-      <Icon size={size} />
+      <AssetIcon
+        id={category.icon}
+        fallbackId={defaultAssetIconId(category.root_type)}
+        rootType={category.root_type}
+        size={size}
+      />
     </span>
   );
 }
@@ -138,6 +113,10 @@ export function CategoriesDesktop() {
     const rootCats = rootFilter === 'all'
       ? cats
       : cats.filter((cat) => cat.root_type === rootFilter);
+    const totalCategory: Pick<Category, 'icon' | 'root_type'> = {
+      icon: 'category-2',
+      root_type: rootFilter === 'virtual' ? 'virtual' : 'physical',
+    };
     const top = [...rootCats]
       .sort((a, b) => b.usage_count - a.usage_count || a.name.localeCompare(b.name))
       .slice(0, 4);
@@ -147,7 +126,7 @@ export function CategoriesDesktop() {
         label: t('categories.kpiTotal'),
         value: rootCats.length,
         hint: t('categories.kpiTotalHint'),
-        icon: IconCategory2,
+        category: totalCategory,
         tone: 'blue' as IconTone,
       },
       ...top.map((cat, index) => ({
@@ -155,7 +134,7 @@ export function CategoriesDesktop() {
         label: cat.name,
         value: cat.usage_count,
         hint: t('categories.usageBadge', { count: cat.usage_count }),
-        icon: iconFor(cat),
+        category: cat,
         tone: toneFor(index + 1),
       })),
     ].slice(0, 5);
@@ -226,11 +205,9 @@ export function CategoriesDesktop() {
       <CategoryTabs value={rootFilter} onChange={setRootFilter} />
 
       <div className={s.kpiGrid}>
-        {kpiCards.map(({ key, label, value, hint, icon: Icon, tone }) => (
+        {kpiCards.map(({ key, label, value, hint, category, tone }) => (
           <div key={key} className={s.kpiCard}>
-            <span className={`${s.iconTile} ${s.iconTone[tone]}`} aria-hidden>
-              <Icon size={18} />
-            </span>
+            <CategoryGlyph category={category} tone={tone} />
             <span className={s.kpiMeta}>
               <span className={s.kpiLabel}>{label}</span>
               <span className={s.kpiValue}>{value}</span>
@@ -469,9 +446,9 @@ export function CatFormDialog({
   }
 
   return (
-    <Dialog open={open} title={title} onClose={onClose}>
-      <form onSubmit={handleSubmit}>
-        <Stack>
+    <Dialog open={open} title={title} onClose={onClose} contentClassName={s.categoryDialog}>
+      <form className={s.categoryForm} onSubmit={handleSubmit}>
+        <Stack className={s.categoryFormStack}>
           <TextField
             label={t('categories.fieldName')}
             value={name}
@@ -480,11 +457,11 @@ export function CatFormDialog({
             required
             placeholder={t('categories.fieldNamePlaceholder')}
           />
-          <TextField
+          <IconPickerField
             label={t('categories.fieldIcon')}
             value={icon}
-            onChange={(e) => setIcon(e.currentTarget.value)}
-            placeholder={t('categories.fieldIconPlaceholder')}
+            onChange={setIcon}
+            rootType={rootType}
           />
           <SelectField
             label={t('categories.fieldRootType')}

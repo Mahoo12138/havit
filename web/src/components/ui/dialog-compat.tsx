@@ -8,15 +8,17 @@ function Dialog({
   title,
   children,
   onClose,
+  contentClassName,
 }: {
   open: boolean;
   title: string;
   children: ReactNode;
   onClose: () => void;
+  contentClassName?: string;
 }) {
   return (
     <DialogRoot open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <DialogContent>
+      <DialogContent className={contentClassName}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

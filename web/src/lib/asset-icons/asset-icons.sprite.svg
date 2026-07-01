@@ -1,0 +1,935 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="asset-icon-folder" viewBox="0 0 24 24">
+    <path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" />
+  </symbol>
+  <symbol id="asset-icon-folder-open" viewBox="0 0 24 24">
+    <path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2" />
+  </symbol>
+  <symbol id="asset-icon-archive" viewBox="0 0 24 24">
+    <path d="M3 6a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2" />
+    <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+    <path d="M10 12l4 0" />
+  </symbol>
+  <symbol id="asset-icon-box" viewBox="0 0 24 24">
+    <path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" />
+    <path d="M12 12l8 -4.5" />
+    <path d="M12 12l0 9" />
+    <path d="M12 12l-8 -4.5" />
+  </symbol>
+  <symbol id="asset-icon-package" viewBox="0 0 24 24">
+    <path d="M12 3l8 4.5l0 9l-8 4.5l-8 -4.5l0 -9l8 -4.5" />
+    <path d="M12 12l8 -4.5" />
+    <path d="M12 12l0 9" />
+    <path d="M12 12l-8 -4.5" />
+    <path d="M16 5.25l-8 4.5" />
+  </symbol>
+  <symbol id="asset-icon-building-warehouse" viewBox="0 0 24 24">
+    <path d="M3 21v-13l9 -4l9 4v13" />
+    <path d="M13 13h4v8h-10v-6h6" />
+    <path d="M13 21v-9a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v3" />
+  </symbol>
+  <symbol id="asset-icon-category" viewBox="0 0 24 24">
+    <path d="M4 4h6v6h-6l0 -6" />
+    <path d="M14 4h6v6h-6l0 -6" />
+    <path d="M4 14h6v6h-6l0 -6" />
+    <path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+  </symbol>
+  <symbol id="asset-icon-category-2" viewBox="0 0 24 24">
+    <path d="M14 4h6v6h-6l0 -6" />
+    <path d="M4 14h6v6h-6l0 -6" />
+    <path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M4 7a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+  </symbol>
+  <symbol id="asset-icon-tag" viewBox="0 0 24 24">
+    <path d="M6.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+    <path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3" />
+  </symbol>
+  <symbol id="asset-icon-tags" viewBox="0 0 24 24">
+    <path d="M3 8v4.172a2 2 0 0 0 .586 1.414l5.71 5.71a2.41 2.41 0 0 0 3.408 0l3.592 -3.592a2.41 2.41 0 0 0 0 -3.408l-5.71 -5.71a2 2 0 0 0 -1.414 -.586h-4.172a2 2 0 0 0 -2 2" />
+    <path d="M18 19l1.592 -1.592a4.82 4.82 0 0 0 0 -6.816l-4.592 -4.592" />
+    <path d="M7 10h-.01" />
+  </symbol>
+  <symbol id="asset-icon-list-details" viewBox="0 0 24 24">
+    <path d="M13 5h8" />
+    <path d="M13 9h5" />
+    <path d="M13 15h8" />
+    <path d="M13 19h5" />
+    <path d="M3 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+    <path d="M3 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+  </symbol>
+  <symbol id="asset-icon-receipt" viewBox="0 0 24 24">
+    <path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" />
+  </symbol>
+  <symbol id="asset-icon-barcode" viewBox="0 0 24 24">
+    <path d="M4 7v-1a2 2 0 0 1 2 -2h2" />
+    <path d="M4 17v1a2 2 0 0 0 2 2h2" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v1" />
+    <path d="M16 20h2a2 2 0 0 0 2 -2v-1" />
+    <path d="M5 11h1v2h-1l0 -2" />
+    <path d="M10 11l0 2" />
+    <path d="M14 11h1v2h-1l0 -2" />
+    <path d="M19 11l0 2" />
+  </symbol>
+  <symbol id="asset-icon-qrcode" viewBox="0 0 24 24">
+    <path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+    <path d="M7 17l0 .01" />
+    <path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+    <path d="M7 7l0 .01" />
+    <path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+    <path d="M17 7l0 .01" />
+    <path d="M14 14l3 0" />
+    <path d="M20 14l0 .01" />
+    <path d="M14 14l0 3" />
+    <path d="M14 20l3 0" />
+    <path d="M17 17l3 0" />
+    <path d="M20 17l0 3" />
+  </symbol>
+  <symbol id="asset-icon-scan" viewBox="0 0 24 24">
+    <path d="M5 12h14" />
+    <path d="M3 7v-2a2 2 0 0 1 2 -2h2" />
+    <path d="M3 17v2a2 2 0 0 0 2 2h2" />
+    <path d="M17 3h2a2 2 0 0 1 2 2v2" />
+    <path d="M17 21h2a2 2 0 0 0 2 -2v-2" />
+  </symbol>
+  <symbol id="asset-icon-clipboard" viewBox="0 0 24 24">
+    <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" />
+    <path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2" />
+  </symbol>
+  <symbol id="asset-icon-checklist" viewBox="0 0 24 24">
+    <path d="M9.615 20h-2.615a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8" />
+    <path d="M14 19l2 2l4 -4" />
+    <path d="M9 8h4" />
+    <path d="M9 12h2" />
+  </symbol>
+  <symbol id="asset-icon-calendar" viewBox="0 0 24 24">
+    <path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12" />
+    <path d="M16 3v4" />
+    <path d="M8 3v4" />
+    <path d="M4 11h16" />
+    <path d="M11 15h1" />
+    <path d="M12 15v3" />
+  </symbol>
+  <symbol id="asset-icon-home" viewBox="0 0 24 24">
+    <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+    <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+    <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+  </symbol>
+  <symbol id="asset-icon-home-2" viewBox="0 0 24 24">
+    <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+    <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+    <path d="M10 12h4v4h-4l0 -4" />
+  </symbol>
+  <symbol id="asset-icon-sofa" viewBox="0 0 24 24">
+    <path d="M4 11a2 2 0 0 1 2 2v1h12v-1a2 2 0 1 1 4 0v5a1 1 0 0 1 -1 1h-18a1 1 0 0 1 -1 -1v-5a2 2 0 0 1 2 -2" />
+    <path d="M4 11v-3a3 3 0 0 1 3 -3h10a3 3 0 0 1 3 3v3" />
+    <path d="M12 5v9" />
+  </symbol>
+  <symbol id="asset-icon-armchair" viewBox="0 0 24 24">
+    <path d="M5 11a2 2 0 0 1 2 2v2h10v-2a2 2 0 1 1 4 0v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-4a2 2 0 0 1 2 -2" />
+    <path d="M5 11v-5a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v5" />
+    <path d="M6 19v2" />
+    <path d="M18 19v2" />
+  </symbol>
+  <symbol id="asset-icon-armchair-2" viewBox="0 0 24 24">
+    <path d="M5 10v-4a3 3 0 0 1 3 -3h8a3 3 0 0 1 3 3v4" />
+    <path d="M16 15v-2a3 3 0 1 1 3 3v3h-14v-3a3 3 0 1 1 3 -3v2" />
+    <path d="M8 12h8" />
+    <path d="M7 19v2" />
+    <path d="M17 19v2" />
+  </symbol>
+  <symbol id="asset-icon-bed" viewBox="0 0 24 24">
+    <path d="M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M22 17v-3h-20" />
+    <path d="M2 8v9" />
+    <path d="M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5" />
+  </symbol>
+  <symbol id="asset-icon-table" viewBox="0 0 24 24">
+    <path d="M3 5a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-14" />
+    <path d="M3 10h18" />
+    <path d="M10 3v18" />
+  </symbol>
+  <symbol id="asset-icon-lamp" viewBox="0 0 24 24">
+    <path d="M9 20h6" />
+    <path d="M12 20v-8" />
+    <path d="M5 12h14l-4 -8h-6l-4 8" />
+  </symbol>
+  <symbol id="asset-icon-lamp-2" viewBox="0 0 24 24">
+    <path d="M5 21h9" />
+    <path d="M10 21l-7 -8l8.5 -5.5" />
+    <path d="M13 14c-2.148 -2.148 -2.148 -5.852 0 -8c2.088 -2.088 5.842 -1.972 8 0l-8 8" />
+    <path d="M11.742 7.574l-1.156 -1.156a2 2 0 0 1 2.828 -2.829l1.144 1.144" />
+    <path d="M15.5 12l.208 .274a2.527 2.527 0 0 0 3.556 0c.939 -.933 .98 -2.42 .122 -3.4l-.366 -.369" />
+  </symbol>
+  <symbol id="asset-icon-bath" viewBox="0 0 24 24">
+    <path d="M4 12h16a1 1 0 0 1 1 1v3a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4v-3a1 1 0 0 1 1 -1" />
+    <path d="M6 12v-7a2 2 0 0 1 2 -2h3v2.25" />
+    <path d="M4 21l1 -1.5" />
+    <path d="M20 21l-1 -1.5" />
+  </symbol>
+  <symbol id="asset-icon-fridge" viewBox="0 0 24 24">
+    <path d="M5 5a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -14" />
+    <path d="M5 10h14" />
+    <path d="M9 13v3" />
+    <path d="M9 6v1" />
+  </symbol>
+  <symbol id="asset-icon-air-conditioning" viewBox="0 0 24 24">
+    <path d="M8 16a3 3 0 0 1 -3 3" />
+    <path d="M16 16a3 3 0 0 0 3 3" />
+    <path d="M12 16v4" />
+    <path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -4" />
+    <path d="M7 13v-3a1 1 0 0 1 1 -1h8a1 1 0 0 1 1 1v3" />
+  </symbol>
+  <symbol id="asset-icon-microwave" viewBox="0 0 24 24">
+    <path d="M3 7a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1l0 -10" />
+    <path d="M15 6v12" />
+    <path d="M18 12h.01" />
+    <path d="M18 15h.01" />
+    <path d="M18 9h.01" />
+    <path d="M6.5 10.5c1 -.667 1.5 -.667 2.5 0c.833 .347 1.667 .926 2.5 0" />
+    <path d="M6.5 13.5c1 -.667 1.5 -.667 2.5 0c.833 .347 1.667 .926 2.5 0" />
+  </symbol>
+  <symbol id="asset-icon-device-tv" viewBox="0 0 24 24">
+    <path d="M3 9a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -9" />
+    <path d="M16 3l-4 4l-4 -4" />
+  </symbol>
+  <symbol id="asset-icon-device-speaker" viewBox="0 0 24 24">
+    <path d="M5 5a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -14" />
+    <path d="M9 14a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M12 7l0 .01" />
+  </symbol>
+  <symbol id="asset-icon-camera" viewBox="0 0 24 24">
+    <path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" />
+    <path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+  </symbol>
+  <symbol id="asset-icon-printer" viewBox="0 0 24 24">
+    <path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" />
+    <path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" />
+    <path d="M7 15a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2l0 -4" />
+  </symbol>
+  <symbol id="asset-icon-tools-kitchen" viewBox="0 0 24 24">
+    <path d="M4 3h8l-1 9h-6l-1 -9" />
+    <path d="M7 18h2v3h-2l0 -3" />
+    <path d="M20 3v12h-5c-.023 -3.681 .184 -7.406 5 -12" />
+    <path d="M20 15v6h-1v-3" />
+    <path d="M8 12l0 6" />
+  </symbol>
+  <symbol id="asset-icon-wash-machine" viewBox="0 0 24 24">
+    <path d="M5 5a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -14" />
+    <path d="M8 14a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+    <path d="M8 6h.01" />
+    <path d="M11 6h.01" />
+    <path d="M14 6h2" />
+    <path d="M8 14c1.333 -.667 2.667 -.667 4 0c1.333 .667 2.667 .667 4 0" />
+  </symbol>
+  <symbol id="asset-icon-ironing" viewBox="0 0 24 24">
+    <path d="M9 6h7.459a3 3 0 0 1 2.959 2.507l.577 3.464l.81 4.865a1 1 0 0 1 -.985 1.164h-16.82a7 7 0 0 1 7 -7h9.8" />
+  </symbol>
+  <symbol id="asset-icon-vacuum-cleaner" viewBox="0 0 24 24">
+    <path d="M21 12a9 9 0 1 1 -18 0a9 9 0 0 1 18 0" />
+    <path d="M14 9a2 2 0 1 1 -4 0a2 2 0 0 1 4 0" />
+    <path d="M12 16h.01" />
+  </symbol>
+  <symbol id="asset-icon-candle" viewBox="0 0 24 24">
+    <path d="M9 21h6v-10a1 1 0 0 0 -1 -1h-4a1 1 0 0 0 -1 1l0 10" />
+    <path d="M12 2l1.465 1.638a2 2 0 1 1 -3.015 .099l1.55 -1.737" />
+  </symbol>
+  <symbol id="asset-icon-bulb" viewBox="0 0 24 24">
+    <path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7" />
+    <path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3" />
+    <path d="M9.7 17l4.6 0" />
+  </symbol>
+  <symbol id="asset-icon-gift" viewBox="0 0 24 24">
+    <path d="M3 9a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1l0 -2" />
+    <path d="M12 8l0 13" />
+    <path d="M19 12v7a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-7" />
+    <path d="M7.5 8a2.5 2.5 0 0 1 0 -5a4.8 8 0 0 1 4.5 5a4.8 8 0 0 1 4.5 -5a2.5 2.5 0 0 1 0 5" />
+  </symbol>
+  <symbol id="asset-icon-shopping-bag" viewBox="0 0 24 24">
+    <path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304" />
+    <path d="M9 11v-5a3 3 0 0 1 6 0v5" />
+  </symbol>
+  <symbol id="asset-icon-shopping-cart" viewBox="0 0 24 24">
+    <path d="M4 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M15 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M17 17h-11v-14h-2" />
+    <path d="M6 5l14 1l-1 7h-13" />
+  </symbol>
+  <symbol id="asset-icon-building" viewBox="0 0 24 24">
+    <path d="M3 21l18 0" />
+    <path d="M9 8l1 0" />
+    <path d="M9 12l1 0" />
+    <path d="M9 16l1 0" />
+    <path d="M14 8l1 0" />
+    <path d="M14 12l1 0" />
+    <path d="M14 16l1 0" />
+    <path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" />
+  </symbol>
+  <symbol id="asset-icon-building-store" viewBox="0 0 24 24">
+    <path d="M3 21l18 0" />
+    <path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" />
+    <path d="M5 21l0 -10.15" />
+    <path d="M19 21l0 -10.15" />
+    <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" />
+  </symbol>
+  <symbol id="asset-icon-device-desktop" viewBox="0 0 24 24">
+    <path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10" />
+    <path d="M7 20h10" />
+    <path d="M9 16v4" />
+    <path d="M15 16v4" />
+  </symbol>
+  <symbol id="asset-icon-device-laptop" viewBox="0 0 24 24">
+    <path d="M3 19l18 0" />
+    <path d="M5 7a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8" />
+  </symbol>
+  <symbol id="asset-icon-device-mobile" viewBox="0 0 24 24">
+    <path d="M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14" />
+    <path d="M11 4h2" />
+    <path d="M12 17v.01" />
+  </symbol>
+  <symbol id="asset-icon-device-tablet" viewBox="0 0 24 24">
+    <path d="M5 4a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v16a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1v-16" />
+    <path d="M11 17a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
+  </symbol>
+  <symbol id="asset-icon-device-watch" viewBox="0 0 24 24">
+    <path d="M6 9a3 3 0 0 1 3 -3h6a3 3 0 0 1 3 3v6a3 3 0 0 1 -3 3h-6a3 3 0 0 1 -3 -3v-6" />
+    <path d="M9 18v3h6v-3" />
+    <path d="M9 6v-3h6v3" />
+  </symbol>
+  <symbol id="asset-icon-device-imac" viewBox="0 0 24 24">
+    <path d="M3 4a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-12" />
+    <path d="M3 13h18" />
+    <path d="M8 21h8" />
+    <path d="M10 17l-.5 4" />
+    <path d="M14 17l.5 4" />
+  </symbol>
+  <symbol id="asset-icon-keyboard" viewBox="0 0 24 24">
+    <path d="M2 8a2 2 0 0 1 2 -2h16a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-16a2 2 0 0 1 -2 -2l0 -8" />
+    <path d="M6 10l0 .01" />
+    <path d="M10 10l0 .01" />
+    <path d="M14 10l0 .01" />
+    <path d="M18 10l0 .01" />
+    <path d="M6 14l0 .01" />
+    <path d="M18 14l0 .01" />
+    <path d="M10 14l4 .01" />
+  </symbol>
+  <symbol id="asset-icon-mouse" viewBox="0 0 24 24">
+    <path d="M6 7a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-4a4 4 0 0 1 -4 -4l0 -10" />
+    <path d="M12 7l0 4" />
+  </symbol>
+  <symbol id="asset-icon-device-gamepad-2" viewBox="0 0 24 24">
+    <path d="M12 5h3.5a5 5 0 0 1 0 10h-5.5l-4.015 4.227a2.3 2.3 0 0 1 -3.923 -2.035l1.634 -8.173a5 5 0 0 1 4.904 -4.019h3.4" />
+    <path d="M14 15l4.07 4.284a2.3 2.3 0 0 0 3.925 -2.023l-1.6 -8.232" />
+    <path d="M8 9v2" />
+    <path d="M7 10h2" />
+    <path d="M14 10h2" />
+  </symbol>
+  <symbol id="asset-icon-drone" viewBox="0 0 24 24">
+    <path d="M10 10h4v4h-4l0 -4" />
+    <path d="M10 10l-3.5 -3.5" />
+    <path d="M9.96 6a3.5 3.5 0 1 0 -3.96 3.96" />
+    <path d="M14 10l3.5 -3.5" />
+    <path d="M18 9.96a3.5 3.5 0 1 0 -3.96 -3.96" />
+    <path d="M14 14l3.5 3.5" />
+    <path d="M14.04 18a3.5 3.5 0 1 0 3.96 -3.96" />
+    <path d="M10 14l-3.5 3.5" />
+    <path d="M6 14.04a3.5 3.5 0 1 0 3.96 3.96" />
+  </symbol>
+  <symbol id="asset-icon-device-cctv" viewBox="0 0 24 24">
+    <path d="M3 4a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1l0 -2" />
+    <path d="M8 14a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+    <path d="M19 7v7a7 7 0 0 1 -14 0v-7" />
+    <path d="M12 14l.01 0" />
+  </symbol>
+  <symbol id="asset-icon-brand-windows" viewBox="0 0 24 24">
+    <path d="M17.8 20l-12 -1.5c-1 -.1 -1.8 -.9 -1.8 -1.9v-9.2c0 -1 .8 -1.8 1.8 -1.9l12 -1.5c1.2 -.1 2.2 .8 2.2 1.9v12.1c0 1.2 -1.1 2.1 -2.2 1.9l0 .1" />
+    <path d="M12 5l0 14" />
+    <path d="M4 12l16 0" />
+  </symbol>
+  <symbol id="asset-icon-brand-apple" viewBox="0 0 24 24">
+    <path d="M8.286 7.008c-3.216 0 -4.286 3.23 -4.286 5.92c0 3.229 2.143 8.072 4.286 8.072c1.165 -.05 1.799 -.538 3.214 -.538c1.406 0 1.607 .538 3.214 .538s4.286 -3.229 4.286 -5.381c-.03 -.011 -2.649 -.434 -2.679 -3.23c-.02 -2.335 2.589 -3.179 2.679 -3.228c-1.096 -1.606 -3.162 -2.113 -3.75 -2.153c-1.535 -.12 -3.032 1.077 -3.75 1.077c-.729 0 -2.036 -1.077 -3.214 -1.077" />
+    <path d="M12 4a2 2 0 0 0 2 -2a2 2 0 0 0 -2 2" />
+  </symbol>
+  <symbol id="asset-icon-brand-android" viewBox="0 0 24 24">
+    <path d="M4 10l0 6" />
+    <path d="M20 10l0 6" />
+    <path d="M7 9h10v8a1 1 0 0 1 -1 1h-8a1 1 0 0 1 -1 -1v-8a5 5 0 0 1 10 0" />
+    <path d="M8 3l1 2" />
+    <path d="M16 3l-1 2" />
+    <path d="M9 18l0 3" />
+    <path d="M15 18l0 3" />
+  </symbol>
+  <symbol id="asset-icon-world" viewBox="0 0 24 24">
+    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+    <path d="M3.6 9h16.8" />
+    <path d="M3.6 15h16.8" />
+    <path d="M11.5 3a17 17 0 0 0 0 18" />
+    <path d="M12.5 3a17 17 0 0 1 0 18" />
+  </symbol>
+  <symbol id="asset-icon-cloud" viewBox="0 0 24 24">
+    <path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878" />
+  </symbol>
+  <symbol id="asset-icon-server" viewBox="0 0 24 24">
+    <path d="M3 7a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3" />
+    <path d="M3 15a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3l0 -2" />
+    <path d="M7 8l0 .01" />
+    <path d="M7 16l0 .01" />
+  </symbol>
+  <symbol id="asset-icon-database" viewBox="0 0 24 24">
+    <path d="M4 6a8 3 0 1 0 16 0a8 3 0 1 0 -16 0" />
+    <path d="M4 6v6a8 3 0 0 0 16 0v-6" />
+    <path d="M4 12v6a8 3 0 0 0 16 0v-6" />
+  </symbol>
+  <symbol id="asset-icon-cpu" viewBox="0 0 24 24">
+    <path d="M5 6a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -12" />
+    <path d="M9 9h6v6h-6l0 -6" />
+    <path d="M3 10h2" />
+    <path d="M3 14h2" />
+    <path d="M10 3v2" />
+    <path d="M14 3v2" />
+    <path d="M21 10h-2" />
+    <path d="M21 14h-2" />
+    <path d="M14 21v-2" />
+    <path d="M10 21v-2" />
+  </symbol>
+  <symbol id="asset-icon-router" viewBox="0 0 24 24">
+    <path d="M3 15a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -4" />
+    <path d="M17 17l0 .01" />
+    <path d="M13 17l0 .01" />
+    <path d="M15 13l0 -2" />
+    <path d="M11.75 8.75a4 4 0 0 1 6.5 0" />
+    <path d="M8.5 6.5a8 8 0 0 1 13 0" />
+  </symbol>
+  <symbol id="asset-icon-wifi" viewBox="0 0 24 24">
+    <path d="M12 18l.01 0" />
+    <path d="M9.172 15.172a4 4 0 0 1 5.656 0" />
+    <path d="M6.343 12.343a8 8 0 0 1 11.314 0" />
+    <path d="M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0" />
+  </symbol>
+  <symbol id="asset-icon-access-point" viewBox="0 0 24 24">
+    <path d="M12 12l0 .01" />
+    <path d="M14.828 9.172a4 4 0 0 1 0 5.656" />
+    <path d="M17.657 6.343a8 8 0 0 1 0 11.314" />
+    <path d="M9.168 14.828a4 4 0 0 1 0 -5.656" />
+    <path d="M6.337 17.657a8 8 0 0 1 0 -11.314" />
+  </symbol>
+  <symbol id="asset-icon-bluetooth" viewBox="0 0 24 24">
+    <path d="M7 8l10 8l-5 4l0 -16l5 4l-10 8" />
+  </symbol>
+  <symbol id="asset-icon-usb" viewBox="0 0 24 24">
+    <path d="M10 19a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M12 17v-11.5" />
+    <path d="M7 10v3l5 3" />
+    <path d="M12 14.5l5 -2v-2.5" />
+    <path d="M16 10h2v-2h-2l0 2" />
+    <path d="M6 9a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+    <path d="M10 5.5h4l-2 -2.5l-2 2.5" />
+  </symbol>
+  <symbol id="asset-icon-plug" viewBox="0 0 24 24">
+    <path d="M9.785 6l8.215 8.215l-2.054 2.054a5.81 5.81 0 1 1 -8.215 -8.215l2.054 -2.054" />
+    <path d="M4 20l3.5 -3.5" />
+    <path d="M15 4l-3.5 3.5" />
+    <path d="M20 9l-3.5 3.5" />
+  </symbol>
+  <symbol id="asset-icon-battery" viewBox="0 0 24 24">
+    <path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" />
+  </symbol>
+  <symbol id="asset-icon-headset" viewBox="0 0 24 24">
+    <path d="M4 14v-3a8 8 0 1 1 16 0v3" />
+    <path d="M18 19c0 1.657 -2.686 3 -6 3" />
+    <path d="M4 14a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2v-3" />
+    <path d="M15 14a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2v-3" />
+  </symbol>
+  <symbol id="asset-icon-headphones" viewBox="0 0 24 24">
+    <path d="M4 15a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2l0 -3" />
+    <path d="M15 15a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v3a2 2 0 0 1 -2 2h-1a2 2 0 0 1 -2 -2l0 -3" />
+    <path d="M4 15v-3a8 8 0 0 1 16 0v3" />
+  </symbol>
+  <symbol id="asset-icon-microphone" viewBox="0 0 24 24">
+    <path d="M9 5a3 3 0 0 1 3 -3a3 3 0 0 1 3 3v5a3 3 0 0 1 -3 3a3 3 0 0 1 -3 -3l0 -5" />
+    <path d="M5 10a7 7 0 0 0 14 0" />
+    <path d="M8 21l8 0" />
+    <path d="M12 17l0 4" />
+  </symbol>
+  <symbol id="asset-icon-video" viewBox="0 0 24 24">
+    <path d="M15 10l4.553 -2.276a1 1 0 0 1 1.447 .894v6.764a1 1 0 0 1 -1.447 .894l-4.553 -2.276v-4" />
+    <path d="M3 8a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2l0 -8" />
+  </symbol>
+  <symbol id="asset-icon-device-projector" viewBox="0 0 24 24">
+    <path d="M8 9a5 5 0 1 0 10 0a5 5 0 0 0 -10 0" />
+    <path d="M9 6h-4a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2 -2v-8a2 2 0 0 0 -2 -2h-2" />
+    <path d="M6 15h1" />
+    <path d="M7 18l-1 2" />
+    <path d="M18 18l1 2" />
+  </symbol>
+  <symbol id="asset-icon-code" viewBox="0 0 24 24">
+    <path d="M7 8l-4 4l4 4" />
+    <path d="M17 8l4 4l-4 4" />
+    <path d="M14 4l-4 16" />
+  </symbol>
+  <symbol id="asset-icon-robot" viewBox="0 0 24 24">
+    <path d="M6 6a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2l0 -4" />
+    <path d="M12 2v2" />
+    <path d="M9 12v9" />
+    <path d="M15 12v9" />
+    <path d="M5 16l4 -2" />
+    <path d="M15 14l4 2" />
+    <path d="M9 18h6" />
+    <path d="M10 8v.01" />
+    <path d="M14 8v.01" />
+  </symbol>
+  <symbol id="asset-icon-tool" viewBox="0 0 24 24">
+    <path d="M7 10h3v-3l-3.5 -3.5a6 6 0 0 1 8 8l6 6a2 2 0 0 1 -3 3l-6 -6a6 6 0 0 1 -8 -8l3.5 3.5" />
+  </symbol>
+  <symbol id="asset-icon-tools" viewBox="0 0 24 24">
+    <path d="M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4" />
+    <path d="M14.5 5.5l4 4" />
+    <path d="M12 8l-5 -5l-4 4l5 5" />
+    <path d="M7 8l-1.5 1.5" />
+    <path d="M16 12l5 5l-4 4l-5 -5" />
+    <path d="M16 17l-1.5 1.5" />
+  </symbol>
+  <symbol id="asset-icon-hammer" viewBox="0 0 24 24">
+    <path d="M11.414 10l-7.383 7.418a2.091 2.091 0 0 0 0 2.967a2.11 2.11 0 0 0 2.976 0l7.407 -7.385" />
+    <path d="M18.121 15.293l2.586 -2.586a1 1 0 0 0 0 -1.414l-7.586 -7.586a1 1 0 0 0 -1.414 0l-2.586 2.586a1 1 0 0 0 0 1.414l7.586 7.586a1 1 0 0 0 1.414 0" />
+  </symbol>
+  <symbol id="asset-icon-scissors" viewBox="0 0 24 24">
+    <path d="M3 7a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M3 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M8.6 8.6l10.4 10.4" />
+    <path d="M8.6 15.4l10.4 -10.4" />
+  </symbol>
+  <symbol id="asset-icon-brush" viewBox="0 0 24 24">
+    <path d="M3 21v-4a4 4 0 1 1 4 4h-4" />
+    <path d="M21 3a16 16 0 0 0 -12.8 10.2" />
+    <path d="M21 3a16 16 0 0 1 -10.2 12.8" />
+    <path d="M10.6 9a9 9 0 0 1 4.4 4.4" />
+  </symbol>
+  <symbol id="asset-icon-spray" viewBox="0 0 24 24">
+    <path d="M4 12a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v7a2 2 0 0 1 -2 2h-4a2 2 0 0 1 -2 -2l0 -7" />
+    <path d="M6 10v-4a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v4" />
+    <path d="M15 7h.01" />
+    <path d="M18 9h.01" />
+    <path d="M18 5h.01" />
+    <path d="M21 3h.01" />
+    <path d="M21 7h.01" />
+    <path d="M21 11h.01" />
+    <path d="M10 7h1" />
+  </symbol>
+  <symbol id="asset-icon-palette" viewBox="0 0 24 24">
+    <path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25" />
+    <path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+    <path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+    <path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+  </symbol>
+  <symbol id="asset-icon-color-swatch" viewBox="0 0 24 24">
+    <path d="M19 3h-4a2 2 0 0 0 -2 2v12a4 4 0 0 0 8 0v-12a2 2 0 0 0 -2 -2" />
+    <path d="M13 7.35l-2 -2a2 2 0 0 0 -2.828 0l-2.828 2.828a2 2 0 0 0 0 2.828l9 9" />
+    <path d="M7.3 13h-2.3a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h12" />
+    <path d="M17 17l0 .01" />
+  </symbol>
+  <symbol id="asset-icon-recycle" viewBox="0 0 24 24">
+    <path d="M12 17l-2 2l2 2" />
+    <path d="M10 19h9a2 2 0 0 0 1.75 -2.75l-.55 -1" />
+    <path d="M8.536 11l-.732 -2.732l-2.732 .732" />
+    <path d="M7.804 8.268l-4.5 7.794a2 2 0 0 0 1.506 2.89l1.141 .024" />
+    <path d="M15.464 11l2.732 .732l.732 -2.732" />
+    <path d="M18.196 11.732l-4.5 -7.794a2 2 0 0 0 -3.256 -.14l-.591 .976" />
+  </symbol>
+  <symbol id="asset-icon-trash" viewBox="0 0 24 24">
+    <path d="M4 7l16 0" />
+    <path d="M10 11l0 6" />
+    <path d="M14 11l0 6" />
+    <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" />
+    <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" />
+  </symbol>
+  <symbol id="asset-icon-alert-triangle" viewBox="0 0 24 24">
+    <path d="M12 9v4" />
+    <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" />
+    <path d="M12 16h.01" />
+  </symbol>
+  <symbol id="asset-icon-bug" viewBox="0 0 24 24">
+    <path d="M9 9v-1a3 3 0 0 1 6 0v1" />
+    <path d="M8 9h8a6 6 0 0 1 1 3v3a5 5 0 0 1 -10 0v-3a6 6 0 0 1 1 -3" />
+    <path d="M3 13l4 0" />
+    <path d="M17 13l4 0" />
+    <path d="M12 20l0 -6" />
+    <path d="M4 19l3.35 -2" />
+    <path d="M20 19l-3.35 -2" />
+    <path d="M4 7l3.75 2.4" />
+    <path d="M20 7l-3.75 2.4" />
+  </symbol>
+  <symbol id="asset-icon-lock" viewBox="0 0 24 24">
+    <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" />
+    <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
+    <path d="M8 11v-4a4 4 0 1 1 8 0v4" />
+  </symbol>
+  <symbol id="asset-icon-lock-open" viewBox="0 0 24 24">
+    <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -6" />
+    <path d="M11 16a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+    <path d="M8 11v-5a4 4 0 0 1 8 0" />
+  </symbol>
+  <symbol id="asset-icon-key" viewBox="0 0 24 24">
+    <path d="M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0" />
+    <path d="M15 9h.01" />
+  </symbol>
+  <symbol id="asset-icon-shield" viewBox="0 0 24 24">
+    <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" />
+  </symbol>
+  <symbol id="asset-icon-shield-lock" viewBox="0 0 24 24">
+    <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" />
+    <path d="M11 11a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+    <path d="M12 12l0 2.5" />
+  </symbol>
+  <symbol id="asset-icon-calculator" viewBox="0 0 24 24">
+    <path d="M4 5a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -14" />
+    <path d="M8 8a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1l0 -1" />
+    <path d="M8 14l0 .01" />
+    <path d="M12 14l0 .01" />
+    <path d="M16 14l0 .01" />
+    <path d="M8 17l0 .01" />
+    <path d="M12 17l0 .01" />
+    <path d="M16 17l0 .01" />
+  </symbol>
+  <symbol id="asset-icon-scale" viewBox="0 0 24 24">
+    <path d="M7 20l10 0" />
+    <path d="M6 6l6 -1l6 1" />
+    <path d="M12 3l0 17" />
+    <path d="M9 12l-3 -6l-3 6a3 3 0 0 0 6 0" />
+    <path d="M21 12l-3 -6l-3 6a3 3 0 0 0 6 0" />
+  </symbol>
+  <symbol id="asset-icon-shirt" viewBox="0 0 24 24">
+    <path d="M15 4l6 2v5h-3v8a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1v-8h-3v-5l6 -2a3 3 0 0 0 6 0" />
+  </symbol>
+  <symbol id="asset-icon-shoe" viewBox="0 0 24 24">
+    <path d="M4 6h5.426a1 1 0 0 1 .863 .496l1.064 1.823a3 3 0 0 0 1.896 1.407l4.677 1.114a4 4 0 0 1 3.074 3.89v2.27a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10a1 1 0 0 1 1 -1" />
+    <path d="M14 13l1 -2" />
+    <path d="M8 18v-1a4 4 0 0 0 -4 -4h-1" />
+    <path d="M10 12l1.5 -3" />
+  </symbol>
+  <symbol id="asset-icon-hanger" viewBox="0 0 24 24">
+    <path d="M14 6a2 2 0 1 0 -4 0c0 1.667 .67 3 2 4h-.008l7.971 4.428a2 2 0 0 1 1.029 1.749v.823a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-.823a2 2 0 0 1 1.029 -1.749l7.971 -4.428" />
+  </symbol>
+  <symbol id="asset-icon-backpack" viewBox="0 0 24 24">
+    <path d="M5 18v-6a6 6 0 0 1 6 -6h2a6 6 0 0 1 6 6v6a3 3 0 0 1 -3 3h-8a3 3 0 0 1 -3 -3" />
+    <path d="M10 6v-1a2 2 0 1 1 4 0v1" />
+    <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" />
+    <path d="M11 10h2" />
+  </symbol>
+  <symbol id="asset-icon-briefcase" viewBox="0 0 24 24">
+    <path d="M3 9a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2l0 -9" />
+    <path d="M8 7v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2" />
+    <path d="M12 12l0 .01" />
+    <path d="M3 13a20 20 0 0 0 18 0" />
+  </symbol>
+  <symbol id="asset-icon-wallet" viewBox="0 0 24 24">
+    <path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" />
+    <path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" />
+  </symbol>
+  <symbol id="asset-icon-eyeglass" viewBox="0 0 24 24">
+    <path d="M8 4h-2l-3 10" />
+    <path d="M16 4h2l3 10" />
+    <path d="M10 16l4 0" />
+    <path d="M21 16.5a3.5 3.5 0 0 1 -7 0v-2.5h7v2.5" />
+    <path d="M10 16.5a3.5 3.5 0 0 1 -7 0v-2.5h7v2.5" />
+  </symbol>
+  <symbol id="asset-icon-id" viewBox="0 0 24 24">
+    <path d="M3 7a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3l0 -10" />
+    <path d="M7 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M15 8l2 0" />
+    <path d="M15 12l2 0" />
+    <path d="M7 16l10 0" />
+  </symbol>
+  <symbol id="asset-icon-badge" viewBox="0 0 24 24">
+    <path d="M17 17v-13l-5 3l-5 -3v13l5 3l5 -3" />
+  </symbol>
+  <symbol id="asset-icon-user" viewBox="0 0 24 24">
+    <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />
+    <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+  </symbol>
+  <symbol id="asset-icon-book" viewBox="0 0 24 24">
+    <path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" />
+    <path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" />
+    <path d="M3 6l0 13" />
+    <path d="M12 6l0 13" />
+    <path d="M21 6l0 13" />
+  </symbol>
+  <symbol id="asset-icon-book-2" viewBox="0 0 24 24">
+    <path d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12" />
+    <path d="M19 16h-12a2 2 0 0 0 -2 2" />
+    <path d="M9 8h6" />
+  </symbol>
+  <symbol id="asset-icon-books" viewBox="0 0 24 24">
+    <path d="M5 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14" />
+    <path d="M9 5a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -14" />
+    <path d="M5 8h4" />
+    <path d="M9 16h4" />
+    <path d="M13.803 4.56l2.184 -.53c.562 -.135 1.133 .19 1.282 .732l3.695 13.418a1.02 1.02 0 0 1 -.634 1.219l-.133 .041l-2.184 .53c-.562 .135 -1.133 -.19 -1.282 -.732l-3.695 -13.418a1.02 1.02 0 0 1 .634 -1.219l.133 -.041" />
+    <path d="M14 9l4 -1" />
+    <path d="M16 16l3.923 -.98" />
+  </symbol>
+  <symbol id="asset-icon-notebook" viewBox="0 0 24 24">
+    <path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-11a1 1 0 0 1 -1 -1v-14a1 1 0 0 1 1 -1m3 0v18" />
+    <path d="M13 8l2 0" />
+    <path d="M13 12l2 0" />
+  </symbol>
+  <symbol id="asset-icon-notes" viewBox="0 0 24 24">
+    <path d="M5 5a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -14" />
+    <path d="M9 7l6 0" />
+    <path d="M9 11l6 0" />
+    <path d="M9 15l4 0" />
+  </symbol>
+  <symbol id="asset-icon-file" viewBox="0 0 24 24">
+    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+  </symbol>
+  <symbol id="asset-icon-file-text" viewBox="0 0 24 24">
+    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+    <path d="M9 9l1 0" />
+    <path d="M9 13l6 0" />
+    <path d="M9 17l6 0" />
+  </symbol>
+  <symbol id="asset-icon-file-invoice" viewBox="0 0 24 24">
+    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+    <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+    <path d="M9 7l1 0" />
+    <path d="M9 13l6 0" />
+    <path d="M13 17l2 0" />
+  </symbol>
+  <symbol id="asset-icon-certificate" viewBox="0 0 24 24">
+    <path d="M12 15a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M13 17.5v4.5l2 -1.5l2 1.5v-4.5" />
+    <path d="M10 19h-5a2 2 0 0 1 -2 -2v-10c0 -1.1 .9 -2 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -1 1.73" />
+    <path d="M6 9l12 0" />
+    <path d="M6 12l3 0" />
+    <path d="M6 15l2 0" />
+  </symbol>
+  <symbol id="asset-icon-file-certificate" viewBox="0 0 24 24">
+    <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+    <path d="M5 8v-3a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2h-5" />
+    <path d="M3 14a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M4.5 17l-1.5 5l3 -1.5l3 1.5l-1.5 -5" />
+  </symbol>
+  <symbol id="asset-icon-bike" viewBox="0 0 24 24">
+    <path d="M2 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+    <path d="M16 18a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+    <path d="M12 19v-4l-3 -3l5 -4l2 3h3" />
+    <path d="M13.007 5a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+  </symbol>
+  <symbol id="asset-icon-motorbike" viewBox="0 0 24 24">
+    <path d="M2 16a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M16 16a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+    <path d="M7.5 14h5l4 -4h-10.5m1.5 4l4 -4" />
+    <path d="M13 6h2l1.5 3l2 4" />
+  </symbol>
+  <symbol id="asset-icon-car" viewBox="0 0 24 24">
+    <path d="M5 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M15 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M5 17h-2v-6l2 -5h9l4 5h1a2 2 0 0 1 2 2v4h-2m-4 0h-6m-6 -6h15m-6 0v-5" />
+  </symbol>
+  <symbol id="asset-icon-steering-wheel" viewBox="0 0 24 24">
+    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+    <path d="M10 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M12 14l0 7" />
+    <path d="M10 12l-6.75 -2" />
+    <path d="M14 12l6.75 -2" />
+  </symbol>
+  <symbol id="asset-icon-bus" viewBox="0 0 24 24">
+    <path d="M4 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M16 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8" />
+    <path d="M16 5l1.5 7l4.5 0" />
+    <path d="M2 10l15 0" />
+    <path d="M7 5l0 5" />
+    <path d="M12 5l0 5" />
+  </symbol>
+  <symbol id="asset-icon-train" viewBox="0 0 24 24">
+    <path d="M21 13c0 -3.87 -3.37 -7 -10 -7h-8" />
+    <path d="M3 15h16a2 2 0 0 0 2 -2" />
+    <path d="M3 6v5h17.5" />
+    <path d="M3 11v4" />
+    <path d="M8 11v-5" />
+    <path d="M13 11v-4.5" />
+    <path d="M3 19h18" />
+  </symbol>
+  <symbol id="asset-icon-plane" viewBox="0 0 24 24">
+    <path d="M16 10h4a2 2 0 0 1 0 4h-4l-4 7h-3l2 -7h-4l-2 2h-3l2 -4l-2 -4h3l2 2h4l-2 -7h3l4 7" />
+  </symbol>
+  <symbol id="asset-icon-sailboat" viewBox="0 0 24 24">
+    <path d="M2 20a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1" />
+    <path d="M4 18l-1 -3h18l-1 3" />
+    <path d="M11 12h7l-7 -9v9" />
+    <path d="M8 7l-2 5" />
+  </symbol>
+  <symbol id="asset-icon-helmet" viewBox="0 0 24 24">
+    <path d="M12 4a9 9 0 0 1 5.656 16h-11.312a9 9 0 0 1 5.656 -16" />
+    <path d="M20 9h-8.8a1 1 0 0 0 -.968 1.246c.507 2 1.596 3.418 3.268 4.254c2 1 4.333 1.5 7 1.5" />
+  </symbol>
+  <symbol id="asset-icon-ball-football" viewBox="0 0 24 24">
+    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+    <path d="M12 7l4.76 3.45l-1.76 5.55h-6l-1.76 -5.55l4.76 -3.45" />
+    <path d="M12 7v-4m3 13l2.5 3m-.74 -8.55l3.74 -1.45m-11.44 7.05l-2.56 2.95m.74 -8.55l-3.74 -1.45" />
+  </symbol>
+  <symbol id="asset-icon-dumbbell" viewBox="0 0 24 24">
+    <path d="M7.026 9.61l-.95 -4.18a2 2 0 0 1 1.95 -2.43h8a2 2 0 0 1 2 2.43l-1 4.2" />
+    <path d="M9.026 17.001h6" />
+    <path d="M18.906 20.06a7.92 7.92 0 0 0 1 -5.33a8 8 0 1 0 -14.77 5.33a2 2 0 0 0 1.71 .94h10.36a2 2 0 0 0 1.7 -.94" />
+  </symbol>
+  <symbol id="asset-icon-trophy" viewBox="0 0 24 24">
+    <path d="M8 21l8 0" />
+    <path d="M12 17l0 4" />
+    <path d="M7 4l10 0" />
+    <path d="M17 4v8a5 5 0 0 1 -10 0v-8" />
+    <path d="M3 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M17 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+  </symbol>
+  <symbol id="asset-icon-route" viewBox="0 0 24 24">
+    <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+    <path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4" />
+    <path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" />
+  </symbol>
+  <symbol id="asset-icon-gps" viewBox="0 0 24 24">
+    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+    <path d="M12 17l-1 -4l-4 -1l9 -4l-4 9" />
+  </symbol>
+  <symbol id="asset-icon-navigation" viewBox="0 0 24 24">
+    <path d="M12 18.5l7.265 2.463c.196 .077 .42 .032 .57 -.116a.548 .548 0 0 0 .134 -.572l-7.969 -17.275l-7.97 17.275c-.07 .2 -.017 .424 .135 .572c.15 .148 .374 .193 .57 .116l7.265 -2.463" />
+  </symbol>
+  <symbol id="asset-icon-pill" viewBox="0 0 24 24">
+    <path d="M4.5 12.5l8 -8a4.94 4.94 0 0 1 7 7l-8 8a4.94 4.94 0 0 1 -7 -7" />
+    <path d="M8.5 8.5l7 7" />
+  </symbol>
+  <symbol id="asset-icon-first-aid-kit" viewBox="0 0 24 24">
+    <path d="M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2" />
+    <path d="M4 10a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -8" />
+    <path d="M10 14h4" />
+    <path d="M12 12v4" />
+  </symbol>
+  <symbol id="asset-icon-stethoscope" viewBox="0 0 24 24">
+    <path d="M6 4h-1a2 2 0 0 0 -2 2v3.5a5.5 5.5 0 0 0 11 0v-3.5a2 2 0 0 0 -2 -2h-1" />
+    <path d="M8 15a6 6 0 1 0 12 0v-3" />
+    <path d="M11 3v2" />
+    <path d="M6 3v2" />
+    <path d="M18 10a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+  </symbol>
+  <symbol id="asset-icon-vaccine" viewBox="0 0 24 24">
+    <path d="M17 3l4 4" />
+    <path d="M19 5l-4.5 4.5" />
+    <path d="M11.5 6.5l6 6" />
+    <path d="M16.5 11.5l-6.5 6.5h-4v-4l6.5 -6.5" />
+    <path d="M7.5 12.5l1.5 1.5" />
+    <path d="M10.5 9.5l1.5 1.5" />
+    <path d="M3 21l3 -3" />
+  </symbol>
+  <symbol id="asset-icon-test-pipe" viewBox="0 0 24 24">
+    <path d="M20 8.04l-12.122 12.124a2.857 2.857 0 1 1 -4.041 -4.04l12.122 -12.124" />
+    <path d="M7 13h8" />
+    <path d="M19 15l1.5 1.6a2 2 0 1 1 -3 0l1.5 -1.6" />
+    <path d="M15 3l6 6" />
+  </symbol>
+  <symbol id="asset-icon-microscope" viewBox="0 0 24 24">
+    <path d="M5 21h14" />
+    <path d="M6 18h2" />
+    <path d="M7 18v3" />
+    <path d="M9 11l3 3l6 -6l-3 -3l-6 6" />
+    <path d="M10.5 12.5l-1.5 1.5" />
+    <path d="M17 3l3 3" />
+    <path d="M12 21a6 6 0 0 0 3.715 -10.712" />
+  </symbol>
+  <symbol id="asset-icon-heart" viewBox="0 0 24 24">
+    <path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572" />
+  </symbol>
+  <symbol id="asset-icon-heartbeat" viewBox="0 0 24 24">
+    <path d="M19.5 13.572l-7.5 7.428l-2.896 -2.868m-6.117 -8.104a5 5 0 0 1 9.013 -3.022a5 5 0 1 1 7.5 6.572" />
+    <path d="M3 13h2l2 3l2 -6l1 3h3" />
+  </symbol>
+  <symbol id="asset-icon-plant" viewBox="0 0 24 24">
+    <path d="M7 15h10v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2v-4" />
+    <path d="M12 9a6 6 0 0 0 -6 -6h-3v2a6 6 0 0 0 6 6h3" />
+    <path d="M12 11a6 6 0 0 1 6 -6h3v1a6 6 0 0 1 -6 6h-3" />
+    <path d="M12 15l0 -6" />
+  </symbol>
+  <symbol id="asset-icon-plant-2" viewBox="0 0 24 24">
+    <path d="M2 9a10 10 0 1 0 20 0" />
+    <path d="M12 19a10 10 0 0 1 10 -10" />
+    <path d="M2 9a10 10 0 0 1 10 10" />
+    <path d="M12 4a9.7 9.7 0 0 1 2.99 7.5" />
+    <path d="M9.01 11.5a9.7 9.7 0 0 1 2.99 -7.5" />
+  </symbol>
+  <symbol id="asset-icon-leaf" viewBox="0 0 24 24">
+    <path d="M5 21c.5 -4.5 2.5 -8 7 -10" />
+    <path d="M9 18c6.218 0 10.5 -3.288 11 -12v-2h-4.014c-9 0 -11.986 4 -12 9c0 1 0 3 2 5h3l.014 0" />
+  </symbol>
+  <symbol id="asset-icon-tree" viewBox="0 0 24 24">
+    <path d="M12 13l-2 -2" />
+    <path d="M12 12l2 -2" />
+    <path d="M12 21v-13" />
+    <path d="M9.824 16a3 3 0 0 1 -2.743 -3.69a3 3 0 0 1 .304 -4.833a3 3 0 0 1 4.615 -3.707a3 3 0 0 1 4.614 3.707a3 3 0 0 1 .305 4.833a3 3 0 0 1 -2.919 3.695h-4l-.176 -.005" />
+  </symbol>
+  <symbol id="asset-icon-bottle" viewBox="0 0 24 24">
+    <path d="M10 5h4v-2a1 1 0 0 0 -1 -1h-2a1 1 0 0 0 -1 1v2" />
+    <path d="M14 3.5c0 1.626 .507 3.212 1.45 4.537l.05 .07a8.093 8.093 0 0 1 1.5 4.694v6.199a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2v-6.2c0 -1.682 .524 -3.322 1.5 -4.693l.05 -.07a7.823 7.823 0 0 0 1.45 -4.537" />
+    <path d="M7 14.803a2.4 2.4 0 0 0 1 -.803a2.4 2.4 0 0 1 2 -1a2.4 2.4 0 0 1 2 1a2.4 2.4 0 0 0 2 1a2.4 2.4 0 0 0 2 -1a2.4 2.4 0 0 1 1 -.805" />
+  </symbol>
+  <symbol id="asset-icon-cup" viewBox="0 0 24 24">
+    <path d="M5 11h14v-3h-14l0 3" />
+    <path d="M17.5 11l-1.5 10h-8l-1.5 -10" />
+    <path d="M6 8v-1a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v1" />
+    <path d="M15 5v-2" />
+  </symbol>
+  <symbol id="asset-icon-glass" viewBox="0 0 24 24">
+    <path d="M8 21h8" />
+    <path d="M12 16v5" />
+    <path d="M17 5l1 6c0 3.012 -2.686 5 -6 5s-6 -1.988 -6 -5l1 -6" />
+    <path d="M7 5a5 2 0 1 0 10 0a5 2 0 1 0 -10 0" />
+  </symbol>
+  <symbol id="asset-icon-perfume" viewBox="0 0 24 24">
+    <path d="M10 6v3" />
+    <path d="M14 6v3" />
+    <path d="M5 11a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -8" />
+    <path d="M10 15a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+    <path d="M9 3h6v3h-6l0 -3" />
+  </symbol>
+  <symbol id="asset-icon-cash" viewBox="0 0 24 24">
+    <path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3" />
+    <path d="M7 10a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1l0 -8" />
+    <path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+  </symbol>
+  <symbol id="asset-icon-credit-card" viewBox="0 0 24 24">
+    <path d="M3 8a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3l0 -8" />
+    <path d="M3 10l18 0" />
+    <path d="M7 15l.01 0" />
+    <path d="M11 15l2 0" />
+  </symbol>
+  <symbol id="asset-icon-coin" viewBox="0 0 24 24">
+    <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+    <path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 1 0 4h-2a2 2 0 0 1 -1.8 -1" />
+    <path d="M12 7v10" />
+  </symbol>
+  <symbol id="asset-icon-coins" viewBox="0 0 24 24">
+    <path d="M9 14c0 1.657 2.686 3 6 3s6 -1.343 6 -3s-2.686 -3 -6 -3s-6 1.343 -6 3" />
+    <path d="M9 14v4c0 1.656 2.686 3 6 3s6 -1.344 6 -3v-4" />
+    <path d="M3 6c0 1.072 1.144 2.062 3 2.598s4.144 .536 6 0c1.856 -.536 3 -1.526 3 -2.598c0 -1.072 -1.144 -2.062 -3 -2.598s-4.144 -.536 -6 0c-1.856 .536 -3 1.526 -3 2.598" />
+    <path d="M3 6v10c0 .888 .772 1.45 2 2" />
+    <path d="M3 11c0 .888 .772 1.45 2 2" />
+  </symbol>
+  <symbol id="asset-icon-pig-money" viewBox="0 0 24 24">
+    <path d="M15 11v.01" />
+    <path d="M5.173 8.378a3 3 0 1 1 4.656 -1.377" />
+    <path d="M16 4v3.803a6.019 6.019 0 0 1 2.658 3.197h1.341a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-1.342c-.336 .95 -.907 1.8 -1.658 2.473v2.027a1.5 1.5 0 0 1 -3 0v-.583a6.04 6.04 0 0 1 -1 .083h-4a6.04 6.04 0 0 1 -1 -.083v.583a1.5 1.5 0 0 1 -3 0v-2l0 -.027a6 6 0 0 1 4 -10.473h2.5l4.5 -3" />
+  </symbol>
+  <symbol id="asset-icon-chart-bar" viewBox="0 0 24 24">
+    <path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" />
+    <path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" />
+    <path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" />
+    <path d="M4 20h14" />
+  </symbol>
+  <symbol id="asset-icon-chart-pie" viewBox="0 0 24 24">
+    <path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-6.8a2 2 0 0 1 -2 -2v-7a.9 .9 0 0 0 -1 -.8" />
+    <path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a1 1 0 0 1 -1 -1v-4.5" />
+  </symbol>
+  <symbol id="asset-icon-trending-up" viewBox="0 0 24 24">
+    <path d="M3 17l6 -6l4 4l8 -8" />
+    <path d="M14 7l7 0l0 7" />
+  </symbol>
+</svg>

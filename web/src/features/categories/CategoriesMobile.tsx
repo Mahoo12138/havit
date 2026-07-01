@@ -13,6 +13,7 @@ import { Input } from '../../components/ui/input';
 import { SelectField } from '../../components/ui/select-field';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
+import { IconPickerField } from '../../lib/asset-icons/IconPickerField';
 import { categoriesApi, type Category } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import {
@@ -373,11 +374,11 @@ function CategoryFormOverlay({
           required
           placeholder={t('categories.fieldNamePlaceholder')}
         />
-        <TextField
+        <IconPickerField
           label={t('categories.fieldIcon')}
           value={icon}
-          onChange={(e) => setIcon(e.currentTarget.value)}
-          placeholder={t('categories.fieldIconPlaceholder')}
+          onChange={setIcon}
+          rootType={rootType}
         />
         <SelectField
           label={t('categories.fieldRootType')}

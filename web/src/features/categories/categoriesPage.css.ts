@@ -425,6 +425,7 @@ export const overlayTitle = style({
 
 export const overlayBody = style({
   flex: 1,
+  minWidth: 0,
   overflow: 'auto',
   padding: `${themeVars.space4} ${themeVars.space4} calc(${themeVars.space4} + env(safe-area-inset-bottom))`,
 });
@@ -438,4 +439,22 @@ export const overlayActions = style({
 
 globalStyle(`${overlayActions} > *`, {
   flex: '1 1 8rem',
+});
+
+export const categoryForm = style({
+  width: '100%',
+  minWidth: 0,
+});
+
+export const categoryFormStack = style({
+  width: '100%',
+  minWidth: 0,
+});
+
+export const categoryDialog = style({
+  '@media': {
+    '(min-width: 40em)': {
+      maxWidth: '44rem',
+    },
+  },
 });
