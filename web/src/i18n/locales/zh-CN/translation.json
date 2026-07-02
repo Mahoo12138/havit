@@ -767,6 +767,8 @@
   "settings": {
     "title": "设置",
     "description": "管理个人偏好、系统配置与家庭成员。",
+    "centerTitle": "设置中心",
+    "centerDescription": "管理系统配置、个人偏好和家庭成员。",
     "language": "语言",
     "theme": "主题",
     "darkMode": "深色模式",
@@ -793,6 +795,35 @@
     "configSaved": "配置已保存",
     "configSaveFailed": "配置保存失败",
     "envLocked": "已被宿主机环境变量锁定",
+    "sections": {
+      "personal": "个人设置",
+      "security": "访问与密钥",
+      "system": "系统配置（仅 Owner）",
+      "members": "家庭与成员",
+      "about": "关于",
+      "currentTab": "当前设置分组"
+    },
+    "summaries": {
+      "display": "主题、货币、日期格式等基础显示偏好。",
+      "behavior": "首页视图、扫码行为和物品默认可见性。",
+      "notifications": "配置个人 Bark 和 Ntfy 通知通道。",
+      "tokens": "当前有 {{count}} 个可用访问密钥。",
+      "tokensEmpty": "暂无密钥，可创建一个给自动化工具使用。",
+      "systemAi": "AI 服务、模型与智能解析策略。",
+      "systemNotify": "Bark、Ntfy、Webhook 等通知服务。",
+      "systemInfra": "存储、注册与运行限制。",
+      "members": "当前家庭空间共有 {{count}} 位成员。",
+      "memberRoles": "Owner / Member 权限",
+      "about": "家庭资产台账的设置、权限和集成入口。"
+    },
+    "autosave": {
+      "dirty": "待保存",
+      "saving": "保存中…",
+      "saved": "已保存",
+      "error": "保存失败",
+      "failed": "保存失败"
+    },
+    "backToSettings": "返回设置中心",
     "tabs": {
       "preferences": "个人偏好",
       "apiTokens": "API 密钥",
@@ -869,7 +900,7 @@
       "revoked": "密钥已撤销",
       "revokeFailed": "撤销失败",
       "createFailed": "创建失败",
-      "empty": "暂无 API 密钥，点击右上角创建。",
+      "empty": "暂无 API 密钥，点击上方创建。",
       "createdTitle": "密钥创建成功",
       "createdHint": "请立即复制保存此密钥，关闭后将无法再次查看。",
       "copy": "复制",

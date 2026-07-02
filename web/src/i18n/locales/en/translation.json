@@ -775,6 +775,8 @@
   "settings": {
     "title": "Settings",
     "description": "Manage preferences, system configuration, and users.",
+    "centerTitle": "Settings Center",
+    "centerDescription": "Manage system configuration, personal preferences, and household members.",
     "language": "Language",
     "theme": "Theme",
     "darkMode": "Dark Mode",
@@ -801,6 +803,35 @@
     "configSaved": "Config saved",
     "configSaveFailed": "Failed to save config",
     "envLocked": "Locked by host environment variable",
+    "sections": {
+      "personal": "Personal Settings",
+      "security": "Access & Tokens",
+      "system": "System Configuration (Owner only)",
+      "members": "Household & Members",
+      "about": "About",
+      "currentTab": "Current settings group"
+    },
+    "summaries": {
+      "display": "Theme, currency, date format, and display defaults.",
+      "behavior": "Home view, scan behavior, and default item visibility.",
+      "notifications": "Configure personal Bark and Ntfy notification channels.",
+      "tokens": "{{count}} active access token(s).",
+      "tokensEmpty": "No tokens yet. Create one for automation tools.",
+      "systemAi": "AI services, models, and intelligent parsing behavior.",
+      "systemNotify": "Bark, Ntfy, Webhook, and notification delivery services.",
+      "systemInfra": "Storage, registration, and runtime limits.",
+      "members": "{{count}} household member(s).",
+      "memberRoles": "Owner / Member permissions",
+      "about": "Settings, permissions, and integrations for the household asset ledger."
+    },
+    "autosave": {
+      "dirty": "Pending",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "error": "Save failed",
+      "failed": "Save failed"
+    },
+    "backToSettings": "Back to settings",
     "tabs": {
       "preferences": "Preferences",
       "apiTokens": "API Tokens",
@@ -877,7 +908,7 @@
       "revoked": "Token revoked",
       "revokeFailed": "Failed to revoke token",
       "createFailed": "Failed to create token",
-      "empty": "No API tokens yet. Create one to get started.",
+      "empty": "No API tokens yet. Use the create button above to get started.",
       "createdTitle": "Token Created",
       "createdHint": "Copy this token now. It will not be shown again.",
       "copy": "Copy",
