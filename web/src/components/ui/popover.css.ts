@@ -4,11 +4,11 @@ import { themeVars } from '../../styles/theme.css';
 
 export const positioner = style({
   isolation: 'isolate',
-  zIndex: 50,
+  zIndex: 80,
 });
 
 export const content = style({
-  zIndex: 50,
+  zIndex: 80,
   display: 'flex',
   width: '18rem',
   transformOrigin: 'var(--transform-origin)',

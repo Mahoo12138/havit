@@ -38,8 +38,8 @@ import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
-import { TreeSelectField } from '../../components/ui/tree-select-field';
 import { CategoryTabs } from '../../features/categories/CategoryTabs';
+import { LocationPickerField } from '../../features/locations/LocationPickerField';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { formatDate, formatPrice, getWarrantyStatus, useAssetsData } from './useAssetsData';
 import * as s from './AssetsDesktop.css';
@@ -302,7 +302,7 @@ export function AssetsDesktop() {
       <Dialog open={opened} onClose={() => setOpened(false)} title={t('assets.create')}>
         <div className={s.formGrid}>
           <TextField label={t('items.name')} required value={form.name} onChange={(event) => setForm({ ...form, name: event.currentTarget.value })} />
-          <TreeSelectField label={t('assets.location')} tree={locData?.tree ?? []} placeholder={t('items.selectLocation')} required value={form.location_id} onChange={(value) => setForm({ ...form, location_id: value })} />
+          <LocationPickerField label={t('assets.location')} tree={locData?.tree} placeholder={t('items.selectLocation')} required value={form.location_id} onChange={(value) => setForm({ ...form, location_id: value })} includeVirtualLocations={false} />
           <SelectField label={t('items.category')} placeholder={t('assets.selectCategory')} options={categoryOptions} value={form.category} onChange={(event) => setForm({ ...form, category: event.currentTarget.value })} />
           <SelectField
             label={t('items.status')}

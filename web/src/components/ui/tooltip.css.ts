@@ -14,11 +14,11 @@ const exit = keyframes({
 
 export const positioner = style({
   isolation: 'isolate',
-  zIndex: 50,
+  zIndex: 80,
 });
 
 export const content = style({
-  zIndex: 50,
+  zIndex: 80,
   display: 'inline-flex',
   width: 'fit-content',
   maxWidth: '20rem',
@@ -42,12 +42,12 @@ export const content = style({
 globalStyle(`${content} [data-slot="kbd"]`, {
   position: 'relative',
   isolation: 'isolate',
-  zIndex: 50,
+  zIndex: 80,
   borderRadius: '2px',
 });
 
 export const arrow = style({
-  zIndex: 50,
+  zIndex: 80,
   width: '0.625rem',
   height: '0.625rem',
   borderRadius: '2px',

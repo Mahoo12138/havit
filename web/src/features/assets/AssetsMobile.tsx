@@ -19,9 +19,9 @@ import { Spinner } from '../../components/ui/spinner';
 import { SelectField } from '../../components/ui/select-field';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
-import { TreeSelectField } from '../../components/ui/tree-select-field';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { CategoryTabs } from '../../features/categories/CategoryTabs';
+import { LocationPickerField } from '../../features/locations/LocationPickerField';
 import { useAssetsData, getWarrantyStatus, formatPrice } from './useAssetsData';
 import * as s from './assetsMobile.css';
 
@@ -152,7 +152,7 @@ export function AssetsMobile() {
           <div className={s.overlayBody}>
             <TextField label={t('items.name')} required value={form.name} onChange={(e) => setForm({ ...form, name: e.currentTarget.value })} />
             <SelectField label={t('items.category')} placeholder={t('assets.selectCategory')} options={categoryOptions} value={form.category} onChange={(e) => setForm({ ...form, category: e.currentTarget.value })} />
-            <TreeSelectField label={t('assets.location')} tree={locData?.tree ?? []} placeholder={t('items.selectLocation')} required value={form.location_id} onChange={(v) => setForm({ ...form, location_id: v })} />
+            <LocationPickerField label={t('assets.location')} tree={locData?.tree} placeholder={t('items.selectLocation')} required value={form.location_id} onChange={(v) => setForm({ ...form, location_id: v })} includeVirtualLocations={false} />
             <TextField label={t('assets.serialNumberLabel')} value={form.serial_number} onChange={(e) => setForm({ ...form, serial_number: e.currentTarget.value })} />
             <TextField label={t('assets.purchasePriceWithCurrency', { currency: defaultCurrency })} type="number" value={form.purchase_price} onChange={(e) => setForm({ ...form, purchase_price: e.currentTarget.value })} />
             <TextareaField label={t('assets.notes')} placeholder={t('assets.notesPlaceholder')} value={form.description} onChange={(e) => setForm({ ...form, description: e.currentTarget.value })} />
