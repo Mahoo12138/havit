@@ -346,21 +346,22 @@ CREATE TABLE categories (
     name        TEXT NOT NULL,
     icon        TEXT,                  -- 对应前端图标库 key（如 Lucide 的 'smartphone'）
     root_type   TEXT NOT NULL CHECK(root_type IN ('physical', 'virtual')),
-    is_system   INTEGER NOT NULL DEFAULT 0,  -- 1=系统预设只读锁定，0=用户自建
+    is_system   INTEGER NOT NULL DEFAULT 0,  -- 历史兼容字段，已废弃；不参与权限或 UI 语义
     sort_order  INTEGER NOT NULL DEFAULT 0,
     created_at  INTEGER NOT NULL
 );
 
--- 系统预设分类种子数据（迁移文件中随 Schema 一并写入，而非 demo seed）
+-- 初始分类 starter taxonomy（迁移文件中随 Schema 一并写入，而非 demo seed）
+-- 这些分类可编辑、可删除；不存在只读默认分类。
 INSERT INTO categories (id, name, icon, root_type, is_system, created_at) VALUES
-('cat_furniture',   '家具',     'sofa',         'physical', 1, strftime('%s','now')),
-('cat_appliances',  '电器',     'refrigerator', 'physical', 1, strftime('%s','now')),
-('cat_digital_hw',  '数码硬件', 'smartphone',   'physical', 1, strftime('%s','now')),
-('cat_clothing',    '衣物',     'shirt',        'physical', 1, strftime('%s','now')),
-('cat_medicine',    '医药',     'pill',         'physical', 1, strftime('%s','now')),
-('cat_games',       '游戏',     'gamepad-2',    'virtual',  1, strftime('%s','now')),
-('cat_ebooks',      '电子书',   'book-open',    'virtual',  1, strftime('%s','now')),
-('cat_software',    '独立软件', 'code',         'virtual',  1, strftime('%s','now'));
+('cat_furniture',   '家具',     'sofa',         'physical', 0, strftime('%s','now')),
+('cat_appliances',  '电器',     'refrigerator', 'physical', 0, strftime('%s','now')),
+('cat_digital_hw',  '数码硬件', 'smartphone',   'physical', 0, strftime('%s','now')),
+('cat_clothing',    '衣物',     'shirt',        'physical', 0, strftime('%s','now')),
+('cat_medicine',    '医药',     'pill',         'physical', 0, strftime('%s','now')),
+('cat_games',       '游戏',     'gamepad-2',    'virtual',  0, strftime('%s','now')),
+('cat_ebooks',      '电子书',   'book-open',    'virtual',  0, strftime('%s','now')),
+('cat_software',    '独立软件', 'code',         'virtual',  0, strftime('%s','now'));
 
 -- 物品主表
 CREATE TABLE items (

@@ -52,6 +52,7 @@ export default defineConfig({
       reuseExistingServer: false,
       env: {
         HAVIT_E2E_BACKEND_PORT: String(BACKEND_PORT),
+        HAVIT_E2E_FRONTEND_PORT: String(FRONTEND_PORT),
       },
       timeout: 30_000,
     },
