@@ -28,7 +28,7 @@ export async function loginAsDemo(page: Page) {
 }
 
 export async function navigateToItems(page: Page) {
-  await page.goto('/items');
+  await page.goto('/assets');
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(1000);
 }

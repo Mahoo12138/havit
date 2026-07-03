@@ -74,8 +74,8 @@ func TestInitDemoDataSeedsEmptyDatabase(t *testing.T) {
 	if err := database.QueryRowContext(ctx, `SELECT COUNT(*) FROM items`).Scan(&items); err != nil {
 		t.Fatalf("count items: %v", err)
 	}
-	if items != 5 {
-		t.Fatalf("expected five demo items, got %d", items)
+	if items != 6 {
+		t.Fatalf("expected six demo items, got %d", items)
 	}
 
 	var virtualLocations int

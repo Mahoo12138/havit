@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/mahoo12138/havit/internal/config"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -41,7 +42,17 @@ func TestNotifyProcessDueSendsWebhookAndMarksReminderSent(t *testing.T) {
 	}))
 	defer server.Close()
 
-	notifySvc := NewNotifyService(reminderSvc, NewHTTPNotifyGateway(HTTPNotifyGatewayConfig{WebhookURL: server.URL}))
+	cfgSvc := config.NewConfigService(database)
+	if _, err := database.ExecContext(ctx,
+		`INSERT INTO system_configs (key, value, updated_at, updated_by) VALUES ('notify.webhook_url', ?, 1, NULL)`,
+		server.URL,
+	); err != nil {
+		t.Fatalf("set notify webhook config: %v", err)
+	}
+	if err := cfgSvc.RefreshDBCache(); err != nil {
+		t.Fatalf("refresh config cache: %v", err)
+	}
+	notifySvc := NewNotifyService(reminderSvc, NewHTTPNotifyGateway(cfgSvc))
 	result, err := notifySvc.ProcessDue(ctx, 200)
 	if err != nil {
 		t.Fatalf("process due reminders: %v", err)

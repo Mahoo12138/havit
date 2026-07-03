@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/mahoo12138/havit/internal/config"
 	havitcrypto "github.com/mahoo12138/havit/internal/crypto"
 	"github.com/mahoo12138/havit/internal/db"
 	authmw "github.com/mahoo12138/havit/internal/middleware"
@@ -73,14 +74,25 @@ func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookUR
 	loanSvc := service.NewLoanService(database)
 	virtualAssetSvc := service.NewVirtualAssetService(database, testFieldCrypto(t))
 	reminderSvc := service.NewReminderService(database)
-	notifySvc := service.NewNotifyService(reminderSvc, service.NewHTTPNotifyGateway(service.HTTPNotifyGatewayConfig{
-		WebhookURL: notifyWebhookURL,
-	}))
+	configSvc := config.NewConfigService(database)
+	if notifyWebhookURL != "" {
+		if _, err := database.ExecContext(context.Background(),
+			`INSERT INTO system_configs (key, value, updated_at, updated_by) VALUES ('notify.webhook_url', ?, 1, NULL)`,
+			notifyWebhookURL,
+		); err != nil {
+			t.Fatalf("set notify webhook config: %v", err)
+		}
+		if err := configSvc.RefreshDBCache(); err != nil {
+			t.Fatalf("refresh config cache: %v", err)
+		}
+	}
+	notifySvc := service.NewNotifyService(reminderSvc, service.NewHTTPNotifyGateway(configSvc))
 	backupSvc := service.NewBackupService(database, dataDir, 30)
 	searchSvc := service.NewSearchService(database)
 	barcodeSvc := service.NewBarcodeService(barcodeURL)
 	attachmentSvc := service.NewAttachmentService(database, dataDir)
 	aiRecognitionSvc := service.NewAIRecognitionService(attachmentSvc, nil)
+	apiTokenSvc := service.NewAPITokenService(database)
 
 	r := chi.NewRouter()
 	r.Route("/api/v1", func(r chi.Router) {
@@ -89,7 +101,7 @@ func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookUR
 		authH.MountPublic(r)
 
 		r.Group(func(r chi.Router) {
-			r.Use(authmw.Auth(authSvc))
+			r.Use(authmw.Auth(authSvc, apiTokenSvc))
 			authH.MountProtected(r)
 			NewItemHandler(itemSvc).Mount(r)
 			NewTagHandler(tagSvc).Mount(r)

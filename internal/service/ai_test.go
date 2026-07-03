@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/mahoo12138/havit/internal/config"
 )
 
 func TestOpenAIProviderRecognizeItemUsesVisionRequestAndParsesDraft(t *testing.T) {
@@ -44,12 +46,12 @@ func TestOpenAIProviderRecognizeItemUsesVisionRequestAndParsesDraft(t *testing.T
 	}))
 	defer server.Close()
 
-	provider := NewOpenAIProvider(OpenAIProviderConfig{
-		BaseURL:     server.URL,
-		APIKey:      "test-key",
-		Model:       "text-model",
-		VisionModel: "vision-model",
-	})
+	provider := NewOpenAIProvider(testConfigService(t, map[string]string{
+		"ai.base_url":     server.URL,
+		"ai.api_key":      "test-key",
+		"ai.model":        "text-model",
+		"ai.vision_model": "vision-model",
+	}))
 	draft, err := provider.RecognizeItem(context.Background(), []byte("image bytes"), "image/jpeg")
 	if err != nil {
 		t.Fatalf("recognize item: %v", err)
@@ -94,11 +96,11 @@ func TestOpenAIProviderParseSearchQueryParsesAndNormalizesFilter(t *testing.T) {
 	}))
 	defer server.Close()
 
-	provider := NewOpenAIProvider(OpenAIProviderConfig{
-		BaseURL:     server.URL,
-		Model:       "text-model",
-		VisionModel: "vision-model",
-	})
+	provider := NewOpenAIProvider(testConfigService(t, map[string]string{
+		"ai.base_url":     server.URL,
+		"ai.model":        "text-model",
+		"ai.vision_model": "vision-model",
+	}))
 	filter, err := provider.ParseSearchQuery(context.Background(), "家里有哪些闲置超过半年的摄影器材")
 	if err != nil {
 		t.Fatalf("parse search query: %v", err)
@@ -115,4 +117,20 @@ func TestOpenAIProviderParseSearchQueryParsesAndNormalizesFilter(t *testing.T) {
 	if filter.IdleDays == nil || *filter.IdleDays != 180 {
 		t.Fatalf("expected idle days, got %#v", filter.IdleDays)
 	}
+}
+
+func testConfigService(t *testing.T, values map[string]string) *config.ConfigService {
+	t.Helper()
+
+	ctx := context.Background()
+	database := newTestDB(t)
+	for key, value := range values {
+		if _, err := database.ExecContext(ctx,
+			`INSERT INTO system_configs (key, value, updated_at, updated_by) VALUES (?, ?, 1, NULL)`,
+			key, value,
+		); err != nil {
+			t.Fatalf("set config %s: %v", key, err)
+		}
+	}
+	return config.NewConfigService(database)
 }

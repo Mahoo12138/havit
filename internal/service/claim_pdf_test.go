@@ -66,10 +66,18 @@ func TestStolenClaimPDFIncludesAssetLedgerAndAttachments(t *testing.T) {
 		"Stolen date: 2026-05-29",
 		"invoice.jpg (image/jpeg)",
 	} {
-		if !bytes.Contains(pdf.Content, []byte(want)) {
+		if !pdfBytesContainText(pdf.Content, want) {
 			t.Fatalf("expected PDF to include %q, got %s", want, string(pdf.Content))
 		}
 	}
+}
+
+func pdfBytesContainText(content []byte, text string) bool {
+	if bytes.Contains(content, []byte(text)) {
+		return true
+	}
+	escaped := strings.NewReplacer(`\`, `\\`, `(`, `\(`, `)`, `\)`).Replace(text)
+	return bytes.Contains(content, []byte(escaped))
 }
 
 func TestStolenClaimPDFRejectsNonStolenItems(t *testing.T) {

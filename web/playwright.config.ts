@@ -4,8 +4,10 @@ import path from 'node:path';
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-const BACKEND_PORT = 3000;
-const FRONTEND_PORT = 5173;
+const BACKEND_PORT = Number(process.env.HAVIT_E2E_BACKEND_PORT ?? 3300);
+const FRONTEND_PORT = Number(process.env.HAVIT_E2E_FRONTEND_PORT ?? 5174);
+const E2E_RUN_ID = process.env.HAVIT_E2E_RUN_ID ?? String(Date.now());
+const E2E_DATA_DIR = process.env.HAVIT_E2E_DATA_DIR ?? path.join(projectRoot, 'tmp', 'e2e-data', E2E_RUN_ID);
 
 export default defineConfig({
   testDir: './e2e',
@@ -39,7 +41,8 @@ export default defineConfig({
       env: {
         HAVIT_MODE: 'demo',
         HAVIT_SERVER_PORT: String(BACKEND_PORT),
-        HAVIT_DATA_DIR: path.join(projectRoot, 'data_e2e'),
+        HAVIT_DATA_DIR: E2E_DATA_DIR,
+        GOSUMDB: 'sum.golang.org',
       },
       timeout: 120_000,
     },
@@ -47,6 +50,9 @@ export default defineConfig({
       command: 'pnpm dev',
       port: FRONTEND_PORT,
       reuseExistingServer: false,
+      env: {
+        HAVIT_E2E_BACKEND_PORT: String(BACKEND_PORT),
+      },
       timeout: 30_000,
     },
   ],

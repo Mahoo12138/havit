@@ -7,6 +7,19 @@ async function navigateToLocations(page: Page) {
   await page.waitForTimeout(1500);
 }
 
+const homeTreeItem = (page: Page) => page.getByRole('treeitem', { name: /我的家/ }).first();
+const livingRoomTreeItem = (page: Page) => page.getByRole('treeitem', { name: /客厅/ }).first();
+const tvCabinetChildButton = (page: Page) => page.getByRole('button', { name: /电视柜/ }).first();
+const carriedTreeItem = (page: Page) => page.getByRole('treeitem', { name: /@随身/ }).first();
+
+async function createRootLocation(page: Page, name: string) {
+  await page.getByRole('button', { name: /add root/i }).click();
+  await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
+  await page.locator('#Name').fill(name);
+  await page.getByRole('dialog').getByRole('button', { name: /save/i }).click();
+  await expect(page.getByRole('treeitem', { name: new RegExp(name) })).toBeVisible({ timeout: 10_000 });
+}
+
 test.describe('Locations', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsDemo(page);
@@ -14,16 +27,15 @@ test.describe('Locations', () => {
   });
 
   test('should display the location tree with seeded data', async ({ page }) => {
-    await expect(page.getByText(/my home|我的家/)).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByText(/@cloud|@云端/)).toBeVisible();
+    await expect(homeTreeItem(page)).toBeVisible({ timeout: 10_000 });
+    await expect(carriedTreeItem(page)).toBeVisible();
   });
 
   test('should select a location from the tree and show its detail', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
 
-    await expect(page.getByRole('button', { name: /add child|add child/i })).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByRole('button', /edit|edit/i)).toBeVisible();
+    await expect(page.getByRole('button', { name: /add child/i })).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('button', { name: /edit location/i })).toBeVisible();
   });
 
   test('should open create dialog for root location', async ({ page }) => {
@@ -38,18 +50,11 @@ test.describe('Locations', () => {
   test('should create a root location', async ({ page }) => {
     const locationName = `Test Property ${Date.now()}`;
 
-    await page.getByRole('button', { name: /add root/i }).click();
-    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
-
-    await page.locator('#Name').fill(locationName);
-    await page.getByRole('button', { name: /save/i }).click();
-
-    await expect(page.getByText(new RegExp(locationName))).toBeVisible({ timeout: 10_000 });
+    await createRootLocation(page, locationName);
   });
 
   test('should create a child location under an existing parent', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
 
     await page.getByRole('button', { name: /add child/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
@@ -57,35 +62,31 @@ test.describe('Locations', () => {
     const childName = `Test Room ${Date.now()}`;
     await page.locator('#Name').fill(childName);
 
-    await page.getByRole('button', { name: /save/i }).click();
-    await expect(page.getByText(new RegExp(childName))).toBeVisible({ timeout: 10_000 });
+    await page.getByRole('dialog').getByRole('button', { name: /save/i }).click();
+    await expect(page.getByRole('treeitem', { name: new RegExp(childName) })).toBeVisible({ timeout: 10_000 });
   });
 
   test('should display breadcrumb path for nested locations', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
+    await livingRoomTreeItem(page).click();
 
-    await page.getByText(/living room|客厅/).first().click();
-    await page.waitForTimeout(500);
-
-    const breadcrumb = page.getByText(/my home|我的家/).first();
+    const breadcrumb = page.getByText(/我的家/).first();
     await expect(breadcrumb).toBeVisible();
   });
 
   test('should open edit dialog for a location', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
 
-    await page.getByRole('button', { name: /edit/i }).click();
+    await page.getByRole('button', { name: /edit location/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
     await expect(page.getByRole('dialog').locator('#Name')).toBeVisible();
   });
 
   test('should edit a location name', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    const originalName = `Editable Property ${Date.now()}`;
+    await createRootLocation(page, originalName);
 
-    await page.getByRole('button', { name: /edit/i }).click();
+    await page.getByRole('button', { name: /edit location/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
 
     const input = page.getByRole('dialog').locator('#Name');
@@ -93,23 +94,21 @@ test.describe('Locations', () => {
     await input.fill(newName);
 
     await page.getByRole('dialog').getByRole('button', { name: /save/i }).click();
-    await expect(page.getByText(new RegExp(newName))).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('treeitem', { name: new RegExp(newName) })).toBeVisible({ timeout: 10_000 });
   });
 
   test('should show delete confirmation dialog', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await createRootLocation(page, `Delete Candidate ${Date.now()}`);
 
-    await page.getByRole('button', { name: /delete/i }).click();
+    await page.getByRole('button', { name: /delete location/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByText(/confirm|confirm/i)).toBeVisible();
+    await expect(page.getByText(/permanently delete this location/i)).toBeVisible();
   });
 
   test('should cancel deletion', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await createRootLocation(page, `Cancel Delete ${Date.now()}`);
 
-    await page.getByRole('button', { name: /delete/i }).click();
+    await page.getByRole('button', { name: /delete location/i }).click();
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5_000 });
 
     await page.getByRole('button', { name: /cancel/i }).first().click();
@@ -117,8 +116,7 @@ test.describe('Locations', () => {
   });
 
   test('should reveal children in the tree when expanded', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
 
     const chevron = page.locator('[data-expanded]').first();
     const isExpanded = await chevron.getAttribute('data-expanded');
@@ -128,16 +126,15 @@ test.describe('Locations', () => {
       await page.waitForTimeout(300);
     }
 
-    await expect(page.getByText(/living room|客厅/).first()).toBeVisible();
+    await expect(livingRoomTreeItem(page)).toBeVisible();
   });
 
   test('should show virtual locations section', async ({ page }) => {
-    await expect(page.getByText(/@cloud|@云端/)).toBeVisible();
+    await expect(carriedTreeItem(page)).toBeVisible();
   });
 
   test('should generate and view QR code for a location', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
 
     const qrBtn = page.getByRole('button', { name: /qr code|generate qr|qr/i });
     await qrBtn.click();
@@ -151,7 +148,7 @@ test.describe('Locations', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
-    await expect(page.getByText(/scan|scan location|scan/)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: /scan location/i })).toBeVisible({ timeout: 10_000 });
   });
 
   test('should allow manual code entry on scan page', async ({ page }) => {
@@ -159,7 +156,7 @@ test.describe('Locations', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
 
-    const codeInput = page.locator('#code, input[type="text"]').first();
+    const codeInput = page.getByRole('textbox', { name: /location code/i });
     await expect(codeInput).toBeVisible({ timeout: 5_000 });
   });
 
@@ -171,22 +168,16 @@ test.describe('Locations', () => {
   });
 
   test('should display location meta chips (direct items, children count)', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
 
     await expect(page.getByText(/direct items|direct/i).first()).toBeVisible({ timeout: 5_000 });
   });
 
   test('should display items list when a location with items is selected', async ({ page }) => {
-    await page.getByText(/my home|我的家/).click();
-    await page.waitForTimeout(500);
+    await homeTreeItem(page).click();
+    await livingRoomTreeItem(page).click();
+    await tvCabinetChildButton(page).click();
 
-    await page.getByText(/living room|客厅/).first().click();
-    await page.waitForTimeout(500);
-
-    await page.getByText(/tv cabinet|电视柜/).first().click();
-    await page.waitForTimeout(500);
-
-    await expect(page.getByText(/Sony|Sony/i)).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole('link', { name: /Sony A7M4/ })).toBeVisible({ timeout: 5_000 });
   });
 });

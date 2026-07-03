@@ -5,6 +5,9 @@ import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'node:path';
 
+const backendPort = Number(process.env.HAVIT_E2E_BACKEND_PORT ?? 3000);
+const devPort = Number(process.env.HAVIT_E2E_FRONTEND_PORT ?? 5173);
+
 export default defineConfig({
   plugins: [
     tanstackRouter({
@@ -73,9 +76,9 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
-    port: 5173,
+    port: devPort,
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': `http://localhost:${backendPort}`,
     },
   },
 });
