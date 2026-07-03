@@ -13,3 +13,7 @@ internal/static/dist/
 web/test-results/
 web/playwright-report/
 web/playwright/.cache/
+
+.playwright-mcp
+.go-build-cache
+.tanstack

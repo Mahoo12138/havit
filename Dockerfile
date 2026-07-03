@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1.6
-
 # ============================================================
 # Stage 1: build frontend
 # ============================================================
@@ -19,7 +17,7 @@ RUN mkdir -p /app/internal/static \
 # ============================================================
 # Stage 2: build backend
 # ============================================================
-FROM golang:1.24-alpine AS backend
+FROM golang:1.25-alpine AS backend
 WORKDIR /app
 
 RUN apk add --no-cache git
