@@ -127,7 +127,9 @@ export const chevron = style({
 });
 
 export const panel = style({
-  width: 'min(26rem, calc(100vw - 2rem))',
+  width: 'max-content',
+  minWidth: 'var(--anchor-width, 12rem)',
+  maxWidth: 'min(34rem, var(--available-width, calc(100vw - 2rem)))',
   gap: 0,
   overflow: 'hidden',
   padding: 0,
@@ -159,11 +161,39 @@ export const panelPath = style({
 });
 
 export const treeBody = style({
+  width: 'max-content',
+  minWidth: '100%',
+  maxWidth: 'inherit',
   maxHeight: '18rem',
 });
 
 export const treeInner = style({
+  display: 'inline-flex',
+  minWidth: '100%',
+  flexDirection: 'column',
   padding: `${themeVars.space1} ${themeVars.space2} ${themeVars.space2}`,
+});
+
+globalStyle(`${treeInner} [data-slot="tree"]`, {
+  width: 'max-content',
+  minWidth: '100%',
+});
+
+globalStyle(`${treeInner} [data-slot="tree-group"]`, {
+  width: 'max-content',
+  minWidth: '100%',
+});
+
+globalStyle(`${treeInner} [data-slot="tree-item"]`, {
+  width: 'max-content',
+  minWidth: '100%',
+});
+
+globalStyle(`${treeInner} [data-slot="tree-item-label"]`, {
+  flex: '0 0 auto',
+  minWidth: 'max-content',
+  overflow: 'visible',
+  textOverflow: 'clip',
 });
 
 export const empty = style({
