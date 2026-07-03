@@ -1,6 +1,5 @@
-import { createContext, useContext, type CSSProperties, type HTMLAttributes, type MouseEvent, type ReactNode } from 'react';
+import { createContext, useContext, type ButtonHTMLAttributes, type CSSProperties, type HTMLAttributes, type MouseEvent } from 'react';
 import { mergeProps } from '@base-ui/react/merge-props';
-import { useRender } from '@base-ui/react/use-render';
 import type { ItemInstance, TreeInstance } from '@headless-tree/core';
 import { IconChevronRight, IconMinus, IconPlus } from '@tabler/icons-react';
 
@@ -74,7 +73,7 @@ function TreeGroupLabel({ className, ...props }: HTMLAttributes<HTMLDivElement>)
   return <div data-slot="tree-group-label" className={cx(s.groupLabel, className)} {...props} />;
 }
 
-interface TreeItemProps<T = unknown> extends Omit<useRender.ComponentProps<'button'>, 'indent'> {
+interface TreeItemProps<T = unknown> extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'disabled'> {
   item?: ItemInstance<T>;
   depth?: number;
   selected?: boolean;
@@ -96,7 +95,6 @@ function TreeItem<T = unknown>({
   searchMatch,
   className,
   style,
-  render,
   children,
   ...props
 }: TreeItemProps<T>) {
@@ -127,26 +125,27 @@ function TreeItem<T = unknown>({
   } as CSSProperties;
 
   return (
-    <TreeContext.Provider value={{ ...parentContext, currentItem: item }}>
-      {useRender({
-        defaultTagName: 'button',
-        render,
-        props: mergeProps<'button'>(
-          {
-            'data-slot': 'tree-item',
-            'data-focus': itemFocused || undefined,
-            'data-folder': itemFolder || undefined,
-            'data-selected': itemSelected || undefined,
-            'data-drag-target': itemDragTarget || undefined,
-            'data-search-match': itemSearchMatch || undefined,
-            'data-disabled': disabled || undefined,
-            style: mergedStyle,
-            className: cx(s.item, className),
-            children,
-          },
-          otherProps,
-        ),
-      })}
+    <TreeContext.Provider
+      value={{
+        ...parentContext,
+        tree: parentContext.tree as TreeInstance<unknown> | undefined,
+        currentItem: item as ItemInstance<unknown> | undefined,
+      }}
+    >
+      <button
+        data-slot="tree-item"
+        data-focus={itemFocused || undefined}
+        data-folder={itemFolder || undefined}
+        data-selected={itemSelected || undefined}
+        data-drag-target={itemDragTarget || undefined}
+        data-search-match={itemSearchMatch || undefined}
+        data-disabled={disabled || undefined}
+        style={mergedStyle}
+        className={cx(s.item, className)}
+        {...otherProps}
+      >
+        {children}
+      </button>
     </TreeContext.Provider>
   );
 }

@@ -12,13 +12,8 @@ import { parseScannedLocationCode } from '../qr/locationQr';
 import { locationsApi } from '../../api/client';
 import { getLocationTypeMeta } from '../locations/types';
 
-type LocationScanSearch = {
-  code?: string;
-};
-
 export function LocationScanDesktop({ initialCode }: { initialCode?: string }) {
   const { t } = useTranslation();
-  const code = initialCode;
   const [manualCode, setManualCode] = useState(initialCode ?? '');
 
   const scanMutation = useMutation({
