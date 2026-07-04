@@ -1171,9 +1171,9 @@ func TestAIRecognizePhotoStoresOriginalImageAndReturnsManualFallback(t *testing.
 		t.Fatalf("expected ai recognize 200, got %d: %s", rec.Code, rec.Body.String())
 	}
 	if !bytes.Contains(rec.Body.Bytes(), []byte(`"fallback":"manual"`)) ||
-		!bytes.Contains(rec.Body.Bytes(), []byte(`"is_ai_source":true`)) ||
+		!bytes.Contains(rec.Body.Bytes(), []byte(`"is_ai_source":false`)) ||
 		!bytes.Contains(rec.Body.Bytes(), []byte(`"draft":{}`)) {
-		t.Fatalf("expected manual fallback with ai source attachment, got %s", rec.Body.String())
+		t.Fatalf("expected manual fallback with ordinary attachment, got %s", rec.Body.String())
 	}
 }
 

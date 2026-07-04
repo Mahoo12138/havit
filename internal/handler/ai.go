@@ -21,7 +21,47 @@ func NewAIHandler(svc *service.AIRecognitionService, maxPhotoSizeMB int) *AIHand
 }
 
 func (h *AIHandler) Mount(r chi.Router) {
+	r.Post("/ai/recognize-photo", h.recognizeDraftPhoto)
 	r.Post("/items/{itemID}/ai-recognize-photo", h.recognizeItemPhoto)
+}
+
+func (h *AIHandler) recognizeDraftPhoto(w http.ResponseWriter, r *http.Request) {
+	limit := int64(h.maxPhotoSizeMB)
+	if limit <= 0 {
+		limit = 20
+	}
+	r.Body = http.MaxBytesReader(w, r.Body, limit*1024*1024)
+	defer r.Body.Close()
+
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		writeError(w, 0, apperr.ErrFileRequired)
+		return
+	}
+	defer file.Close()
+	if header.Size == 0 {
+		writeError(w, 0, apperr.ErrImageRequired)
+		return
+	}
+
+	contentType := header.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	if !strings.HasPrefix(strings.ToLower(contentType), "image/") {
+		writeError(w, 0, apperr.ErrImageRequired)
+		return
+	}
+
+	result, err := h.svc.RecognizeDraft(r.Context(), service.RecognizeDraftInput{
+		ContentType: contentType,
+		Reader:      file,
+	})
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, result)
 }
 
 func (h *AIHandler) recognizeItemPhoto(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +78,10 @@ func (h *AIHandler) recognizeItemPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+	if header.Size == 0 {
+		writeError(w, 0, apperr.ErrImageRequired)
+		return
+	}
 
 	contentType := header.Header.Get("Content-Type")
 	if contentType == "" {

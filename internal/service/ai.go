@@ -37,58 +37,79 @@ type RecognizeItemInput struct {
 	Reader      io.Reader
 }
 
+type RecognizeDraftInput struct {
+	ContentType string
+	Reader      io.Reader
+}
+
 type RecognizeItemResult struct {
 	Draft            *ItemDraft        `json:"draft"`
 	SourceAttachment *model.Attachment `json:"source_attachment"`
 	Fallback         string            `json:"fallback,omitempty"`
 }
 
+func (s *AIRecognitionService) RecognizeDraft(ctx context.Context, in RecognizeDraftInput) (*RecognizeItemResult, error) {
+	draft, fallback, err := s.recognizeDraft(ctx, in.Reader, in.ContentType)
+	if err != nil {
+		return nil, err
+	}
+	return &RecognizeItemResult{
+		Draft:    draft,
+		Fallback: fallback,
+	}, nil
+}
+
 func (s *AIRecognitionService) RecognizeItem(ctx context.Context, in RecognizeItemInput) (*RecognizeItemResult, error) {
+	if in.Reader == nil {
+		return nil, errors.New("file required")
+	}
+	imageData, err := io.ReadAll(in.Reader)
+	if err != nil {
+		return nil, err
+	}
+	draft, fallback, err := s.recognizeDraft(ctx, bytes.NewReader(imageData), in.ContentType)
+	if err != nil {
+		return nil, err
+	}
+
 	attachment, err := s.attachments.Store(ctx, StoreAttachmentInput{
 		ItemID:      in.ItemID,
 		Type:        model.AttachmentTypePhoto,
 		Filename:    in.Filename,
 		ContentType: in.ContentType,
-		Reader:      in.Reader,
-		IsAISource:  true,
+		Reader:      bytes.NewReader(imageData),
+		IsAISource:  fallback != "manual",
 	})
 	if err != nil {
 		return nil, err
 	}
+	return &RecognizeItemResult{
+		Draft:            draft,
+		SourceAttachment: attachment,
+		Fallback:         fallback,
+	}, nil
+}
 
+func (s *AIRecognitionService) recognizeDraft(ctx context.Context, reader io.Reader, contentType string) (*ItemDraft, string, error) {
+	if reader == nil {
+		return nil, "", errors.New("file required")
+	}
 	if s.provider == nil {
-		return &RecognizeItemResult{
-			Draft:            &ItemDraft{},
-			SourceAttachment: attachment,
-			Fallback:         "manual",
-		}, nil
+		return &ItemDraft{}, "manual", nil
 	}
 
-	_, file, err := s.attachments.Open(ctx, attachment.ID)
+	imageData, err := io.ReadAll(reader)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	defer file.Close()
-
-	imageData, err := io.ReadAll(file)
+	draft, err := s.provider.RecognizeItem(ctx, imageData, contentType)
 	if err != nil {
-		return nil, err
-	}
-	draft, err := s.provider.RecognizeItem(ctx, imageData, in.ContentType)
-	if err != nil {
-		return &RecognizeItemResult{
-			Draft:            &ItemDraft{},
-			SourceAttachment: attachment,
-			Fallback:         "manual",
-		}, nil
+		return &ItemDraft{}, "manual", nil
 	}
 	if draft == nil {
 		draft = &ItemDraft{}
 	}
-	return &RecognizeItemResult{
-		Draft:            draft,
-		SourceAttachment: attachment,
-	}, nil
+	return draft, "", nil
 }
 
 // OpenAIProvider implements AIProvider by reading config live from ConfigService

@@ -2,14 +2,184 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/mahoo12138/havit/internal/config"
+	"github.com/mahoo12138/havit/internal/model"
 )
+
+type stubAIProvider struct {
+	draft *ItemDraft
+	err   error
+}
+
+func (p stubAIProvider) RecognizeItem(ctx context.Context, imageData []byte, contentType string) (*ItemDraft, error) {
+	return p.draft, p.err
+}
+
+func (p stubAIProvider) ParseSearchQuery(ctx context.Context, query string) (*SearchFilter, error) {
+	return &SearchFilter{}, nil
+}
+
+func TestAIRecognitionDraftFallsBackToManualWithoutProvider(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewAIRecognitionService(NewAttachmentService(database, t.TempDir()), nil)
+
+	result, err := svc.RecognizeDraft(ctx, RecognizeDraftInput{
+		ContentType: "image/png",
+		Reader:      strings.NewReader("image bytes"),
+	})
+	if err != nil {
+		t.Fatalf("recognize draft: %v", err)
+	}
+	if result.Fallback != "manual" {
+		t.Fatalf("expected manual fallback, got %q", result.Fallback)
+	}
+	if result.Draft == nil || result.Draft.Name != nil || result.Draft.Category != nil || result.Draft.Description != nil {
+		t.Fatalf("expected empty draft, got %#v", result.Draft)
+	}
+	assertTableCount(t, database, "items", 0)
+	assertTableCount(t, database, "attachments", 0)
+}
+
+func TestAIRecognitionDraftFallsBackToManualWhenProviderFails(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewAIRecognitionService(
+		NewAttachmentService(database, t.TempDir()),
+		stubAIProvider{err: errors.New("provider unavailable")},
+	)
+
+	result, err := svc.RecognizeDraft(ctx, RecognizeDraftInput{
+		ContentType: "image/png",
+		Reader:      strings.NewReader("image bytes"),
+	})
+	if err != nil {
+		t.Fatalf("recognize draft: %v", err)
+	}
+	if result.Fallback != "manual" {
+		t.Fatalf("expected manual fallback, got %q", result.Fallback)
+	}
+	if result.Draft == nil || result.Draft.Name != nil || result.Draft.Category != nil || result.Draft.Description != nil {
+		t.Fatalf("expected empty draft, got %#v", result.Draft)
+	}
+	assertTableCount(t, database, "items", 0)
+	assertTableCount(t, database, "attachments", 0)
+}
+
+func TestAIRecognitionDraftReturnsProviderDraft(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	name := "Sony A7M4"
+	category := "数码硬件"
+	description := "全画幅相机"
+	svc := NewAIRecognitionService(
+		NewAttachmentService(database, t.TempDir()),
+		stubAIProvider{draft: &ItemDraft{Name: &name, Category: &category, Description: &description}},
+	)
+
+	result, err := svc.RecognizeDraft(ctx, RecognizeDraftInput{
+		ContentType: "image/jpeg",
+		Reader:      strings.NewReader("image bytes"),
+	})
+	if err != nil {
+		t.Fatalf("recognize draft: %v", err)
+	}
+	if result.Fallback != "" {
+		t.Fatalf("expected no fallback, got %q", result.Fallback)
+	}
+	if result.Draft == nil || result.Draft.Name == nil || *result.Draft.Name != name {
+		t.Fatalf("expected structured draft, got %#v", result.Draft)
+	}
+	assertTableCount(t, database, "items", 0)
+	assertTableCount(t, database, "attachments", 0)
+}
+
+func TestAIRecognizeItemStoresSourcePhotoAfterProviderSuccess(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	locationID := createTestLocation(t, ctx, database, "书房")
+	item, err := NewItemService(database).Create(ctx, ItemCreateInput{
+		Name:       "相机",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locationID,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	name := "Sony A7M4"
+	attachmentSvc := NewAttachmentService(database, t.TempDir())
+	svc := NewAIRecognitionService(attachmentSvc, stubAIProvider{draft: &ItemDraft{Name: &name}})
+
+	result, err := svc.RecognizeItem(ctx, RecognizeItemInput{
+		ItemID:      item.ID,
+		Filename:    "camera.jpg",
+		ContentType: "image/jpeg",
+		Reader:      strings.NewReader("image bytes"),
+	})
+	if err != nil {
+		t.Fatalf("recognize item: %v", err)
+	}
+	if result.Fallback != "" {
+		t.Fatalf("expected no fallback, got %q", result.Fallback)
+	}
+	if result.SourceAttachment == nil || !result.SourceAttachment.IsAISource {
+		t.Fatalf("expected AI source attachment, got %#v", result.SourceAttachment)
+	}
+	attachments, err := attachmentSvc.List(ctx, item.ID)
+	if err != nil {
+		t.Fatalf("list attachments: %v", err)
+	}
+	if len(attachments) != 1 || !attachments[0].IsAISource {
+		t.Fatalf("expected one AI source attachment, got %#v", attachments)
+	}
+}
+
+func TestAIRecognizeItemStoresOrdinaryPhotoWhenProviderFallsBack(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	locationID := createTestLocation(t, ctx, database, "书房")
+	item, err := NewItemService(database).Create(ctx, ItemCreateInput{
+		Name:       "相机",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locationID,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	attachmentSvc := NewAttachmentService(database, t.TempDir())
+	svc := NewAIRecognitionService(attachmentSvc, stubAIProvider{err: errors.New("provider unavailable")})
+
+	result, err := svc.RecognizeItem(ctx, RecognizeItemInput{
+		ItemID:      item.ID,
+		Filename:    "camera.jpg",
+		ContentType: "image/jpeg",
+		Reader:      strings.NewReader("image bytes"),
+	})
+	if err != nil {
+		t.Fatalf("recognize item: %v", err)
+	}
+	if result.Fallback != "manual" {
+		t.Fatalf("expected manual fallback, got %q", result.Fallback)
+	}
+	if result.SourceAttachment == nil || result.SourceAttachment.IsAISource {
+		t.Fatalf("expected ordinary attachment, got %#v", result.SourceAttachment)
+	}
+	attachments, err := attachmentSvc.List(ctx, item.ID)
+	if err != nil {
+		t.Fatalf("list attachments: %v", err)
+	}
+	if len(attachments) != 1 || attachments[0].IsAISource {
+		t.Fatalf("expected one ordinary attachment, got %#v", attachments)
+	}
+}
 
 func TestOpenAIProviderRecognizeItemUsesVisionRequestAndParsesDraft(t *testing.T) {
 	var request struct {
@@ -133,4 +303,18 @@ func testConfigService(t *testing.T, values map[string]string) *config.ConfigSer
 		}
 	}
 	return config.NewConfigService(database)
+}
+
+func assertTableCount(t *testing.T, database interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}, table string, want int) {
+	t.Helper()
+
+	var got int
+	if err := database.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM "+table).Scan(&got); err != nil {
+		t.Fatalf("count %s: %v", table, err)
+	}
+	if got != want {
+		t.Fatalf("expected %s count %d, got %d", table, want, got)
+	}
 }
