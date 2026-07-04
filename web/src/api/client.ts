@@ -484,6 +484,11 @@ export const barcodeApi = {
 };
 
 export const aiApi = {
+  recognizePhotoDraft: (file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api.post('ai/recognize-photo', { body }).json<RecognizeItemResult>();
+  },
   recognizePhoto: (itemId: string, file: File) => {
     const body = new FormData();
     body.append('file', file);
