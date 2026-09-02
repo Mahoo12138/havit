@@ -63,10 +63,33 @@ export const filesPanel = style({
   flexDirection: 'column',
   gap: themeVars.space3,
   padding: themeVars.space4,
-  border: `1px solid ${themeVars.line}`,
+  border: `1px solid ${themeVars.lineSoft}`,
   borderRadius: themeVars.radius3,
   background: themeVars.bgSoft,
   boxShadow: themeVars.shadowSoft,
+});
+
+export const barcodePanel = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+  padding: themeVars.space4,
+  border: `1px solid ${themeVars.lineSoft}`,
+  borderRadius: themeVars.radius3,
+  background: themeVars.bgSoft,
+  boxShadow: themeVars.shadowSoft,
+});
+
+export const barcodeControls = style({
+  display: 'flex',
+  alignItems: 'flex-end',
+  gap: themeVars.space2,
+  '@media': {
+    '(max-width: 560px)': {
+      flexDirection: 'column',
+      alignItems: 'stretch',
+    },
+  },
 });
 
 export const panelHeader = style({

@@ -690,6 +690,20 @@
       "needs_review": "需确认",
       "failed": "失败"
     },
+    "barcodeTitle": "条码录入",
+    "barcodeHint": "查询商品条码自动填充草稿；未命中时继续手动录入，不会被阻塞。",
+    "barcodeLabel": "条码",
+    "barcodePlaceholder": "输入商品条码",
+    "queryBarcode": "查询条码",
+    "querying": "查询中…",
+    "barcodeResult": "条码",
+    "barcodeFallback": "条码未命中，请手动填写或使用拍照识别。",
+    "barcodeError": "条码查询失败，请手动填写或使用拍照识别。",
+    "openCamera": "打开摄像头扫码",
+    "stopCamera": "停止",
+    "scanning": "正在识别条码…",
+    "cameraError": "未检测到摄像头",
+    "cameraLoadError": "扫码组件加载失败，请手动输入条码",
     "reset": "重置"
   },
   "import": {

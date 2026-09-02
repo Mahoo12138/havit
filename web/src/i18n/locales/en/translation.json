@@ -699,6 +699,20 @@
       "needs_review": "Needs Review",
       "failed": "Failed"
     },
+    "barcodeTitle": "Barcode Entry",
+    "barcodeHint": "Query a product barcode to autofill the draft. If the lookup misses, keep entering manually — nothing is blocked.",
+    "barcodeLabel": "Barcode",
+    "barcodePlaceholder": "Enter product barcode",
+    "queryBarcode": "Query Barcode",
+    "querying": "Querying…",
+    "barcodeResult": "Barcode",
+    "barcodeFallback": "Barcode not found. Fill in the details manually or use photo recognition.",
+    "barcodeError": "Barcode lookup failed. Fill in the details manually or use photo recognition.",
+    "openCamera": "Open Camera to Scan",
+    "stopCamera": "Stop",
+    "scanning": "Scanning for barcode…",
+    "cameraError": "No camera detected",
+    "cameraLoadError": "Failed to load scanner module, please use manual input",
     "reset": "Reset"
   },
   "import": {

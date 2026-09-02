@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import {
+  IconBarcode,
   IconCamera,
   IconCheck,
   IconChecklist,
@@ -20,11 +21,13 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { TextField } from '../../components/ui/text-field';
 import { LocationPickerField } from '../locations/LocationPickerField';
+import { QrScanner } from '../qr/QrScanner';
 import { FeatureHeader } from '../m2/components';
-import { aiApi, itemsApi, locationsApi } from '../../api/client';
+import { aiApi, barcodeApi, itemsApi, locationsApi } from '../../api/client';
 import * as s from './CaptureDesktop.css';
 
-type ResultType = 'ai' | 'manual';
+type ResultType = 'barcode' | 'ai' | 'manual';
+type BarcodeStatus = 'idle' | 'found' | 'fallback' | 'error';
 type RecognitionFileStatus = 'recognizing' | 'recognized' | 'needs_review' | 'failed';
 type RecognitionFile = {
   id: string;
@@ -60,6 +63,8 @@ export function CaptureDesktop() {
   const [draftDescription, setDraftDescription] = useState('');
   const [draftLocationId, setDraftLocationId] = useState('');
   const [recognitionFiles, setRecognitionFiles] = useState<RecognitionFile[]>([]);
+  const [barcode, setBarcode] = useState('');
+  const [barcodeStatus, setBarcodeStatus] = useState<BarcodeStatus>('idle');
 
   const locations = useQuery({
     queryKey: ['locations'],
@@ -71,6 +76,19 @@ export function CaptureDesktop() {
     if (data?.draft?.category) setDraftCategory((current) => current || data.draft.category);
     if (data?.draft?.description) setDraftDescription((current) => current || data.draft.description);
   }
+
+  const barcodeMutation = useMutation({
+    mutationFn: (code: string) => barcodeApi.lookup(code),
+    onSuccess: (data) => {
+      if (data.found) {
+        fillEmptyDraftFields({ draft: data.draft });
+        setBarcodeStatus('found');
+      } else {
+        setBarcodeStatus('fallback');
+      }
+    },
+    onError: () => setBarcodeStatus('error'),
+  });
 
   function queueFiles(fileList: FileList | null) {
     const files = Array.from(fileList ?? []).filter((file) => file.type.startsWith('image/'));
@@ -143,15 +161,19 @@ export function CaptureDesktop() {
   });
 
   const recognizing = recognitionFiles.some((entry) => entry.status === 'recognizing');
-  const resultType: ResultType | null = recognitionFiles.some((entry) => entry.status === 'recognized')
-    ? 'ai'
-    : recognitionFiles.some((entry) => entry.status === 'needs_review' || entry.status === 'failed')
-      ? 'manual'
-      : null;
+  const resultType: ResultType | null = barcodeStatus === 'found'
+    ? 'barcode'
+    : recognitionFiles.some((entry) => entry.status === 'recognized')
+      ? 'ai'
+      : recognitionFiles.some((entry) => entry.status === 'needs_review' || entry.status === 'failed')
+        ? 'manual'
+        : null;
   const sourceLabel = resultType
-    ? resultType === 'ai'
-      ? t('capture.aiResult')
-      : t('capture.manualResult')
+    ? resultType === 'barcode'
+      ? t('capture.barcodeResult')
+      : resultType === 'ai'
+        ? t('capture.aiResult')
+        : t('capture.manualResult')
     : recognizing
       ? t('capture.recognizing')
       : t('capture.waitingResult');
@@ -217,6 +239,45 @@ export function CaptureDesktop() {
               <p className={s.inlineHint}>{t('capture.fallbackManual')}</p>
             )}
           </div>
+
+          <section className={s.barcodePanel} aria-labelledby="capture-barcode-title">
+            <div className={s.panelHeader}>
+              <div>
+                <h3 id="capture-barcode-title" className={s.sectionTitle}>{t('capture.barcodeTitle')}</h3>
+                <p className={s.panelSub}>{t('capture.barcodeHint')}</p>
+              </div>
+              <span className={s.iconBadge}><IconBarcode size={18} /></span>
+            </div>
+            <div className={s.barcodeControls}>
+              <TextField
+                id="capture-barcode"
+                label={t('capture.barcodeLabel')}
+                placeholder={t('capture.barcodePlaceholder')}
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+              />
+              <Button
+                leftSection={<IconBarcode size={15} />}
+                onClick={() => barcodeMutation.mutate(barcode.trim())}
+                disabled={!barcode.trim() || barcodeMutation.isPending}
+              >
+                {barcodeMutation.isPending ? t('capture.querying') : t('capture.queryBarcode')}
+              </Button>
+            </div>
+            <QrScanner
+              busy={barcodeMutation.isPending}
+              onDetected={(code) => {
+                setBarcode(code);
+                barcodeMutation.mutate(code);
+              }}
+            />
+            {barcodeStatus === 'fallback' && (
+              <p className={s.inlineHint}>{t('capture.barcodeFallback')}</p>
+            )}
+            {barcodeStatus === 'error' && (
+              <InlineIssue message={t('capture.barcodeError')} />
+            )}
+          </section>
 
           <section className={s.filesPanel} aria-labelledby="capture-files-title">
             <div className={s.panelHeader}>
@@ -301,7 +362,7 @@ export function CaptureDesktop() {
 
             <div className={s.confidenceRow}>
               <span>{t('capture.confidence')}</span>
-              <strong className={s.confidenceValue}>{resultType === 'manual' ? t('capture.manualConfidence') : resultType ? '95%' : '--'}</strong>
+              <strong className={s.confidenceValue}>{resultType === 'manual' ? t('capture.manualConfidence') : resultType === 'barcode' ? '100%' : resultType ? '95%' : '--'}</strong>
             </div>
 
             <div className={s.resultForm}>
@@ -350,6 +411,7 @@ export function CaptureDesktop() {
                   setDraftDescription('');
                   setDraftLocationId('');
                   setRecognitionFiles([]);
+                  setBarcodeStatus('idle');
                 }}
               >
                 {t('capture.reset')}
