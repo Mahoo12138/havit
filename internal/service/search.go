@@ -89,6 +89,36 @@ func (s *SearchService) FTS(ctx context.Context, query string) ([]SearchResult, 
 		return nil, err
 	}
 
+	ftsResults, err := s.ftsMatch(ctx, query, locationPaths)
+	if err != nil {
+		// FTS is best-effort: a malformed query must not break search,
+		// the LIKE pass below still covers the user's input.
+		ftsResults = []SearchResult{}
+	}
+
+	// LIKE matches literal text, so quote characters copied from elsewhere
+	// would never hit; strip them before building the pattern.
+	likeQuery := strings.ReplaceAll(query, `"`, "")
+	likeResults, err := s.like(ctx, likeQuery, locationPaths)
+	if err != nil {
+		return nil, err
+	}
+	return mergeSearchResults(ftsResults, likeResults), nil
+}
+
+// matchExpression turns user input into a safe FTS5 MATCH expression where each
+// whitespace-separated term becomes a quoted phrase, so characters like ( ) : "
+// cannot inject query syntax.
+func matchExpression(query string) string {
+	terms := strings.Fields(query)
+	quoted := make([]string, 0, len(terms))
+	for _, term := range terms {
+		quoted = append(quoted, `"`+strings.ReplaceAll(term, `"`, `""`)+`"`)
+	}
+	return strings.Join(quoted, " AND ")
+}
+
+func (s *SearchService) ftsMatch(ctx context.Context, query string, locationPaths map[string]string) ([]SearchResult, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT items.id, items.name, items.type, items.status,
 			items.location_id, items.home_base_location_id, items.current_status_tag
@@ -98,50 +128,13 @@ func (s *SearchService) FTS(ctx context.Context, query string) ([]SearchResult, 
 		ORDER BY items.updated_at DESC, items.name ASC
 		LIMIT 50`,
 		"sold", "given_away", "lost", "stolen", "unreturned", "damaged", "archived",
-		query,
+		matchExpression(query),
 	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-
-	out := []SearchResult{}
-	for rows.Next() {
-		var result SearchResult
-		var homeBaseID *string
-		var currentStatusTag *string
-		if err := rows.Scan(
-			&result.ID, &result.Name, &result.Type, &result.Status,
-			&result.LocationID, &homeBaseID, &currentStatusTag,
-		); err != nil {
-			return nil, err
-		}
-		if result.LocationID != nil {
-			if path, ok := locationPaths[*result.LocationID]; ok {
-				result.LocationPath = &path
-			}
-		}
-		if result.Type == "essentials" && currentStatusTag != nil {
-			hint := fmt.Sprintf("当前状态：%s", *currentStatusTag)
-			if homeBaseID != nil {
-				if path, ok := locationPaths[*homeBaseID]; ok {
-					hint += "；如果不在身上，请检查基准归宿：" + path
-				}
-			}
-			result.EssentialsHint = &hint
-		}
-		out = append(out, result)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	if len(out) > 0 {
-		return out, nil
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	return s.like(ctx, query, locationPaths)
+	return scanSearchResults(rows, locationPaths)
 }
 
 func (s *SearchService) Filter(ctx context.Context, f SearchFilter) ([]SearchResult, error) {
@@ -304,11 +297,20 @@ func (s *SearchService) like(ctx context.Context, query string, locationPaths ma
 				OR COALESCE(items.description, '') LIKE ?
 				OR COALESCE(items.category, '') LIKE ?
 				OR COALESCE(items.serial_number, '') LIKE ?
+				OR EXISTS (
+					SELECT 1 FROM item_tags
+					JOIN tags ON tags.id = item_tags.tag_id
+					WHERE item_tags.item_id = items.id AND tags.name LIKE ?
+				)
+				OR EXISTS (
+					SELECT 1 FROM locations
+					WHERE locations.id = items.location_id AND locations.name LIKE ?
+				)
 			)
 		ORDER BY items.updated_at DESC, items.name ASC
 		LIMIT 50`,
 		"sold", "given_away", "lost", "stolen", "unreturned", "damaged", "archived",
-		like, like, like, like,
+		like, like, like, like, like, like,
 	)
 	if err != nil {
 		return nil, err
@@ -316,6 +318,22 @@ func (s *SearchService) like(ctx context.Context, query string, locationPaths ma
 	defer rows.Close()
 
 	return scanSearchResults(rows, locationPaths)
+}
+
+func mergeSearchResults(primary, secondary []SearchResult) []SearchResult {
+	seen := make(map[string]struct{}, len(primary))
+	out := make([]SearchResult, 0, len(primary)+len(secondary))
+	for _, result := range primary {
+		seen[result.ID] = struct{}{}
+		out = append(out, result)
+	}
+	for _, result := range secondary {
+		if _, ok := seen[result.ID]; !ok {
+			seen[result.ID] = struct{}{}
+			out = append(out, result)
+		}
+	}
+	return out
 }
 
 func scanSearchResults(rows *sql.Rows, locationPaths map[string]string) ([]SearchResult, error) {

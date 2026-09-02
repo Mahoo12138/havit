@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "dashboard": "仪表盘",
     "search": "搜索",
@@ -792,6 +792,7 @@
     "ftsOnly": "仅全文搜索（未配置 LLM）",
     "aiPowered": "AI 语义搜索",
     "noResults": "未找到结果",
+    "searchError": "搜索出错，请更换关键词重试。",
     "searching": "搜索中…",
     "query": "查询",
     "queryPlaceholder": "例如：家里有哪些闲置超过半年的数码产品",

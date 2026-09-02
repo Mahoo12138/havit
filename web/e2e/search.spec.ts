@@ -1,0 +1,140 @@
+import { test, expect, type APIRequestContext, type Page } from '@playwright/test';
+import { loginAsDemo } from './helpers';
+
+const BACKEND_PORT = Number(process.env.HAVIT_E2E_BACKEND_PORT ?? 3300);
+const API_BASE_URL = `http://localhost:${BACKEND_PORT}/api/v1/`;
+
+async function login(request: APIRequestContext) {
+  const response = await request.post('auth/login', {
+    data: {
+      username: 'admin@havit.local',
+      password: 'havit-demo',
+    },
+  });
+  expect(response.ok()).toBeTruthy();
+  const body = await response.json();
+  return body.token as string;
+}
+
+async function expectJson<T>(responsePromise: Promise<APIResponse>) {
+  const response = await responsePromise;
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as T;
+}
+
+interface SearchFixture {
+  locationName: string;
+  cameraItemName: string;
+  taggedItemName: string;
+  tagName: string;
+  essentialsItemName: string;
+}
+
+async function createSearchFixture(api: APIRequestContext, headers: { Authorization: string }): Promise<SearchFixture> {
+  const unique = Date.now().toString(36);
+  const fixture = {
+    locationName: `搜测防潮箱${unique}`,
+    cameraItemName: `搜测相机包${unique}`,
+    taggedItemName: `搜测镜头布${unique}`,
+    tagName: `搜测尼康${unique}`,
+    essentialsItemName: `搜测钥匙扣${unique}`,
+  };
+
+  const location = await expectJson<{ id: string }>(
+    api.post('locations/', { headers, data: { name: fixture.locationName } }),
+  );
+  await expectJson<{ id: string }>(
+    api.post('items/', {
+      headers,
+      data: { name: fixture.cameraItemName, type: 'durable', location_id: location.id },
+    }),
+  );
+  const tag = await expectJson<{ id: string }>(
+    api.post('tags/', { headers, data: { name: fixture.tagName, color: '#2563eb' } }),
+  );
+  const taggedItem = await expectJson<{ id: string }>(
+    api.post('items/', {
+      headers,
+      data: { name: fixture.taggedItemName, type: 'durable', location_id: location.id },
+    }),
+  );
+  await expectJson<unknown>(
+    api.put(`items/${taggedItem.id}/tags`, { headers, data: { tag_ids: [tag.id] } }),
+  );
+  await expectJson<{ id: string }>(
+    api.post('items/', {
+      headers,
+      data: {
+        name: fixture.essentialsItemName,
+        type: 'essentials',
+        location_id: location.id,
+        home_base_location_id: location.id,
+        current_status_tag: '@carry',
+      },
+    }),
+  );
+  return fixture;
+}
+
+async function searchFor(page: Page, query: string) {
+  await page.goto('/search');
+  await page.waitForLoadState('networkidle');
+  await page.getByLabel('Query').fill(query);
+}
+
+test.describe('Search & locate loop', () => {
+  let api: APIRequestContext;
+  let headers: { Authorization: string };
+  let fixture: SearchFixture;
+
+  test.beforeAll(async ({ playwright }) => {
+    api = await playwright.request.newContext({ baseURL: API_BASE_URL });
+    const token = await login(api);
+    headers = { Authorization: `Bearer ${token}` };
+    fixture = await createSearchFixture(api, headers);
+  });
+
+  test.afterAll(async () => {
+    await api.dispose();
+  });
+
+  test('finds an item by Chinese keyword and shows its location path', async ({ page }) => {
+    await loginAsDemo(page);
+    await searchFor(page, '相机包');
+
+    await expect(page.getByRole('heading', { name: fixture.cameraItemName })).toBeVisible();
+    await expect(page.getByText(fixture.locationName).first()).toBeVisible();
+  });
+
+  test('finds an item by tag keyword', async ({ page }) => {
+    await loginAsDemo(page);
+    await searchFor(page, fixture.tagName.replace('搜测', ''));
+
+    await expect(page.getByRole('heading', { name: fixture.taggedItemName })).toBeVisible();
+  });
+
+  test('finds items stored in a location by the location name', async ({ page }) => {
+    await loginAsDemo(page);
+    await searchFor(page, fixture.locationName.replace('搜测', ''));
+
+    await expect(page.getByRole('heading', { name: fixture.cameraItemName })).toBeVisible();
+    await expect(page.getByText(fixture.locationName).first()).toBeVisible();
+  });
+
+  test('shows the essentials fallback hint for carried EDC items', async ({ page }) => {
+    await loginAsDemo(page);
+    await searchFor(page, fixture.essentialsItemName.replace('搜测', ''));
+
+    await expect(page.getByRole('heading', { name: fixture.essentialsItemName })).toBeVisible();
+    await expect(page.getByText(/当前状态：@carry/).first()).toBeVisible();
+  });
+
+  test('search works on a mobile viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsDemo(page);
+    await searchFor(page, '相机包');
+
+    await expect(page.getByRole('heading', { name: fixture.cameraItemName })).toBeVisible();
+    await expect(page.getByText(fixture.locationName).first()).toBeVisible();
+  });
+});

@@ -1,4 +1,4 @@
-﻿{
+{
   "nav": {
     "dashboard": "Dashboard",
     "search": "Search",
@@ -801,6 +801,7 @@
     "ftsOnly": "Full-text search only (LLM not configured)",
     "aiPowered": "AI-powered semantic search",
     "noResults": "No results found",
+    "searchError": "Search failed. Try a different keyword.",
     "searching": "Searching…",
     "query": "Query",
     "queryPlaceholder": "e.g. what electronics have been idle for over six months at home",

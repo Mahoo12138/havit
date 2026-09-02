@@ -46,7 +46,9 @@ func (h *SearchHandler) search(w http.ResponseWriter, r *http.Request) {
 		defer wg.Done()
 		results, err := h.svc.FTS(ctx, q)
 		if err != nil {
-			safeWrite("error", map[string]string{"error": err.Error()})
+			// "search_error" instead of "error": EventSource treats a named
+			// "error" event as a built-in connection failure on the client.
+			safeWrite("search_error", map[string]string{"error": err.Error()})
 			return
 		}
 		safeWrite("fts_results", results)

@@ -15,6 +15,7 @@ export function SearchDesktop() {
   const [ftsResults, setFtsResults] = useState<SearchResult[]>([]);
   const [llmResults, setLlmResults] = useState<SearchResult[]>([]);
   const [isRefining, setIsRefining] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [esRef, setEsRef] = useState<EventSource | null>(null);
 
   const handleSearch = useCallback(
@@ -24,6 +25,7 @@ export function SearchDesktop() {
       setFtsResults([]);
       setLlmResults([]);
       setIsRefining(false);
+      setSearchError(null);
 
       if (!q.trim()) return;
 
@@ -49,6 +51,12 @@ export function SearchDesktop() {
         setLlmResults(data ?? []);
       }) as EventListener);
 
+      es.addEventListener('search_error', (() => {
+        setSearchError(t('search.searchError'));
+        setIsRefining(false);
+        es.close();
+      }) as EventListener);
+
       es.addEventListener('done', () => {
         setIsRefining(false);
         es.close();
@@ -59,7 +67,7 @@ export function SearchDesktop() {
         es.close();
       };
     },
-    [esRef],
+    [esRef, t],
   );
 
   const results = llmResults.length > 0 ? llmResults : ftsResults;
@@ -80,6 +88,12 @@ export function SearchDesktop() {
             value={query}
             onChange={(e) => handleSearch(e.target.value)}
           />
+          {searchError && (
+            <Row>
+              <IconSearch size={16} />
+              <span className={uiStyles.help}>{searchError}</span>
+            </Row>
+          )}
           <Row>
             {ftsResults.length > 0 && <StatusBadge status="in_stock" />}
             {isRefining && (

@@ -209,6 +209,134 @@ func TestSearchFTSWithEmptyQuery(t *testing.T) {
 	}
 }
 
+func TestSearchFTSChineseQueriesFindItems(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	searchSvc := NewSearchService(database)
+
+	locID := createTestLocation(t, ctx, database, "书房")
+	if _, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "佳能单反相机",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	}); err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+
+	for _, query := range []string{"单反相机", "相机", "佳能"} {
+		results, err := searchSvc.FTS(ctx, query)
+		if err != nil {
+			t.Fatalf("FTS %q: %v", query, err)
+		}
+		if len(results) != 1 || results[0].Name != "佳能单反相机" {
+			t.Fatalf("expected Chinese query %q to find the item, got %#v", query, results)
+		}
+	}
+}
+
+func TestSearchFTSSpecialCharactersDoNotError(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	searchSvc := NewSearchService(database)
+
+	locID := createTestLocation(t, ctx, database, "书房")
+	if _, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "100% 纯棉 T恤(白色)",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	}); err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+
+	// Substring queries that contain FTS5 syntax characters must still find the item.
+	for _, query := range []string{`100% 纯棉`, `"纯棉"`, `T恤(白色)`} {
+		results, err := searchSvc.FTS(ctx, query)
+		if err != nil {
+			t.Fatalf("FTS %q must not error, got: %v", query, err)
+		}
+		if len(results) != 1 {
+			t.Fatalf("expected query %q to find the item via LIKE, got %d results", query, len(results))
+		}
+	}
+
+	// Pure syntax characters must not error either, even when nothing matches.
+	for _, query := range []string{`: : ( ) " *`, "A OR B"} {
+		if _, err := searchSvc.FTS(ctx, query); err != nil {
+			t.Fatalf("FTS %q must not error, got: %v", query, err)
+		}
+	}
+}
+
+func TestSearchFTSFindsItemsByTag(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	tagSvc := NewTagService(database)
+	searchSvc := NewSearchService(database)
+
+	locID := createTestLocation(t, ctx, database, "书房")
+	item, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "镜头 50mm",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	tag, err := tagSvc.Create(ctx, TagCreateInput{Name: "尼康"})
+	if err != nil {
+		t.Fatalf("create tag: %v", err)
+	}
+	if _, err := itemSvc.ReplaceTags(ctx, item.ID, []string{tag.ID}); err != nil {
+		t.Fatalf("replace tags: %v", err)
+	}
+
+	results, err := searchSvc.FTS(ctx, "尼康")
+	if err != nil {
+		t.Fatalf("FTS: %v", err)
+	}
+	if len(results) != 1 || results[0].Name != "镜头 50mm" {
+		t.Fatalf("expected tag keyword to find the item, got %#v", results)
+	}
+}
+
+func TestSearchFTSFindsItemsByLocationName(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	searchSvc := NewSearchService(database)
+
+	locID := createTestLocation(t, ctx, database, "防潮箱")
+	if _, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "备用镜头",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	}); err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+
+	results, err := searchSvc.FTS(ctx, "防潮箱")
+	if err != nil {
+		t.Fatalf("FTS: %v", err)
+	}
+	if len(results) != 1 || results[0].Name != "备用镜头" {
+		t.Fatalf("expected location keyword to find the item, got %#v", results)
+	}
+	if results[0].LocationPath == nil || *results[0].LocationPath != "防潮箱" {
+		t.Fatalf("expected location path in result, got %#v", results[0].LocationPath)
+	}
+}
+
+func TestSearchMatchExpressionQuotesTerms(t *testing.T) {
+	got := matchExpression(`相机 (1) "新款"`)
+	want := `"相机" AND "(1)" AND """新款"""`
+	if got != want {
+		t.Fatalf("unexpected match expression: got %q, want %q", got, want)
+	}
+}
+
 func TestSearchFilterTimeField(t *testing.T) {
 	tests := []struct {
 		field string
