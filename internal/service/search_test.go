@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -334,6 +335,71 @@ func TestSearchMatchExpressionQuotesTerms(t *testing.T) {
 	want := `"相机" AND "(1)" AND """新款"""`
 	if got != want {
 		t.Fatalf("unexpected match expression: got %q, want %q", got, want)
+	}
+}
+
+func TestSearchAttachesLoanHintForBorrowedItems(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	loanSvc := NewLoanService(database)
+	searchSvc := NewSearchService(database)
+
+	locID := createTestLocation(t, ctx, database, "书房")
+	borrowed, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "投影仪",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create borrowed item: %v", err)
+	}
+	due := time.Now().Add(7 * 24 * time.Hour).Unix()
+	if _, err := loanSvc.Create(ctx, borrowed.ID, LoanCreateInput{
+		BorrowerName: "小王",
+		DueAt:        &due,
+	}); err != nil {
+		t.Fatalf("create loan: %v", err)
+	}
+
+	overdue, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "游戏机",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create overdue item: %v", err)
+	}
+	pastDue := time.Now().Add(-48 * time.Hour).Unix()
+	if _, err := loanSvc.Create(ctx, overdue.ID, LoanCreateInput{
+		BorrowerName: "小李",
+		DueAt:        &pastDue,
+	}); err != nil {
+		t.Fatalf("create overdue loan: %v", err)
+	}
+
+	results, err := searchSvc.FTS(ctx, "仪")
+	if err != nil {
+		t.Fatalf("FTS: %v", err)
+	}
+	if len(results) != 1 || results[0].Name != "投影仪" {
+		t.Fatalf("expected only the projector to match, got %#v", results)
+	}
+	if results[0].LoanHint == nil ||
+		!strings.Contains(*results[0].LoanHint, "小王") ||
+		!strings.Contains(*results[0].LoanHint, "应还") ||
+		strings.Contains(*results[0].LoanHint, "已逾期") {
+		t.Fatalf("expected an active loan hint for 小王, got %#v", results[0].LoanHint)
+	}
+
+	filtered, err := searchSvc.Filter(ctx, SearchFilter{Keywords: []string{"游戏机"}})
+	if err != nil {
+		t.Fatalf("Filter: %v", err)
+	}
+	if len(filtered) != 1 || filtered[0].LoanHint == nil ||
+		!strings.Contains(*filtered[0].LoanHint, "小李") ||
+		!strings.Contains(*filtered[0].LoanHint, "已逾期") {
+		t.Fatalf("expected an overdue loan hint for 小李, got %#v", filtered)
 	}
 }
 

@@ -68,7 +68,7 @@
 | 导出 | CSV/JSON 手动导出 | 可用待验收 | 76% | `ExportService`、`exportApi`、操作页、P0 API E2E | 继续验证导出字段完整性、隐私过滤和大数据量表现 |
 | 条码录入 | 摄像头扫码、条码查询、失败降级 | 进行中 | 78% | `BarcodeService`、`CaptureDesktop` 条码区（输入+扫码+命中自动填充）、查不到/接口异常降级 E2E | 真实摄像头扫码人工验收 |
 | AI 拍照识别 | 上传照片、结构化识别、原图存证、元数据提炼 | 进行中 | 70% | `AIRecognitionService`、`POST /ai/recognize-photo`、`OpenAIProvider`、provider nil/error/success 测试、存证语义测试与 E2E | 元数据自动提炼；移动端真机验收 |
-| 搜索与定位 | FTS 即时搜索、SSE、自然语言增强、结果上下文 | 进行中 | 75% | `SearchService`（FTS 转义+LIKE 合并、标签/位置命中）、`SearchDesktop`（search_error 处理）、5 条搜索 E2E | 搜索结果“下一步行动”增强（借出信息、缩略图）；归档物品显示开关 |
+| 搜索与定位 | FTS 即时搜索、SSE、自然语言增强、结果上下文 | 进行中 | 80% | `SearchService`（FTS 转义+LIKE 合并、标签/位置命中、借出提示）、`SearchDesktop`（search_error 处理）、6 条搜索 E2E | 搜索结果缩略图；归档物品显示开关 |
 | 消耗品 A：免数日耗 | 购买事件、校准事件、补货预测 | 可用待验收 | 72% | `purchase_events`、`calibration_events`、`SuppliesDesktop` | 检查预测算法准确性；补“快没了/还有很多”影响下一次预测的测试 |
 | 消耗品 B：计件备品 | 当前库存、一键使用、阈值、寿命倒计时 | 可用待验收 | 75% | `use-one`、`current_stock`、`lifespan_days` | 低库存是否进入提醒/待补货视图需要验收 |
 | EDC 随身常备 | 基准位置、动态状态、打包/归位 | 进行中 | 62% | `EssentialsDesktop`、`packAll`、`returnAll` | 补搜索降级提示；移动端出门清单应作为高优先级验收 |
@@ -85,7 +85,7 @@
 | PAT 开放生态 | 个人访问令牌创建、撤销、最后使用 | 可用待验收 | 68% | `APITokenService`、`SettingsDesktop`、`api_tokens` | 补 token 过期、last_used、撤销后鉴权失败测试 |
 | 设备与会话 | 登录设备列表、强制下线单设备 | 待开始 | 20% | 只有 `token_version` 可全部失效 | 若当前不做原生多端，可后置到 M3；不要阻塞 MVP |
 | PWA 与移动端 | PWA manifest、网络状态、移动端核心页 | 进行中 | 60% | `manifest.json`、`useNetworkStatus`、MobileShell、部分 Mobile 页 | 先验收资产、位置、消耗品、详情四个移动主链路 |
-| 测试体系 | Go 单测、前端 build、E2E、部署验收 | 进行中 | 80% | `go test ./...`、`pnpm build`、33 条 Playwright（条码异常路径 + 搜索闭环）、迁移回滚测试、Docker 验证脚本通过 | 每个 S2 工作流至少补 1 条关键 E2E |
+| 测试体系 | Go 单测、前端 build、E2E、部署验收 | 进行中 | 80% | `go test ./...`、`pnpm build`、34 条 Playwright（条码异常路径 + 搜索闭环）、迁移回滚测试、Docker 验证脚本通过 | 每个 S2 工作流至少补 1 条关键 E2E |
 
 ## 五、里程碑计划
 
@@ -147,7 +147,7 @@ S1 结论：核心链路已可内测；不要再扩 P0 功能面，后续只做�
 | 切片 | 状态 | 已完成 | 下一步 |
 |---|---|---|---|
 | S2.1 快速录入闭环 | 收口中 | 拍照草稿识别；条码录入（输入+扫码，命中自动填充，查不到/接口异常降级手动且可保存）；AI/条码失败进入手动确认；保存必选位置；保存后照片挂到真实物品；AI provider nil/error/success 后端测试；E2E 28 条 | 真机验收移动端拍照/扫码；随后进入 S2.2 |
-| S2.2 搜索与定位闭环 | 进行中 | FTS 特殊字符防错 + LIKE 合并去重；2 字中文词 LIKE 兜底；标签/位置名命中；EDC 降级提示；search_error 前端提示；5 条 E2E（中文/标签/位置/EDC/移动端） | 借出信息提示、缩略图、归档显示开关 |
+| S2.2 搜索与定位闭环 | 收口中 | FTS 特殊字符防错 + LIKE 合并去重；2 字中文词 LIKE 兜底；标签/位置名命中；EDC 降级提示；借出物品状态提示（含逾期）；search_error 前端提示；6 条 E2E | 缩略图、归档显示开关；随后进入消耗品+提醒联动 |
 
 S2 完成后，项目的核心差异化才算真正可体验。当前不要把精力分散到新模块，先把 S2.1 做到失败也能保存、保存后可追溯、手机上可用。
 

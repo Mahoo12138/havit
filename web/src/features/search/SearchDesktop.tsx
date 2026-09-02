@@ -135,6 +135,7 @@ export function SearchDesktop() {
                   </Row>
                   {result.location_path && <span>{result.location_path}</span>}
                   {result.essentials_hint && <p className={uiStyles.help}>{result.essentials_hint}</p>}
+                  {result.loan_hint && <p className={uiStyles.help}>{result.loan_hint}</p>}
                   <Row>
                     <StatusBadge status={result.status} />
                     <span className={uiStyles.muted}>{t(`itemType.${result.type}`, result.type)}</span>

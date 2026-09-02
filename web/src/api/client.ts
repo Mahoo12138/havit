@@ -311,6 +311,7 @@ export interface SearchResult {
   location_id?: string;
   location_path?: string;
   essentials_hint?: string;
+  loan_hint?: string;
 }
 
 export interface BarcodeLookupResult {

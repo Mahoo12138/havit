@@ -28,6 +28,7 @@ interface SearchFixture {
   taggedItemName: string;
   tagName: string;
   essentialsItemName: string;
+  borrowedItemName: string;
 }
 
 async function createSearchFixture(api: APIRequestContext, headers: { Authorization: string }): Promise<SearchFixture> {
@@ -38,6 +39,7 @@ async function createSearchFixture(api: APIRequestContext, headers: { Authorizat
     taggedItemName: `搜测镜头布${unique}`,
     tagName: `搜测尼康${unique}`,
     essentialsItemName: `搜测钥匙扣${unique}`,
+    borrowedItemName: `搜测投影仪${unique}`,
   };
 
   const location = await expectJson<{ id: string }>(
@@ -70,6 +72,21 @@ async function createSearchFixture(api: APIRequestContext, headers: { Authorizat
         location_id: location.id,
         home_base_location_id: location.id,
         current_status_tag: '@carry',
+      },
+    }),
+  );
+  const borrowedItem = await expectJson<{ id: string }>(
+    api.post('items/', {
+      headers,
+      data: { name: fixture.borrowedItemName, type: 'durable', location_id: location.id },
+    }),
+  );
+  await expectJson<unknown>(
+    api.post(`items/${borrowedItem.id}/loans`, {
+      headers,
+      data: {
+        borrower_name: '搜测小王',
+        due_at: Math.floor(Date.now() / 1000) + 7 * 24 * 3600,
       },
     }),
   );
@@ -127,6 +144,14 @@ test.describe('Search & locate loop', () => {
 
     await expect(page.getByRole('heading', { name: fixture.essentialsItemName })).toBeVisible();
     await expect(page.getByText(/当前状态：@carry/).first()).toBeVisible();
+  });
+
+  test('shows a loan hint for borrowed items', async ({ page }) => {
+    await loginAsDemo(page);
+    await searchFor(page, fixture.borrowedItemName.replace('搜测', ''));
+
+    await expect(page.getByRole('heading', { name: fixture.borrowedItemName })).toBeVisible();
+    await expect(page.getByText(/已借给 搜测小王；应还/)).toBeVisible();
   });
 
   test('search works on a mobile viewport', async ({ page }) => {

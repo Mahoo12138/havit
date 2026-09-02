@@ -24,6 +24,7 @@ type SearchResult struct {
 	LocationID   *string `json:"location_id,omitempty"`
 	LocationPath *string `json:"location_path,omitempty"`
 	EssentialsHint      *string `json:"essentials_hint,omitempty"`
+	LoanHint            *string `json:"loan_hint,omitempty"`
 }
 
 type SearchFilter struct {
@@ -103,7 +104,69 @@ func (s *SearchService) FTS(ctx context.Context, query string) ([]SearchResult, 
 	if err != nil {
 		return nil, err
 	}
-	return mergeSearchResults(ftsResults, likeResults), nil
+	results := mergeSearchResults(ftsResults, likeResults)
+	if err := s.attachLoanHints(ctx, results); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+// attachLoanHints fills in "who borrowed it / when it is due" hints for
+// borrowed items so search results point to the next action, matching the
+// product design's status-hint requirement for abnormal items.
+func (s *SearchService) attachLoanHints(ctx context.Context, results []SearchResult) error {
+	borrowedIDs := make([]string, 0, len(results))
+	for _, result := range results {
+		if result.Status == "borrowed" {
+			borrowedIDs = append(borrowedIDs, result.ID)
+		}
+	}
+	if len(borrowedIDs) == 0 {
+		return nil
+	}
+
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(borrowedIDs)), ",")
+	args := make([]any, 0, len(borrowedIDs))
+	for _, id := range borrowedIDs {
+		args = append(args, id)
+	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT item_id, borrower_name, due_at FROM loans
+		WHERE status = 'active' AND item_id IN (`+placeholders+`)`,
+		args...,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	hints := map[string]string{}
+	for rows.Next() {
+		var itemID, borrower string
+		var dueAt *int64
+		if err := rows.Scan(&itemID, &borrower, &dueAt); err != nil {
+			return err
+		}
+		hint := "已借给 " + borrower
+		if dueAt != nil {
+			due := time.Unix(*dueAt, 0).Format("2006-01-02")
+			if *dueAt < time.Now().Unix() {
+				hint += "；应还 " + due + "，已逾期"
+			} else {
+				hint += "；应还 " + due
+			}
+		}
+		hints[itemID] = hint
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for i := range results {
+		if hint, ok := hints[results[i].ID]; ok {
+			results[i].LoanHint = &hint
+		}
+	}
+	return nil
 }
 
 // matchExpression turns user input into a safe FTS5 MATCH expression where each
@@ -233,7 +296,14 @@ func (s *SearchService) Filter(ctx context.Context, f SearchFilter) ([]SearchRes
 		return nil, err
 	}
 	defer rows.Close()
-	return scanSearchResults(rows, locationPaths)
+	results, err := scanSearchResults(rows, locationPaths)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.attachLoanHints(ctx, results); err != nil {
+		return nil, err
+	}
+	return results, nil
 }
 
 func (s *SearchService) locationPaths(ctx context.Context) (map[string]string, error) {
