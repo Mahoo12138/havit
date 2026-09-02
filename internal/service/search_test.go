@@ -338,6 +338,39 @@ func TestSearchMatchExpressionQuotesTerms(t *testing.T) {
 	}
 }
 
+func TestSearchEssentialsHintIncludesLastConfirmed(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	searchSvc := NewSearchService(database)
+
+	locID := createTestLocation(t, ctx, database, "玄关")
+	if _, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:               "门禁卡",
+		Type:               model.ItemTypeEssentials,
+		LocationID:         &locID,
+		HomeBaseLocationID: &locID,
+		CurrentStatusTag:   strPtr("@home"),
+	}); err != nil {
+		t.Fatalf("create essentials item: %v", err)
+	}
+
+	results, err := searchSvc.FTS(ctx, "门禁卡")
+	if err != nil {
+		t.Fatalf("FTS: %v", err)
+	}
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %#v", results)
+	}
+	hint := results[0].EssentialsHint
+	if hint == nil ||
+		!strings.Contains(*hint, "当前状态：@home") ||
+		!strings.Contains(*hint, "基准归宿：玄关") ||
+		!strings.Contains(*hint, "最后确认") {
+		t.Fatalf("expected a full essentials hint, got %#v", hint)
+	}
+}
+
 func TestSearchAttachesLoanHintForBorrowedItems(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)
@@ -578,10 +611,10 @@ func TestSearchFilterStockLow(t *testing.T) {
 	stockLow := 5
 	stock := 3
 	itemSvc.Create(ctx, ItemCreateInput{
-		Name:             "Paper Clips",
-		Type:             model.ItemTypeTrackedSpares,
-		LocationID:       &locID,
-		CurrentStock:     &stock,
+		Name:              "Paper Clips",
+		Type:              model.ItemTypeTrackedSpares,
+		LocationID:        &locID,
+		CurrentStock:      &stock,
 		MinStockThreshold: &stockLow,
 	})
 

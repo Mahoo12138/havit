@@ -1084,7 +1084,7 @@ func TestSearchSSEHTTPFlowReturnsFTSResultsWithEssentialsHint(t *testing.T) {
 	}
 	if !bytes.Contains(search.Body.Bytes(), []byte("event: fts_results")) ||
 		!bytes.Contains(search.Body.Bytes(), []byte(`"name":"钥匙"`)) ||
-		!bytes.Contains(search.Body.Bytes(), []byte(`"essentials_hint":"当前状态：@随身；如果不在身上，请检查基准归宿：玄关"`)) ||
+		!bytes.Contains(search.Body.Bytes(), []byte(`"essentials_hint":"当前状态：@随身；如果不在身上，请检查基准归宿：玄关；最后确认：今天"`)) ||
 		!bytes.Contains(search.Body.Bytes(), []byte("event: done")) {
 		t.Fatalf("expected fts SSE result with essentials hint, got %s", search.Body.String())
 	}

@@ -25,6 +25,9 @@ type SearchResult struct {
 	LocationPath *string `json:"location_path,omitempty"`
 	EssentialsHint      *string `json:"essentials_hint,omitempty"`
 	LoanHint            *string `json:"loan_hint,omitempty"`
+
+	// UpdatedAt is an internal scan target for the essentials hint and is not serialized.
+	UpdatedAt int64 `json:"-"`
 }
 
 type SearchFilter struct {
@@ -184,7 +187,7 @@ func matchExpression(query string) string {
 func (s *SearchService) ftsMatch(ctx context.Context, query string, locationPaths map[string]string) ([]SearchResult, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT items.id, items.name, items.type, items.status,
-			items.location_id, items.home_base_location_id, items.current_status_tag
+			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at
 		FROM items
 		WHERE items.status NOT IN (?, ?, ?, ?, ?, ?, ?)
 			AND items.id IN (SELECT item_id FROM items_fts WHERE items_fts MATCH ?)
@@ -287,7 +290,7 @@ func (s *SearchService) Filter(ctx context.Context, f SearchFilter) ([]SearchRes
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT items.id, items.name, items.type, items.status,
-			items.location_id, items.home_base_location_id, items.current_status_tag
+			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at
 		FROM items
 		WHERE %s
 		ORDER BY %s
@@ -359,7 +362,7 @@ func (s *SearchService) like(ctx context.Context, query string, locationPaths ma
 	like := "%" + query + "%"
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT items.id, items.name, items.type, items.status,
-			items.location_id, items.home_base_location_id, items.current_status_tag
+			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at
 		FROM items
 		WHERE items.status NOT IN (?, ?, ?, ?, ?, ?, ?)
 			AND (
@@ -414,7 +417,7 @@ func scanSearchResults(rows *sql.Rows, locationPaths map[string]string) ([]Searc
 		var currentStatusTag *string
 		if err := rows.Scan(
 			&result.ID, &result.Name, &result.Type, &result.Status,
-			&result.LocationID, &homeBaseID, &currentStatusTag,
+			&result.LocationID, &homeBaseID, &currentStatusTag, &result.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -429,6 +432,12 @@ func scanSearchResults(rows *sql.Rows, locationPaths map[string]string) ([]Searc
 				if path, ok := locationPaths[*homeBaseID]; ok {
 					hint += "；如果不在身上，请检查基准归宿：" + path
 				}
+			}
+			days := (time.Now().Unix() - result.UpdatedAt) / 86400
+			if days <= 0 {
+				hint += "；最后确认：今天"
+			} else {
+				hint += fmt.Sprintf("；最后确认：%d 天前", days)
 			}
 			result.EssentialsHint = &hint
 		}
