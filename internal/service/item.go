@@ -602,6 +602,20 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 		return nil, err
 	}
 
+	if cur.Type == model.ItemTypeTrackedSpares {
+		threshold := 1
+		if cur.MinStockThreshold != nil {
+			threshold = *cur.MinStockThreshold
+		}
+		stock := 0
+		if cur.CurrentStock != nil {
+			stock = *cur.CurrentStock
+		}
+		if err := s.ensureLowStockReminder(ctx, s.db, id, stock <= threshold); err != nil {
+			return nil, err
+		}
+	}
+
 	s.logEvent(ctx, id, "updated", nil)
 
 	cur.UpdatedAt = now
@@ -853,10 +867,9 @@ func (s *ItemService) UseOne(ctx context.Context, id string) (*model.Item, error
 	usedOne := cur.CurrentStock != nil && *cur.CurrentStock > 0
 
 	now := time.Now().Unix()
+	// Using a spare means a fresh unit just went into service, so the
+	// countdown for the currently-installed unit restarts now.
 	inUseSince := now
-	if cur.InUseSince != nil {
-		inUseSince = *cur.InUseSince
-	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -874,6 +887,14 @@ func (s *ItemService) UseOne(ctx context.Context, id string) (*model.Item, error
 	}
 
 	if usedOne && cur.LifespanDays != nil && *cur.LifespanDays > 0 {
+		// One active filter-life reminder per item, like the warranty pair:
+		// replace any old alert with one for the just-installed unit.
+		if _, err := tx.ExecContext(ctx,
+			`DELETE FROM reminders WHERE item_id = ? AND type = 'filter_life'`,
+			id,
+		); err != nil {
+			return nil, err
+		}
 		triggerAt := inUseSince + int64(*cur.LifespanDays)*24*60*60
 		reminderID := ulid.Make().String()
 		if _, err := tx.ExecContext(ctx, `
@@ -883,6 +904,14 @@ func (s *ItemService) UseOne(ctx context.Context, id string) (*model.Item, error
 		); err != nil {
 			return nil, err
 		}
+	}
+
+	threshold := 1
+	if cur.MinStockThreshold != nil {
+		threshold = *cur.MinStockThreshold
+	}
+	if err := s.ensureLowStockReminder(ctx, tx, id, stock <= threshold); err != nil {
+		return nil, err
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -1057,6 +1086,44 @@ func (s *ItemService) replaceWarrantyReminders(ctx context.Context, itemID strin
 		}
 	}
 	return nil
+}
+
+// reminderWriter covers both *sql.DB and *sql.Tx so the low-stock reminder
+// logic can run inside UseOne's transaction or after a plain stock update.
+type reminderWriter interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
+// ensureLowStockReminder keeps a single active stock_low reminder while a
+// tracked-spares item is at or below its restock threshold. Restocking above
+// the threshold dismisses the alert so it stops firing.
+func (s *ItemService) ensureLowStockReminder(ctx context.Context, w reminderWriter, itemID string, low bool) error {
+	if low {
+		var active int
+		if err := w.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM reminders WHERE item_id = ? AND type = 'stock_low' AND is_dismissed = 0`,
+			itemID,
+		).Scan(&active); err != nil {
+			return err
+		}
+		if active > 0 {
+			return nil
+		}
+		reminderID := ulid.Make().String()
+		_, err := w.ExecContext(ctx, `
+			INSERT INTO reminders (id, item_id, type, trigger_at, is_dismissed)
+			VALUES (?, ?, 'stock_low', ?, 0)`,
+			reminderID, itemID, time.Now().Unix(),
+		)
+		return err
+	}
+	_, err := w.ExecContext(ctx,
+		`UPDATE reminders SET is_dismissed = 1
+		 WHERE item_id = ? AND type = 'stock_low' AND is_dismissed = 0`,
+		itemID,
+	)
+	return err
 }
 
 func (s *ItemService) getPurchaseEvent(ctx context.Context, id string) (*model.PurchaseEvent, error) {

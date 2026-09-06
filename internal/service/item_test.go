@@ -278,7 +278,7 @@ func TestTrackedSparesUseOneDecrementsStockAndCreatesLifeReminder(t *testing.T) 
 	var reminderType string
 	var triggerAt int64
 	if err := database.QueryRowContext(ctx,
-		`SELECT type, trigger_at FROM reminders WHERE item_id = ?`, item.ID,
+		`SELECT type, trigger_at FROM reminders WHERE item_id = ? AND type = 'filter_life'`, item.ID,
 	).Scan(&reminderType, &triggerAt); err != nil {
 		t.Fatalf("find reminder: %v", err)
 	}
@@ -295,6 +295,103 @@ func TestTrackedSparesUseOneDecrementsStockAndCreatesLifeReminder(t *testing.T) 
 	}
 	if again.CurrentStock == nil || *again.CurrentStock != 0 {
 		t.Fatalf("expected stock to stay at 0, got %#v", again.CurrentStock)
+	}
+}
+
+func TestTrackedSparesUseOneCreatesLowStockReminder(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewItemService(database)
+	locID := createTestLocation(t, ctx, database, "厨房")
+
+	stock := 2
+	threshold := 2
+	item, err := svc.Create(ctx, ItemCreateInput{
+		Name:              "打印纸",
+		Type:              model.ItemTypeTrackedSpares,
+		LocationID:        &locID,
+		CurrentStock:      &stock,
+		MinStockThreshold: &threshold,
+	})
+	if err != nil {
+		t.Fatalf("create tracked spares item: %v", err)
+	}
+
+	countActive := func() int {
+		t.Helper()
+		var count int
+		if err := database.QueryRowContext(ctx,
+			`SELECT COUNT(*) FROM reminders WHERE item_id = ? AND type = 'stock_low' AND is_dismissed = 0`,
+			item.ID,
+		).Scan(&count); err != nil {
+			t.Fatalf("count stock_low reminders: %v", err)
+		}
+		return count
+	}
+
+	// First use drops stock to the threshold → stock_low reminder.
+	if _, err := svc.UseOne(ctx, item.ID); err != nil {
+		t.Fatalf("use one: %v", err)
+	}
+	if count := countActive(); count != 1 {
+		t.Fatalf("expected 1 active stock_low reminder, got %d", count)
+	}
+
+	// Second use stays below the threshold; the reminder must not duplicate.
+	if _, err := svc.UseOne(ctx, item.ID); err != nil {
+		t.Fatalf("use one again: %v", err)
+	}
+	if count := countActive(); count != 1 {
+		t.Fatalf("expected stock_low reminder to stay unique, got %d", count)
+	}
+}
+
+func TestTrackedSparesRestockDismissesLowStockReminder(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewItemService(database)
+	locID := createTestLocation(t, ctx, database, "厨房")
+
+	stock := 1
+	threshold := 2
+	item, err := svc.Create(ctx, ItemCreateInput{
+		Name:              "墨盒",
+		Type:              model.ItemTypeTrackedSpares,
+		LocationID:        &locID,
+		CurrentStock:      &stock,
+		MinStockThreshold: &threshold,
+	})
+	if err != nil {
+		t.Fatalf("create tracked spares item: %v", err)
+	}
+	if _, err := svc.UseOne(ctx, item.ID); err != nil {
+		t.Fatalf("use one: %v", err)
+	}
+
+	var dismissed int
+	if err := database.QueryRowContext(ctx,
+		`SELECT is_dismissed FROM reminders WHERE item_id = ? AND type = 'stock_low'`,
+		item.ID,
+	).Scan(&dismissed); err != nil {
+		t.Fatalf("find stock_low reminder: %v", err)
+	}
+	if dismissed != 0 {
+		t.Fatal("expected stock_low reminder to be active after dropping below threshold")
+	}
+
+	// Restocking above the threshold dismisses the alert.
+	restocked := 5
+	if _, err := svc.Update(ctx, item.ID, ItemUpdateInput{CurrentStock: &restocked}); err != nil {
+		t.Fatalf("restock: %v", err)
+	}
+	if err := database.QueryRowContext(ctx,
+		`SELECT is_dismissed FROM reminders WHERE item_id = ? AND type = 'stock_low'`,
+		item.ID,
+	).Scan(&dismissed); err != nil {
+		t.Fatalf("find stock_low reminder after restock: %v", err)
+	}
+	if dismissed != 1 {
+		t.Fatal("expected stock_low reminder to be dismissed after restock")
 	}
 }
 
