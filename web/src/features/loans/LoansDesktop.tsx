@@ -31,6 +31,10 @@ export function LoansDesktop() {
   const [dueAt, setDueAt] = useState('');
 
   const [returnLoanId, setReturnLoanId] = useState<string | null>(null);
+  const [unreturnLoanId, setUnreturnLoanId] = useState<string | null>(null);
+  const [compensation, setCompensation] = useState('');
+  const [compensationCurrency, setCompensationCurrency] = useState('CNY');
+  const [settlementNotes, setSettlementNotes] = useState('');
 
   const { data: borrowedItemsData, isLoading: borrowedLoading } = useQuery({
     queryKey: ['items', 'borrowed'],
@@ -162,6 +166,23 @@ export function LoansDesktop() {
       queryClient.invalidateQueries({ queryKey: ['items', 'borrowed'] });
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       setReturnLoanId(null);
+    },
+  });
+
+  const unreturnMutation = useMutation({
+    mutationFn: (loanId: string) =>
+      loansApi.markUnreturned(loanId, {
+        compensation: compensation ? Number(compensation) : undefined,
+        compensation_currency: compensationCurrency || undefined,
+        notes: settlementNotes || undefined,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items', 'borrowed'] });
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+      setUnreturnLoanId(null);
+      setCompensation('');
+      setCompensationCurrency('CNY');
+      setSettlementNotes('');
     },
   });
 
@@ -391,15 +412,25 @@ export function LoansDesktop() {
                               <Button variant="subtle" className={uiStyles.loanActionBtn} title={t('loans.viewDetail')}>
                                 <IconEye size={13} />
                               </Button>
-                              {status === 'active' || status === 'overdue' || status === 'due_soon' ? (
-                                <Button
-                                  variant="subtle"
-                                  className={uiStyles.loanActionBtn}
-                                  onClick={() => setReturnLoanId(loan.id)}
-                                >
-                                  {t('loans.returnItem')}
-                                </Button>
-                              ) : null}
+                {status === 'active' || status === 'overdue' || status === 'due_soon' ? (
+                  <Button
+                    variant="subtle"
+                    className={uiStyles.loanActionBtn}
+                    onClick={() => setReturnLoanId(loan.id)}
+                  >
+                    {t('loans.returnItem')}
+                  </Button>
+                ) : null}
+                {status === 'active' || status === 'overdue' || status === 'due_soon' ? (
+                  <Button
+                    variant="subtle"
+                    className={uiStyles.loanActionBtn}
+                    title={t('loans.markUnreturned')}
+                    onClick={() => setUnreturnLoanId(loan.id)}
+                  >
+                    {t('loans.markUnreturned')}
+                  </Button>
+                ) : null}
                               <Button variant="subtle" className={uiStyles.loanActionMore} title={t('common.more', { defaultValue: 'More' })}>
                                 <IconDotsVertical size={14} />
                               </Button>
@@ -473,6 +504,15 @@ export function LoansDesktop() {
                           {t('loans.returnItem')}
                         </Button>
                       )}
+                      {(status === 'active' || status === 'overdue' || status === 'due_soon') && (
+                        <Button
+                          variant="subtle"
+                          className={uiStyles.loanActionBtn}
+                          onClick={() => setUnreturnLoanId(loan.id)}
+                        >
+                          {t('loans.markUnreturned')}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );
@@ -531,6 +571,38 @@ export function LoansDesktop() {
               disabled={returnMutation.isPending}
             >
               {t('loans.returnItem')}
+            </Button>
+          </Stack>
+        </Dialog>
+      )}
+
+      {unreturnLoanId && (
+        <Dialog open title={t('loans.markUnreturned')} onClose={() => setUnreturnLoanId(null)}>
+          <Stack>
+            <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+              {t('loans.unreturnedHint')}
+            </p>
+            <TextField
+              label={t('loans.compensation')}
+              type="number"
+              value={compensation}
+              onChange={(e) => setCompensation(e.target.value)}
+            />
+            <TextField
+              label={t('loans.compensationCurrency')}
+              value={compensationCurrency}
+              onChange={(e) => setCompensationCurrency(e.target.value)}
+            />
+            <TextField
+              label={t('loans.settlementNotes')}
+              value={settlementNotes}
+              onChange={(e) => setSettlementNotes(e.target.value)}
+            />
+            <Button
+              onClick={() => unreturnMutation.mutate(unreturnLoanId)}
+              disabled={unreturnMutation.isPending}
+            >
+              {t('loans.markUnreturned')}
             </Button>
           </Stack>
         </Dialog>

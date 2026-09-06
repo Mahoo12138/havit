@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -12,11 +14,12 @@ import (
 )
 
 type LoanService struct {
-	db *sql.DB
+	db       *sql.DB
+	abnormal *AbnormalService
 }
 
-func NewLoanService(db *sql.DB) *LoanService {
-	return &LoanService{db: db}
+func NewLoanService(db *sql.DB, abnormal *AbnormalService) *LoanService {
+	return &LoanService{db: db, abnormal: abnormal}
 }
 
 type LoanCreateInput struct {
@@ -91,6 +94,11 @@ func (s *LoanService) Create(ctx context.Context, itemID string, in LoanCreateIn
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
+	s.logLoanEvent(ctx, itemID, "loan_started", jsonPayload(map[string]any{
+		"loan_id":       id,
+		"borrower_name": in.BorrowerName,
+		"due_at":        in.DueAt,
+	}))
 	return s.Get(ctx, id)
 }
 
@@ -170,6 +178,10 @@ func (s *LoanService) Return(ctx context.Context, id string, in LoanReturnInput)
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
+	s.logLoanEvent(ctx, cur.ItemID, "loan_returned", jsonPayload(map[string]any{
+		"loan_id":     id,
+		"returned_at": in.ReturnedAt,
+	}))
 	return s.Get(ctx, id)
 }
 
@@ -208,7 +220,44 @@ func (s *LoanService) MarkUnreturned(ctx context.Context, id string, in LoanUnre
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
+
+	// Liability settlement must land in the abnormal module and stay on the
+	// item's permanent lifecycle log (product design 3.7).
+	if s.abnormal != nil {
+		if _, err := s.abnormal.UpsertFromLoan(ctx, cur.ItemID, "unreturned", cur.BorrowerName, in.Compensation, in.CompensationCurrency); err != nil {
+			return nil, err
+		}
+	}
+	s.logLoanEvent(ctx, cur.ItemID, "loan_unreturned", jsonPayload(map[string]any{
+		"loan_id":               id,
+		"borrower_name":         cur.BorrowerName,
+		"compensation":          in.Compensation,
+		"compensation_currency": in.CompensationCurrency,
+		"notes":                 in.Notes,
+	}))
 	return s.Get(ctx, id)
+}
+
+// logLoanEvent writes a permanent entry on the item's lifecycle log. Failures
+// are logged but do not fail the loan operation itself.
+func (s *LoanService) logLoanEvent(ctx context.Context, itemID, eventType string, payload *string) {
+	eventID := ulid.Make().String()
+	if _, err := s.db.ExecContext(ctx,
+		`INSERT INTO item_events (id, item_id, event_type, payload, created_at)
+		 VALUES (?, ?, ?, ?, ?)`,
+		eventID, itemID, eventType, payload, time.Now().Unix(),
+	); err != nil {
+		slog.Error("log loan event", "item", itemID, "type", eventType, "err", err)
+	}
+}
+
+func jsonPayload(v any) *string {
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return nil
+	}
+	s := string(raw)
+	return &s
 }
 
 type loanScanner interface {

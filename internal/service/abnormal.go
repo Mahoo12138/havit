@@ -118,6 +118,49 @@ func (s *AbnormalService) Create(ctx context.Context, itemID, abnormalType, resp
 	}, nil
 }
 
+// UpsertFromLoan creates, or refreshes, the abnormal record produced when a
+// loan is marked unreturned. abnormal_records has a UNIQUE(item_id) key, so a
+// second incident on the same item updates the current record instead of
+// colliding; processing_status is reset so the new incident is actionable.
+func (s *AbnormalService) UpsertFromLoan(ctx context.Context, itemID, abnormalType, responsiblePerson string, estimatedLoss *float64, currency *string) (*model.AbnormalRecord, error) {
+	now := time.Now().Unix()
+	id := ulid.Make().String()
+	initialStatus := initialProcessingStatus(abnormalType)
+
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO abnormal_records (
+			id, item_id, abnormal_type, processing_status,
+			responsible_person, estimated_loss, estimated_loss_currency,
+			recoverable_amount, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+		ON CONFLICT(item_id) DO UPDATE SET
+			abnormal_type = excluded.abnormal_type,
+			processing_status = excluded.processing_status,
+			responsible_person = excluded.responsible_person,
+			estimated_loss = excluded.estimated_loss,
+			estimated_loss_currency = excluded.estimated_loss_currency,
+			updated_at = excluded.updated_at`,
+		id, itemID, abnormalType, initialStatus,
+		nilIfEmpty(responsiblePerson), estimatedLoss, currency,
+		now, now,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &model.AbnormalRecord{
+		ID:                   id,
+		ItemID:               itemID,
+		AbnormalType:         abnormalType,
+		ProcessingStatus:     initialStatus,
+		ResponsiblePerson:    nilIfEmpty(responsiblePerson),
+		EstimatedLoss:        estimatedLoss,
+		EstimatedLossCurrency: currency,
+		CreatedAt:            now,
+		UpdatedAt:            now,
+	}, nil
+}
+
 func (s *AbnormalService) List(ctx context.Context, f AbnormalListFilter) ([]*AbnormalListItem, int, error) {
 	where := "1=1"
 	args := []any{}

@@ -71,7 +71,7 @@ func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookUR
 	locationSvc := service.NewLocationService(database)
 	importSvc := service.NewImportService(database)
 	exportSvc := service.NewExportService(database, testFieldCrypto(t))
-	loanSvc := service.NewLoanService(database)
+	loanSvc := service.NewLoanService(database, service.NewAbnormalService(database))
 	virtualAssetSvc := service.NewVirtualAssetService(database, testFieldCrypto(t))
 	reminderSvc := service.NewReminderService(database)
 	configSvc := config.NewConfigService(database)

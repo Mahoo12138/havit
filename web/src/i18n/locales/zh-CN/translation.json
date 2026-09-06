@@ -116,7 +116,7 @@
     "purchasePrice": "购入价",
     "currency": "货币",
     "serialNumber": "序列号",
-    "description": "描述",
+    "description": "记录耐用品、日耗品、随身常备和买断制虚拟资产。",
     "tags": "标签",
     "manageTags": "管理标签",
     "addTag": "添加标签",
@@ -149,7 +149,6 @@
     "virtual_asset": "虚拟资产",
     "noItems": "未找到物品",
     "noItemsHint": "尝试调整筛选条件或添加新物品。",
-    "description": "记录耐用品、日耗品、随身常备和买断制虚拟资产。",
     "offlineWarning": "离线模式下无法录入",
     "noPhotoYet": "暂无照片",
     "uploadPhotoHint": "上传第一张照片来记录这件物品。",
@@ -253,7 +252,8 @@
     "consumed": "已消耗",
     "archived": "已归档",
     "restored": "已恢复",
-    "edited": "已编辑"
+    "edited": "已编辑",
+    "loan_unreturned": "借出未还（遗失）"
   },
   "locations": {
     "title": "位置",
@@ -496,7 +496,14 @@
     "viewDetailedStats": "查看详细统计",
     "newLoan": "新建借出",
     "settings": "设置",
-    "totalItems": "共 {{count}} 项"
+    "totalItems": "共 {{count}} 项",
+    "markUnreturned": "标记未还（遗失）",
+    "compensation": "赔偿金额",
+    "compensationCurrency": "币种",
+    "settlementNotes": "交割备注",
+    "markedUnreturned": "已标记为借出遗失",
+    "markUnreturnedFailed": "标记失败：{{error}}",
+    "unreturnedHint": "将物品标记为借出遗失（对方未归还），联动异常模块，并把责任交割记录永久写入物品历史。"
   },
   "abnormal": {
     "title": "异常资产管理",

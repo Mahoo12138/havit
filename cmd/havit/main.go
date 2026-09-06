@@ -82,7 +82,8 @@ func main() {
 
 	importSvc := service.NewImportService(database)
 	exportSvc := service.NewExportService(database, fieldCrypto)
-	loanSvc := service.NewLoanService(database)
+	abnormalSvc := service.NewAbnormalService(database)
+	loanSvc := service.NewLoanService(database, abnormalSvc)
 	virtualAssetSvc := service.NewVirtualAssetService(database, fieldCrypto)
 	reminderSvc := service.NewReminderService(database)
 	notifyGateway := service.NewHTTPNotifyGateway(configSvc)
@@ -92,7 +93,6 @@ func main() {
 	barcodeSvc := service.NewBarcodeService("")
 	attachmentSvc := service.NewAttachmentService(database, cfg.Data.Dir)
 	prefsSvc := service.NewPreferencesService(database)
-	abnormalSvc := service.NewAbnormalService(database)
 	apiTokenSvc := service.NewAPITokenService(database)
 
 	// AI provider always constructed; provider checks ai.api_key at call time.

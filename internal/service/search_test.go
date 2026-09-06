@@ -375,7 +375,7 @@ func TestSearchAttachesLoanHintForBorrowedItems(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)
 	itemSvc := NewItemService(database)
-	loanSvc := NewLoanService(database)
+	loanSvc := NewLoanService(database, NewAbnormalService(database))
 	searchSvc := NewSearchService(database)
 
 	locID := createTestLocation(t, ctx, database, "书房")

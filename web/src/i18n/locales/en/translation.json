@@ -116,7 +116,7 @@
     "purchasePrice": "Purchase Price",
     "currency": "Currency",
     "serialNumber": "Serial Number",
-    "description": "Description",
+    "description": "Track durable goods, supplies, essentials, virtual assets, and more.",
     "tags": "Tags",
     "manageTags": "Manage Tags",
     "addTag": "Add Tag",
@@ -149,7 +149,6 @@
     "virtual_asset": "Virtual Asset",
     "noItems": "No items found",
     "noItemsHint": "Try adjusting your filters or add a new item.",
-    "description": "Track durable goods, supplies, essentials, virtual assets, and more.",
     "offlineWarning": "Cannot create while offline",
     "noPhotoYet": "No photo yet",
     "uploadPhotoHint": "Upload your first photo to document this item.",
@@ -253,7 +252,8 @@
     "consumed": "Consumed",
     "archived": "Archived",
     "restored": "Restored",
-    "edited": "Edited"
+    "edited": "Edited",
+    "loan_unreturned": "Loan Lost & Unreturned"
   },
   "locations": {
     "title": "Locations",
@@ -496,7 +496,14 @@
     "viewDetailedStats": "View Detailed Stats",
     "newLoan": "New Loan",
     "settings": "Settings",
-    "totalItems": "{{count}} items"
+    "totalItems": "{{count}} items",
+    "markUnreturned": "Mark Lost & Unreturned",
+    "compensation": "Compensation Amount",
+    "compensationCurrency": "Currency",
+    "settlementNotes": "Settlement Notes",
+    "markedUnreturned": "Marked as lost & unreturned",
+    "markUnreturnedFailed": "Failed to mark unreturned: {{error}}",
+    "unreturnedHint": "Records the item as lost (borrower did not return it), links it to the abnormal module, and logs the liability settlement on the item history."
   },
   "abnormal": {
     "title": "Abnormal Asset Management",
