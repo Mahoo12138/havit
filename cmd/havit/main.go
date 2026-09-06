@@ -128,7 +128,7 @@ func main() {
 	backupH := handler.NewBackupHandler(backupSvc)
 	abnormalH := handler.NewAbnormalHandler(abnormalSvc)
 	apiTokenH := handler.NewAPITokenHandler(apiTokenSvc)
-	searchH := handler.NewSearchHandler(searchSvc, aiProvider)
+	searchH := handler.NewSearchHandler(searchSvc, prefsSvc, aiProvider)
 	barcodeH := handler.NewBarcodeHandler(barcodeSvc)
 	attachmentH := handler.NewAttachmentHandler(attachmentSvc, cfg.Storage.MaxPhotoSizeMB)
 	aiH := handler.NewAIHandler(aiRecognitionSvc, cfg.Storage.MaxPhotoSizeMB)

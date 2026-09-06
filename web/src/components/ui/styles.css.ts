@@ -692,6 +692,14 @@ export const cardGrid = style({
   gap: themeVars.space4,
 });
 
+export const searchThumb = style({
+  width: '100%',
+  height: '112px',
+  borderRadius: '8px',
+  objectFit: 'cover',
+  background: themeVars.bgSoft,
+});
+
 export const twoColumn = style({
   display: 'grid',
   gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',

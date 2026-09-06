@@ -25,6 +25,8 @@ type SearchResult struct {
 	LocationPath *string `json:"location_path,omitempty"`
 	EssentialsHint      *string `json:"essentials_hint,omitempty"`
 	LoanHint            *string `json:"loan_hint,omitempty"`
+	// ThumbnailURL points at the newest photo attachment of the item, if any.
+	ThumbnailURL *string `json:"thumbnail_url,omitempty"`
 
 	// UpdatedAt is an internal scan target for the essentials hint and is not serialized.
 	UpdatedAt int64 `json:"-"`
@@ -42,6 +44,9 @@ type SearchFilter struct {
 	StockLow             *bool             `json:"stock_low"`
 	Sort                 *string           `json:"sort"`
 	SortDir              string            `json:"sort_dir"`
+	// IncludeArchived is a per-user preference set by the handler, never by the
+	// AI query parser; it lifts the default exit-status exclusion.
+	IncludeArchived bool `json:"-"`
 }
 
 type SearchTimeFilter struct {
@@ -83,7 +88,7 @@ func (f *SearchFilter) Normalize() {
 	}
 }
 
-func (s *SearchService) FTS(ctx context.Context, query string) ([]SearchResult, error) {
+func (s *SearchService) FTS(ctx context.Context, query string, includeArchived bool) ([]SearchResult, error) {
 	query = strings.TrimSpace(query)
 	if query == "" {
 		return []SearchResult{}, nil
@@ -93,7 +98,7 @@ func (s *SearchService) FTS(ctx context.Context, query string) ([]SearchResult, 
 		return nil, err
 	}
 
-	ftsResults, err := s.ftsMatch(ctx, query, locationPaths)
+	ftsResults, err := s.ftsMatch(ctx, query, locationPaths, includeArchived)
 	if err != nil {
 		// FTS is best-effort: a malformed query must not break search,
 		// the LIKE pass below still covers the user's input.
@@ -103,7 +108,7 @@ func (s *SearchService) FTS(ctx context.Context, query string) ([]SearchResult, 
 	// LIKE matches literal text, so quote characters copied from elsewhere
 	// would never hit; strip them before building the pattern.
 	likeQuery := strings.ReplaceAll(query, `"`, "")
-	likeResults, err := s.like(ctx, likeQuery, locationPaths)
+	likeResults, err := s.like(ctx, likeQuery, locationPaths, includeArchived)
 	if err != nil {
 		return nil, err
 	}
@@ -184,18 +189,25 @@ func matchExpression(query string) string {
 	return strings.Join(quoted, " AND ")
 }
 
-func (s *SearchService) ftsMatch(ctx context.Context, query string, locationPaths map[string]string) ([]SearchResult, error) {
-	rows, err := s.db.QueryContext(ctx, `
+func (s *SearchService) ftsMatch(ctx context.Context, query string, locationPaths map[string]string, includeArchived bool) ([]SearchResult, error) {
+	where := "1 = 1"
+	args := []any{}
+	if !includeArchived {
+		where += " AND items.status NOT IN (?, ?, ?, ?, ?, ?, ?)"
+		args = append(args, "sold", "given_away", "lost", "stolen", "unreturned", "damaged", "archived")
+	}
+	where += " AND items.id IN (SELECT item_id FROM items_fts WHERE items_fts MATCH ?)"
+	args = append(args, matchExpression(query))
+
+	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT items.id, items.name, items.type, items.status,
-			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at
+			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at,
+			(SELECT a.id FROM attachments a WHERE a.item_id = items.id AND a.type = 'photo'
+			 ORDER BY a.created_at DESC, a.id DESC LIMIT 1) AS thumbnail_id
 		FROM items
-		WHERE items.status NOT IN (?, ?, ?, ?, ?, ?, ?)
-			AND items.id IN (SELECT item_id FROM items_fts WHERE items_fts MATCH ?)
+		WHERE %s
 		ORDER BY items.updated_at DESC, items.name ASC
-		LIMIT 50`,
-		"sold", "given_away", "lost", "stolen", "unreturned", "damaged", "archived",
-		matchExpression(query),
-	)
+		LIMIT 50`, where), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +227,7 @@ func (s *SearchService) Filter(ctx context.Context, f SearchFilter) ([]SearchRes
 	if f.Status != nil {
 		where += " AND items.status = ?"
 		args = append(args, *f.Status)
-	} else {
+	} else if !f.IncludeArchived {
 		where += " AND items.status NOT IN (?, ?, ?, ?, ?, ?, ?)"
 		args = append(args, "sold", "given_away", "lost", "stolen", "unreturned", "damaged", "archived")
 	}
@@ -290,7 +302,9 @@ func (s *SearchService) Filter(ctx context.Context, f SearchFilter) ([]SearchRes
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT items.id, items.name, items.type, items.status,
-			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at
+			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at,
+			(SELECT a.id FROM attachments a WHERE a.item_id = items.id AND a.type = 'photo'
+			 ORDER BY a.created_at DESC, a.id DESC LIMIT 1) AS thumbnail_id
 		FROM items
 		WHERE %s
 		ORDER BY %s
@@ -358,33 +372,40 @@ func (s *SearchService) locationPaths(ctx context.Context) (map[string]string, e
 	return paths, nil
 }
 
-func (s *SearchService) like(ctx context.Context, query string, locationPaths map[string]string) ([]SearchResult, error) {
+func (s *SearchService) like(ctx context.Context, query string, locationPaths map[string]string, includeArchived bool) ([]SearchResult, error) {
 	like := "%" + query + "%"
-	rows, err := s.db.QueryContext(ctx, `
+	where := "1 = 1"
+	args := []any{}
+	if !includeArchived {
+		where += " AND items.status NOT IN (?, ?, ?, ?, ?, ?, ?)"
+		args = append(args, "sold", "given_away", "lost", "stolen", "unreturned", "damaged", "archived")
+	}
+	where += ` AND (
+		items.name LIKE ?
+		OR COALESCE(items.description, '') LIKE ?
+		OR COALESCE(items.category, '') LIKE ?
+		OR COALESCE(items.serial_number, '') LIKE ?
+		OR EXISTS (
+			SELECT 1 FROM item_tags
+			JOIN tags ON tags.id = item_tags.tag_id
+			WHERE item_tags.item_id = items.id AND tags.name LIKE ?
+		)
+		OR EXISTS (
+			SELECT 1 FROM locations
+			WHERE locations.id = items.location_id AND locations.name LIKE ?
+		)
+	)`
+	args = append(args, like, like, like, like, like, like)
+
+	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT items.id, items.name, items.type, items.status,
-			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at
+			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at,
+			(SELECT a.id FROM attachments a WHERE a.item_id = items.id AND a.type = 'photo'
+			 ORDER BY a.created_at DESC, a.id DESC LIMIT 1) AS thumbnail_id
 		FROM items
-		WHERE items.status NOT IN (?, ?, ?, ?, ?, ?, ?)
-			AND (
-				items.name LIKE ?
-				OR COALESCE(items.description, '') LIKE ?
-				OR COALESCE(items.category, '') LIKE ?
-				OR COALESCE(items.serial_number, '') LIKE ?
-				OR EXISTS (
-					SELECT 1 FROM item_tags
-					JOIN tags ON tags.id = item_tags.tag_id
-					WHERE item_tags.item_id = items.id AND tags.name LIKE ?
-				)
-				OR EXISTS (
-					SELECT 1 FROM locations
-					WHERE locations.id = items.location_id AND locations.name LIKE ?
-				)
-			)
+		WHERE %s
 		ORDER BY items.updated_at DESC, items.name ASC
-		LIMIT 50`,
-		"sold", "given_away", "lost", "stolen", "unreturned", "damaged", "archived",
-		like, like, like, like, like, like,
-	)
+		LIMIT 50`, where), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -415,11 +436,17 @@ func scanSearchResults(rows *sql.Rows, locationPaths map[string]string) ([]Searc
 		var result SearchResult
 		var homeBaseID *string
 		var currentStatusTag *string
+		var thumbnailID *string
 		if err := rows.Scan(
 			&result.ID, &result.Name, &result.Type, &result.Status,
 			&result.LocationID, &homeBaseID, &currentStatusTag, &result.UpdatedAt,
+			&thumbnailID,
 		); err != nil {
 			return nil, err
+		}
+		if thumbnailID != nil {
+			url := "/api/v1/attachments/" + *thumbnailID + "/content"
+			result.ThumbnailURL = &url
 		}
 		if result.LocationID != nil {
 			if path, ok := locationPaths[*result.LocationID]; ok {

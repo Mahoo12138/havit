@@ -8,16 +8,18 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	"github.com/mahoo12138/havit/internal/middleware"
 	"github.com/mahoo12138/havit/internal/service"
 )
 
 type SearchHandler struct {
 	svc      *service.SearchService
+	prefs    *service.PreferencesService
 	provider service.AIProvider
 }
 
-func NewSearchHandler(svc *service.SearchService, provider service.AIProvider) *SearchHandler {
-	return &SearchHandler{svc: svc, provider: provider}
+func NewSearchHandler(svc *service.SearchService, prefs *service.PreferencesService, provider service.AIProvider) *SearchHandler {
+	return &SearchHandler{svc: svc, prefs: prefs, provider: provider}
 }
 
 func (h *SearchHandler) Mount(r chi.Router) {
@@ -32,6 +34,15 @@ func (h *SearchHandler) search(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query().Get("q")
 	ctx := r.Context()
 
+	// Show-archived-in-search is a per-user preference; it applies to both the
+	// fast FTS path and the AI-refined filter path.
+	includeArchived := false
+	if claims, ok := middleware.ClaimsFrom(ctx); ok && h.prefs != nil {
+		if prefs, err := h.prefs.Get(ctx, claims.UserID); err == nil {
+			includeArchived = prefs.ShowArchivedInSearch
+		}
+	}
+
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	safeWrite := func(event string, data any) {
@@ -44,7 +55,7 @@ func (h *SearchHandler) search(w http.ResponseWriter, r *http.Request) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		results, err := h.svc.FTS(ctx, q)
+		results, err := h.svc.FTS(ctx, q, includeArchived)
 		if err != nil {
 			// "search_error" instead of "error": EventSource treats a named
 			// "error" event as a built-in connection failure on the client.
@@ -63,6 +74,7 @@ func (h *SearchHandler) search(w http.ResponseWriter, r *http.Request) {
 			if err != nil || filter == nil {
 				return
 			}
+			filter.IncludeArchived = includeArchived
 			refined, err := h.svc.Filter(ctx, *filter)
 			if err != nil {
 				return

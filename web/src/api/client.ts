@@ -312,6 +312,7 @@ export interface SearchResult {
   location_path?: string;
   essentials_hint?: string;
   loan_hint?: string;
+  thumbnail_url?: string;
 }
 
 export interface BarcodeLookupResult {

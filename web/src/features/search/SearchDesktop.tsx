@@ -129,6 +129,9 @@ export function SearchDesktop() {
             {results.map((result) => (
               <Card className="surface-card" key={result.id}>
                 <Stack>
+                  {result.thumbnail_url && (
+                    <img src={result.thumbnail_url} alt="" className={uiStyles.searchThumb} />
+                  )}
                   <Row>
                     <IconSparkles size={16} />
                     <h3 className={uiStyles.heading}>{result.name}</h3>

@@ -175,7 +175,7 @@ func TestSearchLikeFallback(t *testing.T) {
 	ctx := context.Background()
 	searchSvc, _, _ := newTestSearchService(t)
 
-	results, err := searchSvc.like(ctx, "Cable", nil)
+	results, err := searchSvc.like(ctx, "Cable", nil, false)
 	if err != nil {
 		t.Fatalf("like: %v", err)
 	}
@@ -188,7 +188,7 @@ func TestSearchFTSNoResults(t *testing.T) {
 	ctx := context.Background()
 	searchSvc, _, _ := newTestSearchService(t)
 
-	results, err := searchSvc.FTS(ctx, "NONEXISTENT_TERM_XYZ")
+	results, err := searchSvc.FTS(ctx, "NONEXISTENT_TERM_XYZ", false)
 	if err != nil {
 		t.Fatalf("FTS: %v", err)
 	}
@@ -201,7 +201,7 @@ func TestSearchFTSWithEmptyQuery(t *testing.T) {
 	ctx := context.Background()
 	searchSvc, _, _ := newTestSearchService(t)
 
-	results, err := searchSvc.FTS(ctx, "")
+	results, err := searchSvc.FTS(ctx, "", false)
 	if err != nil {
 		t.Fatalf("FTS empty: %v", err)
 	}
@@ -226,7 +226,7 @@ func TestSearchFTSChineseQueriesFindItems(t *testing.T) {
 	}
 
 	for _, query := range []string{"单反相机", "相机", "佳能"} {
-		results, err := searchSvc.FTS(ctx, query)
+		results, err := searchSvc.FTS(ctx, query, false)
 		if err != nil {
 			t.Fatalf("FTS %q: %v", query, err)
 		}
@@ -253,7 +253,7 @@ func TestSearchFTSSpecialCharactersDoNotError(t *testing.T) {
 
 	// Substring queries that contain FTS5 syntax characters must still find the item.
 	for _, query := range []string{`100% 纯棉`, `"纯棉"`, `T恤(白色)`} {
-		results, err := searchSvc.FTS(ctx, query)
+		results, err := searchSvc.FTS(ctx, query, false)
 		if err != nil {
 			t.Fatalf("FTS %q must not error, got: %v", query, err)
 		}
@@ -264,7 +264,7 @@ func TestSearchFTSSpecialCharactersDoNotError(t *testing.T) {
 
 	// Pure syntax characters must not error either, even when nothing matches.
 	for _, query := range []string{`: : ( ) " *`, "A OR B"} {
-		if _, err := searchSvc.FTS(ctx, query); err != nil {
+		if _, err := searchSvc.FTS(ctx, query, false); err != nil {
 			t.Fatalf("FTS %q must not error, got: %v", query, err)
 		}
 	}
@@ -294,7 +294,7 @@ func TestSearchFTSFindsItemsByTag(t *testing.T) {
 		t.Fatalf("replace tags: %v", err)
 	}
 
-	results, err := searchSvc.FTS(ctx, "尼康")
+	results, err := searchSvc.FTS(ctx, "尼康", false)
 	if err != nil {
 		t.Fatalf("FTS: %v", err)
 	}
@@ -318,7 +318,7 @@ func TestSearchFTSFindsItemsByLocationName(t *testing.T) {
 		t.Fatalf("create item: %v", err)
 	}
 
-	results, err := searchSvc.FTS(ctx, "防潮箱")
+	results, err := searchSvc.FTS(ctx, "防潮箱", false)
 	if err != nil {
 		t.Fatalf("FTS: %v", err)
 	}
@@ -355,7 +355,7 @@ func TestSearchEssentialsHintIncludesLastConfirmed(t *testing.T) {
 		t.Fatalf("create essentials item: %v", err)
 	}
 
-	results, err := searchSvc.FTS(ctx, "门禁卡")
+	results, err := searchSvc.FTS(ctx, "门禁卡", false)
 	if err != nil {
 		t.Fatalf("FTS: %v", err)
 	}
@@ -411,7 +411,7 @@ func TestSearchAttachesLoanHintForBorrowedItems(t *testing.T) {
 		t.Fatalf("create overdue loan: %v", err)
 	}
 
-	results, err := searchSvc.FTS(ctx, "仪")
+	results, err := searchSvc.FTS(ctx, "仪", false)
 	if err != nil {
 		t.Fatalf("FTS: %v", err)
 	}
@@ -652,6 +652,99 @@ func TestSearchFilterWarrantyExpiring(t *testing.T) {
 	}
 	if len(results) != 1 {
 		t.Fatalf("expected 1 item with expiring warranty, got %d", len(results))
+	}
+}
+
+func TestSearchArchivedHiddenByDefaultShownWhenRequested(t *testing.T) {
+	ctx := context.Background()
+	searchSvc, itemSvc, itemID := newTestSearchService(t)
+
+	if err := itemSvc.Archive(ctx, itemID); err != nil {
+		t.Fatalf("archive: %v", err)
+	}
+
+	// By default the archived item stays out of both search paths.
+	for _, q := range []string{"HDMI", "Cable"} {
+		results, err := searchSvc.FTS(ctx, q, false)
+		if err != nil {
+			t.Fatalf("FTS %q: %v", q, err)
+		}
+		if len(results) != 0 {
+			t.Fatalf("expected 0 results for %q by default, got %#v", q, results)
+		}
+	}
+	results, err := searchSvc.Filter(ctx, SearchFilter{Keywords: []string{"HDMI"}})
+	if err != nil {
+		t.Fatalf("Filter: %v", err)
+	}
+	if len(results) != 0 {
+		t.Fatalf("expected 0 Filter results by default, got %#v", results)
+	}
+
+	// With the preference on, both paths surface it again with its status.
+	results, err = searchSvc.FTS(ctx, "HDMI", true)
+	if err != nil {
+		t.Fatalf("FTS include archived: %v", err)
+	}
+	if len(results) != 1 || results[0].ID != itemID || results[0].Status != "archived" {
+		t.Fatalf("expected the archived item via FTS, got %#v", results)
+	}
+	results, err = searchSvc.Filter(ctx, SearchFilter{Keywords: []string{"HDMI"}, IncludeArchived: true})
+	if err != nil {
+		t.Fatalf("Filter include archived: %v", err)
+	}
+	if len(results) != 1 || results[0].ID != itemID || results[0].Status != "archived" {
+		t.Fatalf("expected the archived item via Filter, got %#v", results)
+	}
+}
+
+func TestSearchThumbnailURLUsesNewestPhoto(t *testing.T) {
+	ctx := context.Background()
+	searchSvc, itemSvc, itemID := newTestSearchService(t)
+
+	insertPhoto := func(id string, createdAt int64) {
+		t.Helper()
+		if _, err := searchSvc.db.ExecContext(ctx, `
+			INSERT INTO attachments (id, item_id, type, filename, path, size, content_type, is_ai_source, created_at)
+			VALUES (?, ?, 'photo', ?, ?, NULL, 'image/png', 0, ?)`,
+			id, itemID, id+".png", "attachments/"+itemID+"/"+id+".png", createdAt,
+		); err != nil {
+			t.Fatalf("insert photo %s: %v", id, err)
+		}
+	}
+	insertPhoto("photo-old", time.Now().Add(-time.Hour).Unix())
+	insertPhoto("photo-new", time.Now().Unix())
+
+	results, err := searchSvc.FTS(ctx, "HDMI", false)
+	if err != nil {
+		t.Fatalf("FTS: %v", err)
+	}
+	var thumb *string
+	for _, r := range results {
+		if r.ID == itemID {
+			thumb = r.ThumbnailURL
+		}
+	}
+	want := "/api/v1/attachments/photo-new/content"
+	if thumb == nil || *thumb != want {
+		t.Fatalf("expected thumbnail_url %q, got %#v", want, thumb)
+	}
+
+	// Items without any photo keep thumbnail_url empty.
+	locID := createTestLocation(t, ctx, searchSvc.db, "抽屉")
+	if _, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "HDMI 转接头",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	}); err != nil {
+		t.Fatalf("create item without photo: %v", err)
+	}
+	results, err = searchSvc.Filter(ctx, SearchFilter{Keywords: []string{"转接头"}})
+	if err != nil {
+		t.Fatalf("Filter: %v", err)
+	}
+	if len(results) != 1 || results[0].ThumbnailURL != nil {
+		t.Fatalf("expected 1 result without thumbnail, got %#v", results)
 	}
 }
 
