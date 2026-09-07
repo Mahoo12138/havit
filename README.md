@@ -2,7 +2,7 @@
 
 个人与家庭的全资产台账。详见 `docs/havit-product-design.md` 与 `docs/havit-tech-architecture.md`。
 
-> M1 第二轮：在物品/位置端到端骨架之上，补齐运行模式 (release / demo)、初始化向导、JWT 鉴权。
+> M2 收束：S2.1 快速录入（拍照 / 条码 / 手动）、S2.2 搜索与定位闭环已收口；消耗品 + 提醒、借出 + 异常联动、备份恢复演练已打通（进度见 `PROJECT.md` 与 `STATUS.md`）。
 
 ## 快速开始
 
@@ -80,3 +80,7 @@ DELETE /api/v1/locations/{id}    # 仅在子节点和关联物品都为空时允
 - 物品不可硬删除，统一通过状态机归档。
 - 配置 `auth.jwt_secret` 留空时首次启动自动生成并写回 `<data_dir>/config.yaml`。
 - Demo 种子里的密码 hash 由启动代码用 `bcrypt('havit-demo')` 实时生成后替换占位符，仓库里不保存真实 hash。
+
+## 备份与恢复
+
+备份为 `havit.db` 一致性快照 + `attachments/` 附件打包（tar.gz），支持手动与定时触发；恢复 = 解包到全新数据目录后正常启动。完整步骤与演练验证见 [`docs/backup-restore.md`](docs/backup-restore.md)。
