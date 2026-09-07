@@ -199,6 +199,11 @@ func (s *SearchService) ftsMatch(ctx context.Context, query string, locationPath
 	where += " AND items.id IN (SELECT item_id FROM items_fts WHERE items_fts MATCH ?)"
 	args = append(args, matchExpression(query))
 
+	where, args, err := applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
+	}
+
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT items.id, items.name, items.type, items.status,
 			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at,
@@ -300,6 +305,11 @@ func (s *SearchService) Filter(ctx context.Context, f SearchFilter) ([]SearchRes
 		}
 	}
 
+	where, args, err = applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
+	}
+
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT items.id, items.name, items.type, items.status,
 			items.location_id, items.home_base_location_id, items.current_status_tag, items.updated_at,
@@ -396,6 +406,11 @@ func (s *SearchService) like(ctx context.Context, query string, locationPaths ma
 		)
 	)`
 	args = append(args, like, like, like, like, like, like)
+
+	where, args, err := applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
+	}
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT items.id, items.name, items.type, items.status,

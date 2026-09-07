@@ -173,6 +173,11 @@ func (s *AbnormalService) List(ctx context.Context, f AbnormalListFilter) ([]*Ab
 		args = append(args, f.ProcessingStatus)
 	}
 
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", where, args)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	// Count total
 	var total int
 	countQ := "SELECT COUNT(*) FROM abnormal_records ar JOIN items i ON i.id = ar.item_id WHERE " + where
@@ -328,12 +333,19 @@ func (s *AbnormalService) LossValuation(ctx context.Context) (*LossValuation, er
 	}
 
 	// Total estimated loss (use purchase_price from items as fallback)
-	err := s.db.QueryRowContext(ctx, `
+	where := "1=1"
+	args := []any{}
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", where, args)
+	if err != nil {
+		return nil, err
+	}
+	err = s.db.QueryRowContext(ctx, `
 		SELECT
 			COALESCE(SUM(COALESCE(ar.estimated_loss, i.purchase_price, 0)), 0),
 			COALESCE(SUM(COALESCE(ar.recoverable_amount, 0)), 0)
 		FROM abnormal_records ar
-		JOIN items i ON i.id = ar.item_id`).Scan(&val.TotalEstimated, &val.RecoverableAmount)
+		JOIN items i ON i.id = ar.item_id
+		WHERE `+where, args...).Scan(&val.TotalEstimated, &val.RecoverableAmount)
 	if err != nil {
 		return nil, err
 	}

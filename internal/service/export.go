@@ -78,7 +78,14 @@ func (s *ExportService) Items(ctx context.Context) (*ItemsExport, error) {
 		return nil, err
 	}
 
-	rows, err := s.db.QueryContext(ctx, `
+	where := "1 = 1"
+	args := []any{}
+	where, args, err = applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT id, name, description, category, type, status,
 			location_id, purchase_price, purchase_currency, purchase_date, purchase_platform,
 			warranty_expires_at, serial_number, warranty_contact,
@@ -86,7 +93,8 @@ func (s *ExportService) Items(ctx context.Context) (*ItemsExport, error) {
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
 			is_private, owner_id, created_at, updated_at
 		FROM items
-		ORDER BY updated_at DESC, name ASC`)
+		WHERE %s
+		ORDER BY updated_at DESC, name ASC`, where), args...)
 	if err != nil {
 		return nil, err
 	}

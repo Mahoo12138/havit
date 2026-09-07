@@ -103,6 +103,15 @@ func (s *LocationService) Create(ctx context.Context, in LocationCreateInput) (*
 }
 
 func (s *LocationService) Get(ctx context.Context, id string) (*model.Location, error) {
+	// Private locations (and their subtrees) are visible only to their owner.
+	visible, err := visibleLocationIDs(ctx, s.db, callerID(ctx))
+	if err != nil {
+		return nil, err
+	}
+	if !visible[id] {
+		return nil, ErrNotFound
+	}
+
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, parent_id, name, type, qr_code, is_private, owner_id, sort_order, created_at, updated_at
 		FROM locations WHERE id = ?`, id)
@@ -123,6 +132,11 @@ func (s *LocationService) Get(ctx context.Context, id string) (*model.Location, 
 }
 
 func (s *LocationService) Tree(ctx context.Context) ([]*model.Location, error) {
+	visible, err := visibleLocationIDs(ctx, s.db, callerID(ctx))
+	if err != nil {
+		return nil, err
+	}
+
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, parent_id, name, type, qr_code, is_private, owner_id, sort_order, created_at, updated_at
 		FROM locations ORDER BY sort_order, name`)
@@ -143,7 +157,9 @@ func (s *LocationService) Tree(ctx context.Context) ([]*model.Location, error) {
 		}
 		l.IsPrivate = isPrivate != 0
 		l.Children = []*model.Location{}
-		all = append(all, &l)
+		if visible[l.ID] {
+			all = append(all, &l)
+		}
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
@@ -352,6 +368,19 @@ func (s *LocationService) descendantIDs(ctx context.Context, rootID string) ([]s
 }
 
 func (s *LocationService) itemsInLocations(ctx context.Context, locationIDs []string) ([]*model.Item, error) {
+	owner := callerID(ctx)
+	visible, err := visibleLocationIDs(ctx, s.db, owner)
+	if err != nil {
+		return nil, err
+	}
+	filtered := make([]string, 0, len(locationIDs))
+	for _, id := range locationIDs {
+		if visible[id] {
+			filtered = append(filtered, id)
+		}
+	}
+	locationIDs = filtered
+
 	if len(locationIDs) == 0 {
 		return []*model.Item{}, nil
 	}
@@ -359,6 +388,12 @@ func (s *LocationService) itemsInLocations(ctx context.Context, locationIDs []st
 	args := make([]any, 0, len(locationIDs))
 	for _, id := range locationIDs {
 		args = append(args, id)
+	}
+	where := "status != ? AND location_id IN (" + placeholders + ")"
+	args = append([]any{model.StatusArchived}, args...)
+	where, args, err = applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
 	}
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
@@ -369,10 +404,8 @@ func (s *LocationService) itemsInLocations(ctx context.Context, locationIDs []st
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
 			is_private, owner_id, created_at, updated_at
 		FROM items
-		WHERE status != ? AND location_id IN (%s)
-		ORDER BY updated_at DESC, name ASC`, placeholders),
-		append([]any{model.StatusArchived}, args...)...,
-	)
+		WHERE %s
+		ORDER BY updated_at DESC, name ASC`, where), args...)
 	if err != nil {
 		return nil, err
 	}

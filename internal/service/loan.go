@@ -44,6 +44,13 @@ func (s *LoanService) Create(ctx context.Context, itemID string, in LoanCreateIn
 	if in.BorrowerName == "" {
 		return nil, errors.New("borrower_name required")
 	}
+	visible, err := s.itemVisible(ctx, itemID)
+	if err != nil {
+		return nil, err
+	}
+	if !visible {
+		return nil, ErrNotFound
+	}
 
 	now := time.Now().Unix()
 	if in.LoanedAt == 0 {
@@ -103,6 +110,13 @@ func (s *LoanService) Create(ctx context.Context, itemID string, in LoanCreateIn
 }
 
 func (s *LoanService) ListForItem(ctx context.Context, itemID string) ([]*model.Loan, error) {
+	visible, err := s.itemVisible(ctx, itemID)
+	if err != nil {
+		return nil, err
+	}
+	if !visible {
+		return nil, ErrNotFound
+	}
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, item_id, borrower_name, borrower_contact,
 			loaned_at, due_at, returned_at, status,
@@ -148,6 +162,13 @@ func (s *LoanService) Return(ctx context.Context, id string, in LoanReturnInput)
 	if err != nil {
 		return nil, err
 	}
+	visible, err := s.itemVisible(ctx, cur.ItemID)
+	if err != nil {
+		return nil, err
+	}
+	if !visible {
+		return nil, ErrNotFound
+	}
 
 	now := time.Now().Unix()
 	if in.ReturnedAt == 0 {
@@ -189,6 +210,13 @@ func (s *LoanService) MarkUnreturned(ctx context.Context, id string, in LoanUnre
 	cur, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+	visible, err := s.itemVisible(ctx, cur.ItemID)
+	if err != nil {
+		return nil, err
+	}
+	if !visible {
+		return nil, ErrNotFound
 	}
 
 	now := time.Now().Unix()
@@ -258,6 +286,28 @@ func jsonPayload(v any) *string {
 	}
 	s := string(raw)
 	return &s
+}
+
+// itemVisible reports whether the caller may see the item (own privacy +
+// location inheritance). Loan reads and writes must not touch items the
+// caller cannot see, otherwise a member could modify another user's private
+// item by guessing its id.
+func (s *LoanService) itemVisible(ctx context.Context, itemID string) (bool, error) {
+	owner := callerID(ctx)
+	where := "id = ?"
+	args := []any{itemID}
+	where, args = itemPrivacy("items", owner, where, args)
+	visible, err := visibleLocationIDs(ctx, s.db, owner)
+	if err != nil {
+		return false, err
+	}
+	where, args = locationClause("items", visible, where, args)
+	var count int
+	if err := s.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM items WHERE "+where, args...).Scan(&count); err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 type loanScanner interface {

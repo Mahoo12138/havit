@@ -182,6 +182,16 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 }
 
 func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
+	owner := callerID(ctx)
+	where := "id = ?"
+	args := []any{id}
+	where, args = itemPrivacy("items", owner, where, args)
+	visible, err := visibleLocationIDs(ctx, s.db, owner)
+	if err != nil {
+		return nil, err
+	}
+	where, args = locationClause("items", visible, where, args)
+
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, name, description, category, type, status,
 			location_id, home_base_location_id, current_status_tag, parent_item_id,
@@ -190,7 +200,7 @@ func (s *ItemService) Get(ctx context.Context, id string) (*model.Item, error) {
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
 			metadata, is_private, owner_id, created_at, updated_at
-		FROM items WHERE id = ?`, id)
+		FROM items WHERE `+where, args...)
 
 	var it model.Item
 	var isPrivate int
@@ -271,6 +281,11 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 		args = append(args, f.Tag)
 	}
 
+	where, args, err := applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
+	}
+
 	args = append(args, f.Limit, f.Offset)
 
 	q := fmt.Sprintf(`
@@ -330,6 +345,11 @@ func (s *ItemService) WarrantyItems(ctx context.Context, f WarrantyListFilter) (
 	if f.ExpiringDays > 0 {
 		where += " AND warranty_expires_at <= ?"
 		args = append(args, time.Now().Add(time.Duration(f.ExpiringDays)*24*time.Hour).Unix())
+	}
+
+	where, args, err := applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
 	}
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
@@ -393,6 +413,11 @@ func (s *ItemService) Graveyard(ctx context.Context) ([]*model.Item, error) {
 	for _, status := range statuses {
 		args = append(args, status)
 	}
+	where := "status IN (" + placeholders + ")"
+	where, args, err := applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
+	}
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT id, name, description, category, type, status,
@@ -403,8 +428,8 @@ func (s *ItemService) Graveyard(ctx context.Context) ([]*model.Item, error) {
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
 			metadata, is_private, owner_id, created_at, updated_at
 		FROM items
-		WHERE status IN (%s)
-		ORDER BY COALESCE(exit_date, updated_at) DESC, name ASC`, placeholders), args...)
+		WHERE %s
+		ORDER BY COALESCE(exit_date, updated_at) DESC, name ASC`, where), args...)
 	if err != nil {
 		return nil, err
 	}
@@ -463,6 +488,11 @@ func (s *ItemService) LossRecords(ctx context.Context, f LossRecordFilter) ([]*L
 	if f.To != nil {
 		where += " AND COALESCE(exit_date, updated_at) <= ?"
 		args = append(args, *f.To)
+	}
+
+	where, args, err := applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
 	}
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
@@ -714,7 +744,22 @@ func (s *ItemService) ReturnEssentialsAll(ctx context.Context) (int, error) {
 }
 
 func (s *ItemService) ListContents(ctx context.Context, containerID string) ([]*model.Item, error) {
-	rows, err := s.db.QueryContext(ctx, `
+	owner := callerID(ctx)
+	where := "parent_item_id = ?"
+	args := []any{containerID}
+	// The container itself must be visible too, otherwise a member could read
+	// another user's private container by guessing its id.
+	where += ` AND EXISTS (
+		SELECT 1 FROM items c
+		WHERE c.id = items.parent_item_id AND (c.is_private = 0 OR c.owner_id = ?)
+	)`
+	args = append(args, owner)
+	where, args, err := applyItemPrivacy(ctx, s.db, "items", where, args)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT id, name, description, category, type, status,
 			location_id, home_base_location_id, current_status_tag,
 			purchase_price, purchase_currency, purchase_date, purchase_platform,
@@ -722,8 +767,8 @@ func (s *ItemService) ListContents(ctx context.Context, containerID string) ([]*
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
 			metadata, is_private, owner_id, created_at, updated_at
-		FROM items WHERE parent_item_id = ?
-		ORDER BY name ASC`, containerID)
+		FROM items WHERE %s
+		ORDER BY name ASC`, where), args...)
 	if err != nil {
 		return nil, err
 	}

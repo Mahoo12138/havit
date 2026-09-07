@@ -44,6 +44,7 @@ func Auth(svc *service.AuthService, tokenSvc ...*service.APITokenService) func(h
 						claims.Role = u.Role
 					}
 					ctx := context.WithValue(r.Context(), claimsKey, claims)
+					ctx = service.WithCaller(ctx, &service.Caller{UserID: claims.UserID, Role: claims.Role})
 					next.ServeHTTP(w, r.WithContext(ctx))
 					return
 				}
@@ -58,6 +59,7 @@ func Auth(svc *service.AuthService, tokenSvc ...*service.APITokenService) func(h
 				return
 			}
 			ctx := context.WithValue(r.Context(), claimsKey, claims)
+			ctx = service.WithCaller(ctx, &service.Caller{UserID: claims.UserID, Role: claims.Role})
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
