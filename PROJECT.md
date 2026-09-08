@@ -21,7 +21,7 @@
 | M3 / P2 体验深化 | 已提前做了一部分，但不应继续扩张 | 40% | 虚拟资产、容器、理赔 PDF、PAT、EDC 打包等已出现；会话面板、确权变更、家庭内部借用、离线写仍未成型 |
 | 发布信心 | 可以进入“内测稳定化”，不建议直接当正式版 | 72% | P0 验收骨架已经建立，S2 已开始补真实工作流；正式发布前还需要移动端一致性、隐私权限、异常路径、通知/备份实机验证 |
 
-当前最重要的方向：S2 的 10 件事已全部收口。S3 家庭与运维能力加固推进中——隐私隔离核心已上线（读路径 + 借出边界 + 跨账号测试）。接下来按序推进：**多用户 Owner/Member 边界验收**（Owner-only 路由、成员不可改实例配置、删除用户约束）→ 设置页 E2E → 通知真实 endpoint → 安全检查清单。仍不要横向铺开新功能。
+当前最重要的方向：S2 的 10 件事已全部收口。S3 家庭与运维能力加固推进中——隐私隔离核心与多用户 Owner/Member 边界已验收。接下来按序推进：**设置页 E2E**（AI/通知/偏好/分类/用户管理 UI 修改即时生效）→ 通知真实 endpoint → 安全检查清单。仍不要横向铺开新功能。
 
 ## 二、本次复核结论
 
@@ -56,7 +56,7 @@
 | 基础设施与部署 | 单二进制、Docker、自部署、静态前端嵌入 | 可用待验收 | 92% | `cmd/havit/main.go`、`Dockerfile`、`compose.yaml`、`scripts/verify-docker.ps1`、Docker 验证通过记录 | 发布前继续用脚本做回归；后续可接 CI |
 | 配置系统 | Viper、DB 动态配置、环境变量锁定、热重载 | 可用待验收 | 75% | `internal/config`、`SettingsDesktop`、`system_configs` | 校验环境变量锁定 UI、敏感字段脱敏、通知/AI 配置实时生效 |
 | 认证与初始化 | release/demo 模式、首次 setup、JWT、Owner | 可用待验收 | 92% | `AuthService`、`SystemState`、`README.md`、auth tests、Docker 验证脚本 | P0 基线已够；下一步转向 Owner/Member 权限验收 |
-| 用户与角色 | Owner/Member、成员管理、角色变更 | 进行中 | 55% | `UserHandler`、`usersApi`、设置页用户管理 | 做权限验收：Owner-only 路由、成员不可改实例配置、删除用户约束 |
+| 用户与角色 | Owner/Member、成员管理、角色变更 | 可用待验收 | 72% | `UserHandler`、`usersApi`、设置页用户管理、4 条权限边界测试 | 权限验收已做：Owner-only 403、成员不可改实例配置、删除用户约束（名下资产拦截 + 审计署名保留） |
 | 隐私隔离 | 私有资产、私有位置、位置树继承、管理员不穿透 | 可用待验收 | 68% | `service/privacy.go`（Caller 注入 + 位置链继承）、物品/位置/搜索/导出/异常读路径过滤、借出边界、7 条跨账号测试 | 收尾：分类使用计数等聚合路径的隐私口径；真机验证 |
 | 核心物品台账 | 物品 CRUD、详情页、状态、照片、备注、元数据 | 可用待验收 | 78% | `ItemService`、`ItemHandler`、`AssetsDesktop/Mobile`、`ItemDetail` | 统一状态流转口径；补照片/附件 E2E；校准详情页移动端能力 |
 | 位置管理 | 树形位置 CRUD、语义类型、路径展示 | 可用待验收 | 82% | `LocationService`、`LocationsDesktop/Mobile`、locations E2E | 验证删除约束、私有节点继承、深层路径性能 |
