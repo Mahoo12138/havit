@@ -21,7 +21,7 @@
 | M3 / P2 体验深化 | 已提前做了一部分，但不应继续扩张 | 40% | 虚拟资产、容器、理赔 PDF、PAT、EDC 打包等已出现；会话面板、确权变更、家庭内部借用、离线写仍未成型 |
 | 发布信心 | 可以进入“内测稳定化”，不建议直接当正式版 | 72% | P0 验收骨架已经建立，S2 已开始补真实工作流；正式发布前还需要移动端一致性、隐私权限、异常路径、通知/备份实机验证 |
 
-当前最重要的方向：S2 的 10 件事已全部收口。S3 家庭与运维能力加固推进中——隐私隔离核心、多用户 Owner/Member 边界、设置页 E2E、通知真实 endpoint 验证已完成。接下来按序推进：**安全检查清单**（PAT/JWT/密码/导出文件最小泄漏面）→ 隐私剩余聚合路径收尾 → S2.1 真机验收。仍不要横向铺开新功能。
+当前最重要的方向：S2 的 10 件事已全部收口。S3 家庭与运维能力加固推进中——隐私隔离核心、多用户 Owner/Member 边界、设置页 E2E、通知真实 endpoint 验证、安全检查清单（`docs/security-checklist.md`）均已完成。剩余：**隐私聚合路径收尾**（分类使用计数等对他人不可见）→ S2.1 真机验收。仍不要横向铺开新功能。
 
 ## 二、本次复核结论
 
@@ -82,7 +82,7 @@
 | 提醒系统 | 保修、借出、库存、寿命提醒 | 进行中 | 68% | `ReminderService`、`NotifyService`、`reminders` 表 | 保修/库存/寿命提醒已由业务流自动创建；借出逾期提醒联动待验收 |
 | 通知网关 | Webhook、Ntfy、Apprise、调度器 | 可用待验收 | 74% | `HTTPNotifyGateway`、设置项、notify tests（真实 HTTP 接收 + 失败重试 + Ntfy 格式 + process-due 失败计数） | 真机验证自定义 Apprise 实例；失败计数前端展示 |
 | 备份恢复 | 定时备份、手动备份、附件打包、恢复演练 | 可用待验收 | 78% | `BackupService`、backup tests（含 `TestBackupRestoresIntoFreshDataDir`）、`docs/backup-restore.md` | 恢复演练文档已补齐，2026-09-07 二进制级演练通过（中文物品/附件/FTS 全还原） |
-| PAT 开放生态 | 个人访问令牌创建、撤销、最后使用 | 可用待验收 | 68% | `APITokenService`、`SettingsDesktop`、`api_tokens` | 补 token 过期、last_used、撤销后鉴权失败测试 |
+| PAT 开放生态 | 个人访问令牌创建、撤销、最后使用 | 可用待验收 | 80% | `APITokenService`、`SettingsDesktop`、`api_tokens`、安全测试（哈希存储/过期/撤销/last_used/middleware 鉴权） | 文档补充 PAT 接入示例 |
 | 设备与会话 | 登录设备列表、强制下线单设备 | 待开始 | 20% | 只有 `token_version` 可全部失效 | 若当前不做原生多端，可后置到 M3；不要阻塞 MVP |
 | PWA 与移动端 | PWA manifest、网络状态、移动端核心页 | 进行中 | 60% | `manifest.json`、`useNetworkStatus`、MobileShell、部分 Mobile 页 | 先验收资产、位置、消耗品、详情四个移动主链路 |
 | 测试体系 | Go 单测、前端 build、E2E、部署验收 | 进行中 | 85% | `go test ./...`、`pnpm build`、41 条 Playwright（条码异常路径 + 搜索闭环 + 消耗品/借出联动 + 设置页）、迁移回滚测试、Docker 验证脚本通过 | 每个 S2/S3 工作流至少补 1 条关键 E2E |
