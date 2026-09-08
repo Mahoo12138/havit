@@ -118,6 +118,15 @@ func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookUR
 			NewBarcodeHandler(barcodeSvc).Mount(r)
 			NewAIHandler(aiRecognitionSvc, 20).Mount(r)
 			NewAttachmentHandler(attachmentSvc, 20).Mount(r)
+			NewPreferencesHandler(prefsSvc).Mount(r)
+		})
+
+		// Owner-only routes (user management + instance config), mirroring main.go.
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.Auth(authSvc, apiTokenSvc))
+			r.Use(authmw.RequireOwner)
+			NewUserHandler(authSvc).Mount(r)
+			NewSettingsHandler(configSvc).Mount(r)
 		})
 	})
 	return r

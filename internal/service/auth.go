@@ -175,7 +175,37 @@ func (s *AuthService) DeleteUser(ctx context.Context, id, callerID string) error
 	if id == callerID {
 		return errors.New("cannot delete yourself")
 	}
-	res, err := s.db.ExecContext(ctx, `DELETE FROM users WHERE id = ?`, id)
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Owned assets must be archived or transferred first; silently orphaning
+	// them would break the family asset ledger.
+	var owned int
+	if err := tx.QueryRowContext(ctx, `
+		SELECT (SELECT COUNT(*) FROM items WHERE owner_id = ?)
+		     + (SELECT COUNT(*) FROM locations WHERE owner_id = ?)`,
+		id, id,
+	).Scan(&owned); err != nil {
+		return err
+	}
+	if owned > 0 {
+		return fmt.Errorf("cannot delete user: they still own %d item/location record(s); archive or transfer them first", owned)
+	}
+
+	// Keep audit history but drop the deleted user's identity on it.
+	for _, stmt := range []string{
+		`UPDATE item_events SET actor_id = NULL WHERE actor_id = ?`,
+		`UPDATE system_configs SET updated_by = NULL WHERE updated_by = ?`,
+	} {
+		if _, err := tx.ExecContext(ctx, stmt, id); err != nil {
+			return err
+		}
+	}
+
+	res, err := tx.ExecContext(ctx, `DELETE FROM users WHERE id = ?`, id)
 	if err != nil {
 		return err
 	}
@@ -183,7 +213,7 @@ func (s *AuthService) DeleteUser(ctx context.Context, id, callerID string) error
 	if n == 0 {
 		return ErrNotFound
 	}
-	return nil
+	return tx.Commit()
 }
 
 func (s *AuthService) UpdateRole(ctx context.Context, id, role, callerID string) (*User, error) {
