@@ -361,3 +361,54 @@ func TestPrivacyLoanGuardsPrivateItems(t *testing.T) {
 		t.Fatalf("bob list loans of alice's private item: expected ErrNotFound, got %v", err)
 	}
 }
+
+func TestPrivacyCategoryUsageCountsExcludePrivateItems(t *testing.T) {
+	db := newTestDB(t)
+	seedUser(t, db, "user-alice", "member")
+	itemSvc := NewItemService(db)
+	locSvc := NewLocationService(db)
+	catSvc := NewCategoryService(db)
+	alice := "user-alice"
+
+	cat, err := catSvc.Create(ctxAs(alice), CategoryCreateInput{Name: "摄影器材", Icon: "camera", RootType: "physical"})
+	if err != nil {
+		t.Fatalf("create category: %v", err)
+	}
+	loc, err := locSvc.Create(ctxAs(alice), LocationCreateInput{Name: "公共柜", Type: "furniture"})
+	if err != nil {
+		t.Fatalf("create location: %v", err)
+	}
+	mkItem := func(name string, private bool) {
+		t.Helper()
+		category := "摄影器材"
+		if _, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
+			Name: name, Type: model.ItemTypeDurable, LocationID: &loc.ID,
+			Category: &category, IsPrivate: private, OwnerID: &alice,
+		}); err != nil {
+			t.Fatalf("create item %s: %v", name, err)
+		}
+	}
+	mkItem("共享镜头", false)
+	mkItem("私密镜头", true)
+
+	// Bob sees only the shared item's contribution to the usage count.
+	got, err := catSvc.List(ctxAs("user-bob"))
+	if err != nil {
+		t.Fatalf("category list as bob: %v", err)
+	}
+	for _, c := range got {
+		if c.ID == cat.ID && c.UsageCount != 1 {
+			t.Fatalf("bob sees usage count %d for a category with 1 visible item, want 1", c.UsageCount)
+		}
+	}
+	// Alice sees both.
+	got, err = catSvc.List(ctxAs(alice))
+	if err != nil {
+		t.Fatalf("category list as alice: %v", err)
+	}
+	for _, c := range got {
+		if c.ID == cat.ID && c.UsageCount != 2 {
+			t.Fatalf("alice sees usage count %d for 2 items, want 2", c.UsageCount)
+		}
+	}
+}

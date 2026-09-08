@@ -156,14 +156,18 @@ func (s *CategoryService) Delete(ctx context.Context, id string) error {
 }
 
 func (s *CategoryService) List(ctx context.Context) ([]*model.Category, error) {
+	on, args, err := s.itemVisibilityOn(ctx)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT c.id, c.name, c.icon, c.root_type, c.is_system, c.created_at,
 		       COUNT(i.id) AS usage_count
 		FROM categories c
-		LEFT JOIN items i ON i.category = c.name
+		LEFT JOIN items i ON i.category = c.name AND `+on+`
 		GROUP BY c.id
 		ORDER BY c.name ASC
-	`)
+	`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -181,14 +185,19 @@ func (s *CategoryService) List(ctx context.Context) ([]*model.Category, error) {
 }
 
 func (s *CategoryService) Get(ctx context.Context, id string) (*model.Category, error) {
+	on, args, err := s.itemVisibilityOn(ctx)
+	if err != nil {
+		return nil, err
+	}
+	args = append(args, id)
 	row := s.db.QueryRowContext(ctx, `
 		SELECT c.id, c.name, c.icon, c.root_type, c.is_system, c.created_at,
 		       COUNT(i.id) AS usage_count
 		FROM categories c
-		LEFT JOIN items i ON i.category = c.name
+		LEFT JOIN items i ON i.category = c.name AND `+on+`
 		WHERE c.id = ?
 		GROUP BY c.id
-	`, id)
+	`, args...)
 	cat, err := scanCategory(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -199,15 +208,34 @@ func (s *CategoryService) Get(ctx context.Context, id string) (*model.Category, 
 	return cat, nil
 }
 
+// itemVisibilityOn builds the items-side ON conditions (with bind args) that
+// keep category usage counts limited to items the caller may see: shared items,
+// the caller's own private items, and items not hidden by location privacy.
+func (s *CategoryService) itemVisibilityOn(ctx context.Context) (string, []any, error) {
+	owner := callerID(ctx)
+	on, args := itemPrivacy("i", owner, "1 = 1", []any{})
+	visible, err := visibleLocationIDs(ctx, s.db, owner)
+	if err != nil {
+		return "", nil, err
+	}
+	on, args = locationClause("i", visible, on, args)
+	return on, args, nil
+}
+
 func (s *CategoryService) getByName(ctx context.Context, name string) (*model.Category, error) {
+	on, args, err := s.itemVisibilityOn(ctx)
+	if err != nil {
+		return nil, err
+	}
+	args = append(args, name)
 	row := s.db.QueryRowContext(ctx, `
 		SELECT c.id, c.name, c.icon, c.root_type, c.is_system, c.created_at,
 		       COUNT(i.id) AS usage_count
 		FROM categories c
-		LEFT JOIN items i ON i.category = c.name
+		LEFT JOIN items i ON i.category = c.name AND `+on+`
 		WHERE c.name = ?
 		GROUP BY c.id
-	`, name)
+	`, args...)
 	cat, err := scanCategory(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
