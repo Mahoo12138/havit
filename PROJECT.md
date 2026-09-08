@@ -21,7 +21,7 @@
 | M3 / P2 体验深化 | 已提前做了一部分，但不应继续扩张 | 40% | 虚拟资产、容器、理赔 PDF、PAT、EDC 打包等已出现；会话面板、确权变更、家庭内部借用、离线写仍未成型 |
 | 发布信心 | 可以进入“内测稳定化”，不建议直接当正式版 | 72% | P0 验收骨架已经建立，S2 已开始补真实工作流；正式发布前还需要移动端一致性、隐私权限、异常路径、通知/备份实机验证 |
 
-当前最重要的方向：S2 的 10 件事已全部收口。S3 家庭与运维能力加固推进中——隐私隔离核心与多用户 Owner/Member 边界已验收。接下来按序推进：**设置页 E2E**（AI/通知/偏好/分类/用户管理 UI 修改即时生效）→ 通知真实 endpoint → 安全检查清单。仍不要横向铺开新功能。
+当前最重要的方向：S2 的 10 件事已全部收口。S3 家庭与运维能力加固推进中——隐私隔离核心、多用户 Owner/Member 边界、设置页 E2E 已完成。接下来按序推进：**通知真实 endpoint 验证**（Webhook/Ntfy 真实发出、失败可见）→ 安全检查清单 → 隐私剩余聚合路径收尾。仍不要横向铺开新功能。
 
 ## 二、本次复核结论
 
@@ -54,7 +54,7 @@
 | 分区 | 目标能力 | 当前状态 | 完成度 | 当前证据 | 下一步控制点 |
 |---|---|---:|---:|---|---|
 | 基础设施与部署 | 单二进制、Docker、自部署、静态前端嵌入 | 可用待验收 | 92% | `cmd/havit/main.go`、`Dockerfile`、`compose.yaml`、`scripts/verify-docker.ps1`、Docker 验证通过记录 | 发布前继续用脚本做回归；后续可接 CI |
-| 配置系统 | Viper、DB 动态配置、环境变量锁定、热重载 | 可用待验收 | 75% | `internal/config`、`SettingsDesktop`、`system_configs` | 校验环境变量锁定 UI、敏感字段脱敏、通知/AI 配置实时生效 |
+| 配置系统 | Viper、DB 动态配置、环境变量锁定、热重载 | 可用待验收 | 80% | `internal/config`、`SettingsDesktop`、`system_configs`、设置页 E2E（偏好/实例配置自动保存持久化） | 校验环境变量锁定 UI、敏感字段脱敏 |
 | 认证与初始化 | release/demo 模式、首次 setup、JWT、Owner | 可用待验收 | 92% | `AuthService`、`SystemState`、`README.md`、auth tests、Docker 验证脚本 | P0 基线已够；下一步转向 Owner/Member 权限验收 |
 | 用户与角色 | Owner/Member、成员管理、角色变更 | 可用待验收 | 72% | `UserHandler`、`usersApi`、设置页用户管理、4 条权限边界测试 | 权限验收已做：Owner-only 403、成员不可改实例配置、删除用户约束（名下资产拦截 + 审计署名保留） |
 | 隐私隔离 | 私有资产、私有位置、位置树继承、管理员不穿透 | 可用待验收 | 68% | `service/privacy.go`（Caller 注入 + 位置链继承）、物品/位置/搜索/导出/异常读路径过滤、借出边界、7 条跨账号测试 | 收尾：分类使用计数等聚合路径的隐私口径；真机验证 |
@@ -85,7 +85,7 @@
 | PAT 开放生态 | 个人访问令牌创建、撤销、最后使用 | 可用待验收 | 68% | `APITokenService`、`SettingsDesktop`、`api_tokens` | 补 token 过期、last_used、撤销后鉴权失败测试 |
 | 设备与会话 | 登录设备列表、强制下线单设备 | 待开始 | 20% | 只有 `token_version` 可全部失效 | 若当前不做原生多端，可后置到 M3；不要阻塞 MVP |
 | PWA 与移动端 | PWA manifest、网络状态、移动端核心页 | 进行中 | 60% | `manifest.json`、`useNetworkStatus`、MobileShell、部分 Mobile 页 | 先验收资产、位置、消耗品、详情四个移动主链路 |
-| 测试体系 | Go 单测、前端 build、E2E、部署验收 | 进行中 | 83% | `go test ./...`、`pnpm build`、38 条 Playwright（条码异常路径 + 搜索闭环 + 消耗品/借出联动）、迁移回滚测试、Docker 验证脚本通过 | 每个 S2 工作流至少补 1 条关键 E2E |
+| 测试体系 | Go 单测、前端 build、E2E、部署验收 | 进行中 | 85% | `go test ./...`、`pnpm build`、41 条 Playwright（条码异常路径 + 搜索闭环 + 消耗品/借出联动 + 设置页）、迁移回滚测试、Docker 验证脚本通过 | 每个 S2/S3 工作流至少补 1 条关键 E2E |
 
 ## 五、里程碑计划
 
