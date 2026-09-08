@@ -84,6 +84,50 @@ func TestAuthMiddlewareAcceptsTokenCookie(t *testing.T) {
 	}
 }
 
+func TestAuthMiddlewareAcceptsAndRejectsPATs(t *testing.T) {
+	db := newAuthMiddlewareTestDB(t)
+	authSvc := service.NewAuthService(db, "middleware-secret", 720, false, nil)
+	owner, _, err := authSvc.Setup(context.Background(), "owner@example.com", "secret123")
+	if err != nil {
+		t.Fatalf("setup user: %v", err)
+	}
+	patSvc := service.NewAPITokenService(db)
+	pat, err := patSvc.Create(context.Background(), owner.ID, "ci", nil)
+	if err != nil {
+		t.Fatalf("create pat: %v", err)
+	}
+	protect := func(patSvc *service.APITokenService) http.Handler {
+		return Auth(authSvc, patSvc)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			claims, ok := ClaimsFrom(r.Context())
+			if !ok || claims.UserID != owner.ID {
+				t.Fatalf("expected claims for %s, got %#v", owner.ID, claims)
+			}
+			w.WriteHeader(http.StatusNoContent)
+		}))
+	}
+
+	// A valid PAT authorizes via the X-API-Key header.
+	req := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req.Header.Set("X-API-Key", pat.PlainText)
+	rec := httptest.NewRecorder()
+	protect(patSvc).ServeHTTP(rec, req)
+	if rec.Code != http.StatusNoContent {
+		t.Fatalf("expected 204 for valid PAT, got %d", rec.Code)
+	}
+
+	// After revocation the same token is rejected.
+	if err := patSvc.Revoke(context.Background(), pat.ID, owner.ID); err != nil {
+		t.Fatalf("revoke pat: %v", err)
+	}
+	req2 := httptest.NewRequest(http.MethodGet, "/protected", nil)
+	req2.Header.Set("X-API-Key", pat.PlainText)
+	rec = httptest.NewRecorder()
+	protect(patSvc).ServeHTTP(rec, req2)
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401 for revoked PAT, got %d", rec.Code)
+	}
+}
+
 func TestAuthMiddlewareRejectsMissingToken(t *testing.T) {
 	authSvc, _ := newAuthMiddlewareTestService(t)
 
