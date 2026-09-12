@@ -183,3 +183,208 @@ func TestVirtualAssetRejectsNonVirtualItem(t *testing.T) {
 		t.Fatal("expected error for non-virtual item")
 	}
 }
+
+func TestVirtualAssetUpdateCredential(t *testing.T) {
+	ctx := context.Background()
+	svc, itemSvc, itemID := newTestVirtualAssetService(t)
+
+	licenseKey := "KEY-0001"
+	cred, err := svc.CreateCredential(ctx, itemID, VirtualCredentialInput{
+		Platform:   "Adobe",
+		LicenseKey: &licenseKey,
+	})
+	if err != nil {
+		t.Fatalf("CreateCredential: %v", err)
+	}
+
+	newAccount := "new@example.com"
+	updated, err := svc.UpdateCredential(ctx, cred.ID, VirtualCredentialInput{
+		Platform:   "Adobe CC",
+		Account:    &newAccount,
+		LicenseKey: &licenseKey, // same value echoed back: must be re-encrypted, not cleared
+	})
+	if err != nil {
+		t.Fatalf("UpdateCredential: %v", err)
+	}
+	if updated.Platform != "Adobe CC" {
+		t.Fatalf("expected platform 'Adobe CC', got %s", updated.Platform)
+	}
+	if updated.Account == nil || *updated.Account != newAccount {
+		t.Fatalf("expected account %s, got %v", newAccount, updated.Account)
+	}
+	if updated.LicenseKey == nil || *updated.LicenseKey != licenseKey {
+		t.Fatalf("expected license_key preserved, got %v", updated.LicenseKey)
+	}
+
+	// A nil license key must leave the stored secret untouched.
+	updated, err = svc.UpdateCredential(ctx, cred.ID, VirtualCredentialInput{Platform: "Adobe CC"})
+	if err != nil {
+		t.Fatalf("UpdateCredential without license key: %v", err)
+	}
+	if updated.LicenseKey == nil || *updated.LicenseKey != licenseKey {
+		t.Fatalf("expected license_key untouched on nil input, got %v", updated.LicenseKey)
+	}
+
+	// An empty string must clear the stored secret.
+	empty := ""
+	updated, err = svc.UpdateCredential(ctx, cred.ID, VirtualCredentialInput{
+		Platform:   "Adobe CC",
+		LicenseKey: &empty,
+	})
+	if err != nil {
+		t.Fatalf("UpdateCredential clearing license key: %v", err)
+	}
+	if updated.LicenseKey != nil {
+		t.Fatalf("expected license_key cleared, got %v", *updated.LicenseKey)
+	}
+
+	// Round-trip persistence: the license key must be encrypted at rest.
+	var storedKey *string
+	if err := svc.db.QueryRowContext(ctx,
+		`SELECT license_key FROM virtual_credentials WHERE id = ?`, cred.ID).Scan(&storedKey); err != nil {
+		t.Fatalf("query stored credential: %v", err)
+	}
+	if storedKey != nil && *storedKey == licenseKey {
+		t.Fatal("expected license_key encrypted at rest")
+	}
+
+	if _, err := svc.UpdateCredential(ctx, cred.ID, VirtualCredentialInput{Platform: ""}); err == nil {
+		t.Fatal("expected error for empty platform")
+	}
+	if _, err := svc.UpdateCredential(ctx, "missing-cred", VirtualCredentialInput{Platform: "X"}); err == nil {
+		t.Fatal("expected error for missing credential")
+	}
+
+	// The owning item's updated_at must be touched so detail views refresh.
+	item, err := itemSvc.Get(ctx, itemID)
+	if err != nil {
+		t.Fatalf("get item: %v", err)
+	}
+	if item.UpdatedAt < item.CreatedAt {
+		t.Fatalf("expected updated_at >= created_at, got %d < %d", item.UpdatedAt, item.CreatedAt)
+	}
+}
+
+func TestVirtualAssetDeleteCredential(t *testing.T) {
+	ctx := context.Background()
+	svc, _, itemID := newTestVirtualAssetService(t)
+
+	cred, err := svc.CreateCredential(ctx, itemID, VirtualCredentialInput{Platform: "Adobe"})
+	if err != nil {
+		t.Fatalf("CreateCredential: %v", err)
+	}
+	if err := svc.DeleteCredential(ctx, cred.ID); err != nil {
+		t.Fatalf("DeleteCredential: %v", err)
+	}
+	if _, err := svc.credentialByID(ctx, cred.ID); err == nil {
+		t.Fatal("expected credential gone after delete")
+	}
+	if err := svc.DeleteCredential(ctx, "missing-cred"); err == nil {
+		t.Fatal("expected error for missing credential")
+	}
+}
+
+func TestVirtualAssetListAllCredentialsJoinsItem(t *testing.T) {
+	ctx := context.Background()
+	svc, itemSvc, itemID := newTestVirtualAssetService(t)
+
+	purchased := int64(1700000000)
+	licenseKey := "KEY-LIST-0001"
+	if _, err := svc.CreateCredential(ctx, itemID, VirtualCredentialInput{
+		Platform:    "Adobe",
+		PurchasedAt: &purchased,
+		LicenseKey:  &licenseKey,
+	}); err != nil {
+		t.Fatalf("CreateCredential: %v", err)
+	}
+
+	item, err := itemSvc.Get(ctx, itemID)
+	if err != nil {
+		t.Fatalf("get item: %v", err)
+	}
+	list, err := svc.ListAllCredentials(ctx)
+	if err != nil {
+		t.Fatalf("ListAllCredentials: %v", err)
+	}
+	if len(list) != 1 {
+		t.Fatalf("expected 1 credential, got %d", len(list))
+	}
+	if list[0].ItemID != itemID || list[0].ItemName != item.Name {
+		t.Fatalf("expected joined item %s/%s, got %s/%s", itemID, item.Name, list[0].ItemID, list[0].ItemName)
+	}
+	if list[0].LicenseKey == nil {
+		t.Fatal("expected decrypted license key in aggregate list")
+	}
+}
+
+func TestVirtualAssetCredentialsRespectPrivacy(t *testing.T) {
+	db := newTestDB(t)
+	crypto, err := havitcrypto.New("test-secret")
+	if err != nil {
+		t.Fatalf("new crypto: %v", err)
+	}
+	itemSvc := NewItemService(db)
+	vaSvc := NewVirtualAssetService(db, crypto)
+
+	seedUser(t, db, "user-a", "member")
+	seedUser(t, db, "user-b", "member")
+	ownerA := ctxAs("user-a")
+	ownerB := ctxAs("user-b")
+
+	locID := createTestLocation(t, context.Background(), db, "云端")
+	ownerBID := "user-b"
+	private, err := itemSvc.Create(ownerB, ItemCreateInput{
+		Name:       "Private License",
+		Type:       model.ItemTypeVirtual,
+		LocationID: &locID,
+		IsPrivate:  true,
+		OwnerID:    &ownerBID,
+	})
+	if err != nil {
+		t.Fatalf("create private item: %v", err)
+	}
+
+	if _, err := vaSvc.CreateCredential(ownerB, private.ID, VirtualCredentialInput{Platform: "Secret"}); err != nil {
+		t.Fatalf("owner create credential: %v", err)
+	}
+
+	// A stranger must not read, create, update or delete credentials on a
+	// private item, and the aggregate list must not leak them.
+	if _, err := vaSvc.ListCredentials(ownerA, private.ID); err == nil {
+		t.Fatal("expected list credentials on private item to fail for stranger")
+	}
+	if _, err := vaSvc.CreateCredential(ownerA, private.ID, VirtualCredentialInput{Platform: "Injected"}); err == nil {
+		t.Fatal("expected create credential on private item to fail for stranger")
+	}
+	cred, err := vaSvc.credentialByID(context.Background(), func() string {
+		list, _ := vaSvc.ListCredentials(ownerB, private.ID)
+		if len(list) != 1 {
+			t.Fatalf("owner should see 1 credential, got %d", len(list))
+		}
+		return list[0].ID
+	}())
+	if err != nil {
+		t.Fatalf("credentialByID: %v", err)
+	}
+	if _, err := vaSvc.UpdateCredential(ownerA, cred.ID, VirtualCredentialInput{Platform: "Hijacked"}); err == nil {
+		t.Fatal("expected update on private credential to fail for stranger")
+	}
+	if err := vaSvc.DeleteCredential(ownerA, cred.ID); err == nil {
+		t.Fatal("expected delete on private credential to fail for stranger")
+	}
+
+	all, err := vaSvc.ListAllCredentials(ownerA)
+	if err != nil {
+		t.Fatalf("ListAllCredentials: %v", err)
+	}
+	if len(all) != 0 {
+		t.Fatalf("expected stranger's aggregate list to be empty, got %d", len(all))
+	}
+	ownerList, err := vaSvc.ListAllCredentials(ownerB)
+	if err != nil {
+		t.Fatalf("ListAllCredentials for owner: %v", err)
+	}
+	if len(ownerList) != 1 {
+		t.Fatalf("expected owner to see 1 credential, got %d", len(ownerList))
+	}
+}

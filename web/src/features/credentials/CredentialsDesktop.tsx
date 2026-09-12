@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { Stack, uiStyles } from '../../components/ui';
-import { Card } from '../../components/ui/card';
+import { IconShieldCheck } from '@tabler/icons-react';
+import { Stack } from '../../components/ui';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
-import { DataCard, FeatureHeader, MetricStrip } from '../m2/components';
-import { suppliesExtendedApi, itemsApi, virtualAssetsApi, type VirtualCredential } from '../../api/client';
+import { itemsApi, suppliesExtendedApi } from '../../api/client';
+import { DataCard, FeatureHeader } from '../m2/components';
+import { CredentialsTab } from './CredentialsTab';
+import { WarrantyTab } from './WarrantyTab';
+
+type CredentialsTabKey = 'warranty' | 'credentials';
 
 export function CredentialsDesktop() {
   const { t } = useTranslation();
-  const [tab, setTab] = useState<'warranty' | 'credentials'>('warranty');
+  const [tab, setTab] = useState<CredentialsTabKey>('warranty');
 
   const { data: warrantyData, isLoading: warrantyLoading } = useQuery({
     queryKey: ['items', 'warranty'],
@@ -18,25 +22,16 @@ export function CredentialsDesktop() {
     enabled: tab === 'warranty',
   });
 
-  const { data: credData, isLoading: credLoading } = useQuery({
-    queryKey: ['items', 'credentials'],
-    queryFn: async () => {
-      const items = await itemsApi.list({ type: 'virtual' });
-      const allCreds: Array<{ itemName: string; credential: VirtualCredential }> = [];
-      for (const item of items.items) {
-        const res = await virtualAssetsApi.listCredentials(item.id);
-        for (const c of res.credentials) {
-          allCreds.push({ itemName: item.name, credential: c });
-        }
-      }
-      return allCreds;
-    },
+  // Virtual items power both the credential picker and the empty-state hint.
+  const { data: virtualData } = useQuery({
+    queryKey: ['items', 'virtual-items'],
+    queryFn: () => itemsApi.list({ type: 'virtual' }),
     enabled: tab === 'credentials',
   });
+  const virtualItems = virtualData?.items ?? [];
 
   const warrantyItems = warrantyData?.items ?? [];
-  const credentials = credData ?? [];
-  const isLoading = tab === 'warranty' ? warrantyLoading : credLoading;
+  const isLoading = tab === 'warranty' ? warrantyLoading : false;
 
   return (
     <Stack>
@@ -48,7 +43,7 @@ export function CredentialsDesktop() {
 
       <TabsNav
         value={tab}
-        onChange={(v) => setTab(v as 'warranty' | 'credentials')}
+        onChange={(v) => setTab(v as CredentialsTabKey)}
         tabs={[
           { key: 'warranty', label: t('credentials.warrantyTab') },
           { key: 'credentials', label: t('credentials.virtualTab') },
@@ -58,68 +53,21 @@ export function CredentialsDesktop() {
       {isLoading ? (
         <Spinner />
       ) : tab === 'warranty' ? (
-        <>
-          <MetricStrip
-            metrics={[
-              { label: t('credentials.warrantyCount'), value: warrantyItems.length },
-              {
-                label: t('credentials.expiringSoon'),
-                value: warrantyItems.filter((i) => {
-                  if (!i.warranty_expires_at) return false;
-                  const daysLeft = (i.warranty_expires_at * 1000 - Date.now()) / (1000 * 60 * 60 * 24);
-                  return daysLeft <= 30 && daysLeft > 0;
-                }).length,
-              },
-            ]}
-          />
+        warrantyItems.length === 0 ? (
           <DataCard title={t('credentials.warrantyAggregate')}>
-            <div className={uiStyles.cardGrid}>
-              {warrantyItems.map((item) => (
-                <Card className="surface-card" key={item.id}>
-                  <Stack>
-                    <h3 className={uiStyles.heading}>{item.name}</h3>
-                    <span className={uiStyles.muted}>
-                      {t('credentials.expiresAt')}：{item.warranty_expires_at ? new Date(item.warranty_expires_at * 1000).toLocaleDateString() : '—'}
-                    </span>
-                    {item.warranty_contact && (
-                      <span className={uiStyles.muted}>{t('credentials.contactInfo')}：{item.warranty_contact}</span>
-                    )}
-                  </Stack>
-                </Card>
-              ))}
+            <div style={{ display: 'grid', justifyItems: 'center', gap: '0.75rem', padding: '2rem 0' }}>
+              <IconShieldCheck size={28} />
+              <p style={{ color: 'var(--havit-muted)', margin: 0 }}>{t('credentials.noWarranty')}</p>
+              <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+                {t('credentials.noWarrantyHint')}
+              </p>
             </div>
           </DataCard>
-        </>
+        ) : (
+          <WarrantyTab items={warrantyItems} />
+        )
       ) : (
-        <>
-          <MetricStrip
-            metrics={[
-              { label: t('credentials.credentialRecords'), value: credentials.length },
-              {
-                label: t('credentials.hasLicenseKey'),
-                value: credentials.filter((c) => c.credential.license_key).length,
-              },
-            ]}
-          />
-          <DataCard title={t('credentials.virtualCredentialList')}>
-            <div className={uiStyles.cardGrid}>
-              {credentials.map((c, idx) => (
-                <Card className="surface-card" key={idx}>
-                  <Stack>
-                    <h3 className={uiStyles.heading}>{c.itemName}</h3>
-                    <span className={uiStyles.muted}>{t('credentials.platform')}：{c.credential.platform}</span>
-                    {c.credential.account && (
-                      <span className={uiStyles.muted}>{t('credentials.account')}：{c.credential.account}</span>
-                    )}
-                    {c.credential.order_id && (
-                      <span className={uiStyles.muted}>{t('credentials.orderId')}：{c.credential.order_id}</span>
-                    )}
-                  </Stack>
-                </Card>
-              ))}
-            </div>
-          </DataCard>
-        </>
+        <CredentialsTab virtualItems={virtualItems} />
       )}
     </Stack>
   );

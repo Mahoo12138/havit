@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -11,6 +12,13 @@ import (
 	havitcrypto "github.com/mahoo12138/havit/internal/crypto"
 	"github.com/mahoo12138/havit/internal/model"
 )
+
+// VirtualCredentialWithItem is a credential row joined with the owning item's
+// name, the shape the credentials page aggregates across all virtual items.
+type VirtualCredentialWithItem struct {
+	model.VirtualCredential
+	ItemName string `json:"item_name"`
+}
 
 type VirtualAssetService struct {
 	db    *sql.DB
@@ -46,6 +54,9 @@ func (s *VirtualAssetService) CreateCredential(ctx context.Context, itemID strin
 	if err := s.ensureVirtualItem(ctx, itemID); err != nil {
 		return nil, err
 	}
+	if err := s.ensureVisibleItem(ctx, itemID); err != nil {
+		return nil, err
+	}
 
 	now := time.Now().Unix()
 	id := ulid.Make().String()
@@ -70,6 +81,9 @@ func (s *VirtualAssetService) CreateCredential(ctx context.Context, itemID strin
 	if _, err := s.db.ExecContext(ctx, `UPDATE items SET updated_at = ? WHERE id = ?`, now, itemID); err != nil {
 		return nil, err
 	}
+	s.logCredentialEvent(ctx, itemID, "credential_created", jsonPayload(map[string]any{
+		"platform": in.Platform,
+	}))
 	cred, err := s.getCredential(ctx, id)
 	if err != nil {
 		return nil, err
@@ -77,8 +91,135 @@ func (s *VirtualAssetService) CreateCredential(ctx context.Context, itemID strin
 	return s.decryptCredential(cred)
 }
 
+// ListAllCredentials returns every credential visible to the caller joined
+// with the owning item's name, newest purchase first. The credentials page
+// derives its tab, metrics and platform filter from this single list instead
+// of walking every virtual item.
+func (s *VirtualAssetService) ListAllCredentials(ctx context.Context) ([]*VirtualCredentialWithItem, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1=1", nil)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT c.id, c.item_id, c.platform, c.account, c.order_id,
+			c.license_key, c.purchased_at, c.price, c.currency,
+			i.name
+		FROM virtual_credentials c
+		JOIN items i ON i.id = c.item_id
+		WHERE `+where+`
+		ORDER BY c.purchased_at DESC, c.id DESC`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []*VirtualCredentialWithItem{}
+	for rows.Next() {
+		var credential VirtualCredentialWithItem
+		if err := rows.Scan(
+			&credential.ID, &credential.ItemID, &credential.Platform,
+			&credential.Account, &credential.OrderID, &credential.LicenseKey,
+			&credential.PurchasedAt, &credential.Price, &credential.Currency,
+			&credential.ItemName,
+		); err != nil {
+			return nil, err
+		}
+		out = append(out, &credential)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	for _, c := range out {
+		if _, err := s.decryptCredential(&c.VirtualCredential); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
+// UpdateCredential patches an existing credential. A nil license_key keeps the
+// stored secret untouched, an empty string clears it, and any other value is
+// re-encrypted — callers that round-trip a fetched credential back unchanged
+// must therefore omit the field instead of echoing it.
+func (s *VirtualAssetService) UpdateCredential(ctx context.Context, credentialID string, in VirtualCredentialInput) (*model.VirtualCredential, error) {
+	if in.Platform == "" {
+		return nil, errors.New("platform required")
+	}
+	cur, err := s.credentialByID(ctx, credentialID)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.ensureVisibleItem(ctx, cur.ItemID); err != nil {
+		return nil, err
+	}
+
+	cur.Platform = in.Platform
+	cur.Account = in.Account
+	cur.OrderID = in.OrderID
+	cur.PurchasedAt = in.PurchasedAt
+	cur.Price = in.Price
+	cur.Currency = in.Currency
+	if in.LicenseKey != nil {
+		if *in.LicenseKey == "" {
+			cur.LicenseKey = nil
+		} else {
+			enc, err := s.crypto.Encrypt(*in.LicenseKey)
+			if err != nil {
+				return nil, err
+			}
+			cur.LicenseKey = &enc
+		}
+	}
+
+	now := time.Now().Unix()
+	if _, err := s.db.ExecContext(ctx, `
+		UPDATE virtual_credentials
+		SET platform = ?, account = ?, order_id = ?, license_key = ?,
+			purchased_at = ?, price = ?, currency = ?
+		WHERE id = ?`,
+		cur.Platform, cur.Account, cur.OrderID, cur.LicenseKey,
+		cur.PurchasedAt, cur.Price, cur.Currency, credentialID,
+	); err != nil {
+		return nil, err
+	}
+	if _, err := s.db.ExecContext(ctx, `UPDATE items SET updated_at = ? WHERE id = ?`, now, cur.ItemID); err != nil {
+		return nil, err
+	}
+	s.logCredentialEvent(ctx, cur.ItemID, "credential_updated", jsonPayload(map[string]any{
+		"platform": cur.Platform,
+	}))
+	return s.decryptCredential(cur)
+}
+
+// DeleteCredential removes a credential and logs the removal on the item's
+// lifecycle ledger.
+func (s *VirtualAssetService) DeleteCredential(ctx context.Context, credentialID string) error {
+	cur, err := s.credentialByID(ctx, credentialID)
+	if err != nil {
+		return err
+	}
+	if err := s.ensureVisibleItem(ctx, cur.ItemID); err != nil {
+		return err
+	}
+
+	now := time.Now().Unix()
+	if _, err := s.db.ExecContext(ctx, `DELETE FROM virtual_credentials WHERE id = ?`, credentialID); err != nil {
+		return err
+	}
+	if _, err := s.db.ExecContext(ctx, `UPDATE items SET updated_at = ? WHERE id = ?`, now, cur.ItemID); err != nil {
+		return err
+	}
+	s.logCredentialEvent(ctx, cur.ItemID, "credential_deleted", jsonPayload(map[string]any{
+		"platform": cur.Platform,
+	}))
+	return nil
+}
+
 func (s *VirtualAssetService) ListCredentials(ctx context.Context, itemID string) ([]*model.VirtualCredential, error) {
 	if err := s.ensureVirtualItem(ctx, itemID); err != nil {
+		return nil, err
+	}
+	if err := s.ensureVisibleItem(ctx, itemID); err != nil {
 		return nil, err
 	}
 	rows, err := s.db.QueryContext(ctx, `
@@ -112,6 +253,9 @@ func (s *VirtualAssetService) CreateAddon(ctx context.Context, itemID string, in
 	if err := s.ensureVirtualItem(ctx, itemID); err != nil {
 		return nil, err
 	}
+	if err := s.ensureVisibleItem(ctx, itemID); err != nil {
+		return nil, err
+	}
 
 	now := time.Now().Unix()
 	if in.PurchasedAt == 0 {
@@ -134,6 +278,9 @@ func (s *VirtualAssetService) CreateAddon(ctx context.Context, itemID string, in
 
 func (s *VirtualAssetService) ListAddons(ctx context.Context, itemID string) ([]*model.VirtualAddonPurchase, error) {
 	if err := s.ensureVirtualItem(ctx, itemID); err != nil {
+		return nil, err
+	}
+	if err := s.ensureVisibleItem(ctx, itemID); err != nil {
 		return nil, err
 	}
 	rows, err := s.db.QueryContext(ctx, `
@@ -169,6 +316,60 @@ func (s *VirtualAssetService) ensureVirtualItem(ctx context.Context, itemID stri
 		return ErrInvalidItemType
 	}
 	return nil
+}
+
+// ensureVisibleItem reports ErrNotFound when the caller cannot see the item
+// (own privacy + location inheritance). Credential reads and writes must not
+// touch items the caller cannot see, otherwise a member could read another
+// user's private license keys by guessing item ids.
+func (s *VirtualAssetService) ensureVisibleItem(ctx context.Context, itemID string) error {
+	owner := callerID(ctx)
+	where := "id = ?"
+	args := []any{itemID}
+	where, args = itemPrivacy("items", owner, where, args)
+	visible, err := visibleLocationIDs(ctx, s.db, owner)
+	if err != nil {
+		return err
+	}
+	where, args = locationClause("items", visible, where, args)
+	var count int
+	if err := s.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM items WHERE "+where, args...).Scan(&count); err != nil {
+		return err
+	}
+	if count == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+// credentialByID fetches a credential without any visibility check; callers
+// must run ensureVisibleItem on the returned ItemID before acting on it.
+func (s *VirtualAssetService) credentialByID(ctx context.Context, id string) (*model.VirtualCredential, error) {
+	row := s.db.QueryRowContext(ctx, `
+		SELECT id, item_id, platform, account, order_id, license_key, purchased_at, price, currency
+		FROM virtual_credentials WHERE id = ?`, id)
+	credential, err := scanVirtualCredential(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return credential, nil
+}
+
+// logCredentialEvent writes a permanent entry on the item's lifecycle log.
+// Failures are logged but do not fail the credential operation itself.
+func (s *VirtualAssetService) logCredentialEvent(ctx context.Context, itemID, eventType string, payload *string) {
+	eventID := ulid.Make().String()
+	if _, err := s.db.ExecContext(ctx,
+		`INSERT INTO item_events (id, item_id, event_type, payload, created_at)
+		 VALUES (?, ?, ?, ?, ?)`,
+		eventID, itemID, eventType, payload, time.Now().Unix(),
+	); err != nil {
+		slog.Error("log credential event", "item", itemID, "type", eventType, "err", err)
+	}
 }
 
 func (s *VirtualAssetService) getCredential(ctx context.Context, id string) (*model.VirtualCredential, error) {

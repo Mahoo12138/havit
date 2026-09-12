@@ -41,11 +41,14 @@ import {
   loansApi,
   suppliesExtendedApi,
   virtualAssetsApi,
+  virtualCredentialsApi,
   type Attachment,
   type Item,
 } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { formatDate, formatDateTime, formatPrice, useItemDetailData } from './useItemDetailData';
+import { CredentialFormDialog } from '../credentials/CredentialFormDialog';
+import { WarrantyEditDialog } from '../credentials/WarrantyTab';
 import * as s from './ItemDetailDesktop.css';
 
 export function ItemDetailDesktop({ itemId }: { itemId: string }) {
@@ -384,9 +387,15 @@ function LocationRouteCard({ locationPath }: { locationPath?: string }) {
 
 function WarrantyPanel({ item }: { item: Item }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [editing, setEditing] = useState(false);
   const warranty = getWarrantyView(item, t);
   return (
-    <SectionCard icon={<IconShieldCheck size={15} />} title={t('itemDetail.warranty')} action={<Button variant="ghost" size="sm">{t('common.edit')}</Button>}>
+    <SectionCard
+      icon={<IconShieldCheck size={15} />}
+      title={t('itemDetail.warranty')}
+      action={<Button variant="ghost" size="sm" onClick={() => setEditing(true)}>{t('common.edit')}</Button>}
+    >
       <div className={s.documentStrip}>
         <div className={s.documentThumb}><IconReceipt size={20} /></div>
         <div className={s.documentThumb} data-card><IconKey size={20} /></div>
@@ -400,6 +409,15 @@ function WarrantyPanel({ item }: { item: Item }) {
           <InlineCode text={item.serial_number ?? t('common.notSet')} />
         </KvRow>
       </div>
+      {editing && (
+        <WarrantyEditDialog
+          item={item}
+          onClose={() => {
+            setEditing(false);
+            queryClient.invalidateQueries({ queryKey: ['item'] });
+          }}
+        />
+      )}
     </SectionCard>
   );
 }
@@ -512,12 +530,28 @@ function ConsumableSection({ itemId, item }: { itemId: string; item: Item }) {
 
 function VirtualSection({ itemId }: { itemId: string }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [formOpen, setFormOpen] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const creds = useQuery({ queryKey: ['item', itemId, 'credentials'], queryFn: () => virtualAssetsApi.listCredentials(itemId) });
   const addons = useQuery({ queryKey: ['item', itemId, 'addons'], queryFn: () => virtualAssetsApi.listAddons(itemId) });
   const credentials = creds.data?.credentials ?? [];
   const addonList = addons.data?.addons ?? [];
+  const deleteMutation = useMutation({
+    mutationFn: (credentialId: string) => virtualCredentialsApi.remove(credentialId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      queryClient.invalidateQueries({ queryKey: ['virtual-credentials'] });
+      queryClient.invalidateQueries({ queryKey: ['item'] });
+      setDeleting(null);
+    },
+  });
   return (
-    <SectionCard icon={<IconKey size={15} />} title={t('itemDetail.platformCredentials')}>
+    <SectionCard
+      icon={<IconKey size={15} />}
+      title={t('itemDetail.platformCredentials')}
+      action={<Button variant="ghost" size="sm" onClick={() => setFormOpen(true)}>{t('itemDetail.addCredential')}</Button>}
+    >
       {creds.isLoading ? <Spinner /> : credentials.length === 0 ? (
         <div className={s.emptyState}>{t('itemDetail.noCredentials')}</div>
       ) : credentials.map((credential: any) => (
@@ -525,6 +559,9 @@ function VirtualSection({ itemId }: { itemId: string }) {
           <span className={s.compactTitle}>{credential.platform}</span>
           {credential.account && <span className={s.compactSub}>{t('itemDetail.accountLabel')}: {credential.account}</span>}
           {credential.order_id && <span className={s.compactSub}>{t('itemDetail.orderLabel')}: {credential.order_id}</span>}
+          <Button variant="ghost" size="sm" aria-label={t('common.delete')} onClick={() => setDeleting(credential.id)}>
+            <IconTrash size={13} />
+          </Button>
         </div>
       ))}
       {addonList.length > 0 && (
@@ -533,6 +570,17 @@ function VirtualSection({ itemId }: { itemId: string }) {
             <KvRow label={addon.name} key={addon.id}>{addon.price != null ? `${addon.price} ${addon.currency ?? ''}`.trim() : t('common.notSet')}</KvRow>
           ))}
         </div>
+      )}
+      {formOpen && <CredentialFormDialog open itemId={itemId} onClose={() => setFormOpen(false)} />}
+      {deleting && (
+        <Dialog open title={t('credentials.deleteCredential')} onClose={() => setDeleting(null)}>
+          <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+            {t('credentials.deleteCredentialConfirmSimple')}
+          </p>
+          <Button variant="destructive" onClick={() => deleteMutation.mutate(deleting)} disabled={deleteMutation.isPending}>
+            {t('common.delete')}
+          </Button>
+        </Dialog>
       )}
     </SectionCard>
   );

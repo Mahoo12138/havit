@@ -74,11 +74,11 @@
 | EDC 随身常备 | 基准位置、动态状态、打包/归位 | 进行中 | 62% | `EssentialsDesktop`、`packAll`、`returnAll` | 补搜索降级提示；移动端出门清单应作为高优先级验收 |
 | 二维码位置 | 位置码生成、打印、扫码反查 | 可用待验收 | 76% | `generateQRCode`、`QrPrintDesktop`、`LocationScanDesktop`、locations E2E | 用真实打印/扫码流程验收；手动输入路径已有 E2E 覆盖 |
 | 借出追踪 | 借出、归还、逾期、出借遗失责任交割 | 可用待验收 | 74% | `LoanService`、`LoansDesktop`、`markUnreturned` | 出借遗失已联动异常模块与生命周期日志（含 UI 入口）；真机验收移动端 |
-| 凭证与保修 | 附件、保修字段、到期列表、凭证视图 | 进行中 | 58% | `AttachmentService`、`CredentialsDesktop`、`warranty` API | 补 PDF/图片预览体验；验证保修提醒生成与通知 |
+| 凭证与保修 | 附件、保修字段、到期列表、凭证视图 | 可用待验收 | 78% | `VirtualAssetService`（全局聚合 + PATCH/DELETE）、`CredentialsDesktop`（状态徽标/筛选/编辑保修）、`credentials` E2E | 补 PDF/图片预览体验；验证保修提醒生成与通知 |
 | 资产退场 | 闲置、售出、赠出、报废、丢失、归档 | 进行中 | 66% | `exit` API、`graveyard`、状态字段 | 需要统一状态机文档；归档显示开关已打通（搜索按用户偏好展示归档物品） |
 | 异常资产 | 丢失、被盗、损坏、处理进度、损耗记录 | 可用待验收 | 72% | `AbnormalService`、`AbnormalDesktop`、`lossRecords` | 借出遗失自动进入异常（Lent & Lost，upsert）；恢复/结案路径与统计口径待补 |
 | 理赔 PDF | 被盗/理赔凭证导出 | 进行中 | 55% | `claim_pdf.go`、`claimPdf` API | 用真实附件和中文字段渲染验收 PDF；补视觉回归或快照测试 |
-| 虚拟资产 | 买断资产、平台凭证、增补购买 | 进行中 | 58% | `VirtualAssetService`、`VirtualAssetsDesktop`、`virtual_credentials` | 明确虚拟资产录入入口；验证授权码加密、导出脱敏 |
+| 虚拟资产 | 买断资产、平台凭证、增补购买 | 可用待验收 | 74% | `VirtualAssetService`、`CredentialFormDialog`（凭证页 + 物品详情双入口）、`virtual_credentials` | 验证授权码加密、导出脱敏 |
 | 提醒系统 | 保修、借出、库存、寿命提醒 | 进行中 | 68% | `ReminderService`、`NotifyService`、`reminders` 表 | 保修/库存/寿命提醒已由业务流自动创建；借出逾期提醒联动待验收 |
 | 通知网关 | Webhook、Ntfy、Apprise、调度器 | 可用待验收 | 74% | `HTTPNotifyGateway`、设置项、notify tests（真实 HTTP 接收 + 失败重试 + Ntfy 格式 + process-due 失败计数） | 真机验证自定义 Apprise 实例；失败计数前端展示 |
 | 备份恢复 | 定时备份、手动备份、附件打包、恢复演练 | 可用待验收 | 78% | `BackupService`、backup tests（含 `TestBackupRestoresIntoFreshDataDir`）、`docs/backup-restore.md` | 恢复演练文档已补齐，2026-09-07 二进制级演练通过（中文物品/附件/FTS 全还原） |

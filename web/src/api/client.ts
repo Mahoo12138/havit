@@ -356,6 +356,20 @@ export interface VirtualCredential {
   currency?: string;
 }
 
+export interface VirtualCredentialWithItem extends VirtualCredential {
+  item_name: string;
+}
+
+export interface VirtualCredentialInput {
+  platform: string;
+  account?: string;
+  order_id?: string;
+  license_key?: string;
+  purchased_at?: number;
+  price?: number;
+  currency?: string;
+}
+
 export interface VirtualAddonPurchase {
   id: string;
   item_id: string;
@@ -441,15 +455,8 @@ export const loansApi = {
 };
 
 export const virtualAssetsApi = {
-  createCredential: (itemId: string, body: {
-    platform: string;
-    account?: string;
-    order_id?: string;
-    license_key?: string;
-    purchased_at?: number;
-    price?: number;
-    currency?: string;
-  }) => api.post(`items/${itemId}/virtual-credentials`, { json: body }).json<VirtualCredential>(),
+  createCredential: (itemId: string, body: VirtualCredentialInput) =>
+    api.post(`items/${itemId}/virtual-credentials`, { json: body }).json<VirtualCredential>(),
   listCredentials: (itemId: string) =>
     api.get(`items/${itemId}/virtual-credentials`).json<{ credentials: VirtualCredential[] }>(),
   createAddon: (itemId: string, body: {
@@ -461,6 +468,14 @@ export const virtualAssetsApi = {
   }) => api.post(`items/${itemId}/virtual-addons`, { json: body }).json<VirtualAddonPurchase>(),
   listAddons: (itemId: string) =>
     api.get(`items/${itemId}/virtual-addons`).json<{ addons: VirtualAddonPurchase[] }>(),
+};
+
+export const virtualCredentialsApi = {
+  list: () =>
+    api.get('virtual-credentials').json<{ credentials: VirtualCredentialWithItem[] }>(),
+  update: (credentialId: string, body: VirtualCredentialInput) =>
+    api.patch(`virtual-credentials/${credentialId}`, { json: body }).json<VirtualCredential>(),
+  remove: (credentialId: string) => api.delete(`virtual-credentials/${credentialId}`),
 };
 
 export const remindersApi = {

@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Field, FieldLabel } from './field';
@@ -31,7 +32,11 @@ function SelectField({
   required,
 }: SelectFieldProps) {
   const { t } = useTranslation();
-  const inputId = id ?? label;
+  // Labels are user-facing text (spaces, CJK), so they cannot serve as ids:
+  // aria-labelledby treats whitespace as a reference separator and the link
+  // silently breaks. useId keeps the label/trigger association valid.
+  const autoId = useId();
+  const inputId = id ?? autoId;
 
   return (
     <Field>

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
@@ -33,6 +33,7 @@ import {
 } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { formatDate, formatDateTime, formatPrice, useItemDetailData } from './useItemDetailData';
+import { CredentialFormDialog } from '../credentials/CredentialFormDialog';
 import * as s from './itemDetailMobile.css';
 
 export function ItemDetailMobile({ itemId }: { itemId: string }) {
@@ -217,19 +218,25 @@ function ConsumableSection({ itemId, item }: { itemId: string; item: Item }) {
 
 function VirtualSection({ itemId }: { itemId: string }) {
   const { t } = useTranslation();
+  const [formOpen, setFormOpen] = useState(false);
   const creds = useQuery({ queryKey: ['item', itemId, 'credentials'], queryFn: () => virtualAssetsApi.listCredentials(itemId) });
   const credentials = creds.data?.credentials ?? [];
   return (
     <section className={s.section}>
-      <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconKey size={15} />{t('itemDetail.platformCredentials')}</h2></div>
+      <div className={s.sectionHead}>
+        <h2 className={s.sectionTitle}><IconKey size={15} />{t('itemDetail.platformCredentials')}</h2>
+        <Button variant="ghost" size="sm" onClick={() => setFormOpen(true)}>{t('itemDetail.addCredential')}</Button>
+      </div>
       <div className={s.sectionBody}>
         {creds.isLoading ? <Spinner /> : credentials.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noCredentials')}</div> : credentials.map((credential: any) => (
           <div key={credential.id} className={s.compactCard}>
             <span className={s.compactTitle}>{credential.platform}</span>
             {credential.account && <span className={s.compactSub}>{t('itemDetail.accountLabel')}: {credential.account}</span>}
+            {credential.order_id && <span className={s.compactSub}>{t('itemDetail.orderLabel')}: {credential.order_id}</span>}
           </div>
         ))}
       </div>
+      {formOpen && <CredentialFormDialog open itemId={itemId} onClose={() => setFormOpen(false)} />}
     </section>
   );
 }
