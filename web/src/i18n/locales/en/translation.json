@@ -896,9 +896,14 @@
     "lastBackup": "Last Backup",
     "notExecuted": "Not executed",
     "locationQr": "Location QR Codes",
+    "qrCount": "{{count}} labels",
+    "noQr": "No locations with QR codes yet. Generate codes in location management first.",
     "printLabels": "Print Labels",
     "reminderScheduler": "Reminder Scheduler",
+    "reminderCount": "{{count}} reminders",
+    "reminderPreview": "Showing first {{count}}",
     "backupExport": "Backup & Export",
+    "exportHint": "Export all item data",
     "manualBackup": "Manual Backup",
     "backupComplete": "Backup complete: {{path}}",
     "backupFailed": "Backup failed: {{error}}",
@@ -1318,6 +1323,8 @@
     "badge": "DEMO"
   },
   "reminder": {
+    "warranty_30d": "Warranty, 30 days left",
+    "warranty_7d": "Warranty, 7 days left",
     "warranty_expiry": "Warranty Expiring",
     "stock_low": "Low Stock",
     "loan_overdue": "Loan Overdue",

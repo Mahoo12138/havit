@@ -892,9 +892,14 @@
     "lastBackup": "最近备份",
     "notExecuted": "未执行",
     "locationQr": "位置二维码",
+    "qrCount": "{{count}} 个标签",
+    "noQr": "暂无带二维码的位置，可先在位置管理中生成编号",
     "printLabels": "打印标签",
     "reminderScheduler": "提醒调度器",
+    "reminderCount": "{{count}} 条提醒",
+    "reminderPreview": "仅显示前 {{count}} 条",
     "backupExport": "备份与导出",
+    "exportHint": "导出全部物品数据",
     "manualBackup": "手动备份",
     "backupComplete": "备份完成：{{path}}",
     "backupFailed": "备份失败：{{error}}",
@@ -1314,6 +1319,8 @@
     "badge": "演示"
   },
   "reminder": {
+    "warranty_30d": "保修到期前 30 天",
+    "warranty_7d": "保修到期前 7 天",
     "warranty_expiry": "保修即将到期",
     "stock_low": "库存不足",
     "loan_overdue": "借出逾期",

@@ -36,7 +36,7 @@ export function MetricStrip({
     <div className={uiStyles.dashboardStats}>
       {metrics.map((metric) => (
         <Card className="surface-card stat-card" key={metric.label}>
-          <StackTight>
+          <StackTight className={uiStyles.cardContent}>
             <span className={uiStyles.muted}>{metric.label}</span>
             <strong className={uiStyles.statValue}>{metric.value}</strong>
             {metric.note && <span className={uiStyles.help}>{metric.note}</span>}

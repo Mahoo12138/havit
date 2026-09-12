@@ -3,14 +3,16 @@ import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { IconDownload, IconRefresh } from '@tabler/icons-react';
 import { Stack, uiStyles } from '../../components/ui';
-import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
-import { Card } from '../../components/ui/card';
 import { Spinner } from '../../components/ui/spinner';
 import { DataCard, FeatureHeader, MetricStrip } from '../m2/components';
 import { backupApi, exportApi, remindersApi, locationsApi } from '../../api/client';
 import { LocationQrCode } from '../qr/QrCode';
 import { flattenLocationTree } from '../qr/locationQr';
+import { formatDateTime } from '../essentials/shared';
+import * as s from './operations.css';
+
+const REMINDER_PREVIEW_LIMIT = 10;
 
 export function OperationsDesktop() {
   const { t } = useTranslation();
@@ -39,7 +41,9 @@ export function OperationsDesktop() {
   });
 
   const locations = flattenLocationTree(locationsData?.tree ?? []);
+  const qrLocations = locations.filter((l) => l.qr_code);
   const reminders = remindersData?.reminders ?? [];
+  const reminderPreview = reminders.slice(0, REMINDER_PREVIEW_LIMIT);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -60,19 +64,24 @@ export function OperationsDesktop() {
       {locationsLoading ? (
         <Spinner />
       ) : (
-        <DataCard title={t('operations.locationQr')}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {locations.filter((l) => l.qr_code).map((loc) => (
-              <Card className="surface-card" key={loc.id}>
-                <Stack>
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <LocationQrCode code={loc.qr_code!} size={120} alt={loc.name} />
-                  </div>
-                  <h3 className={uiStyles.heading}>{loc.name}</h3>
-                  <span className={uiStyles.muted}>{loc.qr_code}</span>
-                </Stack>
-              </Card>
-            ))}
+        <DataCard
+          title={t('operations.locationQr')}
+          meta={<span className={s.cardMeta}>{t('operations.qrCount', { count: qrLocations.length })}</span>}
+        >
+          {qrLocations.length === 0 ? (
+            <div className="empty-state">{t('operations.noQr')}</div>
+          ) : (
+            <div className={s.qrGrid}>
+              {qrLocations.map((loc) => (
+                <div className={s.qrTile} key={loc.id}>
+                  <LocationQrCode code={loc.qr_code!} size={104} alt={loc.name} />
+                  <span className={s.qrName}>{loc.name}</span>
+                  <span className={s.qrCode}>{loc.qr_code}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className={s.cardFoot}>
             <Link to="/qr-print" className={uiStyles.sectionLink}>
               {t('operations.printLabels')}
             </Link>
@@ -84,21 +93,33 @@ export function OperationsDesktop() {
       )}
 
       <div className={uiStyles.twoColumn}>
-        <DataCard title={t('operations.reminderScheduler')}>
-          <Stack>
-            {reminders.length === 0 ? (
-              <span className={uiStyles.muted}>{t('operations.noReminders')}</span>
-            ) : (
-              reminders.slice(0, 10).map((r) => (
-                <Card className="surface-card" key={r.id}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{t(`reminder.${r.type}`, r.type)} — {r.item_id}</span>
-                    <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
+        <DataCard
+          title={t('operations.reminderScheduler')}
+          meta={<span className={s.cardMeta}>{t('operations.reminderCount', { count: reminders.length })}</span>}
+        >
+          {reminderPreview.length === 0 ? (
+            <div className="empty-state">{t('operations.noReminders')}</div>
+          ) : (
+            <div className={s.reminderList}>
+              {reminderPreview.map((r) => (
+                <div className={s.reminderRow} key={r.id}>
+                  <div className={s.reminderMeta}>
+                    <h4 className={s.reminderType}>{t(`reminder.${r.type}`, r.type)}</h4>
+                    <span className={s.reminderItem}>{r.item_id}</span>
                   </div>
-                </Card>
-              ))
-            )}
-          </Stack>
+                  <div className={s.reminderSide}>
+                    <span className={s.reminderTime}>{formatDateTime(r.trigger_at)}</span>
+                    <span className={statusChipClass(r)}>
+                      {r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {reminders.length > REMINDER_PREVIEW_LIMIT && (
+            <span className={s.exportHint}>{t('operations.reminderPreview', { count: REMINDER_PREVIEW_LIMIT })}</span>
+          )}
         </DataCard>
 
         <DataCard title={t('operations.backupExport')}>
@@ -110,33 +131,48 @@ export function OperationsDesktop() {
             >
               {backupMutation.isPending ? t('operations.backingUp') : t('operations.manualBackup')}
             </Button>
-            {backupMutation.data && (
-              <span className={uiStyles.muted}>{t('operations.backupComplete', { path: backupMutation.data.path })}</span>
+            {backupMutation.data?.path && (
+              <span className={s.backupPath}>{t('operations.backupComplete', { path: backupMutation.data.path })}</span>
+            )}
+            {backupMutation.isError && (
+              <span className={s.backupError}>{t('operations.backupFailed', { error: errorText(backupMutation.error) })}</span>
             )}
 
-            <div style={{ height: '1px', background: 'var(--havit-line, #ddd5c4)', margin: '0.5rem 0' }} />
+            <hr className={s.divider} />
 
-            <Button
-              variant="quiet"
-              leftSection={<IconDownload size={15} />}
-              onClick={() => exportJsonMutation.mutate()}
-              disabled={exportJsonMutation.isPending}
-            >
-              {t('operations.exportJson')}
-            </Button>
-            <Button
-              variant="quiet"
-              leftSection={<IconDownload size={15} />}
-              onClick={() => exportCsvMutation.mutate()}
-              disabled={exportCsvMutation.isPending}
-            >
-              {t('operations.exportCsv')}
-            </Button>
+            <span className={s.exportHint}>{t('operations.exportHint')}</span>
+            <div className={s.exportRow}>
+              <Button
+                variant="quiet"
+                leftSection={<IconDownload size={15} />}
+                onClick={() => exportJsonMutation.mutate()}
+                disabled={exportJsonMutation.isPending}
+              >
+                {t('operations.exportJson')}
+              </Button>
+              <Button
+                variant="quiet"
+                leftSection={<IconDownload size={15} />}
+                onClick={() => exportCsvMutation.mutate()}
+                disabled={exportCsvMutation.isPending}
+              >
+                {t('operations.exportCsv')}
+              </Button>
+            </div>
           </Stack>
         </DataCard>
       </div>
     </div>
   );
+}
+
+function statusChipClass(r: { is_dismissed: boolean; sent_at?: number }) {
+  if (r.is_dismissed) return s.statusChip.dismissed;
+  return r.sent_at ? s.statusChip.sent : s.statusChip.pending;
+}
+
+function errorText(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -147,4 +183,3 @@ function downloadBlob(blob: Blob, filename: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
-
