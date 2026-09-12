@@ -717,34 +717,37 @@ export const qrMock = style({
   textShadow: `0 1px 2px ${themeVars.ink}`,
 });
 
+// Screen geometry mirrors print.css (3 × 50mm columns, 50×30mm labels) so the
+// on-screen sheet is what actually prints. Labels stay white and their text
+// stays dark in dark mode too: they depict physical stickers.
 export const qrPrintGrid = style({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: themeVars.space3,
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, 50mm)',
+  gap: '4mm',
+  justifyContent: 'start',
 });
 
 export const qrPrintLabel = style({
-  width: '14rem',
-  height: '8.5rem',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius2,
-  background: themeVars.panel,
+  boxSizing: 'border-box',
+  width: '50mm',
+  height: '30mm',
+  border: `1px dashed ${themeVars.line}`,
+  borderRadius: 0,
+  background: '#ffffff',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
   gap: themeVars.space1,
+  minWidth: 0,
   pageBreakInside: 'avoid',
 });
 
 export const qrPrintQr = style({
   display: 'grid',
   placeItems: 'center',
-  width: '4rem',
-  height: '4rem',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius1,
-  background: themeVars.panel,
+  width: '16mm',
+  height: '16mm',
   overflow: 'hidden',
 });
 
@@ -754,28 +757,43 @@ export const qrCodeImage = style({
 });
 
 export const qrPrintCode = style({
-  fontFamily: 'monospace',
+  fontFamily: themeVars.fontMono,
   fontSize: '0.55rem',
-  color: themeVars.ink,
+  letterSpacing: '0.02em',
+  color: '#1c1a15',
   textAlign: 'center',
   wordBreak: 'break-all',
   lineHeight: 1.2,
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const qrPrintNoCode = style({
-  color: themeVars.muted,
+  color: '#6f6757',
   fontSize: '0.75rem',
 });
 
 export const qrPrintName = style({
   fontWeight: 600,
   fontSize: '0.85rem',
-  color: themeVars.ink,
+  color: '#1c1a15',
+  textAlign: 'center',
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const qrPrintPath = style({
   fontSize: '0.7rem',
-  color: themeVars.muted,
+  color: '#6f6757',
+  textAlign: 'center',
+  maxWidth: '100%',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const dashboardLayout = style({
@@ -880,12 +898,9 @@ export const kpiValue = style({
 
 export const dashboardStats = style({
   display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
   gap: themeVars.space4,
   '@media': {
-    '(max-width: 64em)': {
-      gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
-    },
     '(max-width: 40em)': {
       gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
       gap: themeVars.space3,

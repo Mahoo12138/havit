@@ -14,8 +14,30 @@
     background: #fff;
   }
 
+  /* Collapse the sidebar grid track (nav is display:none but the track stays)
+     and repaint the shell surfaces white so only the label sheet prints. */
+  [class*='shell'] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  [class*='shellMain'] {
+    background: #fff !important;
+    /* Keep cut lines clear of the paper edge when the user sets page margins to 0. */
+    padding: 4mm !important;
+  }
+
   .qr-print-page {
     padding: 0;
+  }
+
+  /* The sheet is only a screen-time frame for the label grid; print shows the raw grid. */
+  [class*='printSheet'] {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible !important;
   }
 
   [class*='qrPrintGrid'] {

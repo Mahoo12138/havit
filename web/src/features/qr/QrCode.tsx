@@ -13,6 +13,9 @@ interface QrCodeProps {
 export function QrCode({ value, size = 128, alt = 'QR', className }: QrCodeProps) {
   const [dataUrl, setDataUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  // Render the bitmap well above display size: print.css scales the image down
+  // to 16mm on paper, which needs ~300dpi to stay scanner-sharp.
+  const resolution = Math.max(size, 256);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,7 +23,7 @@ export function QrCode({ value, size = 128, alt = 'QR', className }: QrCodeProps
     setDataUrl(null);
 
     QRCode.toDataURL(value, {
-      width: size,
+      width: resolution,
       margin: 1,
       errorCorrectionLevel: 'M',
       color: { dark: '#1A1917', light: '#FFFFFF' },
@@ -35,7 +38,7 @@ export function QrCode({ value, size = 128, alt = 'QR', className }: QrCodeProps
     return () => {
       cancelled = true;
     };
-  }, [value, size]);
+  }, [value, resolution]);
 
   if (failed) {
     return <span className={uiStyles.qrPrintNoCode}>—</span>;

@@ -12,7 +12,7 @@ export function QrPrintLabel({ name, code, path }: QrPrintLabelProps) {
     <div className={uiStyles.qrPrintLabel}>
       <div className={uiStyles.qrPrintQr}>
         {code ? (
-          <LocationQrCode code={code} size={64} alt={name} />
+          <LocationQrCode code={code} size={60} alt={name} />
         ) : (
           <span className={uiStyles.qrPrintNoCode}>—</span>
         )}

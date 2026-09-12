@@ -955,6 +955,15 @@
     "title": "Location Label Printing",
     "description": "Select locations, generate codes in bulk, and print cuttable QR labels.",
     "meta": "QR Print",
+    "metrics": {
+      "locations": "Locations",
+      "withCode": "With codes",
+      "withoutCode": "Awaiting codes",
+      "selected": "Selected"
+    },
+    "listTitle": "Choose locations",
+    "listMeta": "{{selected}} of {{total}} selected",
+    "searchPlaceholder": "Search name, path, or code",
     "print": "Print {{count}} labels",
     "noLocations": "No location data",
     "noPrintable": "Select locations with codes, or generate codes for the selection first",
@@ -965,6 +974,10 @@
     "generateMissing": "Generate codes for {{count}} locations",
     "selectAll": "Select all in list",
     "clearSelection": "Clear selection",
+    "emptyFilter": "No locations match the current filter or search.",
+    "previewTitle": "Label sheet preview",
+    "previewMeta": "{{count}} labels · 3 per row · 50×30 mm",
+    "previewEmpty": "Select locations that already have codes, and the printable label sheet will appear here.",
     "filter": {
       "all": "All",
       "withCode": "Has code",

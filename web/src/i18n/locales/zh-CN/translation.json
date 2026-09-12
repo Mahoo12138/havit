@@ -951,6 +951,15 @@
     "title": "位置标签打印",
     "description": "勾选位置、批量生成编号，打印可裁剪的 QR 标签贴在收纳盒上。",
     "meta": "QR 标签",
+    "metrics": {
+      "locations": "位置总数",
+      "withCode": "已有编号",
+      "withoutCode": "待生成",
+      "selected": "已选"
+    },
+    "listTitle": "选择位置",
+    "listMeta": "已选 {{selected}} / 共 {{total}}",
+    "searchPlaceholder": "搜索名称、路径或编号",
     "print": "打印 {{count}} 个标签",
     "noLocations": "暂无位置数据",
     "noPrintable": "请先勾选已有编号的位置，或为选中项生成编号",
@@ -961,6 +970,10 @@
     "generateMissing": "为 {{count}} 个位置生成编号",
     "selectAll": "全选当前列表",
     "clearSelection": "清空选择",
+    "emptyFilter": "没有符合当前筛选或搜索条件的位置。",
+    "previewTitle": "标签纸预览",
+    "previewMeta": "{{count}} 张 · 每行 3 张 · 50×30 mm",
+    "previewEmpty": "勾选已有编号的位置后，可打印的标签纸会出现在这里。",
     "filter": {
       "all": "全部",
       "withCode": "已有编号",
