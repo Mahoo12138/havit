@@ -2,14 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import {
-  IconBell,
-  IconHome,
-  IconLogout,
-  IconMenu2,
-  IconSearch,
-  IconX,
-} from '@tabler/icons-react';
+import { IconBell, IconHome, IconLogout, IconMenu2, IconSearch } from '@tabler/icons-react';
 import {
   uiStyles,
 } from '../components/ui';
@@ -29,8 +22,8 @@ interface ShellProps {
 export function DesktopShell({ systemStatus }: ShellProps) {
   const { t, i18n } = useTranslation();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const [opened, setOpened] = useState(false);
   const navigate = useNavigate();
+  const [navCollapsed, setNavCollapsed] = useState(false);
 
   const me = useQuery({
     queryKey: ['auth', 'me'],
@@ -62,35 +55,20 @@ export function DesktopShell({ systemStatus }: ShellProps) {
   }
 
   return (
-    <div className={uiStyles.shell}>
-      {opened && (
-        <div
-          className={uiStyles.shellNavScrim}
-          onClick={() => setOpened(false)}
-          aria-hidden
-        />
-      )}
-      <nav
-        className={[
-          uiStyles.shellNav,
-          opened ? uiStyles.shellNavOpen : undefined,
-        ]
-          .filter(Boolean)
-          .join(' ')}
-      >
+    <div
+      className={[
+        uiStyles.shell,
+        navCollapsed ? uiStyles.shellNavCollapsed : undefined,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <nav className={uiStyles.shellNav}>
         <div className={uiStyles.sidebarBrand}>
           <span className={uiStyles.sidebarBrandMark}>
             <IconHome size={17} />
           </span>
           <span className={uiStyles.sidebarBrandText}>Havit</span>
-          <Button
-            variant="subtle"
-            className={uiStyles.sidebarBrandClose}
-            aria-label={t('common.close')}
-            onClick={() => setOpened(false)}
-          >
-            <IconX size={16} />
-          </Button>
         </div>
 
         <ScrollArea className={uiStyles.sidebarScroll}>
@@ -111,7 +89,6 @@ export function DesktopShell({ systemStatus }: ShellProps) {
                       data-active={active}
                       key={item.to}
                       to={item.to}
-                      onClick={() => setOpened(false)}
                     >
                       <span className={uiStyles.navLinkIcon}>
                         <Icon size={17} />
@@ -163,8 +140,8 @@ export function DesktopShell({ systemStatus }: ShellProps) {
             variant="subtle"
             className={uiStyles.burger}
             aria-label={t('common.toggleNav')}
-            aria-expanded={opened}
-            onClick={() => setOpened((v) => !v)}
+            aria-expanded={!navCollapsed}
+            onClick={() => setNavCollapsed((v) => !v)}
           >
             <IconMenu2 size={18} />
           </Button>

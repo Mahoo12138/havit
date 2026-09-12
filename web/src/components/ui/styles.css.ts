@@ -243,11 +243,12 @@ export const shell = style({
   minHeight: '100dvh',
   display: 'grid',
   gridTemplateColumns: `${themeVars.shellNavW} minmax(0, 1fr)`,
-  '@media': {
-    '(max-width: 48em)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
+  transition: 'grid-template-columns 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+});
+
+// 定义在 shell 之后，两列同优先级时由此规则胜出，实现侧栏收起
+export const shellNavCollapsed = style({
+  gridTemplateColumns: '0 minmax(0, 1fr)',
 });
 
 export const shellMainArea = style({
@@ -400,43 +401,11 @@ export const shellNav = style({
   position: 'sticky',
   top: 0,
   height: '100dvh',
+  overflow: 'hidden',
   background: themeVars.sidebarBg,
   color: themeVars.sidebarText,
   display: 'flex',
   flexDirection: 'column',
-  '@media': {
-    '(max-width: 48em)': {
-      position: 'fixed',
-      inset: '0 auto 0 0',
-      width: themeVars.shellNavW,
-      zIndex: 50,
-      transform: 'translateX(-100%)',
-      transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
-    },
-  },
-});
-
-export const shellNavOpen = style({
-  '@media': {
-    '(max-width: 48em)': {
-      transform: 'translateX(0)',
-      boxShadow: '0 18px 48px rgba(0, 0, 0, 0.4)',
-    },
-  },
-});
-
-export const shellNavScrim = style({
-  display: 'none',
-  '@media': {
-    '(max-width: 48em)': {
-      display: 'block',
-      position: 'fixed',
-      inset: 0,
-      zIndex: 40,
-      background: 'rgba(28, 26, 21, 0.5)',
-      backdropFilter: 'blur(2px)',
-    },
-  },
 });
 
 export const sidebarBrand = style({
@@ -464,31 +433,6 @@ export const sidebarBrandText = style({
   fontWeight: 700,
   letterSpacing: '-0.01em',
   color: themeVars.sidebarActiveText,
-});
-
-export const sidebarBrandClose = style({
-  marginLeft: 'auto',
-  display: 'none',
-  width: '2rem',
-  height: '2rem',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'transparent',
-  border: 0,
-  borderRadius: themeVars.radius2,
-  color: themeVars.sidebarMuted,
-  cursor: 'pointer',
-  selectors: {
-    '&:hover': {
-      background: themeVars.sidebarHover,
-      color: '#fff',
-    },
-  },
-  '@media': {
-    '(max-width: 48em)': {
-      display: 'inline-flex',
-    },
-  },
 });
 
 export const sidebarScroll = style({
@@ -610,11 +554,6 @@ export const burger = style({
   selectors: {
     '&:hover': {
       background: themeVars.lineSoft,
-    },
-  },
-  '@media': {
-    '(min-width: 48.01em)': {
-      display: 'none',
     },
   },
 });
