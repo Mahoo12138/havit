@@ -1,29 +1,69 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { IconPlus, IconSettings, IconDotsVertical, IconAlertTriangle, IconClipboardList, IconEye } from '@tabler/icons-react';
+import { IconPlus, IconSettings, IconAlertTriangle, IconEye } from '@tabler/icons-react';
 import { Stack, uiStyles } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextField } from '../../components/ui/text-field';
-import { itemsApi, loansApi, type Loan } from '../../api/client';
+import { itemsApi, loansApi, type LoanWithItem } from '../../api/client';
 
 type TabKey = 'active' | 'returned' | 'overdue' | 'all';
+type LoanState = 'active' | 'overdue' | 'due_soon' | 'returned';
+
+// Compact unlabeled select for the filter bar, mirroring the abnormal page.
+function InlineSelect({
+  value,
+  placeholder,
+  options,
+  onChange,
+}: {
+  value: string;
+  placeholder: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Select
+      value={value || null}
+      onValueChange={(nextValue) => onChange(nextValue ?? '')}
+      items={[{ value: null, label: placeholder }, ...options]}
+    >
+      <SelectTrigger size="sm" className={uiStyles.loanFilterSelect} aria-label={placeholder}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        <SelectItem value={null}>{placeholder}</SelectItem>
+        {options.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
 
 export function LoansDesktop() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabKey>('active');
   const [showCreate, setShowCreate] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterBorrower, setFilterBorrower] = useState('');
-
 
   const [itemId, setItemId] = useState('');
   const [borrowerName, setBorrowerName] = useState('');
@@ -36,59 +76,60 @@ export function LoansDesktop() {
   const [compensationCurrency, setCompensationCurrency] = useState('CNY');
   const [settlementNotes, setSettlementNotes] = useState('');
 
-  const { data: borrowedItemsData, isLoading: borrowedLoading } = useQuery({
-    queryKey: ['items', 'borrowed'],
-    queryFn: () => itemsApi.list({ status: 'borrowed' }),
+  const { data: loanListData, isLoading } = useQuery({
+    queryKey: ['loans', 'list'],
+    queryFn: () => loansApi.list(),
   });
+  const loans = loanListData?.loans ?? [];
 
-  const borrowedItems = borrowedItemsData?.items ?? [];
-
-  const loanQueries = useQuery({
-    queryKey: ['loans', 'allBorrowed', borrowedItems.map((i) => i.id)],
-    queryFn: async () => {
-      const results = await Promise.all(
-        borrowedItems.map(async (item) => {
-          try {
-            const { loans } = await loansApi.listForItem(item.id);
-            const active = loans.find((l) => l.status === 'active' || l.status === 'unreturned');
-            return { item, loan: active ?? loans[0] };
-          } catch {
-            return { item, loan: null };
-          }
-        }),
-      );
-      return results;
-    },
-    enabled: borrowedItems.length > 0,
+  const { data: availableData } = useQuery({
+    queryKey: ['items', 'inStock'],
+    queryFn: () => itemsApi.list({ status: 'in_stock' }),
+    enabled: showCreate,
   });
-
-  const loanData = loanQueries.data ?? [];
+  const availableItems = availableData?.items ?? [];
 
   const categories = useMemo(() => {
     const set = new Set<string>();
-    loanData.forEach(({ item }) => {
-      if (item?.category) set.add(item.category);
+    loans.forEach((loan) => {
+      if (loan.item_category) set.add(loan.item_category);
     });
     return Array.from(set);
-  }, [loanData]);
+  }, [loans]);
 
   const borrowers = useMemo(() => {
     const set = new Set<string>();
-    loanData.forEach(({ loan }) => {
-      if (loan?.borrower_name) set.add(loan.borrower_name);
+    loans.forEach((loan) => {
+      if (loan.borrower_name) set.add(loan.borrower_name);
     });
     return Array.from(set);
-  }, [loanData]);
+  }, [loans]);
+
+  const tabFiltered = useMemo(() => {
+    switch (activeTab) {
+      case 'active':
+        return loans.filter((loan) => loan.status === 'active');
+      case 'returned':
+        return loans.filter((loan) => loan.status === 'returned');
+      case 'overdue':
+        return loans.filter((loan) => getLoanStatus(loan) === 'overdue');
+      default:
+        return loans;
+    }
+  }, [loans, activeTab]);
 
   const filteredData = useMemo(() => {
-    return loanData.filter(({ item, loan }) => {
-      if (filterCategory && item?.category !== filterCategory) return false;
-      if (filterBorrower && loan?.borrower_name !== filterBorrower) return false;
-      if (filterStatus === 'active' && loan?.status !== 'active') return false;
-      if (filterStatus === 'overdue' && loan?.status !== 'unreturned') return false;
+    return tabFiltered.filter((loan) => {
+      if (filterCategory && loan.item_category !== filterCategory) return false;
+      if (filterBorrower && loan.borrower_name !== filterBorrower) return false;
       return true;
     });
-  }, [loanData, filterCategory, filterBorrower, filterStatus]);
+  }, [tabFiltered, filterCategory, filterBorrower]);
+
+  const overdueLoans = useMemo(
+    () => loans.filter((loan) => getLoanStatus(loan) === 'overdue'),
+    [loans],
+  );
 
   const metrics = useMemo(() => {
     const now = Math.floor(Date.now() / 1000);
@@ -98,52 +139,52 @@ export function LoansDesktop() {
     thisMonthStart.setHours(0, 0, 0, 0);
     const monthTs = Math.floor(thisMonthStart.getTime() / 1000);
 
-    let borrowedCount = 0;
-    let borrowedValue = 0;
-    let overdueCount = 0;
-    let overdueValue = 0;
-    let dueSoonCount = 0;
-    let dueSoonValue = 0;
-    let thisMonthCount = 0;
-    let thisMonthValue = 0;
+    const m = {
+      borrowedCount: 0,
+      borrowedValue: 0,
+      overdueCount: 0,
+      overdueValue: 0,
+      dueSoonCount: 0,
+      dueSoonValue: 0,
+      thisMonthCount: 0,
+      thisMonthValue: 0,
+      returnedCount: 0,
+      returnedValue: 0,
+    };
 
-    loanData.forEach(({ item, loan }) => {
-      if (!item) return;
-      const val = item.purchase_price ?? 0;
-
-      if (loan?.status === 'active') {
-        borrowedCount++;
-        borrowedValue += val;
-        if (loan.loaned_at >= monthTs) {
-          thisMonthCount++;
-          thisMonthValue += val;
-        }
-        if (loan.due_at) {
-          if (loan.due_at < now) {
-            overdueCount++;
-            overdueValue += val;
-          } else if (loan.due_at - now <= threeDays) {
-            dueSoonCount++;
-            dueSoonValue += val;
+    loans.forEach((loan) => {
+      const val = loan.item_purchase_price ?? 0;
+      if (loan.loaned_at >= monthTs) {
+        m.thisMonthCount++;
+        m.thisMonthValue += val;
+      }
+      switch (loan.status) {
+        case 'active':
+          m.borrowedCount++;
+          m.borrowedValue += val;
+          if (loan.due_at) {
+            if (loan.due_at < now) {
+              m.overdueCount++;
+              m.overdueValue += val;
+            } else if (loan.due_at - now <= threeDays) {
+              m.dueSoonCount++;
+              m.dueSoonValue += val;
+            }
           }
-        }
-      } else if (loan?.status === 'unreturned') {
-        overdueCount++;
-        overdueValue += val;
+          break;
+        case 'unreturned':
+          m.overdueCount++;
+          m.overdueValue += val;
+          break;
+        case 'returned':
+          m.returnedCount++;
+          m.returnedValue += val;
+          break;
       }
     });
 
-    return {
-      borrowedCount,
-      borrowedValue,
-      overdueCount,
-      overdueValue,
-      dueSoonCount,
-      dueSoonValue,
-      thisMonthCount,
-      thisMonthValue,
-    };
-  }, [loanData]);
+    return m;
+  }, [loans]);
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -153,7 +194,7 @@ export function LoansDesktop() {
         due_at: dueAt ? Math.floor(new Date(dueAt).getTime() / 1000) : undefined,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['items', 'borrowed'] });
+      queryClient.invalidateQueries({ queryKey: ['items'] });
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       setShowCreate(false);
       resetCreateForm();
@@ -163,7 +204,7 @@ export function LoansDesktop() {
   const returnMutation = useMutation({
     mutationFn: (loanId: string) => loansApi.returnLoan(loanId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['items', 'borrowed'] });
+      queryClient.invalidateQueries({ queryKey: ['items'] });
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       setReturnLoanId(null);
     },
@@ -177,7 +218,7 @@ export function LoansDesktop() {
         notes: settlementNotes || undefined,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['items', 'borrowed'] });
+      queryClient.invalidateQueries({ queryKey: ['items'] });
       queryClient.invalidateQueries({ queryKey: ['loans'] });
       setUnreturnLoanId(null);
       setCompensation('');
@@ -193,28 +234,26 @@ export function LoansDesktop() {
     setDueAt('');
   }
 
-  function getLoanStatus(loan: Loan): 'active' | 'overdue' | 'due_soon' | 'returned' {
-    if (loan.status === 'returned') return 'returned';
-    if (loan.status === 'unreturned') return 'overdue';
-    const now = Math.floor(Date.now() / 1000);
-    if (loan.due_at && loan.due_at < now) return 'overdue';
-    if (loan.due_at && loan.due_at - now <= 3 * 24 * 60 * 60) return 'due_soon';
-    return 'active';
+  function goToOverdue() {
+    setActiveTab('overdue');
+    setFilterCategory('');
+    setFilterBorrower('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function getStatusLabel(status: string): string {
+  function getStatusLabel(status: LoanState): string {
     switch (status) {
       case 'active': return t('loans.statusBorrowed');
       case 'overdue': return t('loans.statusOverdue');
       case 'due_soon': return t('loans.statusDueSoon');
       case 'returned': return t('loans.statusReturned');
-      default: return status;
     }
   }
 
-  function formatCurrency(value: number): string {
-    const symbol = t('common.currencySymbol');
-    return `${symbol}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  function formatMoney(value?: number, currency?: string): string {
+    if (value == null) return '-';
+    const sym = currency ?? t('common.currencySymbol');
+    return `${sym}${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   function formatDate(ts?: number): string {
@@ -223,7 +262,7 @@ export function LoansDesktop() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
-  function formatDueInfo(loan: Loan): { text: string; isOverdue: boolean } {
+  function formatDueInfo(loan: LoanWithItem): { text: string; isOverdue: boolean } {
     if (loan.status === 'returned' && loan.returned_at) {
       return { text: t('loans.statusReturned'), isOverdue: false };
     }
@@ -244,7 +283,37 @@ export function LoansDesktop() {
     { key: 'all' as TabKey, label: t('loans.tabAll') },
   ];
 
-  const isLoading = borrowedLoading || loanQueries.isLoading;
+  function renderActions(loan: LoanWithItem, status: LoanState) {
+    const lendable = status !== 'returned';
+    return (
+      <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+        <Link to="/items/$itemId" params={{ itemId: loan.item_id }}>
+          <Button variant="subtle" className={uiStyles.loanActionBtn} title={t('loans.viewDetail')}>
+            <IconEye size={13} />
+          </Button>
+        </Link>
+        {lendable && (
+          <Button
+            variant="subtle"
+            className={uiStyles.loanActionBtn}
+            onClick={() => setReturnLoanId(loan.id)}
+          >
+            {t('loans.returnItem')}
+          </Button>
+        )}
+        {lendable && (
+          <Button
+            variant="subtle"
+            className={uiStyles.loanActionBtn}
+            title={t('loans.markUnreturned')}
+            onClick={() => setUnreturnLoanId(loan.id)}
+          >
+            {t('loans.markUnreturned')}
+          </Button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Stack>
@@ -276,64 +345,55 @@ export function LoansDesktop() {
             <div className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricBorrowed')}</span>
               <span className={uiStyles.loanMetricValue}>{metrics.borrowedCount}</span>
-              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatCurrency(metrics.borrowedValue)}</span>
+              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.borrowedValue, t('common.currencySymbol'))}</span>
             </div>
             <div className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricOverdue')}</span>
               <span className={uiStyles.loanMetricValueDanger}>{metrics.overdueCount}</span>
-              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatCurrency(metrics.overdueValue)}</span>
+              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.overdueValue, t('common.currencySymbol'))}</span>
             </div>
             <div className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricDueSoon')}</span>
               <span className={uiStyles.loanMetricValue}>{metrics.dueSoonCount}</span>
-              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatCurrency(metrics.dueSoonValue)}</span>
+              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.dueSoonValue, t('common.currencySymbol'))}</span>
             </div>
             <div className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricThisMonth')}</span>
               <span className={uiStyles.loanMetricValue}>{metrics.thisMonthCount}</span>
-              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatCurrency(metrics.thisMonthValue)}</span>
+              <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.thisMonthValue, t('common.currencySymbol'))}</span>
             </div>
             <div className={uiStyles.loanMetricCard}>
-              <span className={uiStyles.loanMetricLabel}>{t('loans.metricMyReturns')}</span>
-              <span className={uiStyles.loanMetricValue}>{metrics.borrowedCount}</span>
-              <span className={uiStyles.loanMetricSub}>{t('loans.returnValue')} {formatCurrency(metrics.borrowedValue)}</span>
+              <span className={uiStyles.loanMetricLabel}>{t('loans.metricReturned')}</span>
+              <span className={uiStyles.loanMetricValue}>{metrics.returnedCount}</span>
+              <span className={uiStyles.loanMetricSub}>{t('loans.returnedValue')} {formatMoney(metrics.returnedValue, t('common.currencySymbol'))}</span>
             </div>
           </div>
 
           <div className={uiStyles.loanFilterBar}>
-            <SelectField
-              label={t('items.status')}
-              options={[
-                { value: '', label: t('loans.filterAllStatus') },
-                { value: 'active', label: t('loans.statusBorrowed') },
-                { value: 'overdue', label: t('loans.statusOverdue') },
-              ]}
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.currentTarget.value)}
-            />
-            <SelectField
-              label={t('items.category')}
-              options={[
-                { value: '', label: t('loans.filterAllCategories') },
-                ...categories.map((cat) => ({ value: cat, label: cat })),
-              ]}
+            <InlineSelect
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.currentTarget.value)}
+              placeholder={t('loans.filterAllCategories')}
+              options={categories.map((cat) => ({ value: cat, label: cat }))}
+              onChange={setFilterCategory}
             />
-            <SelectField
-              label={t('loans.filterBorrower')}
-              options={[
-                { value: '', label: t('loans.filterBorrower') },
-                ...borrowers.map((b) => ({ value: b, label: b })),
-              ]}
+            <InlineSelect
               value={filterBorrower}
-              onChange={(e) => setFilterBorrower(e.currentTarget.value)}
+              placeholder={t('loans.filterBorrower')}
+              options={borrowers.map((b) => ({ value: b, label: b }))}
+              onChange={setFilterBorrower}
             />
-            <div className={uiStyles.loanToolbarActions}>
-              <Button variant="subtle" className={uiStyles.loanFilterIconBtn} title={t('loans.filterDueDate')}>
-                <IconClipboardList size={14} />
+            {(filterCategory || filterBorrower) && (
+              <Button
+                variant="subtle"
+                className={uiStyles.loanActionBtn}
+                onClick={() => { setFilterCategory(''); setFilterBorrower(''); }}
+              >
+                {t('loans.clearFilters')}
               </Button>
-            </div>
+            )}
+            <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--havit-muted)' }}>
+              {t('loans.totalItems', { count: filteredData.length })}
+            </span>
           </div>
 
           {/* Desktop table */}
@@ -359,27 +419,20 @@ export function LoansDesktop() {
                       </td>
                     </tr>
                   ) : (
-                    filteredData.map(({ item, loan }) => {
-                      if (!loan || !item) return null;
+                    filteredData.map((loan) => {
                       const status = getLoanStatus(loan);
                       const dueInfo = formatDueInfo(loan);
                       return (
                         <tr className={uiStyles.tableRow} key={loan.id}>
                           <td className={uiStyles.td}>
                             <div className={uiStyles.loanItemCell}>
-                              {item.serial_number ? (
-                                <div className={uiStyles.loanItemThumbPlaceholder}>
-                                  {item.name.charAt(0)}
-                                </div>
-                              ) : (
-                                <div className={uiStyles.loanItemThumbPlaceholder}>
-                                  {item.name.charAt(0)}
-                                </div>
-                              )}
+                              <div className={uiStyles.loanItemThumbPlaceholder}>
+                                {loan.item_name.charAt(0)}
+                              </div>
                               <div className={uiStyles.loanItemInfo}>
-                                <div className={uiStyles.loanItemName}>{item.name}</div>
-                                {item.serial_number && (
-                                  <div className={uiStyles.loanItemSn}>{t('common.sn', { number: item.serial_number })}</div>
+                                <div className={uiStyles.loanItemName}>{loan.item_name}</div>
+                                {loan.item_serial_number && (
+                                  <div className={uiStyles.loanItemSn}>{t('common.sn', { number: loan.item_serial_number })}</div>
                                 )}
                               </div>
                             </div>
@@ -405,36 +458,10 @@ export function LoansDesktop() {
                             </span>
                           </td>
                           <td className={uiStyles.td} style={{ fontVariantNumeric: 'tabular-nums' }}>
-                            {item.purchase_price != null ? formatCurrency(item.purchase_price) : '-'}
+                            {formatMoney(loan.item_purchase_price, loan.item_purchase_currency)}
                           </td>
                           <td className={uiStyles.td}>
-                            <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-                              <Button variant="subtle" className={uiStyles.loanActionBtn} title={t('loans.viewDetail')}>
-                                <IconEye size={13} />
-                              </Button>
-                {status === 'active' || status === 'overdue' || status === 'due_soon' ? (
-                  <Button
-                    variant="subtle"
-                    className={uiStyles.loanActionBtn}
-                    onClick={() => setReturnLoanId(loan.id)}
-                  >
-                    {t('loans.returnItem')}
-                  </Button>
-                ) : null}
-                {status === 'active' || status === 'overdue' || status === 'due_soon' ? (
-                  <Button
-                    variant="subtle"
-                    className={uiStyles.loanActionBtn}
-                    title={t('loans.markUnreturned')}
-                    onClick={() => setUnreturnLoanId(loan.id)}
-                  >
-                    {t('loans.markUnreturned')}
-                  </Button>
-                ) : null}
-                              <Button variant="subtle" className={uiStyles.loanActionMore} title={t('common.more', { defaultValue: 'More' })}>
-                                <IconDotsVertical size={14} />
-                              </Button>
-                            </div>
+                            {renderActions(loan, status)}
                           </td>
                         </tr>
                       );
@@ -452,20 +479,19 @@ export function LoansDesktop() {
                 {t('loans.noLoans')}
               </div>
             ) : (
-              filteredData.map(({ item, loan }) => {
-                if (!loan || !item) return null;
+              filteredData.map((loan) => {
                 const status = getLoanStatus(loan);
                 const dueInfo = formatDueInfo(loan);
                 return (
                   <div className={uiStyles.loanMobileCard} key={loan.id}>
                     <div className={uiStyles.loanMobileItemRow}>
                       <div className={uiStyles.loanItemThumbPlaceholder}>
-                        {item.name.charAt(0)}
+                        {loan.item_name.charAt(0)}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className={uiStyles.loanItemName}>{item.name}</div>
-                        {item.serial_number && (
-                          <div className={uiStyles.loanItemSn}>{t('common.sn', { number: item.serial_number })}</div>
+                        <div className={uiStyles.loanItemName}>{loan.item_name}</div>
+                        {loan.item_serial_number && (
+                          <div className={uiStyles.loanItemSn}>{t('common.sn', { number: loan.item_serial_number })}</div>
                         )}
                       </div>
                       <span className={`${uiStyles.loanStatusBadgeBase} ${uiStyles.loanStatusBadge[status]}`}>
@@ -488,40 +514,14 @@ export function LoansDesktop() {
                       </span>
                       <span className={uiStyles.loanMobileLabel}>{t('loans.colValue')}</span>
                       <span className={uiStyles.loanMobileValue}>
-                        {item.purchase_price != null ? formatCurrency(item.purchase_price) : '-'}
+                        {formatMoney(loan.item_purchase_price, loan.item_purchase_currency)}
                       </span>
                     </div>
-                    <div className={uiStyles.loanMobileRow}>
-                      <Button variant="subtle" className={uiStyles.loanActionBtn}>
-                        <IconEye size={13} /> {t('loans.viewDetail')}
-                      </Button>
-                      {(status === 'active' || status === 'overdue' || status === 'due_soon') && (
-                        <Button
-                          variant="subtle"
-                          className={uiStyles.loanActionBtn}
-                          onClick={() => setReturnLoanId(loan.id)}
-                        >
-                          {t('loans.returnItem')}
-                        </Button>
-                      )}
-                      {(status === 'active' || status === 'overdue' || status === 'due_soon') && (
-                        <Button
-                          variant="subtle"
-                          className={uiStyles.loanActionBtn}
-                          onClick={() => setUnreturnLoanId(loan.id)}
-                        >
-                          {t('loans.markUnreturned')}
-                        </Button>
-                      )}
-                    </div>
+                    {renderActions(loan, status)}
                   </div>
                 );
               })
             )}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--havit-muted)', fontSize: '0.85rem' }}>
-            <span>{t('loans.totalItems', { count: filteredData.length })}</span>
           </div>
 
           {metrics.overdueCount > 0 && (
@@ -531,13 +531,42 @@ export function LoansDesktop() {
                   <IconAlertTriangle size={16} color="var(--havit-danger)" />
                   <h3 className={uiStyles.loanBottomTitle}>{t('loans.overdueReminder')}</h3>
                 </div>
-                <Button variant="subtle" style={{ fontWeight: 500 }}>
+                <Button variant="subtle" style={{ fontWeight: 500 }} onClick={goToOverdue}>
                   {t('loans.viewAllOverdue')}
                 </Button>
               </div>
-              <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
-                {metrics.overdueCount} {t('loans.overdueReminderHint')}
-              </p>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {overdueLoans.map((loan) => {
+                  const dueInfo = formatDueInfo(loan);
+                  return (
+                    <div
+                      key={loan.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                        padding: '0.5rem 0',
+                        borderTop: '1px solid var(--havit-line-soft)',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      <Link
+                        to="/items/$itemId"
+                        params={{ itemId: loan.item_id }}
+                        className={uiStyles.loanItemName}
+                      >
+                        {loan.item_name}
+                      </Link>
+                      <span style={{ color: 'var(--havit-muted)' }}>
+                        {t('loans.colBorrower')}: {loan.borrower_name}
+                      </span>
+                      <span style={{ marginLeft: 'auto', color: 'var(--havit-danger)', whiteSpace: 'nowrap' }}>
+                        {dueInfo.isOverdue ? dueInfo.text : t('loans.statusOverdue')}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </>
@@ -546,7 +575,16 @@ export function LoansDesktop() {
       {showCreate && (
         <Dialog open title={t('loans.registerLoan')} onClose={() => setShowCreate(false)}>
           <Stack>
-            <TextField label={t('loans.itemId')} value={itemId} onChange={(e) => setItemId(e.target.value)} />
+            <SelectField
+              label={t('loans.colItem')}
+              options={availableItems.map((item) => ({
+                value: item.id,
+                label: item.serial_number ? `${item.name}（${item.serial_number}）` : item.name,
+              }))}
+              value={itemId}
+              onChange={(e) => setItemId(e.currentTarget.value)}
+              placeholder={t('loans.selectItem')}
+            />
             <TextField label={t('loans.borrowerName')} value={borrowerName} onChange={(e) => setBorrowerName(e.target.value)} />
             <TextField label={t('loans.borrowerContact')} value={borrowerContact} onChange={(e) => setBorrowerContact(e.target.value)} />
             <DatePickerField label={t('loans.dueDate')} value={dueAt} onChange={setDueAt} />
@@ -616,4 +654,16 @@ export function LoansDesktop() {
       `}</style>
     </Stack>
   );
+}
+
+// DB status plus due-date-derived states: a past-due loan keeps status
+// 'active' in the database until it is settled, so the UI derives
+// overdue/due_soon from due_at; 'unreturned' is always overdue.
+function getLoanStatus(loan: LoanWithItem): LoanState {
+  if (loan.status === 'returned') return 'returned';
+  if (loan.status === 'unreturned') return 'overdue';
+  const now = Math.floor(Date.now() / 1000);
+  if (loan.due_at && loan.due_at < now) return 'overdue';
+  if (loan.due_at && loan.due_at - now <= 3 * 24 * 60 * 60) return 'due_soon';
+  return 'active';
 }

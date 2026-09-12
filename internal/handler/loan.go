@@ -21,6 +21,7 @@ func NewLoanHandler(svc *service.LoanService) *LoanHandler {
 func (h *LoanHandler) Mount(r chi.Router) {
 	r.Post("/items/{id}/loans", h.create)
 	r.Get("/items/{id}/loans", h.listForItem)
+	r.Get("/loans", h.list)
 	r.Post("/loans/{id}/return", h.returnLoan)
 	r.Post("/loans/{id}/unreturned", h.markUnreturned)
 }
@@ -45,6 +46,15 @@ func (h *LoanHandler) listForItem(w http.ResponseWriter, r *http.Request) {
 	loans, err := h.svc.ListForItem(r.Context(), itemID)
 	if err != nil {
 		h.writeLoanError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"loans": loans})
+}
+
+func (h *LoanHandler) list(w http.ResponseWriter, r *http.Request) {
+	loans, err := h.svc.List(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"loans": loans})

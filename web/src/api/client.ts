@@ -247,6 +247,14 @@ export interface Loan {
   notes?: string;
 }
 
+export interface LoanWithItem extends Loan {
+  item_name: string;
+  item_category?: string;
+  item_serial_number?: string;
+  item_purchase_price?: number;
+  item_purchase_currency?: string;
+}
+
 export interface PurchaseEvent {
   id: string;
   item_id: string;
@@ -413,6 +421,7 @@ export const loansApi = {
   }) => api.post(`items/${itemId}/loans`, { json: body }).json<Loan>(),
   listForItem: (itemId: string) =>
     api.get(`items/${itemId}/loans`).json<{ loans: Loan[] }>(),
+  list: () => api.get('loans').json<{ loans: LoanWithItem[] }>(),
   returnLoan: (id: string, body?: { returned_at?: number }) =>
     api.post(`loans/${id}/return`, { json: body ?? {} }).json<Loan>(),
   markUnreturned: (id: string, body?: {

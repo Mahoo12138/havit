@@ -40,6 +40,17 @@ type LoanUnreturnedInput struct {
 	Notes                *string  `json:"notes,omitempty"`
 }
 
+// LoanWithItem is a loan row joined with the item summary fields the lending
+// page renders (name, category, serial, purchase value).
+type LoanWithItem struct {
+	model.Loan
+	ItemName             string   `json:"item_name"`
+	ItemCategory         *string  `json:"item_category,omitempty"`
+	ItemSerialNumber     *string  `json:"item_serial_number,omitempty"`
+	ItemPurchasePrice    *float64 `json:"item_purchase_price,omitempty"`
+	ItemPurchaseCurrency *string  `json:"item_purchase_currency,omitempty"`
+}
+
 func (s *LoanService) Create(ctx context.Context, itemID string, in LoanCreateInput) (*model.Loan, error) {
 	if in.BorrowerName == "" {
 		return nil, errors.New("borrower_name required")
@@ -136,6 +147,47 @@ func (s *LoanService) ListForItem(ctx context.Context, itemID string) ([]*model.
 			return nil, err
 		}
 		out = append(out, loan)
+	}
+	return out, rows.Err()
+}
+
+// List returns every loan visible to the caller joined with item summary
+// fields, newest first. The lending page derives its tabs, metrics and the
+// overdue reminder from this single list; Status is the DB status
+// (active/returned/unreturned) — overdue is derived from due_at by callers
+// because a past-due loan keeps status 'active' until explicitly settled.
+func (s *LoanService) List(ctx context.Context) ([]*LoanWithItem, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1=1", nil)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT l.id, l.item_id, l.borrower_name, l.borrower_contact,
+			l.loaned_at, l.due_at, l.returned_at, l.status,
+			l.compensation, l.compensation_currency, l.notes,
+			i.name, i.category, i.serial_number, i.purchase_price, i.purchase_currency
+		FROM loans l
+		JOIN items i ON i.id = l.item_id
+		WHERE `+where+`
+		ORDER BY l.loaned_at DESC, l.id DESC`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []*LoanWithItem{}
+	for rows.Next() {
+		var loan LoanWithItem
+		if err := rows.Scan(
+			&loan.ID, &loan.ItemID, &loan.BorrowerName, &loan.BorrowerContact,
+			&loan.LoanedAt, &loan.DueAt, &loan.ReturnedAt, &loan.Status,
+			&loan.Compensation, &loan.CompensationCurrency, &loan.Notes,
+			&loan.ItemName, &loan.ItemCategory, &loan.ItemSerialNumber,
+			&loan.ItemPurchasePrice, &loan.ItemPurchaseCurrency,
+		); err != nil {
+			return nil, err
+		}
+		out = append(out, &loan)
 	}
 	return out, rows.Err()
 }
