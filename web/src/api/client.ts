@@ -281,6 +281,15 @@ export interface ItemEvent {
   created_at: number;
 }
 
+export interface EssentialsEvent {
+  id: string;
+  item_id: string;
+  item_name: string;
+  event_type: string;
+  payload?: string;
+  created_at: number;
+}
+
 export interface LossRecord {
   item_id: string;
   name: string;
@@ -542,6 +551,18 @@ export const essentialsBulkApi = {
     api.post('items/essentials/pack-all', { json: { location_id: locationId } }).json<{ moved: number }>(),
   returnAll: () =>
     api.post('items/essentials/return-all').json<{ moved: number }>(),
+  bulkStatus: (ids: string[], currentStatusTag: string) =>
+    api
+      .post('items/essentials/bulk-status', { json: { ids, current_status_tag: currentStatusTag } })
+      .json<{ updated: number }>(),
+  listEvents: (params?: { event_type?: string; limit?: number; offset?: number }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.event_type) searchParams.set('event_type', params.event_type);
+    if (params?.limit != null) searchParams.set('limit', String(params.limit));
+    if (params?.offset != null) searchParams.set('offset', String(params.offset));
+    const qs = searchParams.toString();
+    return api.get(`items/essentials/events${qs ? `?${qs}` : ''}`).json<{ events: EssentialsEvent[]; total: number }>();
+  },
 };
 
 export interface SystemConfig {

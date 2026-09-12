@@ -675,7 +675,10 @@ func (s *ItemService) SetEssentialsStatus(ctx context.Context, id string, in Ess
 	if err != nil {
 		return nil, err
 	}
-	s.logEvent(ctx, id, "essentials_status_changed", nil)
+	s.logEvent(ctx, id, "essentials_status_changed", essentialsEventPayloadPtr(
+		essentialsStatusSnapshot{Tag: cur.CurrentStatusTag, LocationID: cur.LocationID},
+		essentialsStatusSnapshot{Tag: &in.CurrentStatusTag, LocationID: in.LocationID},
+	))
 	return s.Get(ctx, id)
 }
 
@@ -701,7 +704,10 @@ func (s *ItemService) ReturnEssentialsHome(ctx context.Context, id string) (*mod
 	if err != nil {
 		return nil, err
 	}
-	s.logEvent(ctx, id, "essentials_returned_home", nil)
+	s.logEvent(ctx, id, "essentials_returned_home", essentialsEventPayloadPtr(
+		essentialsStatusSnapshot{Tag: cur.CurrentStatusTag, LocationID: cur.LocationID},
+		essentialsStatusSnapshot{LocationID: cur.HomeBaseLocationID},
+	))
 	return s.Get(ctx, id)
 }
 
@@ -710,37 +716,237 @@ func (s *ItemService) PackEssentialsAll(ctx context.Context, locationID string) 
 		return 0, errors.New("location_id required")
 	}
 	now := time.Now().Unix()
-	res, err := s.db.ExecContext(ctx, `
-		UPDATE items
-		SET location_id = ?, current_status_tag = 'away', updated_at = ?
+	affected, err := s.selectEssentialsForBulk(ctx, `
+		SELECT id, current_status_tag, location_id, home_base_location_id
+		FROM items
 		WHERE type = 'essentials'
 		  AND status = 'in_stock'
-		  AND (home_base_location_id IS NULL OR location_id = home_base_location_id)`,
-		locationID, now,
-	)
+		  AND (home_base_location_id IS NULL OR location_id = home_base_location_id)`, nil)
 	if err != nil {
 		return 0, err
 	}
-	n, _ := res.RowsAffected()
-	return int(n), nil
+	for _, it := range affected {
+		if _, err := s.db.ExecContext(ctx, `
+			UPDATE items
+			SET location_id = ?, current_status_tag = 'away', updated_at = ?
+			WHERE id = ?`, locationID, now, it.id); err != nil {
+			return 0, err
+		}
+		to := "away"
+		s.logEvent(ctx, it.id, "essentials_status_changed", essentialsEventPayloadPtr(
+			essentialsStatusSnapshot{Tag: it.tag, LocationID: it.locationID},
+			essentialsStatusSnapshot{Tag: &to, LocationID: &locationID},
+		))
+	}
+	return len(affected), nil
 }
 
 func (s *ItemService) ReturnEssentialsAll(ctx context.Context) (int, error) {
 	now := time.Now().Unix()
-	res, err := s.db.ExecContext(ctx, `
-		UPDATE items
-		SET location_id = home_base_location_id, current_status_tag = NULL, updated_at = ?
+	affected, err := s.selectEssentialsForBulk(ctx, `
+		SELECT id, current_status_tag, location_id, home_base_location_id
+		FROM items
 		WHERE type = 'essentials'
 		  AND status = 'in_stock'
 		  AND home_base_location_id IS NOT NULL
-		  AND location_id != home_base_location_id`,
-		now,
-	)
+		  AND (
+		      current_status_tag IN ('carry', 'travel_bag')
+		      OR location_id IS NULL
+		      OR location_id != home_base_location_id
+		  )`, nil)
 	if err != nil {
 		return 0, err
 	}
-	n, _ := res.RowsAffected()
-	return int(n), nil
+	for _, it := range affected {
+		if _, err := s.db.ExecContext(ctx, `
+			UPDATE items
+			SET location_id = home_base_location_id, current_status_tag = NULL, updated_at = ?
+			WHERE id = ?`, now, it.id); err != nil {
+			return 0, err
+		}
+		s.logEvent(ctx, it.id, "essentials_returned_home", essentialsEventPayloadPtr(
+			essentialsStatusSnapshot{Tag: it.tag, LocationID: it.locationID},
+			essentialsStatusSnapshot{LocationID: it.homeBaseID},
+		))
+	}
+	return len(affected), nil
+}
+
+type bulkEssentialsItem struct {
+	id         string
+	tag        *string
+	locationID *string
+	homeBaseID *string
+}
+
+// selectEssentialsForBulk gathers the current snapshots of the items a bulk
+// essentials action is about to touch, with the caller's privacy rules applied.
+// The query must select id, current_status_tag, location_id,
+// home_base_location_id for essentials items; extra query args come first,
+// privacy args are appended after them.
+func (s *ItemService) selectEssentialsForBulk(ctx context.Context, query string, args []any) ([]bulkEssentialsItem, error) {
+	privacyWhere, privacyArgs, err := applyItemPrivacy(ctx, s.db, "items", "1 = 1", nil)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, query+` AND `+privacyWhere, append(args, privacyArgs...)...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := []bulkEssentialsItem{}
+	for rows.Next() {
+		var it bulkEssentialsItem
+		if err := rows.Scan(&it.id, &it.tag, &it.locationID, &it.homeBaseID); err != nil {
+			return nil, err
+		}
+		out = append(out, it)
+	}
+	return out, rows.Err()
+}
+
+// essentialsStatusSnapshot captures an item's dynamic status before or after a
+// transition so the return log can render from → to changes.
+type essentialsStatusSnapshot struct {
+	Tag        *string `json:"tag,omitempty"`
+	LocationID *string `json:"location_id,omitempty"`
+}
+
+type essentialsEventPayload struct {
+	From essentialsStatusSnapshot `json:"from"`
+	To   essentialsStatusSnapshot `json:"to"`
+}
+
+func essentialsEventPayloadPtr(from, to essentialsStatusSnapshot) *string {
+	data, err := json.Marshal(essentialsEventPayload{From: from, To: to})
+	if err != nil {
+		return nil
+	}
+	payload := string(data)
+	return &payload
+}
+
+type EssentialsEventFilter struct {
+	EventTypes []string
+	Limit      int
+	Offset     int
+}
+
+// ListEssentialsEvents returns the dynamic-status ledger across all essentials
+// items (return-home and status-change events), newest first, with a total
+// count for pagination.
+func (s *ItemService) ListEssentialsEvents(ctx context.Context, f EssentialsEventFilter) ([]*model.EssentialsEvent, int, error) {
+	if f.Limit <= 0 || f.Limit > 200 {
+		f.Limit = 50
+	}
+	if f.Offset < 0 {
+		f.Offset = 0
+	}
+	if len(f.EventTypes) == 0 {
+		f.EventTypes = []string{"essentials_returned_home", "essentials_status_changed"}
+	}
+
+	where := "i.type = 'essentials'"
+	args := []any{}
+	where += ` AND e.event_type IN (` + strings.TrimSuffix(strings.Repeat("?,", len(f.EventTypes)), ",") + `)`
+	for _, eventType := range f.EventTypes {
+		args = append(args, eventType)
+	}
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", where, args)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var total int
+	if err := s.db.QueryRowContext(ctx, `
+		SELECT COUNT(*)
+		FROM item_events e
+		JOIN items i ON i.id = e.item_id
+		WHERE `+where, args...).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT e.id, e.item_id, i.name, e.event_type, e.payload, e.created_at
+		FROM item_events e
+		JOIN items i ON i.id = e.item_id
+		WHERE `+where+`
+		ORDER BY e.created_at DESC, e.id DESC
+		LIMIT ? OFFSET ?`, append(args, f.Limit, f.Offset)...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	out := []*model.EssentialsEvent{}
+	for rows.Next() {
+		var ev model.EssentialsEvent
+		if err := rows.Scan(&ev.ID, &ev.ItemID, &ev.ItemName, &ev.EventType, &ev.Payload, &ev.CreatedAt); err != nil {
+			return nil, 0, err
+		}
+		out = append(out, &ev)
+	}
+	return out, total, rows.Err()
+}
+
+type EssentialsBulkStatusInput struct {
+	IDs              []string `json:"ids"`
+	CurrentStatusTag string   `json:"current_status_tag"`
+}
+
+// SetEssentialsStatusBulk switches the dynamic status of the given essentials
+// items in one action (departure checklist batch marking) and logs one
+// status-change event per updated item.
+func (s *ItemService) SetEssentialsStatusBulk(ctx context.Context, in EssentialsBulkStatusInput) (int, error) {
+	if in.CurrentStatusTag == "" {
+		return 0, errors.New("current_status_tag required")
+	}
+	if len(in.IDs) == 0 {
+		return 0, errors.New("ids required")
+	}
+	if len(in.IDs) > 200 {
+		return 0, errors.New("too many ids")
+	}
+
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(in.IDs)), ",")
+	selectQuery := `
+		SELECT id, current_status_tag, location_id, home_base_location_id
+		FROM items
+		WHERE type = 'essentials' AND id IN (` + placeholders + `)`
+	idArgs := make([]any, len(in.IDs))
+	for i, id := range in.IDs {
+		idArgs[i] = id
+	}
+	affected, err := s.selectEssentialsForBulk(ctx, selectQuery, idArgs)
+	if err != nil {
+		return 0, err
+	}
+	// Only items the caller explicitly picked (and can see) are updated.
+	wanted := make(map[string]bool, len(in.IDs))
+	for _, id := range in.IDs {
+		wanted[id] = true
+	}
+	now := time.Now().Unix()
+	updated := 0
+	for _, it := range affected {
+		if !wanted[it.id] {
+			continue
+		}
+		if _, err := s.db.ExecContext(ctx, `
+			UPDATE items
+			SET current_status_tag = ?, location_id = NULL, updated_at = ?
+			WHERE id = ?`, in.CurrentStatusTag, now, it.id); err != nil {
+			return 0, err
+		}
+		tag := in.CurrentStatusTag
+		s.logEvent(ctx, it.id, "essentials_status_changed", essentialsEventPayloadPtr(
+			essentialsStatusSnapshot{Tag: it.tag, LocationID: it.locationID},
+			essentialsStatusSnapshot{Tag: &tag},
+		))
+		updated++
+	}
+	return updated, nil
 }
 
 func (s *ItemService) ListContents(ctx context.Context, containerID string) ([]*model.Item, error) {

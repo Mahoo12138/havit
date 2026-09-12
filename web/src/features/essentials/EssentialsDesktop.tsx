@@ -1,76 +1,79 @@
-﻿import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
-  IconHome,
-  IconPackage,
-  IconList,
-  IconLayoutGrid,
-  IconChevronRight,
   IconAlertTriangle,
-  IconClock,
   IconBriefcase,
-  IconRun,
-  IconCheck,
+  IconChevronRight,
+  IconClock,
+  IconDots,
+  IconEye,
+  IconHome,
+  IconLayoutGrid,
+  IconList,
+  IconPackage,
   IconPlus,
-  IconCheckbox,
+  IconRun,
+  IconSearch,
+  type TablerIcon,
 } from '@tabler/icons-react';
-import {
-  ButtonGroup,
-  Stack,
-  StackTight,
-  uiStyles,
-} from '../../components/ui';
+import { Stack } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { ButtonGroup } from '../../components/ui/button-group';
 import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
-import { SelectField } from '../../components/ui/select-field';
+import { Input } from '../../components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
+import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
-import { essentialsBulkApi, itemsApi, suppliesExtendedApi, locationsApi } from '../../api/client';
+import {
+  essentialsBulkApi,
+  itemsApi,
+  locationsApi,
+  suppliesExtendedApi,
+  type Item,
+} from '../../api/client';
+import { useDevice } from '../../lib/device';
+import { LocationPickerField } from '../locations/LocationPickerField';
+import { DepartureList } from './DepartureList';
+import { DynamicNodes } from './DynamicNodes';
+import { ReturnLog } from './ReturnLog';
+import {
+  flattenLocations,
+  formatRelative,
+  getStatusLabel,
+  getStatusType,
+  STATUS_TONE,
+  type StatusType,
+} from './shared';
+import * as s from './EssentialsDesktop.css';
 
 type ViewMode = 'list' | 'cards';
-type EssentialsTab = 'myEssentials' | 'departure' | 'returnLog' | 'dynamicNodes';
-
-interface Item {
-  id: string;
-  name: string;
-  category?: string;
-  type: string;
-  status: string;
-  location_id?: string;
-  home_base_location_id?: string;
-  current_status_tag?: string;
-  tags?: Array<{ id: string; name: string; color?: string }>;
-}
-
-function getStatusType(item: Item): 'carry' | 'bag' | 'home' | 'away' {
-  if (!item.home_base_location_id) return 'home';
-  if (item.location_id === item.home_base_location_id) return 'home';
-  if (item.current_status_tag === '@随身携带' || item.current_status_tag === 'carry') return 'carry';
-  if (item.current_status_tag === '@通勤包' || item.current_status_tag === 'travel_bag') return 'bag';
-  return 'away';
-}
-
-function getStatusLabel(t: ReturnType<typeof useTranslation>['t'], item: Item): string {
-  const type = getStatusType(item);
-  if (type === 'carry') return t('essentials.carry');
-  if (type === 'bag') return t('essentials.travelBag');
-  if (type === 'home') return t('essentials.homeBaseShort');
-  return t('essentials.notOnPersonShort');
-}
+type EssentialsTab = string;
 
 function DonutChart({
   segments,
-  size = 120,
-  strokeWidth = 20,
+  total,
+  size = 104,
+  strokeWidth = 16,
 }: {
   segments: Array<{ value: number; color: string }>;
+  total: number;
   size?: number;
   strokeWidth?: number;
 }) {
-  const total = segments.reduce((sum, s) => sum + s.value, 0);
   if (total === 0) return null;
 
   const radius = (size - strokeWidth) / 2;
@@ -80,8 +83,9 @@ function DonutChart({
   let accumulated = 0;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flex: '0 0 auto' }}>
       {segments.map((seg, i) => {
+        if (seg.value <= 0) return null;
         const percent = seg.value / total;
         const dashLength = circumference * percent;
         const dashOffset = circumference * accumulated;
@@ -104,24 +108,15 @@ function DonutChart({
       })}
       <text
         x={center}
-        y={center - 6}
+        y={center + 2}
         textAnchor="middle"
+        dominantBaseline="middle"
         fill="var(--havit-ink)"
         fontSize="22"
         fontWeight="700"
-        fontFamily="var(--havit-font-sans)"
+        fontFamily="var(--havit-font-serif)"
       >
         {total}
-      </text>
-      <text
-        x={center}
-        y={center + 14}
-        textAnchor="middle"
-        fill="var(--havit-muted)"
-        fontSize="11"
-        fontFamily="var(--havit-font-sans)"
-      >
-        总数
       </text>
     </svg>
   );
@@ -131,11 +126,17 @@ export function EssentialsDesktop() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const toast = useToast();
-  const [packDialogOpen, setPackDialogOpen] = useState(false);
-  const [selectedLocationId, setSelectedLocationId] = useState('');
+  const navigate = useNavigate();
+  const device = useDevice();
+
   const [activeTab, setActiveTab] = useState<EssentialsTab>('myEssentials');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [createOpened, setCreateOpened] = useState(false);
+  const [packOpened, setPackOpened] = useState(false);
+  const [form, setForm] = useState({ name: '', home_base_location_id: '' });
+  const [packLocationId, setPackLocationId] = useState('');
 
   const { data, isLoading } = useQuery({
     queryKey: ['items', 'essentials'],
@@ -147,48 +148,91 @@ export function EssentialsDesktop() {
     queryFn: () => locationsApi.tree(),
   });
 
-  const returnHomeMutation = useMutation({
+  const invalidateEssentials = () =>
+    queryClient.invalidateQueries({ queryKey: ['items', 'essentials'] });
+
+  const returnHome = useMutation({
     mutationFn: (id: string) => suppliesExtendedApi.returnHome(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['items', 'essentials'] }),
+    onSuccess: () => {
+      toast.show(t('essentials.returnedHome'));
+      invalidateEssentials();
+    },
+    onError: (error: Error) => toast.show(t('essentials.returnFailed', { error: error.message })),
   });
 
-  const packAllMutation = useMutation({
-    mutationFn: (locationId: string) => essentialsBulkApi.packAll(locationId),
-    onSuccess: (res) => {
-      queryClient.invalidateQueries({ queryKey: ['items', 'essentials'] });
-      setPackDialogOpen(false);
-      toast.show(t('essentials.packedAll', { count: res.moved }));
+  const setStatus = useMutation({
+    mutationFn: ({ id, tag }: { id: string; tag: string }) =>
+      suppliesExtendedApi.setEssentialsStatus(id, { current_status_tag: tag }),
+    onSuccess: () => invalidateEssentials(),
+  });
+
+  const returnAll = useMutation({
+    mutationFn: () => essentialsBulkApi.returnAll(),
+    onSuccess: () => {
+      toast.show(t('essentials.returnedHome'));
+      invalidateEssentials();
     },
   });
 
+  const packAll = useMutation({
+    mutationFn: (locationId: string) => essentialsBulkApi.packAll(locationId),
+    onSuccess: (res) => {
+      toast.show(t('essentials.packedAll', { count: res.moved }));
+      invalidateEssentials();
+      setPackOpened(false);
+      setPackLocationId('');
+    },
+  });
+
+  const create = useMutation({
+    mutationFn: () =>
+      itemsApi.create({
+        name: form.name,
+        type: 'essentials',
+        home_base_location_id: form.home_base_location_id || undefined,
+      }),
+    onSuccess: () => {
+      toast.show(t('items.created'));
+      invalidateEssentials();
+      setForm({ name: '', home_base_location_id: '' });
+      setCreateOpened(false);
+    },
+    onError: (error: Error) => toast.show(t('items.createFailed', { error: error.message })),
+  });
+
   const items: Item[] = data?.items ?? [];
+  const locOptions = useMemo(() => flattenLocations(locData?.tree), [locData?.tree]);
+
+  const filteredItems = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    let result = items;
+    if (statusFilter !== 'all') result = result.filter((item) => getStatusType(item) === statusFilter);
+    if (query) {
+      result = result.filter((item) => {
+        const haystack = [item.name, item.category].filter(Boolean).join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+    }
+    return result;
+  }, [items, searchQuery, statusFilter]);
 
   const carryCount = items.filter((i) => getStatusType(i) === 'carry').length;
   const bagCount = items.filter((i) => getStatusType(i) === 'bag').length;
   const homeCount = items.filter((i) => getStatusType(i) === 'home').length;
   const awayCount = items.filter((i) => getStatusType(i) === 'away').length;
+  const withYouCount = carryCount + bagCount;
 
-  const filteredItems =
-    statusFilter === 'all'
-      ? items
-      : items.filter((i) => getStatusType(i) === statusFilter);
+  const pendingItems = useMemo(
+    () => items.filter((i) => getStatusType(i) !== 'carry' && getStatusType(i) !== 'bag')
+      .sort((a, b) => a.updated_at - b.updated_at)
+      .slice(0, 5),
+    [items],
+  );
 
-  const locationOptions: Array<{ value: string; label: string }> = [];
-  if (locData?.tree) {
-    const walk = (nodes: typeof locData.tree, depth = 0) => {
-      for (const node of nodes) {
-        locationOptions.push({ value: node.id, label: '  '.repeat(depth) + node.name });
-        if (node.children) walk(node.children, depth + 1);
-      }
-    };
-    walk(locData.tree);
-  }
+  const lastConfirmedTs = items.reduce((latest, i) => Math.max(latest, i.updated_at), 0);
+  const overdueCount = items.filter((i) => Date.now() / 1000 - i.updated_at > 3 * 86400).length;
 
-  const donutSegments = [
-    { value: carryCount, color: 'var(--havit-accent)' },
-    { value: bagCount, color: 'var(--havit-info)' },
-    { value: homeCount + awayCount, color: 'var(--havit-line)' },
-  ];
+  const effectiveViewMode: ViewMode = device === 'mobile' ? 'cards' : viewMode;
 
   const tabItems = [
     { key: 'myEssentials', label: t('essentials.myEdc') },
@@ -197,451 +241,455 @@ export function EssentialsDesktop() {
     { key: 'dynamicNodes', label: t('essentials.dynamicNodes') },
   ];
 
+  const donutSegments = [
+    { value: carryCount, color: 'var(--havit-success)' },
+    { value: bagCount, color: 'var(--havit-info)' },
+    { value: awayCount, color: 'var(--havit-warning)' },
+    { value: homeCount, color: 'var(--havit-line)' },
+  ];
+
+  const donutLegend: Array<{ tone: keyof typeof s.donutLegendDot; label: string; count: number }> = [
+    { tone: 'success', label: t('essentials.carry'), count: carryCount },
+    { tone: 'info', label: t('essentials.travelBag'), count: bagCount },
+    { tone: 'warning', label: t('essentials.notOnPersonShort'), count: awayCount },
+    { tone: 'neutral', label: t('essentials.homeBaseShort'), count: homeCount },
+  ];
+
   return (
-    <Stack>
-      <div className={uiStyles.pageHeader}>
-        <StackTight>
-          <h2 className="page-heading">{t('essentials.title')}</h2>
-          <p className="page-kicker">{t('essentials.description')}</p>
-        </StackTight>
-        <div className={uiStyles.pageActions}>
+    <div className={s.page}>
+      <header className={s.header}>
+        <div className={s.titleBlock}>
+          <h2 className={s.title}>{t('essentials.title')}</h2>
+          <p className={s.subtitle}>{t('essentials.description')}</p>
+        </div>
+        <div className={s.actions}>
           <Button
-            variant="primary"
-            leftSection={<IconPlus size={14} />}
+            variant="outline"
+            leftSection={<IconHome size={14} />}
+            onClick={() => returnAll.mutate()}
+            disabled={withYouCount === 0 || returnAll.isPending}
           >
+            {t('essentials.returnAllAction')}
+          </Button>
+          <Button leftSection={<IconPlus size={14} />} onClick={() => setCreateOpened(true)}>
             {t('essentials.addItem')}
           </Button>
-          <Button variant="subtle">
-            {t('essentials.batchOps')}
-          </Button>
         </div>
-      </div>
+      </header>
 
-      <TabsNav value={activeTab} onChange={(v) => setActiveTab(v as EssentialsTab)} tabs={tabItems} />
+      <TabsNav value={activeTab} onChange={(value) => setActiveTab(value as EssentialsTab)} tabs={tabItems} />
 
       {isLoading ? (
         <Spinner />
       ) : (
         <>
-          <div className={uiStyles.essentialsStatsRow}>
-            <div className={uiStyles.essentialsStatCard}>
-              <div className={uiStyles.essentialsStatIcon.blue}>
-                <IconBriefcase size={20} />
-              </div>
-              <div className={uiStyles.essentialsStatMeta}>
-                <span className={uiStyles.essentialsStatLabel}>{t('essentials.totalItems')}</span>
-                <strong className={uiStyles.essentialsStatValue}>{items.length}</strong>
-                <span className={uiStyles.essentialsStatNote}>
-                  {t('essentials.baselineSet', { count: items.length })}
-                </span>
-              </div>
-            </div>
-            <div className={uiStyles.essentialsStatCard}>
-              <div className={uiStyles.essentialsStatIcon.green}>
-                <IconRun size={20} />
-              </div>
-              <div className={uiStyles.essentialsStatMeta}>
-                <span className={uiStyles.essentialsStatLabel}>{t('essentials.currentlyWithYou')}</span>
-                <strong className={uiStyles.essentialsStatValue}>{carryCount + bagCount}</strong>
-                <span className={uiStyles.essentialsStatNote}>
-                  {t('essentials.percentCarry', {
-                    percent: items.length > 0
-                      ? Math.round(((carryCount + bagCount) / items.length) * 100)
-                      : 0,
-                  })}
-                </span>
-              </div>
-            </div>
-            <div className={uiStyles.essentialsStatCard}>
-              <div className={uiStyles.essentialsStatIcon.orange}>
-                <IconAlertTriangle size={20} />
-              </div>
-              <div className={uiStyles.essentialsStatMeta}>
-                <span className={uiStyles.essentialsStatLabel}>{t('essentials.notOnPerson')}</span>
-                <strong className={uiStyles.essentialsStatValue}>{items.length - carryCount - bagCount}</strong>
-                <span className={uiStyles.essentialsStatNote}>{t('essentials.pleaseCheckBaseline')}</span>
-              </div>
-            </div>
-            <div className={uiStyles.essentialsStatCard}>
-              <div className={uiStyles.essentialsStatIcon.gray}>
-                <IconClock size={20} />
-              </div>
-              <div className={uiStyles.essentialsStatMeta}>
-                <span className={uiStyles.essentialsStatLabel}>{t('essentials.lastConfirmed')}</span>
-                <strong className={uiStyles.essentialsStatValue}>{t('essentials.todayAt', { time: '08:30' })}</strong>
-                <span className={uiStyles.essentialsStatNote}>{t('essentials.overdueConfirm', { count: 3 })}</span>
-              </div>
-            </div>
-          </div>
+          {activeTab === 'myEssentials' && (
+            <>
+          <section className={s.statsGrid} aria-label={t('essentials.title')}>
+            <StatCard icon={IconBriefcase} tone="blue" label={t('essentials.totalItems')} value={items.length} note={t('essentials.baselineSet', { count: items.length })} />
+            <StatCard icon={IconRun} tone="green" label={t('essentials.currentlyWithYou')} value={withYouCount} note={t('essentials.percentCarry', { percent: items.length > 0 ? Math.round((withYouCount / items.length) * 100) : 0 })} />
+            <StatCard icon={IconAlertTriangle} tone="orange" label={t('essentials.notOnPerson')} value={homeCount + awayCount} note={t('essentials.pleaseCheckBaseline')} />
+            <StatCard icon={IconClock} tone="gray" label={t('essentials.lastConfirmed')} value={formatRelative(t, lastConfirmedTs)} note={t('essentials.overdueConfirm', { count: overdueCount })} />
+          </section>
 
-          <div className={uiStyles.essentialsMainLayout}>
-            <div className={uiStyles.essentialsMainContent}>
-              <Card className="surface-card">
-                <div style={{ padding: `${uiStyles.sectionHead ? '' : '0'}` }}>
-                  <div className={uiStyles.sectionHead}>
-                    <h3 className={uiStyles.sectionTitle}>{t('essentials.edcItems')}</h3>
-                    <div className={uiStyles.essentialsToolbarRight}>
-                      <SelectField
-                        label={t('items.status')}
-                        options={[
-                          { value: 'all', label: t('essentials.allStatus') },
-                          { value: 'carry', label: t('essentials.carry') },
-                          { value: 'bag', label: t('essentials.travelBag') },
-                          { value: 'home', label: t('essentials.homeBaseShort') },
-                          { value: 'away', label: t('essentials.notOnPersonShort') },
-                        ]}
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.currentTarget.value)}
-                      />
-                      <ButtonGroup aria-label={t('essentials.cardView')}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          data-active={viewMode === 'list' || undefined}
-                          onClick={() => setViewMode('list')}
-                        >
-                          <IconList size={14} />
-                          {t('essentials.listView')}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          data-active={viewMode === 'cards' || undefined}
-                          onClick={() => setViewMode('cards')}
-                        >
-                          <IconLayoutGrid size={14} />
-                          {t('essentials.cardView')}
-                        </Button>
-                      </ButtonGroup>
-                    </div>
-                  </div>
-                  {viewMode === 'list' ? (
-                    <div>
-                      <div
-                        className={uiStyles.essentialsItemRow}
-                        style={{
-                          borderBottom: `1px solid var(--havit-line)`,
-                          background: 'var(--havit-bg-soft)',
-                          fontSize: '0.76rem',
-                          fontWeight: 600,
-                          color: 'var(--havit-muted)',
-                          letterSpacing: '0.02em',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        <span>{t('essentials.item')}</span>
-                        <span>{t('essentials.homeBase')}</span>
-                        <span>{t('essentials.currentStatus')}</span>
-                        <span>{t('essentials.lastConfirmedCol')}</span>
-                        <span>{t('essentials.action')}</span>
-                      </div>
-                      {filteredItems.map((item) => {
-                        const statusType = getStatusType(item);
-                        return (
-                          <div className={uiStyles.essentialsItemRow} key={item.id}>
-                            <div className={uiStyles.essentialsItemInfo}>
-                              <div className={uiStyles.essentialsItemThumb}>
-                                <IconPackage size={18} />
-                              </div>
-                              <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <span className={uiStyles.essentialsItemName}>{item.name}</span>
-                                  {item.current_status_tag && (
-                                    <span
-                                      className={
-                                        item.current_status_tag === '常用'
-                                          ? uiStyles.essentialsTagBadgeCommon
-                                          : item.current_status_tag === '必备'
-                                            ? uiStyles.essentialsTagBadgeEssential
-                                            : item.current_status_tag === '阅读'
-                                              ? uiStyles.essentialsTagBadgeRead
-                                              : uiStyles.essentialsTagBadgeCommon
-                                      }
-                                    >
-                                      {item.current_status_tag}
-                                    </span>
-                                  )}
-                                </div>
-                                {item.category && (
-                                  <span className={uiStyles.essentialsItemCategory}>{item.category}</span>
-                                )}
-                              </div>
-                            </div>
-                            <span style={{ fontSize: '0.85rem', color: 'var(--havit-muted)' }}>
-                              {item.home_base_location_id ?? '—'}
-                            </span>
-                            <span className={uiStyles.essentialsStatusBadge[statusType]}>
-                              {getStatusLabel(t, item)}
-                            </span>
-                            <span style={{ fontSize: '0.82rem', color: 'var(--havit-muted)' }}>
-                              今天 08:30
-                            </span>
-                            <div style={{ display: 'flex', gap: '4px' }}>
-                              <Button
-                                variant="subtle"
-                                className={uiStyles.iconButton}
-                                title={t('essentials.returnHome')}
-                                disabled={statusType === 'home' || returnHomeMutation.isPending}
-                                onClick={() => returnHomeMutation.mutate(item.id)}
-                              >
-                                <IconHome size={14} />
-                              </Button>
-                              <Button variant="subtle" className={uiStyles.iconButton} title="More">
-                                <span style={{ fontSize: '1rem', lineHeight: 1 }}>···</span>
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                      {filteredItems.length === 0 && (
-                        <div className="empty-state">{t('essentials.noEdc')}</div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className={uiStyles.essentialsChecklistStrip}>
-                      {filteredItems.map((item) => {
-                        const statusType = getStatusType(item);
-                        return (
-                          <div className={uiStyles.essentialsChecklistItem} key={item.id}>
-                            <div className={uiStyles.essentialsChecklistThumb}>
-                              <IconPackage size={20} />
-                            </div>
-                            <span className={uiStyles.essentialsChecklistName}>{item.name}</span>
-                            <span className={uiStyles.essentialsStatusBadge[statusType]} style={{ fontSize: '0.72rem' }}>
-                              {getStatusLabel(t, item)}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: `${uiStyles.stack ? '' : ''} 1.5rem`,
-                      borderTop: `1px solid var(--havit-line-soft)`,
-                      fontSize: '0.82rem',
-                      color: 'var(--havit-muted)',
-                    }}
-                  >
-                    <span>共 {filteredItems.length} 项</span>
-                    <div style={{ display: 'flex', gap: '4px' }}>
-                      <Button variant="subtle" className={uiStyles.iconButton}>&lt;</Button>
-                      <Button
-                        variant="subtle"
-                        className={uiStyles.iconButton}
-                        style={{ background: 'var(--havit-accent-soft)', color: 'var(--havit-accent-ink)' }}
-                      >
-                        1
-                      </Button>
-                      <Button variant="subtle" className={uiStyles.iconButton}>2</Button>
-                      <Button variant="subtle" className={uiStyles.iconButton}>3</Button>
-                      <Button variant="subtle" className={uiStyles.iconButton}>&gt;</Button>
-                    </div>
-                  </div>
+          <section className={s.bodyGrid}>
+            <Card className={s.ledgerCard} padded={false}>
+              <div className={s.toolbar}>
+                <div className={s.toolbarLeft}>
+                  <span className={s.searchWrap}>
+                    <IconSearch size={16} className={s.searchIcon} />
+                    <Input
+                      className={s.searchInput}
+                      placeholder={t('essentials.searchPlaceholder')}
+                      value={searchQuery}
+                      onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                    />
+                  </span>
+                  <FilterSelect
+                    label={t('items.status')}
+                    options={[
+                      { value: 'all', label: t('essentials.allStatus') },
+                      { value: 'carry', label: t('essentials.carry') },
+                      { value: 'bag', label: t('essentials.travelBag') },
+                      { value: 'home', label: t('essentials.homeBaseShort') },
+                      { value: 'away', label: t('essentials.notOnPersonShort') },
+                    ]}
+                    value={statusFilter}
+                    onChange={setStatusFilter}
+                  />
                 </div>
-              </Card>
-            </div>
-
-            <div className={uiStyles.essentialsSidebar}>
-              <Card className="surface-card">
-                <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>{t('essentials.quickActions')}</h3>
-                </div>
-                <div className={uiStyles.sectionBodyTight}>
-                  <div
-                    style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}
-                  >
-                    <div className={uiStyles.essentialsQuickAction}>
-                      <div className={uiStyles.essentialsQuickActionIcon}>
-                        <IconCheckbox size={16} />
-                      </div>
-                      <div className={uiStyles.essentialsQuickActionMeta}>
-                        <span className={uiStyles.essentialsQuickActionTitle}>{t('essentials.departureChecklistAction')}</span>
-                        <span className={uiStyles.essentialsQuickActionHint}>{t('essentials.departureChecklistActionHint')}</span>
-                      </div>
-                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
-                    </div>
-                    <div className={uiStyles.essentialsQuickAction}>
-                      <div className={uiStyles.essentialsQuickActionIcon}>
-                        <IconRun size={16} />
-                      </div>
-                      <div className={uiStyles.essentialsQuickActionMeta}>
-                        <span className={uiStyles.essentialsQuickActionTitle}>{t('essentials.markAllCarryAction')}</span>
-                        <span className={uiStyles.essentialsQuickActionHint}>{t('essentials.markAllCarryActionHint')}</span>
-                      </div>
-                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
-                    </div>
-                    <div className={uiStyles.essentialsQuickAction}>
-                      <div className={uiStyles.essentialsQuickActionIcon} style={{ background: 'var(--havit-line-soft)', color: 'var(--havit-muted)' }}>
-                        <IconHome size={16} />
-                      </div>
-                      <div className={uiStyles.essentialsQuickActionMeta}>
-                        <span className={uiStyles.essentialsQuickActionTitle}>{t('essentials.returnAllAction')}</span>
-                        <span className={uiStyles.essentialsQuickActionHint}>{t('essentials.returnAllActionHint')}</span>
-                      </div>
-                      <IconChevronRight size={16} className={uiStyles.essentialsQuickActionArrow} />
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="surface-card">
-                <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>{t('essentials.statusDistribution')}</h3>
-                </div>
-                <div className={uiStyles.essentialsDonut}>
-                  <DonutChart segments={donutSegments} />
-                  <div className={uiStyles.essentialsDonutLegend}>
-                    <div className={uiStyles.essentialsDonutLegendItem}>
-                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-accent)' }} />
-                      <span>{t('essentials.carry')}</span>
-                      <span className={uiStyles.essentialsDonutLegendValue}>
-                        {carryCount} ({carryCount > 0 ? Math.round((carryCount / items.length) * 100) : 0}%)
-                      </span>
-                    </div>
-                    <div className={uiStyles.essentialsDonutLegendItem}>
-                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-info)' }} />
-                      <span>{t('essentials.travelBag')}</span>
-                      <span className={uiStyles.essentialsDonutLegendValue}>
-                        {bagCount} ({bagCount > 0 ? Math.round((bagCount / items.length) * 100) : 0}%)
-                      </span>
-                    </div>
-                    <div className={uiStyles.essentialsDonutLegendItem}>
-                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-line)' }} />
-                      <span>{t('essentials.otherLocation')}</span>
-                      <span className={uiStyles.essentialsDonutLegendValue}>
-                        {homeCount} ({homeCount > 0 ? Math.round((homeCount / items.length) * 100) : 0}%)
-                      </span>
-                    </div>
-                    <div className={uiStyles.essentialsDonutLegendItem}>
-                      <span className={uiStyles.essentialsDonutLegendDot} style={{ background: 'var(--havit-warning)' }} />
-                      <span>{t('essentials.notOnPersonShort')}</span>
-                      <span className={uiStyles.essentialsDonutLegendValue}>
-                        {awayCount} ({awayCount > 0 ? Math.round((awayCount / items.length) * 100) : 0}%)
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="surface-card">
-                <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>{t('essentials.lastConfirmReminder')}</h3>
-                </div>
-                <div>
-                  <div className={uiStyles.essentialsReminderItem}>
-                    <div className={uiStyles.essentialsReminderDot} />
-                    <div className={uiStyles.essentialsReminderMeta}>
-                      <span className={uiStyles.essentialsReminderTitle}>{t('essentials.overdue7Days')}</span>
-                      <span className={uiStyles.essentialsReminderSub}>Kindle Paperwhite {t('essentials.departureList')} 2 {t('essentials.departureList').includes('清单') ? '件' : 'items'}</span>
-                    </div>
-                  </div>
-                  <div className={uiStyles.essentialsReminderItem}>
-                    <div className={uiStyles.essentialsReminderDotWarn} />
-                    <div className={uiStyles.essentialsReminderMeta}>
-                      <span className={uiStyles.essentialsReminderTitle}>{t('essentials.overdue3to7Days')}</span>
-                      <span className={uiStyles.essentialsReminderSub}>充电宝 Anker 1 {t('essentials.departureList').includes('清单') ? '件' : 'item'}</span>
-                    </div>
-                  </div>
-                  <div className={uiStyles.essentialsReminderItem}>
-                    <div className={uiStyles.essentialsReminderDotInfo} />
-                    <div className={uiStyles.essentialsReminderMeta}>
-                      <span className={uiStyles.essentialsReminderTitle}>{t('essentials.confirmedToday')}</span>
-                      <span className={uiStyles.essentialsReminderSub}>墨镜 Ray-Ban {t('essentials.departureList').includes('清单') ? '等 3 件' : 'etc. 3 items'}</span>
-                    </div>
-                  </div>
-                  <div style={{ padding: `${uiStyles.stack ? '' : ''} 0.75rem 1rem`, textAlign: 'center' }}>
-                    <Button variant="subtle" style={{ fontWeight: 500 }}>
-                      {t('essentials.viewAllReminders')}
+                <div className={s.toolbarRight}>
+                  <ButtonGroup aria-label={t('essentials.cardView')}>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      data-active={effectiveViewMode === 'list' || undefined}
+                      onClick={() => setViewMode('list')}
+                      aria-label={t('essentials.listView')}
+                    >
+                      <IconList size={14} />
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      data-active={effectiveViewMode === 'cards' || undefined}
+                      onClick={() => setViewMode('cards')}
+                      aria-label={t('essentials.cardView')}
+                    >
+                      <IconLayoutGrid size={14} />
+                    </Button>
+                  </ButtonGroup>
+                </div>
+              </div>
+
+              {effectiveViewMode === 'list' ? (
+                <EssentialsTable
+                  items={filteredItems}
+                  locOptions={locOptions}
+                  t={t}
+                  returnHome={returnHome}
+                  setStatus={setStatus}
+                  onViewDetails={(itemId) => navigate({ to: '/items/$itemId', params: { itemId } })}
+                />
+              ) : (
+                <EssentialsCards items={filteredItems} locOptions={locOptions} t={t} />
+              )}
+
+              {filteredItems.length > 0 && (
+                <div className={s.footerBar}>
+                  <span>共 {filteredItems.length} 项</span>
+                  <div className={s.pagination}>
+                    <Button variant="ghost" size="icon-xs" aria-label="Previous page">&lt;</Button>
+                    <Button variant="outline" size="icon-xs">1</Button>
+                    <Button variant="ghost" size="icon-xs" aria-label="Next page">&gt;</Button>
                   </div>
                 </div>
-              </Card>
-            </div>
-          </div>
+              )}
+            </Card>
 
-          <Card className="surface-card">
-            <div className={uiStyles.sectionHead}>
-              <h3 className={uiStyles.sectionTitle}>
-                {t('essentials.departureChecklistCount', { count: carryCount + bagCount })}
-              </h3>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <Button variant="subtle" leftSection={<IconCheckbox size={14} />}>
-                  {t('essentials.selectAll')}
-                </Button>
-                <Button variant="subtle" leftSection={<IconRun size={14} />}>
-                  {t('essentials.markAllCarry')}
-                </Button>
-                <Button variant="primary" leftSection={<IconCheck size={14} />}>
-                  {t('essentials.iveGotAll')}
-                </Button>
-              </div>
-            </div>
-            <div style={{ padding: uiStyles.stack ? undefined : undefined }}>
-              <p
-                style={{
-                  margin: 0,
-                  padding: `0 1.5rem 0.5rem`,
-                  fontSize: '0.85rem',
-                  color: 'var(--havit-muted)',
-                }}
-              >
-                {t('essentials.departureChecklistHint')}
-              </p>
-              <div className={uiStyles.essentialsChecklistStrip}>
-                {items
-                  .filter((i) => getStatusType(i) === 'carry' || getStatusType(i) === 'bag')
-                  .map((item) => {
-                    const statusType = getStatusType(item);
-                    return (
-                      <div className={uiStyles.essentialsChecklistItem} key={item.id}>
-                        <div className={uiStyles.essentialsChecklistThumb}>
-                          <IconPackage size={20} />
-                        </div>
-                        <span className={uiStyles.essentialsChecklistName}>{item.name}</span>
-                        <span className={uiStyles.essentialsStatusBadge[statusType]} style={{ fontSize: '0.72rem' }}>
-                          {getStatusLabel(t, item)}
+            <aside className={s.sideColumn}>
+              <Card className={s.sideCard}>
+                <h3 className={s.sideTitle}>{t('essentials.quickActions')}</h3>
+                <div className={s.sideList}>
+                  <QuickAction icon={IconPlus} title={t('essentials.addItem')} hint={t('essentials.addHint')} onClick={() => setCreateOpened(true)} />
+                  <QuickAction icon={IconBriefcase} title={t('essentials.packAll')} hint={t('essentials.packAllHint')} onClick={() => setPackOpened(true)} />
+                  <QuickAction icon={IconHome} title={t('essentials.returnAllAction')} hint={t('essentials.returnAllActionHint')} onClick={() => returnAll.mutate()} />
+                </div>
+              </Card>
+
+              <Card className={s.sideCard}>
+                <h3 className={s.sideTitle}>{t('essentials.statusDistribution')}</h3>
+                <div className={s.donutWrap}>
+                  <DonutChart segments={donutSegments} total={items.length} />
+                  <div className={s.donutLegend}>
+                    {donutLegend.map((entry) => (
+                      <div className={s.donutLegendItem} key={entry.tone}>
+                        <span className={s.donutLegendDot[entry.tone]} />
+                        <span>{entry.label}</span>
+                        <span className={s.donutLegendValue}>
+                          {entry.count} ({items.length > 0 ? Math.round((entry.count / items.length) * 100) : 0}%)
                         </span>
                       </div>
-                    );
-                  })}
-              </div>
-            </div>
-          </Card>
+                    ))}
+                  </div>
+                </div>
+              </Card>
+
+              <Card className={s.sideCard}>
+                <h3 className={s.sideTitle}>{t('essentials.lastConfirmReminder')}</h3>
+                <div className={s.sideList}>
+                  {pendingItems.length === 0 ? (
+                    <div className={s.empty}>—</div>
+                  ) : pendingItems.map((item) => (
+                    <div className={s.compactRow} key={item.id}>
+                      <div className={s.compactMeta}>
+                        <span className={s.compactTitle}>{item.name}</span>
+                        <span className={s.compactSub}>{formatRelative(t, item.updated_at)}</span>
+                      </div>
+                      <span className={s.badge[STATUS_TONE[getStatusType(item)]]}>{getStatusLabel(t, item)}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </aside>
+          </section>
+            </>
+          )}
+          {activeTab === 'departure' && <DepartureList items={items} />}
+          {activeTab === 'returnLog' && <ReturnLog />}
+          {activeTab === 'dynamicNodes' && <DynamicNodes items={items} />}
         </>
       )}
 
-      <Dialog
-        open={packDialogOpen}
-        onClose={() => setPackDialogOpen(false)}
-        title={t('essentials.packAll')}
-      >
+      <Dialog open={createOpened} onClose={() => setCreateOpened(false)} title={t('essentials.addItem')}>
         <Stack>
-          <SelectField
-            label={t('essentials.packDestination')}
-            value={selectedLocationId}
-            onChange={(e) => setSelectedLocationId(e.currentTarget.value)}
-            options={locationOptions}
-            placeholder={t('essentials.selectLocation')}
+          <TextField label={t('items.name')} required value={form.name} onChange={(event) => setForm({ ...form, name: event.currentTarget.value })} />
+          <LocationPickerField
+            label={t('essentials.homeBaseShort')}
+            tree={locData?.tree}
+            placeholder={t('items.selectLocation')}
+            value={form.home_base_location_id}
+            onChange={(value) => setForm({ ...form, home_base_location_id: value })}
+            includeVirtualLocations={false}
           />
-          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-            <Button variant="subtle" onClick={() => setPackDialogOpen(false)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              variant="primary"
-              leftSection={<IconPackage size={14} />}
-              disabled={!selectedLocationId || packAllMutation.isPending}
-              onClick={() => packAllMutation.mutate(selectedLocationId)}
-            >
-              {t('essentials.packConfirm')}
+          <div className={s.formActions}>
+            <Button variant="outline" onClick={() => setCreateOpened(false)}>{t('common.cancel')}</Button>
+            <Button disabled={!form.name || create.isPending} onClick={() => create.mutate()}>
+              {create.isPending ? t('common.loading') : t('common.save')}
             </Button>
           </div>
         </Stack>
       </Dialog>
-    </Stack>
+
+      <Dialog open={packOpened} onClose={() => setPackOpened(false)} title={t('essentials.packAll')}>
+        <Stack>
+          <LocationPickerField
+            label={t('essentials.packDestination')}
+            tree={locData?.tree}
+            placeholder={t('essentials.selectLocation')}
+            value={packLocationId}
+            onChange={setPackLocationId}
+            includeVirtualLocations={false}
+          />
+          <div className={s.formActions}>
+            <Button variant="outline" onClick={() => setPackOpened(false)}>{t('common.cancel')}</Button>
+            <Button disabled={!packLocationId || packAll.isPending} onClick={() => packAll.mutate(packLocationId)}>
+              {packAll.isPending ? t('common.loading') : t('essentials.packConfirm')}
+            </Button>
+          </div>
+        </Stack>
+      </Dialog>
+    </div>
+  );
+}
+
+function StatCard({ icon: Icon, tone, label, value, note }: {
+  icon: TablerIcon;
+  tone: keyof typeof s.statIcon;
+  label: string;
+  value: number | string;
+  note: string;
+}) {
+  return (
+    <article className={s.statCard}>
+      <div className={s.statMeta}>
+        <span className={s.statLabel}>{label}</span>
+        <strong className={s.statValue}>{value}</strong>
+        <span className={s.statNote}>{note}</span>
+      </div>
+      <span className={s.statIcon[tone]}><Icon size={18} /></span>
+    </article>
+  );
+}
+
+function QuickAction({ icon: Icon, title, hint, onClick }: {
+  icon: TablerIcon;
+  title: string;
+  hint: string;
+  onClick?: () => void;
+}) {
+  return (
+    <Button type="button" variant="ghost" className={s.quickAction} onClick={onClick}>
+      <span className={s.quickIcon}><Icon size={15} /></span>
+      <span className={s.quickMeta}>
+        <span className={s.quickTitle}>{title}</span>
+        <span className={s.quickHint}>{hint}</span>
+      </span>
+      <IconChevronRight size={15} className={s.muted} />
+    </Button>
+  );
+}
+
+function FilterSelect({ label, options, value, onChange }: {
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Select
+      value={value}
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === 'string') onChange(nextValue);
+      }}
+      items={options}
+    >
+      <SelectTrigger className={s.filterSelectTrigger} size="sm" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        <SelectGroup>
+          <SelectLabel>{label}</SelectLabel>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+}
+
+function EssentialsTable({ items, locOptions, t, returnHome, setStatus, onViewDetails }: {
+  items: Item[];
+  locOptions: Array<{ value: string; label: string }>;
+  t: ReturnType<typeof useTranslation>['t'];
+  returnHome: UseMutationResult<Item, Error, string>;
+  setStatus: UseMutationResult<Item, Error, { id: string; tag: string }>;
+  onViewDetails: (itemId: string) => void;
+}) {
+  return (
+    <div className={s.tableScroll}>
+      <table className={s.table}>
+        <thead>
+          <tr>
+            <th className={s.tableHead}>{t('essentials.item')}</th>
+            <th className={s.tableHead}>{t('essentials.homeBase')}</th>
+            <th className={s.tableHead}>{t('essentials.currentStatus')}</th>
+            <th className={s.tableHead}>{t('essentials.lastConfirmedCol')}</th>
+            <th className={s.tableHead}>{t('essentials.action')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((item) => {
+            const statusType = getStatusType(item);
+            return (
+              <tr className={s.tableRow} key={item.id}>
+                <td className={s.tableCell}>
+                  <div className={s.itemInfo}>
+                    <div className={s.itemThumb}><IconPackage size={16} /></div>
+                    <div className={s.itemMeta}>
+                      <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
+                      <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
+                    </div>
+                  </div>
+                </td>
+                <td className={`${s.tableCell} ${s.muted}`}>
+                  {locOptions.find((option) => option.value === item.home_base_location_id)?.label ?? '—'}
+                </td>
+                <td className={s.tableCell}>
+                  <span className={s.badge[STATUS_TONE[statusType]]}>{getStatusLabel(t, item)}</span>
+                </td>
+                <td className={`${s.tableCell} ${s.muted}`}>{formatRelative(t, item.updated_at)}</td>
+                <td className={s.tableCell}>
+                  <div className={s.actionGroup}>
+                    <EssentialsActionMenu
+                      item={item}
+                      statusType={statusType}
+                      t={t}
+                      returnHome={returnHome}
+                      setStatus={setStatus}
+                      onViewDetails={onViewDetails}
+                    />
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+          {items.length === 0 && (
+            <tr>
+              <td className={s.tableCell} colSpan={5}>
+                <div className={s.empty}>{t('essentials.noEdc')}</div>
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function EssentialsActionMenu({ item, statusType, t, returnHome, setStatus, onViewDetails }: {
+  item: Item;
+  statusType: StatusType;
+  t: ReturnType<typeof useTranslation>['t'];
+  returnHome: UseMutationResult<Item, Error, string>;
+  setStatus: UseMutationResult<Item, Error, { id: string; tag: string }>;
+  onViewDetails: (itemId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const busy = returnHome.isPending || setStatus.isPending;
+
+  function changeStatus(tag: string) {
+    setStatus.mutate({ id: item.id, tag }, { onSuccess: () => setOpen(false) });
+  }
+
+  function handleReturnHome() {
+    returnHome.mutate(item.id, { onSuccess: () => setOpen(false) });
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger className={s.iconMenuButton} aria-label={t('essentials.action')}>
+        <IconDots size={14} />
+      </PopoverTrigger>
+      <PopoverContent className={s.actionMenu} align="end" sideOffset={6}>
+        <button type="button" className={s.actionItem} onClick={() => { onViewDetails(item.id); setOpen(false); }}>
+          <IconEye size={14} />
+          <span>{t('essentials.viewDetails')}</span>
+        </button>
+        <button
+          type="button"
+          className={s.actionItem}
+          onClick={() => changeStatus('carry')}
+          disabled={busy || statusType === 'carry'}
+        >
+          <span className={s.actionDot} />
+          <span>{t('essentials.markAs', { status: t('essentials.carry') })}</span>
+        </button>
+        <button
+          type="button"
+          className={s.actionItem}
+          onClick={() => changeStatus('travel_bag')}
+          disabled={busy || statusType === 'bag'}
+        >
+          <span className={s.actionDot} />
+          <span>{t('essentials.markAs', { status: t('essentials.travelBag') })}</span>
+        </button>
+        <button
+          type="button"
+          className={s.actionItem}
+          onClick={handleReturnHome}
+          disabled={busy || statusType === 'home' || !item.home_base_location_id}
+        >
+          <IconHome size={14} />
+          <span>{t('essentials.returnHome')}</span>
+        </button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function EssentialsCards({ items, locOptions, t }: {
+  items: Item[];
+  locOptions: Array<{ value: string; label: string }>;
+  t: ReturnType<typeof useTranslation>['t'];
+}) {
+  if (items.length === 0) return <div className={s.empty}>{t('essentials.noEdc')}</div>;
+
+  return (
+    <div className={s.cardsGrid}>
+      {items.map((item) => {
+        const statusType = getStatusType(item);
+        return (
+          <article className={s.essCard} key={item.id}>
+            <div className={s.cardHeader}>
+              <div className={s.itemThumb}><IconPackage size={18} /></div>
+              <div className={s.itemMeta}>
+                <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
+                <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
+              </div>
+            </div>
+            <div className={s.cardFooter}>
+              <span className={s.compactSub}>
+                {locOptions.find((option) => option.value === item.home_base_location_id)?.label ?? '—'}
+              </span>
+              <span className={s.badge[STATUS_TONE[statusType]]}>{getStatusLabel(t, item)}</span>
+            </div>
+          </article>
+        );
+      })}
+    </div>
   );
 }

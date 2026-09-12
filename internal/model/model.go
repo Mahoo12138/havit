@@ -212,3 +212,14 @@ type ItemEvent struct {
 	Payload   *string `json:"payload,omitempty"`
 	CreatedAt int64   `json:"created_at"`
 }
+
+// EssentialsEvent is an item_events row joined with its essentials item name,
+// powering the cross-item return log on the essentials page.
+type EssentialsEvent struct {
+	ID        string  `json:"id"`
+	ItemID    string  `json:"item_id"`
+	ItemName  string  `json:"item_name"`
+	EventType string  `json:"event_type"`
+	Payload   *string `json:"payload,omitempty"`
+	CreatedAt int64   `json:"created_at"`
+}

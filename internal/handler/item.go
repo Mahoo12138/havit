@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -29,6 +30,8 @@ func (h *ItemHandler) Mount(r chi.Router) {
 		r.Post("/", h.create)
 		r.Post("/essentials/pack-all", h.packEssentialsAll)
 		r.Post("/essentials/return-all", h.returnEssentialsAll)
+		r.Get("/essentials/events", h.listEssentialsEvents)
+		r.Post("/essentials/bulk-status", h.bulkEssentialsStatus)
 		r.Get("/{id}", h.get)
 		r.Patch("/{id}", h.update)
 		r.Delete("/{id}", h.archive)
@@ -385,6 +388,44 @@ func (h *ItemHandler) returnEssentialsAll(w http.ResponseWriter, r *http.Request
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"moved": n})
+}
+
+func (h *ItemHandler) listEssentialsEvents(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	filter := service.EssentialsEventFilter{Limit: 50}
+	if raw := q.Get("event_type"); raw != "" {
+		for _, eventType := range strings.Split(raw, ",") {
+			if eventType = strings.TrimSpace(eventType); eventType != "" {
+				filter.EventTypes = append(filter.EventTypes, eventType)
+			}
+		}
+	}
+	if limit, err := strconv.Atoi(q.Get("limit")); err == nil {
+		filter.Limit = limit
+	}
+	if offset, err := strconv.Atoi(q.Get("offset")); err == nil {
+		filter.Offset = offset
+	}
+	events, total, err := h.svc.ListEssentialsEvents(r.Context(), filter)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"events": events, "total": total})
+}
+
+func (h *ItemHandler) bulkEssentialsStatus(w http.ResponseWriter, r *http.Request) {
+	var body service.EssentialsBulkStatusInput
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	n, err := h.svc.SetEssentialsStatusBulk(r.Context(), body)
+	if err != nil {
+		h.writeItemActionError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"updated": n})
 }
 
 func (h *ItemHandler) listContents(w http.ResponseWriter, r *http.Request) {
