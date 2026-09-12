@@ -2,9 +2,8 @@ import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { IconCopy, IconEye, IconEyeOff, IconKey, IconPlus } from '@tabler/icons-react';
+import { IconCopy, IconEye, IconEyeOff, IconKey, IconLicense, IconPackages, IconPlus } from '@tabler/icons-react';
 import { Stack, uiStyles } from '../../components/ui';
-import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
@@ -22,9 +21,11 @@ import {
   type Item,
   type VirtualCredentialWithItem,
 } from '../../api/client';
-import { DataCard, MetricStrip } from '../m2/components';
-import { formatPrice } from '../assets/useAssetsData';
+import { DataCard } from '../m2/components';
+import { formatDate, formatPrice } from '../assets/useAssetsData';
 import { CredentialFormDialog } from './CredentialFormDialog';
+import { CredentialMetrics } from './CredentialMetrics';
+import * as s from './credentials.css';
 
 function InlineSelect({
   value,
@@ -68,7 +69,7 @@ export function CredentialsTab({ virtualItems }: { virtualItems: Item[] }) {
   const [deleting, setDeleting] = useState<VirtualCredentialWithItem | null>(null);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ['virtual-credentials'],
     queryFn: () => virtualCredentialsApi.list(),
   });
@@ -108,18 +109,24 @@ export function CredentialsTab({ virtualItems }: { virtualItems: Item[] }) {
 
   return (
     <>
-      <MetricStrip
+      <CredentialMetrics
         metrics={[
-          { label: t('credentials.credentialRecords'), value: credentials.length },
+          { icon: IconKey, label: t('credentials.credentialRecords'), value: credentials.length, tone: 'accent' },
           {
+            icon: IconLicense,
             label: t('credentials.hasLicenseKey'),
             value: credentials.filter((c) => c.license_key).length,
+            tone: 'info',
           },
-          { label: t('credentials.linkedItems'), value: itemCount },
+          { icon: IconPackages, label: t('credentials.linkedItems'), value: itemCount, tone: 'success' },
         ]}
       />
       {isLoading ? (
         <Spinner />
+      ) : isError ? (
+        <DataCard title={t('credentials.virtualCredentialList')}>
+          <div className={s.emptyNote}>{t('credentials.loadFailed')}</div>
+        </DataCard>
       ) : credentials.length === 0 ? (
         <DataCard title={t('credentials.virtualCredentialList')}>
           <EmptyCredentials virtualItems={virtualItems} onAdd={() => setFormOpen(true)} />
@@ -141,79 +148,25 @@ export function CredentialsTab({ virtualItems }: { virtualItems: Item[] }) {
             </div>
           }
         >
-          <div className={uiStyles.cardGrid}>
-            {visible.map((credential) => (
-              <Card className="surface-card" key={credential.id}>
-                <Stack>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <IconKey size={15} />
-                    <h3 className={uiStyles.heading} style={{ margin: 0 }}>
-                      <Link to="/items/$itemId" params={{ itemId: credential.item_id }}>
-                        {credential.item_name}
-                      </Link>
-                    </h3>
-                    <Badge variant="outline" style={{ marginLeft: 'auto' }}>
-                      {credential.platform}
-                    </Badge>
-                  </div>
-                  {credential.account && (
-                    <span className={uiStyles.muted}>
-                      {t('credentials.account')}
-                      {'：'}
-                      {credential.account}
-                    </span>
-                  )}
-                  {credential.order_id && (
-                    <span className={uiStyles.muted}>
-                      {t('credentials.orderId')}
-                      {'：'}
-                      {credential.order_id}
-                    </span>
-                  )}
-                  {credential.price != null && (
-                    <span className={uiStyles.muted}>
-                      {t('credentials.price')}
-                      {'：'}
-                      {formatPrice(credential.price, credential.currency)}
-                    </span>
-                  )}
-                  {credential.license_key && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span className={uiStyles.muted} style={{ wordBreak: 'break-all' }}>
-                        {t('credentials.licenseKey')}
-                        {'：'}
-                        {revealed[credential.id] ? credential.license_key : '••••••••'}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={t('credentials.toggleLicenseKey')}
-                        onClick={() => setRevealed((prev) => ({ ...prev, [credential.id]: !prev[credential.id] }))}
-                      >
-                        {revealed[credential.id] ? <IconEyeOff size={14} /> : <IconEye size={14} />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={t('credentials.copyLicenseKey')}
-                        onClick={() => copyLicenseKey(credential)}
-                      >
-                        <IconCopy size={14} />
-                      </Button>
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                    <Button variant="subtle" size="sm" onClick={() => setEditing(credential)}>
-                      {t('common.edit')}
-                    </Button>
-                    <Button variant="subtle" size="sm" onClick={() => setDeleting(credential)}>
-                      {t('common.delete')}
-                    </Button>
-                  </div>
-                </Stack>
-              </Card>
-            ))}
-          </div>
+          {visible.length === 0 ? (
+            <div className={s.emptyNote}>{t('credentials.noFilterResult')}</div>
+          ) : (
+            <div className={uiStyles.cardGrid}>
+              {visible.map((credential) => (
+                <CredentialCard
+                  key={credential.id}
+                  credential={credential}
+                  revealed={!!revealed[credential.id]}
+                  onToggleReveal={() =>
+                    setRevealed((prev) => ({ ...prev, [credential.id]: !prev[credential.id] }))
+                  }
+                  onCopy={() => copyLicenseKey(credential)}
+                  onEdit={() => setEditing(credential)}
+                  onDelete={() => setDeleting(credential)}
+                />
+              ))}
+            </div>
+          )}
         </DataCard>
       )}
 
@@ -245,6 +198,95 @@ export function CredentialsTab({ virtualItems }: { virtualItems: Item[] }) {
         </Dialog>
       )}
     </>
+  );
+}
+
+function CredentialCard({
+  credential,
+  revealed,
+  onToggleReveal,
+  onCopy,
+  onEdit,
+  onDelete,
+}: {
+  credential: VirtualCredentialWithItem;
+  revealed: boolean;
+  onToggleReveal: () => void;
+  onCopy: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const { t } = useTranslation();
+  const rows: Array<{ label: string; value: string; mono?: boolean }> = [];
+  if (credential.order_id) rows.push({ label: t('credentials.orderId'), value: credential.order_id, mono: true });
+  if (credential.price != null)
+    rows.push({ label: t('credentials.price'), value: formatPrice(credential.price, credential.currency) });
+  if (credential.purchased_at)
+    rows.push({ label: t('credentials.purchasedAt'), value: formatDate(credential.purchased_at) });
+
+  return (
+    <Card className="surface-card">
+      <div className={s.cardBody}>
+        <div className={s.cardHead}>
+          <span className={s.statusTile.credential}>
+            <IconKey size={16} />
+          </span>
+          <div className={s.cardHeadMeta}>
+            <h3 className={s.cardTitle}>
+              <Link to="/items/$itemId" params={{ itemId: credential.item_id }}>
+                {credential.item_name}
+              </Link>
+            </h3>
+            {credential.account && <span className={s.cardSub}>{credential.account}</span>}
+          </div>
+          <span className={s.statusChip.platform}>{credential.platform}</span>
+        </div>
+
+        {rows.length > 0 && (
+          <dl className={s.kvList}>
+            {rows.map((row) => (
+              <div className={s.kvRow} key={row.label}>
+                <dt className={s.kvLabel}>{row.label}</dt>
+                <dd className={row.mono ? `${s.kvValue} ${s.mono}` : s.kvValue}>{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {credential.license_key && (
+          <div className={s.licenseBox}>
+            <span className={s.licenseValue}>{revealed ? credential.license_key : '••••••••••••'}</span>
+            <button
+              type="button"
+              className={s.licenseAction}
+              aria-label={t('credentials.toggleLicenseKey')}
+              title={t('credentials.toggleLicenseKey')}
+              onClick={onToggleReveal}
+            >
+              {revealed ? <IconEyeOff size={14} /> : <IconEye size={14} />}
+            </button>
+            <button
+              type="button"
+              className={s.licenseAction}
+              aria-label={t('credentials.copyLicenseKey')}
+              title={t('credentials.copyLicenseKey')}
+              onClick={onCopy}
+            >
+              <IconCopy size={14} />
+            </button>
+          </div>
+        )}
+
+        <div className={s.cardFoot}>
+          <Button variant="subtle" size="sm" onClick={onEdit}>
+            {t('common.edit')}
+          </Button>
+          <Button variant="subtle" size="sm" onClick={onDelete}>
+            {t('common.delete')}
+          </Button>
+        </div>
+      </div>
+    </Card>
   );
 }
 

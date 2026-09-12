@@ -49,6 +49,9 @@ type ExportItem struct {
 	Description       *string      `json:"description,omitempty"`
 	LocationID        *string      `json:"location_id,omitempty"`
 	LocationPath      *string      `json:"location_path,omitempty"`
+	HomeBaseLocationID *string     `json:"home_base_location_id,omitempty"`
+	HomeBaseLocationPath *string   `json:"home_base_location_path,omitempty"`
+	CurrentStatusTag  *string      `json:"current_status_tag,omitempty"`
 	PurchasePrice     *float64     `json:"purchase_price,omitempty"`
 	PurchaseCurrency  *string      `json:"purchase_currency,omitempty"`
 	PurchaseDate      *int64       `json:"purchase_date,omitempty"`
@@ -87,7 +90,8 @@ func (s *ExportService) Items(ctx context.Context) (*ItemsExport, error) {
 
 	rows, err := s.db.QueryContext(ctx, fmt.Sprintf(`
 		SELECT id, name, description, category, type, status,
-			location_id, purchase_price, purchase_currency, purchase_date, purchase_platform,
+			location_id, home_base_location_id, current_status_tag,
+			purchase_price, purchase_currency, purchase_date, purchase_platform,
 			warranty_expires_at, serial_number, warranty_contact,
 			exit_type, exit_date, exit_price, exit_currency, exit_notes,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
@@ -106,7 +110,8 @@ func (s *ExportService) Items(ctx context.Context) (*ItemsExport, error) {
 		var isPrivate int
 		if err := rows.Scan(
 			&item.ID, &item.Name, &item.Description, &item.Category, &item.Type, &item.Status,
-			&item.LocationID, &item.PurchasePrice, &item.PurchaseCurrency, &item.PurchaseDate,
+			&item.LocationID, &item.HomeBaseLocationID, &item.CurrentStatusTag,
+			&item.PurchasePrice, &item.PurchaseCurrency, &item.PurchaseDate,
 			&item.PurchasePlatform, &item.WarrantyExpiresAt, &item.SerialNumber,
 			&item.WarrantyContact,
 			&item.ExitType, &item.ExitDate, &item.ExitPrice, &item.ExitCurrency, &item.ExitNotes,
@@ -119,6 +124,11 @@ func (s *ExportService) Items(ctx context.Context) (*ItemsExport, error) {
 		if item.LocationID != nil {
 			if path, ok := locationPaths[*item.LocationID]; ok {
 				item.LocationPath = &path
+			}
+		}
+		if item.HomeBaseLocationID != nil {
+			if path, ok := locationPaths[*item.HomeBaseLocationID]; ok {
+				item.HomeBaseLocationPath = &path
 			}
 		}
 		items = append(items, item)
@@ -178,7 +188,7 @@ func WriteItemsCSV(w io.Writer, items []ExportItem) error {
 	cw := csv.NewWriter(w)
 	header := []string{
 		"name", "type", "status", "category", "description",
-		"location_id", "location_path",
+		"location_id", "location_path", "home_base_location_path", "current_status_tag",
 		"purchase_price", "purchase_currency", "purchase_date", "purchase_platform",
 		"warranty_expires_at", "serial_number", "warranty_contact",
 		"exit_type", "exit_date", "exit_price", "exit_currency", "exit_notes",
@@ -198,6 +208,8 @@ func WriteItemsCSV(w io.Writer, items []ExportItem) error {
 			stringPtrValue(item.Description),
 			stringPtrValue(item.LocationID),
 			stringPtrValue(item.LocationPath),
+			stringPtrValue(item.HomeBaseLocationPath),
+			stringPtrValue(item.CurrentStatusTag),
 			floatPtrValue(item.PurchasePrice),
 			stringPtrValue(item.PurchaseCurrency),
 			intPtrValue(item.PurchaseDate),

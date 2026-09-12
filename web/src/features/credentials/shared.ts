@@ -1,21 +1,4 @@
-import { getWarrantyStatus } from '../assets/useAssetsData';
-
 export type WarrantyFilter = '' | 'expiring' | 'expired';
-
-// Maps the derived warranty status onto the shared Badge palette so the
-// credentials page reads exactly like the assets page.
-export function warrantyBadgeVariant(
-  status: ReturnType<typeof getWarrantyStatus>
-): 'default' | 'secondary' | 'destructive' {
-  switch (status) {
-    case 'expiring':
-      return 'default';
-    case 'expired':
-      return 'destructive';
-    default:
-      return 'secondary';
-  }
-}
 
 export function warrantyDaysLeft(warrantyExpiresAt?: number): number | null {
   if (!warrantyExpiresAt) return null;

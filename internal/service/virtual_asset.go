@@ -88,7 +88,7 @@ func (s *VirtualAssetService) CreateCredential(ctx context.Context, itemID strin
 	if err != nil {
 		return nil, err
 	}
-	return s.decryptCredential(cred)
+	return s.decryptCredential(cred), nil
 }
 
 // ListAllCredentials returns every credential visible to the caller joined
@@ -130,9 +130,7 @@ func (s *VirtualAssetService) ListAllCredentials(ctx context.Context) ([]*Virtua
 		return nil, err
 	}
 	for _, c := range out {
-		if _, err := s.decryptCredential(&c.VirtualCredential); err != nil {
-			return nil, err
-		}
+		s.decryptCredential(&c.VirtualCredential)
 	}
 	return out, nil
 }
@@ -188,7 +186,7 @@ func (s *VirtualAssetService) UpdateCredential(ctx context.Context, credentialID
 	s.logCredentialEvent(ctx, cur.ItemID, "credential_updated", jsonPayload(map[string]any{
 		"platform": cur.Platform,
 	}))
-	return s.decryptCredential(cur)
+	return s.decryptCredential(cur), nil
 }
 
 // DeleteCredential removes a credential and logs the removal on the item's
@@ -243,7 +241,7 @@ func (s *VirtualAssetService) ListCredentials(ctx context.Context, itemID string
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return s.decryptCredentials(out)
+	return s.decryptCredentials(out), nil
 }
 
 func (s *VirtualAssetService) CreateAddon(ctx context.Context, itemID string, in VirtualAddonInput) (*model.VirtualAddonPurchase, error) {
@@ -379,6 +377,16 @@ func (s *VirtualAssetService) getCredential(ctx context.Context, id string) (*mo
 	return scanVirtualCredential(row)
 }
 
+// GetCredential returns one credential with its license key decrypted; an
+// undecryptable key is cleared rather than failing the read.
+func (s *VirtualAssetService) GetCredential(ctx context.Context, id string) (*model.VirtualCredential, error) {
+	c, err := s.getCredential(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.decryptCredential(c), nil
+}
+
 func (s *VirtualAssetService) getAddon(ctx context.Context, id string) (*model.VirtualAddonPurchase, error) {
 	row := s.db.QueryRowContext(ctx, `
 		SELECT id, item_id, name, platform, price, currency, purchased_at
@@ -402,26 +410,28 @@ func scanVirtualCredential(row virtualCredentialScanner) (*model.VirtualCredenti
 	return &credential, nil
 }
 
-// decryptCredential decrypts the license_key in-place. Returns the same pointer for convenience.
-func (s *VirtualAssetService) decryptCredential(c *model.VirtualCredential) (*model.VirtualCredential, error) {
+// decryptCredential decrypts the license_key in-place. A value that no longer
+// decrypts (e.g. the JWT secret the field key derives from was rotated) is
+// cleared instead of failing the whole read: the ciphertext stays in the
+// database, so restoring the original secret brings the value back.
+func (s *VirtualAssetService) decryptCredential(c *model.VirtualCredential) *model.VirtualCredential {
 	if c.LicenseKey == nil || *c.LicenseKey == "" {
-		return c, nil
+		return c
 	}
 	plain, err := s.crypto.Decrypt(*c.LicenseKey)
 	if err != nil {
-		return nil, err
+		c.LicenseKey = nil
+		return c
 	}
 	c.LicenseKey = &plain
-	return c, nil
+	return c
 }
 
-func (s *VirtualAssetService) decryptCredentials(list []*model.VirtualCredential) ([]*model.VirtualCredential, error) {
+func (s *VirtualAssetService) decryptCredentials(list []*model.VirtualCredential) []*model.VirtualCredential {
 	for _, c := range list {
-		if _, err := s.decryptCredential(c); err != nil {
-			return nil, err
-		}
+		s.decryptCredential(c)
 	}
-	return list, nil
+	return list
 }
 
 type virtualAddonScanner interface {

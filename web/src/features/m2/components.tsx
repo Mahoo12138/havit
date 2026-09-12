@@ -58,7 +58,7 @@ export function DataCard({
 }) {
   return (
     <Card className="surface-card">
-      <Stack>
+      <Stack className={uiStyles.cardContent}>
         <RowBetween>
           <h3 className={uiStyles.heading}>{title}</h3>
           {meta}

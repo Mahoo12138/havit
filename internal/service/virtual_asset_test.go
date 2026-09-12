@@ -388,3 +388,53 @@ func TestVirtualAssetCredentialsRespectPrivacy(t *testing.T) {
 		t.Fatalf("expected owner to see 1 credential, got %d", len(ownerList))
 	}
 }
+
+// A license_key encrypted under a previous field key (the JWT secret the key
+// derives from can rotate) must not take down the whole list: the unreadable
+// value is cleared and the remaining rows still come back.
+func TestVirtualAssetListToleratesUndecryptableLicenseKey(t *testing.T) {
+	ctx := context.Background()
+	svc, _, itemID := newTestVirtualAssetService(t)
+
+	if _, err := svc.CreateCredential(ctx, itemID, VirtualCredentialInput{Platform: "Adobe"}); err != nil {
+		t.Fatalf("CreateCredential: %v", err)
+	}
+	badKey := "bm90LXJlYWxseS1hLWNpcGhlcnRleHQ"
+	if _, err := svc.db.ExecContext(ctx,
+		`UPDATE virtual_credentials SET license_key = ? WHERE item_id = ?`, badKey, itemID); err != nil {
+		t.Fatalf("corrupt license_key: %v", err)
+	}
+
+	list, err := svc.ListAllCredentials(ctx)
+	if err != nil {
+		t.Fatalf("ListAllCredentials with undecryptable key: %v", err)
+	}
+	if len(list) != 1 {
+		t.Fatalf("expected 1 credential, got %d", len(list))
+	}
+	if list[0].LicenseKey != nil {
+		t.Fatalf("expected undecryptable license key to be cleared, got %q", *list[0].LicenseKey)
+	}
+
+	perItem, err := svc.ListCredentials(ctx, itemID)
+	if err != nil {
+		t.Fatalf("ListCredentials with undecryptable key: %v", err)
+	}
+	if len(perItem) != 1 {
+		t.Fatalf("expected 1 credential, got %d", len(perItem))
+	}
+	if perItem[0].LicenseKey != nil {
+		t.Fatalf("expected undecryptable license key to be cleared, got %q", *perItem[0].LicenseKey)
+	}
+
+	// The ciphertext itself must stay untouched so rotating back to the
+	// original secret recovers the value.
+	var stored *string
+	if err := svc.db.QueryRowContext(ctx,
+		`SELECT license_key FROM virtual_credentials WHERE id = ?`, list[0].ID).Scan(&stored); err != nil {
+		t.Fatalf("read back stored license_key: %v", err)
+	}
+	if stored == nil || *stored != badKey {
+		t.Fatalf("expected stored ciphertext to be preserved, got %v", stored)
+	}
+}

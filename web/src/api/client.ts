@@ -78,27 +78,139 @@ export interface ImportError {
   line: number;
   name: string;
   message: string;
+  row?: Record<string, string>;
 }
 
 export interface ImportResult {
   total: number;
   created: number;
+  updated: number;
   skipped: number;
   failed: number;
   errors?: ImportError[];
 }
 
+export type OnDuplicate = 'skip' | 'update' | 'append';
+
+export interface PreviewError {
+  field?: string;
+  message: string;
+}
+
+export interface PreviewRow {
+  row: number;
+  status: 'ok' | 'duplicate' | 'error';
+  name: string;
+  category?: string;
+  location?: string;
+  errors?: PreviewError[];
+}
+
+export interface ImportPreview {
+  format: 'csv' | 'json';
+  headers?: string[];
+  mapping: Record<string, string>;
+  unmapped_required?: string[];
+  stats: { ok: number; duplicate: number; error: number };
+  rows: PreviewRow[];
+  truncated: boolean;
+  total: number;
+}
+
+export interface ImportOptions {
+  onDuplicate?: OnDuplicate;
+  mapping?: Record<string, string>;
+}
+
+function importQuery(format: string, opts?: ImportOptions) {
+  const sp = new URLSearchParams({ format });
+  if (opts?.onDuplicate && opts.onDuplicate !== 'skip') {
+    sp.set('on_duplicate', opts.onDuplicate);
+  }
+  if (opts?.mapping) {
+    for (const [field, col] of Object.entries(opts.mapping)) {
+      sp.append('mapping', `${field}:${col}`);
+    }
+  }
+  const qs = sp.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const importApi = {
-  items: (format: 'csv' | 'json', body: string | File) => {
+  items: (format: 'csv' | 'json', body: string | File, opts?: ImportOptions) => {
     const contentType = format === 'csv' ? 'text/csv; charset=utf-8' : 'application/json';
     return api
-      .post(`import/items?format=${format}`, {
+      .post(`import/items${importQuery(format, opts)}`, {
         body,
         headers: { 'Content-Type': contentType },
       })
       .json<ImportResult>();
   },
+  preview: (format: 'csv' | 'json', body: string | File, opts?: ImportOptions) => {
+    const contentType = format === 'csv' ? 'text/csv; charset=utf-8' : 'application/json';
+    return api
+      .post(`import/items/preview${importQuery(format, opts)}`, {
+        body,
+        headers: { 'Content-Type': contentType },
+      })
+      .json<ImportPreview>();
+  },
 };
+
+// Canonical import columns, used to build the downloadable template.
+export const IMPORT_FIELDS = [
+  'name',
+  'type',
+  'status',
+  'category',
+  'description',
+  'location',
+  'home_base_location',
+  'current_status_tag',
+  'purchase_price',
+  'purchase_currency',
+  'purchase_date',
+  'purchase_platform',
+  'warranty_expires_at',
+  'serial_number',
+  'warranty_contact',
+  'current_stock',
+  'min_stock_threshold',
+  'lifespan_days',
+  'in_use_since',
+  'is_private',
+  'tags',
+] as const;
+
+export function buildImportTemplateCsv(): string {
+  const example: Record<string, string> = {
+    name: '机械键盘',
+    type: 'durable',
+    status: 'in_stock',
+    category: '外设',
+    description: '87 键红轴',
+    location: '书房/书桌',
+    home_base_location: '',
+    current_status_tag: '',
+    purchase_price: '399.5',
+    purchase_currency: 'CNY',
+    purchase_date: '2026-06-08',
+    purchase_platform: '京东',
+    warranty_expires_at: '2028-06-08',
+    serial_number: 'SN-001',
+    warranty_contact: '400-xxx',
+    current_stock: '',
+    min_stock_threshold: '',
+    lifespan_days: '',
+    in_use_since: '',
+    is_private: 'false',
+    tags: '数码|办公',
+  };
+  const quote = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const header = IMPORT_FIELDS.map((f) => quote(f)).join(',');
+  const row = IMPORT_FIELDS.map((f) => quote(example[f])).join(',');
+  return `${header}\n${row}\n`;
+}
 
 export interface Item {
   id: string;
