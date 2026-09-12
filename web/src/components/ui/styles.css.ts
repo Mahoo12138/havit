@@ -444,6 +444,29 @@ export const sidebarFooter = style({
   padding: themeVars.space3,
 });
 
+// 通用 SelectField 按浅色页面配色；放进深色书脊后选中值近黑字压深底不可读，
+// 这里换成侧边栏 token 重新着色。
+globalStyle(`${sidebarFooter} [data-slot='field-label']`, {
+  color: themeVars.sidebarMuted,
+});
+globalStyle(`${sidebarFooter} [data-slot='select-trigger']`, {
+  background: themeVars.sidebarPanel,
+  borderColor: themeVars.sidebarLine,
+  color: themeVars.sidebarActiveText,
+});
+globalStyle(`${sidebarFooter} [data-slot='select-trigger']:hover`, {
+  borderColor: 'rgba(247, 242, 230, 0.18)',
+});
+globalStyle(`${sidebarFooter} [data-slot='select-trigger']:focus-visible`, {
+  borderColor: themeVars.accent,
+});
+globalStyle(`${sidebarFooter} [data-slot='select-trigger'][data-popup-open]`, {
+  borderColor: themeVars.accent,
+});
+globalStyle(`${sidebarFooter} [data-slot='select-trigger'] svg`, {
+  color: themeVars.sidebarMuted,
+});
+
 export const sidebarUser = style({
   display: 'flex',
   alignItems: 'center',
