@@ -1,20 +1,27 @@
 import { useState, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle,
   IconEye,
-  IconDotsVertical,
   IconSearch,
   IconPlus,
   IconChevronLeft,
   IconChevronRight,
   IconDownload,
+  IconCircleCheck,
+  IconShoppingCart,
+  IconFileExport,
+  IconClipboardList,
 } from '@tabler/icons-react';
 import { Stack, uiStyles } from '../../components/ui';
+import { themeVars } from '../../styles/theme.css';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { DatePickerField } from '../../components/ui/date-picker-field';
+import { Dialog } from '../../components/ui/dialog-compat';
 import {
   Select,
   SelectContent,
@@ -23,10 +30,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
+import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
-import { abnormalApi } from '../../api/client';
+import { TextareaField } from '../../components/ui/textarea-field';
+import { TextField } from '../../components/ui/text-field';
+import { useToast } from '../../components/ui/use-toast';
+import {
+  abnormalApi,
+  itemsApi,
+  preferencesApi,
+  suppliesExtendedApi,
+  tagsApi,
+  type AbnormalListItem,
+} from '../../api/client';
 
 const PAGE_SIZE = 10;
+
+// 可登记异常的物品状态（已退出台账的物品不能再新增异常）
+const ACTIVE_ITEM_STATUSES = new Set(['in_stock', 'borrowed', 'idle', 'for_sale']);
 
 const PROCESSING_STATUS_OPTIONS = [
   { key: 'reporting', labelKey: 'abnormal.progressReporting' },
@@ -77,24 +98,49 @@ function InlineSelect({
   );
 }
 
+// 处理进度图表配色：跟随主题变量以同时适配明暗两套面板
 const PROGRESS_COLORS: Record<string, string> = {
-  reporting: '#3f5e8c',
-  searching: '#31708c',
-  pending_compensation: '#92600e',
-  compensated: '#4e6b41',
-  scrapped: '#6f6757',
-  closed: '#3d5a35',
+  reporting: 'var(--havit-info)',
+  searching: '#3f8ba6',
+  pending_compensation: 'var(--havit-amber)',
+  compensated: 'var(--havit-success)',
+  scrapped: 'var(--havit-muted)',
+  closed: '#5c8148',
 };
 
+const FLOW_STAGE_ORDER = ['reporting', 'searching', 'pending_compensation', 'compensated', 'scrapped', 'closed'];
+
+function errorText(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeCsvCell(value: string) {
+  if (/[",\r\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
+  return value;
+}
+
 export function AbnormalDesktop() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [updateId, setUpdateId] = useState<string | null>(null);
   const [updateStatus, setUpdateStatus] = useState('');
+  const [dialog, setDialog] = useState<null | 'found' | 'replenish' | 'claim' | 'flow' | 'add'>(null);
+  const [pickedRecordId, setPickedRecordId] = useState('');
+  const [addForm, setAddForm] = useState({ itemId: '', type: 'lost', date: '', loss: '', notes: '' });
 
   const offset = (page - 1) * PAGE_SIZE;
 
@@ -129,6 +175,146 @@ export function AbnormalDesktop() {
     queryFn: abnormalApi.valuation,
   });
 
+  // 弹窗用的全量记录（不受分页/筛选影响），仅在对应弹窗打开时拉取
+  const pickerOpen = dialog === 'found' || dialog === 'replenish' || dialog === 'claim';
+  const { data: allRecordsData } = useQuery({
+    queryKey: ['abnormal', 'list', 'all'],
+    queryFn: () => abnormalApi.list({ limit: 500 }),
+    enabled: pickerOpen,
+  });
+
+  // 新增异常弹窗：可选的仍在台账中的物品 + 默认币种；全量物品同时用于「占总资产」KPI
+  const addDialogOpen = dialog === 'add';
+  const { data: itemsData } = useQuery({
+    queryKey: ['items'],
+    queryFn: () => itemsApi.list(),
+  });
+  const { data: preferences } = useQuery({
+    queryKey: ['preferences'],
+    queryFn: () => preferencesApi.get(),
+    enabled: addDialogOpen,
+  });
+  const defaultCurrency = preferences?.default_currency || 'CNY';
+
+  const invalidateAbnormal = () => {
+    queryClient.invalidateQueries({ queryKey: ['abnormal'] });
+  };
+
+  const closeDialog = () => {
+    setDialog(null);
+    setPickedRecordId('');
+  };
+
+  const markFoundMutation = useMutation({
+    mutationFn: async (record: AbnormalListItem) => {
+      await itemsApi.update(record.item_id, { status: 'in_stock' });
+      await abnormalApi.updateProgress(record.abnormal_id, { processing_status: 'closed' });
+    },
+    onSuccess: () => {
+      invalidateAbnormal();
+      closeDialog();
+      toast.show(t('abnormal.toastFound'));
+    },
+    onError: (error) => toast.show(t('abnormal.actionFailed', { error: errorText(error) })),
+  });
+
+  const replenishMutation = useMutation({
+    mutationFn: async (record: AbnormalListItem) => {
+      const tagName = t('abnormal.replenishTag');
+      const tags = await tagsApi.list();
+      let tag = tags.tags.find((tg) => tg.name === tagName);
+      if (!tag) tag = await tagsApi.create({ name: tagName });
+      const item = await itemsApi.get(record.item_id);
+      const tagIds = (item.tags ?? []).map((tg) => tg.id);
+      if (tagIds.includes(tag.id)) return 'exists' as const;
+      await itemsApi.replaceTags(record.item_id, [...tagIds, tag.id]);
+      return 'added' as const;
+    },
+    onSuccess: (result) => {
+      invalidateAbnormal();
+      closeDialog();
+      toast.show(
+        result === 'exists'
+          ? t('abnormal.toastReplenishExists', { tag: t('abnormal.replenishTag') })
+          : t('abnormal.toastReplenish', { tag: t('abnormal.replenishTag') }),
+      );
+    },
+    onError: (error) => toast.show(t('abnormal.actionFailed', { error: errorText(error) })),
+  });
+
+  const claimMutation = useMutation({
+    mutationFn: async (record: AbnormalListItem) => {
+      const blob = await suppliesExtendedApi.claimPdf(record.item_id);
+      downloadBlob(blob, `${record.name}-insurance-claim.pdf`);
+    },
+    onSuccess: () => closeDialog(),
+    onError: (error) => toast.show(t('abnormal.toastClaimFailed', { error: errorText(error) })),
+  });
+
+  const addMutation = useMutation({
+    mutationFn: ({ itemId, type, date, loss, notes }: typeof addForm) => {
+      const body: Parameters<typeof suppliesExtendedApi.exit>[1] = { exit_type: type };
+      if (date) body.exit_date = Math.floor(new Date(date).getTime() / 1000);
+      if (loss) {
+        body.exit_price = Number(loss);
+        body.exit_currency = defaultCurrency;
+      }
+      if (notes.trim()) body.exit_notes = notes.trim();
+      return suppliesExtendedApi.exit(itemId, body);
+    },
+    onSuccess: () => {
+      invalidateAbnormal();
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+      setAddForm({ itemId: '', type: 'lost', date: '', loss: '', notes: '' });
+      closeDialog();
+      toast.show(t('abnormal.toastAdded'));
+    },
+    onError: (error) => toast.show(t('abnormal.actionFailed', { error: errorText(error) })),
+  });
+
+  async function handleExportCsv() {
+    try {
+      const data = await abnormalApi.list({
+        type: typeFilter || undefined,
+        status: statusFilter || undefined,
+        limit: 1000,
+      });
+      const header = [
+        t('abnormal.colAsset'),
+        t('abnormal.colType'),
+        t('abnormal.colAbnormalTime'),
+        t('abnormal.colLocation'),
+        t('abnormal.colResponsible'),
+        t('abnormal.colProgress'),
+        t('abnormal.colUpdatedAt'),
+        t('abnormal.valuationTotal'),
+        t('abnormal.valuationRecoverable'),
+      ];
+      const rows = data.items.map((item) => [
+        item.name,
+        typeLabel(item.abnormal_type),
+        formatDate(item.exit_date),
+        item.location_name ?? '',
+        item.responsible_person ?? '',
+        progressLabel(item.processing_status),
+        formatDate(item.updated_at),
+        item.estimated_loss != null ? String(item.estimated_loss) : '',
+        item.recoverable_amount != null ? String(item.recoverable_amount) : '',
+      ]);
+      const csv =
+        '\uFEFF' +
+        [header, ...rows].map((row) => row.map(escapeCsvCell).join(',')).join('\r\n') +
+        '\r\n';
+      downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'abnormal-records.csv');
+    } catch (error) {
+      toast.show(t('abnormal.toastExportFailed', { error: errorText(error) }));
+    }
+  }
+
+  function focusGlobalSearch() {
+    document.querySelector<HTMLInputElement>('[class*="headerSearchInput"]')?.focus();
+  }
+
   const updateMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       abnormalApi.updateProgress(id, { processing_status: status }),
@@ -143,17 +329,41 @@ export function AbnormalDesktop() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const trend = trendData?.trend ?? [];
   const progress = progressData?.progress ?? [];
+  const progressTotal = progress.reduce((sum, p) => sum + p.count, 0);
+
+  const allRecords = allRecordsData?.items ?? [];
+  const foundRecords = allRecords.filter(
+    (r) => (r.abnormal_type === 'lost' || r.abnormal_type === 'unreturned') && r.processing_status !== 'closed',
+  );
+  const replenishRecords = allRecords.filter(
+    (r) =>
+      (r.abnormal_type === 'lost' || r.abnormal_type === 'stolen' || r.abnormal_type === 'damaged') &&
+      r.processing_status !== 'closed',
+  );
+  const claimRecords = allRecords.filter((r) => r.abnormal_type === 'stolen');
+  const activeItems = (itemsData?.items ?? []).filter((item) => ACTIVE_ITEM_STATUSES.has(item.status));
+  const totalAssets = itemsData?.items?.length ?? 0;
+  const pickedRecord = allRecords.find((r) => r.abnormal_id === pickedRecordId);
+
+  function recordOptions(records: AbnormalListItem[]) {
+    return records.map((r) => ({
+      value: r.abnormal_id,
+      label: `${r.name} · ${typeLabel(r.abnormal_type)} · ${formatDate(r.exit_date)}`,
+    }));
+  }
 
   const kpiMetrics = useMemo(() => {
     const s = stats ?? { total: 0, lost: 0, stolen: 0, unreturned: 0, damaged: 0 };
+    // 占总资产的分母是台账物品总数，与仪表盘口径一致；分母为零时显示 0
+    const pct = totalAssets > 0 ? ((s.total / totalAssets) * 100).toFixed(1) : '0';
     return [
-      { label: t('abnormal.kpiTotal'), value: s.total, sub: t('abnormal.kpiOfTotal', { pct: total > 0 ? ((s.total / Math.max(total, 1)) * 100).toFixed(1) : '0' }) },
+      { label: t('abnormal.kpiTotal'), value: s.total, sub: t('abnormal.kpiOfTotal', { pct }) },
       { label: t('abnormal.kpiLost'), value: s.lost, sub: s.total > 0 ? `${((s.lost / s.total) * 100).toFixed(1)}%` : '0%' },
       { label: t('abnormal.kpiStolen'), value: s.stolen, sub: s.total > 0 ? `${((s.stolen / s.total) * 100).toFixed(1)}%` : '0%' },
       { label: t('abnormal.kpiUnreturned'), value: s.unreturned, sub: s.total > 0 ? `${((s.unreturned / s.total) * 100).toFixed(1)}%` : '0%' },
       { label: t('abnormal.kpiDamaged'), value: s.damaged, sub: s.total > 0 ? `${((s.damaged / s.total) * 100).toFixed(1)}%` : '0%' },
     ];
-  }, [stats, total, t]);
+  }, [stats, totalAssets, t]);
 
   function formatDate(ts?: number): string {
     if (!ts) return '-';
@@ -195,16 +405,16 @@ export function AbnormalDesktop() {
       <div className={uiStyles.abnormalPageHeader}>
         <div>
           <h2 className="page-heading" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <IconAlertTriangle size={20} style={{ color: 'var(--havit-danger, #9c2f1d)' }} />
+            {/* <IconAlertTriangle size={20} style={{ color: 'var(--havit-danger, #9c2f1d)' }} /> */}
             {t('abnormal.title')}
           </h2>
           <p className="page-kicker" style={{ marginTop: '4px' }}>{t('abnormal.description')}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <Button variant="quiet" leftSection={<IconSearch size={15} />}>
+          <Button variant="quiet" leftSection={<IconSearch size={15} />} onClick={focusGlobalSearch}>
             {t('abnormal.search')}
           </Button>
-          <Button leftSection={<IconPlus size={15} />}>
+          <Button leftSection={<IconPlus size={15} />} onClick={() => { setPickedRecordId(''); setDialog('add'); }}>
             {t('abnormal.addRecord')}
           </Button>
         </div>
@@ -225,9 +435,22 @@ export function AbnormalDesktop() {
       <div className={uiStyles.abnormalAlertBanner}>
         <IconAlertTriangle size={16} style={{ flexShrink: 0 }} />
         <span>{t('abnormal.alertBanner')}</span>
-        <a href="#" style={{ marginLeft: 'auto', color: 'var(--havit-danger, #9c2f1d)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+        <button
+          type="button"
+          onClick={() => { setPickedRecordId(''); setDialog('flow'); }}
+          style={{
+            marginLeft: 'auto',
+            color: 'var(--havit-danger)',
+            fontSize: '0.78rem',
+            whiteSpace: 'nowrap',
+            background: 'transparent',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+          }}
+        >
           {t('abnormal.learnMore')} &gt;
-        </a>
+        </button>
       </div>
 
       {/* Two-column layout: table + sidebar */}
@@ -260,7 +483,12 @@ export function AbnormalDesktop() {
                 {t('abnormal.totalItems', { count: total })}
               </span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
-                <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.exportReport')}>
+                <Button
+                  variant="subtle"
+                  className={uiStyles.abnormalActionBtn}
+                  title={t('abnormal.exportReport')}
+                  onClick={handleExportCsv}
+                >
                   <IconDownload size={13} /> {t('abnormal.exportReport')}
                 </Button>
               </div>
@@ -345,16 +573,11 @@ export function AbnormalDesktop() {
                         </td>
                         <td className={uiStyles.td}>{formatDate(item.updated_at)}</td>
                         <td className={uiStyles.td}>
-                          <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                            <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                              <Button variant="subtle" className={uiStyles.abnormalActionBtn}>
-                                <IconEye size={13} />
-                              </Button>
-                            </Link>
-                            <Button variant="subtle" className={uiStyles.abnormalMoreBtn}>
-                              <IconDotsVertical size={14} />
+                          <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
+                            <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.viewItem')}>
+                              <IconEye size={13} />
                             </Button>
-                          </div>
+                          </Link>
                         </td>
                       </tr>
                     ))}
@@ -425,12 +648,11 @@ export function AbnormalDesktop() {
                     <span className={uiStyles.abnormalSidebarMeta}>{item.responsible_person}</span>
                   )}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flexShrink: 0 }}>
-                  <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                    <Button variant="subtle" className={uiStyles.abnormalActionBtn}><IconEye size={12} /></Button>
-                  </Link>
-                  <Button variant="subtle" className={uiStyles.abnormalMoreBtn}><IconDotsVertical size={12} /></Button>
-                </div>
+                <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
+                  <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.viewItem')}>
+                    <IconEye size={12} />
+                  </Button>
+                </Link>
               </div>
             ))}
             {totalPages > 1 && (
@@ -470,110 +692,389 @@ export function AbnormalDesktop() {
       {/* Bottom dashboard */}
       <div className={uiStyles.abnormalBottomGrid}>
         {/* Quick actions */}
-        <Card className="surface-card">
-          <div className={uiStyles.abnormalChartTitle}>{t('abnormal.quickActions')}</div>
-          <div className={uiStyles.abnormalQuickActions}>
+        <InsightCard title={t('abnormal.quickActions')}>
+          <div className={uiStyles.abnormalQuickGrid}>
             {[
-              { icon: '🔍', label: t('abnormal.actionMarkFound') },
-              { icon: '🛒', label: t('abnormal.actionReplenish') },
-              { icon: '📄', label: t('abnormal.actionExportClaim') },
-              { icon: '📋', label: t('abnormal.actionViewFlow') },
+              {
+                icon: <IconCircleCheck size={16} />,
+                label: t('abnormal.actionMarkFound'),
+                onClick: () => { setPickedRecordId(''); setDialog('found'); },
+              },
+              {
+                icon: <IconShoppingCart size={16} />,
+                label: t('abnormal.actionReplenish'),
+                onClick: () => { setPickedRecordId(''); setDialog('replenish'); },
+              },
+              {
+                icon: <IconFileExport size={16} />,
+                label: t('abnormal.actionExportClaim'),
+                onClick: () => { setPickedRecordId(''); setDialog('claim'); },
+              },
+              {
+                icon: <IconClipboardList size={16} />,
+                label: t('abnormal.actionViewFlow'),
+                onClick: () => { setPickedRecordId(''); setDialog('flow'); },
+              },
             ].map((action) => (
-               <Button variant="subtle" className={uiStyles.abnormalQuickBtn} key={action.label}>
-                <span>{action.icon}</span>
+              <button
+                type="button"
+                className={uiStyles.abnormalQuickBtn}
+                key={action.label}
+                onClick={action.onClick}
+              >
+                <span className={uiStyles.abnormalQuickIcon}>{action.icon}</span>
                 <span>{action.label}</span>
-              </Button>
+              </button>
             ))}
           </div>
-        </Card>
+        </InsightCard>
 
         {/* Trend chart */}
-        <Card className="surface-card">
-          <div className={uiStyles.abnormalChartTitle}>{t('abnormal.trendTitle')}</div>
-          <span style={{ fontSize: '0.7rem', color: 'var(--havit-muted)' }}>{t('abnormal.trendHint')}</span>
-          <TrendLineChart data={trend} />
-        </Card>
+        <InsightCard
+          title={t('abnormal.trendTitle')}
+          meta={t('abnormal.trendWindow')}
+        >
+          <TrendLineChart
+            data={trend}
+            locale={i18n.language}
+            emptyLabel={t('abnormal.noTrendData')}
+            ariaLabel={`${t('abnormal.trendTitle')} · ${t('abnormal.trendWindow')}`}
+          />
+        </InsightCard>
 
         {/* Progress donut */}
-        <Card className="surface-card">
-          <div className={uiStyles.abnormalChartTitle}>{t('abnormal.progressTitle')}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <DonutChart
-              segments={progress.map((p) => ({
-                label: progressLabel(p.status),
-                value: p.count,
-                color: PROGRESS_COLORS[p.status] ?? '#6f6757',
-              }))}
-            />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.72rem' }}>
-              {progress.map((p) => (
-                <div key={p.status} className={uiStyles.abnormalLegendItem}>
-                  <div className={uiStyles.abnormalLegendDot} style={{ background: PROGRESS_COLORS[p.status] ?? '#6f6757' }} />
-                  <span>{progressLabel(p.status)}</span>
-                  <span style={{ color: 'var(--havit-ink)', fontWeight: 600 }}>{p.count}</span>
-                </div>
-              ))}
+        <InsightCard
+          title={t('abnormal.progressTitle')}
+          meta={t('abnormal.totalItems', { count: progressTotal })}
+        >
+          {progressTotal === 0 ? (
+            <div className={uiStyles.abnormalDonutSolo}>
+              <DonutChart segments={[]} totalLabel={t('abnormal.progressTotal')} />
             </div>
-          </div>
-        </Card>
+          ) : (
+            <div className={uiStyles.abnormalDonutRow}>
+              <DonutChart
+                segments={progress.map((p) => ({
+                  label: progressLabel(p.status),
+                  value: p.count,
+                  color: PROGRESS_COLORS[p.status] ?? PROGRESS_COLORS.scrapped,
+                }))}
+                totalLabel={t('abnormal.progressTotal')}
+              />
+              <div className={uiStyles.abnormalLegend}>
+                {progress
+                  .filter((p) => p.count > 0)
+                  .map((p) => (
+                    <div key={p.status} className={uiStyles.abnormalLegendItem}>
+                      <span
+                        className={uiStyles.abnormalLegendDot}
+                        style={{ background: PROGRESS_COLORS[p.status] ?? PROGRESS_COLORS.scrapped }}
+                      />
+                      <span>{progressLabel(p.status)}</span>
+                      <span className={uiStyles.abnormalLegendCount}>{p.count}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
+        </InsightCard>
 
         {/* Loss valuation */}
-        <Card className="surface-card">
-          <div className={uiStyles.abnormalChartTitle}>{t('abnormal.valuationTitle')}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+        <InsightCard
+          title={t('abnormal.valuationTitle')}
+          foot={
+            <button type="button" className={uiStyles.sectionLink}>
+              {t('abnormal.viewDetails')}
+              <IconChevronRight size={13} />
+            </button>
+          }
+        >
+          <div className={uiStyles.abnormalValuationRows}>
             <div className={uiStyles.abnormalValuationRow}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--havit-muted)' }}>{t('abnormal.valuationTotal')}</span>
-              <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--havit-ink)', fontVariantNumeric: 'tabular-nums' }}>
+              <span className={uiStyles.abnormalValuationLabel}>{t('abnormal.valuationTotal')}</span>
+              <span className={uiStyles.abnormalValuationLeader} />
+              <span className={uiStyles.abnormalValuationValue}>
                 {formatCurrency(valuation?.total_estimated, valuation?.estimated_currency)}
               </span>
             </div>
             <div className={uiStyles.abnormalValuationRow}>
-              <span style={{ fontSize: '0.78rem', color: 'var(--havit-muted)' }}>{t('abnormal.valuationRecoverable')}</span>
-              <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--havit-success, #4e6b41)', fontVariantNumeric: 'tabular-nums' }}>
+              <span className={uiStyles.abnormalValuationLabel}>{t('abnormal.valuationRecoverable')}</span>
+              <span className={uiStyles.abnormalValuationLeader} />
+              <span className={uiStyles.abnormalValuationValue} style={{ color: 'var(--havit-success)' }}>
                 {formatCurrency(valuation?.recoverable_amount, valuation?.recoverable_currency)}
               </span>
             </div>
-            <Button variant="quiet" style={{ marginTop: '4px' }}>
-              {t('abnormal.viewDetails')}
-            </Button>
           </div>
-        </Card>
+        </InsightCard>
       </div>
+      {/* Dialogs */}
+      <Dialog open={dialog === 'found'} onClose={closeDialog} title={t('abnormal.dialogFoundTitle')}>
+        <Stack style={{ gap: themeVars.space3 }}>
+          <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.dialogFoundHint')}</p>
+          {foundRecords.length === 0 ? (
+            <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.noEligibleRecords')}</p>
+          ) : (
+            <SelectField
+              label={t('abnormal.selectRecord')}
+              options={recordOptions(foundRecords)}
+              value={pickedRecordId}
+              onChange={(event) => setPickedRecordId(event.currentTarget.value)}
+            />
+          )}
+          <DialogActions>
+            <Button variant="outline" onClick={closeDialog}>{t('common.cancel')}</Button>
+            <Button
+              disabled={!pickedRecordId || markFoundMutation.isPending}
+              onClick={() => pickedRecord && markFoundMutation.mutate(pickedRecord)}
+            >
+              {markFoundMutation.isPending ? t('common.loading') : t('common.confirm')}
+            </Button>
+          </DialogActions>
+        </Stack>
+      </Dialog>
+
+      <Dialog open={dialog === 'replenish'} onClose={closeDialog} title={t('abnormal.dialogReplenishTitle')}>
+        <Stack style={{ gap: themeVars.space3 }}>
+          <p className={uiStyles.help} style={{ margin: 0 }}>
+            {t('abnormal.dialogReplenishHint', { tag: t('abnormal.replenishTag') })}
+          </p>
+          {replenishRecords.length === 0 ? (
+            <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.noEligibleRecords')}</p>
+          ) : (
+            <SelectField
+              label={t('abnormal.selectRecord')}
+              options={recordOptions(replenishRecords)}
+              value={pickedRecordId}
+              onChange={(event) => setPickedRecordId(event.currentTarget.value)}
+            />
+          )}
+          <DialogActions>
+            <Button variant="outline" onClick={closeDialog}>{t('common.cancel')}</Button>
+            <Button
+              disabled={!pickedRecordId || replenishMutation.isPending}
+              onClick={() => pickedRecord && replenishMutation.mutate(pickedRecord)}
+            >
+              {replenishMutation.isPending ? t('common.loading') : t('common.confirm')}
+            </Button>
+          </DialogActions>
+        </Stack>
+      </Dialog>
+
+      <Dialog open={dialog === 'claim'} onClose={closeDialog} title={t('abnormal.dialogClaimTitle')}>
+        <Stack style={{ gap: themeVars.space3 }}>
+          <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.dialogClaimHint')}</p>
+          {claimRecords.length === 0 ? (
+            <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.noEligibleRecords')}</p>
+          ) : (
+            <SelectField
+              label={t('abnormal.selectRecord')}
+              options={recordOptions(claimRecords)}
+              value={pickedRecordId}
+              onChange={(event) => setPickedRecordId(event.currentTarget.value)}
+            />
+          )}
+          <DialogActions>
+            <Button variant="outline" onClick={closeDialog}>{t('common.cancel')}</Button>
+            <Button
+              disabled={!pickedRecordId || claimMutation.isPending}
+              onClick={() => pickedRecord && claimMutation.mutate(pickedRecord)}
+            >
+              {claimMutation.isPending ? t('common.loading') : t('abnormal.dialogClaimConfirm')}
+            </Button>
+          </DialogActions>
+        </Stack>
+      </Dialog>
+
+      <Dialog open={dialog === 'flow'} onClose={closeDialog} title={t('abnormal.flowDialogTitle')}>
+        <Stack style={{ gap: themeVars.space4 }}>
+          <div>
+            <h4 className={uiStyles.heading} style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+              {t('abnormal.flowCreateTitle')}
+            </h4>
+            <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.flowCreateBody')}</p>
+          </div>
+          <div>
+            <h4 className={uiStyles.heading} style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+              {t('abnormal.flowStagesTitle')}
+            </h4>
+            <p className={uiStyles.help} style={{ margin: '0 0 8px' }}>{t('abnormal.flowStagesBody')}</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+              {FLOW_STAGE_ORDER.map((stage, i) => (
+                <span key={stage} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  {i > 0 && <span className={uiStyles.help} aria-hidden>→</span>}
+                  <span className={getProgressBadgeClass(stage)}>{progressLabel(stage)}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className={uiStyles.heading} style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+              {t('abnormal.flowClaimTitle')}
+            </h4>
+            <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.flowClaimBody')}</p>
+          </div>
+          <DialogActions>
+            <Button variant="quiet" onClick={closeDialog}>{t('common.close')}</Button>
+          </DialogActions>
+        </Stack>
+      </Dialog>
+
+      <Dialog open={addDialogOpen} onClose={closeDialog} title={t('abnormal.dialogAddTitle')}>
+        <Stack style={{ gap: themeVars.space3 }}>
+          <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.dialogAddHint')}</p>
+          <SelectField
+            label={t('abnormal.addItemLabel')}
+            options={activeItems.map((item) => ({ value: item.id, label: item.name }))}
+            value={addForm.itemId}
+            onChange={(event) => setAddForm({ ...addForm, itemId: event.currentTarget.value })}
+          />
+          <SelectField
+            label={t('abnormal.addTypeLabel')}
+            options={[
+              { value: 'lost', label: t('abnormal.typeLost') },
+              { value: 'stolen', label: t('abnormal.typeStolen') },
+              { value: 'damaged', label: t('abnormal.typeDamaged') },
+            ]}
+            value={addForm.type}
+            onChange={(event) => setAddForm({ ...addForm, type: event.currentTarget.value })}
+          />
+          <DatePickerField
+            label={t('abnormal.addDateLabel')}
+            value={addForm.date}
+            onChange={(value) => setAddForm({ ...addForm, date: value })}
+          />
+          <TextField
+            label={t('abnormal.addLossLabel', { currency: defaultCurrency })}
+            type="number"
+            value={addForm.loss}
+            onChange={(event) => setAddForm({ ...addForm, loss: event.currentTarget.value })}
+          />
+          <TextareaField
+            label={t('abnormal.addNotesLabel')}
+            value={addForm.notes}
+            onChange={(event) => setAddForm({ ...addForm, notes: event.currentTarget.value })}
+          />
+          <DialogActions>
+            <Button variant="outline" onClick={closeDialog}>{t('common.cancel')}</Button>
+            <Button
+              disabled={!addForm.itemId || addMutation.isPending}
+              onClick={() => addMutation.mutate(addForm)}
+            >
+              {addMutation.isPending ? t('common.loading') : t('common.confirm')}
+            </Button>
+          </DialogActions>
+        </Stack>
+      </Dialog>
     </Stack>
   );
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+/** 弹窗底部操作区：主按钮靠右 */
+function DialogActions({ children }: { children: ReactNode }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'flex-end',
+        gap: themeVars.space2,
+        marginTop: themeVars.space2,
+      }}
+    >
+      {children}
+    </div>
+ );
+}
+
+/** 底部洞察卡统一骨架：卡头（标题+补充信息）、内容、可选页脚 */
+function InsightCard({
+  title,
+  meta,
+  children,
+  foot,
+}: {
+  title: string;
+  meta?: ReactNode;
+  children: ReactNode;
+  foot?: ReactNode;
+}) {
+  return (
+    <Card className="surface-card">
+      <div className={`${uiStyles.cardContent} ${uiStyles.abnormalPanelHead}`}>
+        <h3 className={uiStyles.abnormalPanelTitle}>{title}</h3>
+        {meta != null && <span className={uiStyles.abnormalPanelMeta}>{meta}</span>}
+      </div>
+      <div className={`${uiStyles.cardContent} ${uiStyles.abnormalPanelBody}`}>{children}</div>
+      {foot && (
+        <div className={`${uiStyles.cardContent} ${uiStyles.abnormalPanelFoot}`}>{foot}</div>
+      )}
+    </Card>
+  );
+}
+
 function DonutChart({
   segments,
-  size = 110,
-  strokeWidth = 18,
+  totalLabel,
+  size = 124,
+  strokeWidth = 14,
 }: {
   segments: Array<{ label: string; value: number; color: string }>;
+  totalLabel: string;
   size?: number;
   strokeWidth?: number;
 }) {
   const total = segments.reduce((sum, s) => sum + s.value, 0);
+  const radius = (size - strokeWidth) / 2;
+  const center = size / 2;
+
   if (total === 0) {
     return (
-      <svg width={size} height={size}>
-        <circle cx={size / 2} cy={size / 2} r={(size - strokeWidth) / 2} fill="none" stroke="#e5e7eb" strokeWidth={strokeWidth} />
-        <text x={size / 2} y={size / 2 + 5} textAnchor="middle" fill="var(--havit-muted)" fontSize="11">—</text>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={totalLabel}>
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="none"
+          stroke="var(--havit-line-soft)"
+          strokeWidth={strokeWidth}
+        />
+        <text
+          x={center}
+          y={center - 1}
+          textAnchor="middle"
+          fill="var(--havit-muted)"
+          fontSize="22"
+          fontWeight="600"
+          fontFamily={themeVars.fontSerif}
+        >
+          0
+        </text>
+        <text x={center} y={center + 15} textAnchor="middle" fill="var(--havit-muted)" fontSize="9">
+          {totalLabel}
+        </text>
       </svg>
     );
   }
 
-  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const center = size / 2;
   let accumulated = 0;
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={totalLabel}>
+      <circle
+        cx={center}
+        cy={center}
+        r={radius}
+        fill="none"
+        stroke="var(--havit-line-soft)"
+        strokeWidth={strokeWidth}
+      />
       {segments.map((seg, i) => {
+        if (seg.value <= 0) return null;
         const pct = seg.value / total;
-        const dashLen = circumference * pct;
+        // 微量重叠避免相邻扇区之间出现发丝缝隙
+        const dashLen = circumference * pct + 0.8;
         const dashOff = circumference * accumulated;
         accumulated += pct;
         return (
@@ -591,50 +1092,112 @@ function DonutChart({
           />
         );
       })}
-      <text x={center} y={center - 5} textAnchor="middle" fill="var(--havit-ink)" fontSize="18" fontWeight="700">
+      <text
+        x={center}
+        y={center - 1}
+        textAnchor="middle"
+        fill="var(--havit-ink)"
+        fontSize="24"
+        fontWeight="600"
+        fontFamily={themeVars.fontSerif}
+      >
         {total}
       </text>
-      <text x={center} y={center + 12} textAnchor="middle" fill="var(--havit-muted)" fontSize="10">
-        总数
+      <text x={center} y={center + 15} textAnchor="middle" fill="var(--havit-muted)" fontSize="9">
+        {totalLabel}
       </text>
     </svg>
   );
 }
 
-function TrendLineChart({ data }: { data: Array<{ month: string; count: number }> }) {
-  if (data.length === 0) return <div style={{ height: 100, color: 'var(--havit-muted)', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>暂无数据</div>;
+const MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  const W = 240, H = 100, PX = 30, PY = 10;
+function localizedMonth(abbr: string, locale: string): string {
+  const idx = MONTH_ABBR.indexOf(abbr);
+  if (idx < 0) return abbr;
+  try {
+    return new Date(2026, idx, 1).toLocaleDateString(locale, { month: 'short' });
+  } catch {
+    return abbr;
+  }
+}
+
+function TrendLineChart({
+  data,
+  locale,
+  emptyLabel,
+  ariaLabel,
+}: {
+  data: Array<{ month: string; count: number }>;
+  locale: string;
+  emptyLabel: string;
+  ariaLabel: string;
+}) {
+  if (data.length === 0) {
+    return <div className={uiStyles.abnormalChartEmpty}>{emptyLabel}</div>;
+  }
+
+  const W = 300;
+  const H = 150;
+  const PX = 10;
+  const PT = 16;
+  const PB = 22;
+  const innerW = W - PX * 2;
+  const innerH = H - PT - PB;
+  const baseline = PT + innerH;
+
   const max = Math.max(...data.map((d) => d.count), 1);
-  const step = (W - PX * 2) / Math.max(data.length - 1, 1);
+  const step = data.length > 1 ? innerW / (data.length - 1) : 0;
 
   const points = data.map((d, i) => ({
     x: PX + i * step,
-    y: H - PY - (d.count / max) * (H - PY * 2),
+    y: baseline - (d.count / max) * innerH,
   }));
 
-  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+  const lineD = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+  const areaD = `${lineD} L${points[points.length - 1].x},${baseline} L${points[0].x},${baseline} Z`;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H + 20}`} style={{ width: '100%', height: '120px' }}>
-      {/* Grid lines */}
-      {[0, 0.25, 0.5, 0.75, 1].map((pct) => {
-        const y = H - PY - pct * (H - PY * 2);
+    <svg className={uiStyles.abnormalTrendSvg} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel}>
+      <defs>
+        <linearGradient id="abnormal-trend-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--havit-danger)" stopOpacity={0.16} />
+          <stop offset="100%" stopColor="var(--havit-danger)" stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      {[0.25, 0.5, 0.75, 1].map((pct) => {
+        const y = baseline - pct * innerH;
         return (
-          <line key={pct} x1={PX} y1={y} x2={W - PX} y2={y} stroke="var(--havit-line-soft, #e5e7eb)" strokeWidth="0.5" />
+          <line key={pct} x1={PX} y1={y} x2={W - PX} y2={y} stroke="var(--havit-line-soft)" strokeWidth="1" />
         );
       })}
-      {/* Line */}
-      <path d={pathD} fill="none" stroke="#9c2f1d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      {/* Dots + labels */}
+      <line x1={PX} y1={baseline} x2={W - PX} y2={baseline} stroke="var(--havit-line)" strokeWidth="1" />
+      <path d={areaD} fill="url(#abnormal-trend-area)" stroke="none" />
+      <path
+        d={lineD}
+        fill="none"
+        stroke="var(--havit-danger)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       {points.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r="3" fill="#9c2f1d" />
-          <text x={p.x} y={p.y - 7} textAnchor="middle" fill="var(--havit-ink)" fontSize="9" fontWeight="600">
-            {data[i].count}
-          </text>
-          <text x={p.x} y={H + 12} textAnchor="middle" fill="var(--havit-muted)" fontSize="8">
-            {data[i].month}
+          {data[i].count > 0 && (
+            <text x={p.x} y={p.y - 8} textAnchor="middle" fill="var(--havit-ink)" fontSize="9.5" fontWeight="600">
+              {data[i].count}
+            </text>
+          )}
+          <circle
+            cx={p.x}
+            cy={p.y}
+            r="3"
+            fill="var(--havit-danger)"
+            stroke="var(--havit-panel)"
+            strokeWidth="1.5"
+          />
+          <text x={p.x} y={H - 6} textAnchor="middle" fill="var(--havit-muted)" fontSize="8.5">
+            {localizedMonth(data[i].month, locale)}
           </text>
         </g>
       ))}

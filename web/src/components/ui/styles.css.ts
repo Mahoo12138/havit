@@ -5058,14 +5058,52 @@ export const abnormalAlertBanner = style({
 
 export const abnormalBottomGrid = style({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
   gap: themeVars.space4,
-  alignItems: 'start',
 });
 
-export const abnormalQuickActions = style({
+// 洞察卡统一卡头：标题居左，窗口/计数等补充信息居右
+export const abnormalPanelHead = style({
+  display: 'flex',
+  alignItems: 'baseline',
+  justifyContent: 'space-between',
+  gap: themeVars.space2,
+});
+
+export const abnormalPanelTitle = style({
+  margin: 0,
+  fontSize: '0.85rem',
+  fontWeight: 600,
+  color: themeVars.ink,
+  letterSpacing: '-0.01em',
+});
+
+export const abnormalPanelMeta = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+  fontVariantNumeric: 'tabular-nums',
+  whiteSpace: 'nowrap',
+});
+
+export const abnormalPanelBody = style({
+  flex: 1,
   display: 'flex',
   flexDirection: 'column',
+  gap: themeVars.space3,
+});
+
+export const abnormalPanelFoot = style({
+  marginTop: 'auto',
+  paddingTop: themeVars.space3,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+  display: 'flex',
+  justifyContent: 'flex-end',
+});
+
+export const abnormalQuickGrid = style({
+  flex: 1,
+  display: 'grid',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   gap: themeVars.space2,
 });
 
@@ -5073,17 +5111,38 @@ export const abnormalQuickBtn = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space2,
+  minHeight: '42px',
   padding: `${themeVars.space2} ${themeVars.space3}`,
-  borderRadius: '6px',
+  borderRadius: themeVars.radius2,
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   cursor: 'pointer',
-  fontSize: '0.82rem',
+  fontSize: '0.8rem',
+  lineHeight: 1.35,
   color: themeVars.ink,
-  transition: 'background 0.1s',
-  ':hover': {
-    background: themeVars.bgSoft,
+  textAlign: 'left',
+  textWrap: 'balance',
+  transition: 'background-color 150ms ease, border-color 150ms ease',
+  selectors: {
+    '&:hover': {
+      background: themeVars.bgSoft,
+      borderColor: `color-mix(in srgb, ${themeVars.accent} 25%, ${themeVars.line})`,
+    },
+    '&:focus-visible': {
+      outline: 'none',
+      boxShadow: `0 0 0 3px ${themeVars.focusRing}`,
+    },
+    '&[disabled]': {
+      opacity: 0.5,
+      cursor: 'default',
+    },
   },
+});
+
+export const abnormalQuickIcon = style({
+  display: 'flex',
+  flexShrink: 0,
+  color: themeVars.muted,
 });
 
 export const abnormalTypeBadgeBase = style({
@@ -5233,29 +5292,105 @@ export const abnormalMetricSub = style({
   color: themeVars.muted,
 });
 
-export const abnormalChartCard = style({
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: '10px',
-  padding: themeVars.space4,
+export const abnormalChartEmpty = style({
+  flex: 1,
   display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space3,
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: themeVars.space2,
+  padding: themeVars.space4,
+  fontSize: '0.78rem',
+  color: themeVars.muted,
 });
 
-export const abnormalChartTitle = style({
-  fontSize: '0.82rem',
-  fontWeight: 600,
+export const abnormalTrendSvg = style({
+  display: 'block',
+  width: '100%',
+  height: 'auto',
+  marginTop: 'auto',
+});
+
+export const abnormalLegend = style({
+  flex: 1,
+  minWidth: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '6px',
+});
+
+export const abnormalLegendItem = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  fontSize: '0.75rem',
+  color: themeVars.muted,
+});
+
+export const abnormalLegendDot = style({
+  width: '8px',
+  height: '8px',
+  borderRadius: '999px',
+  flexShrink: 0,
+});
+
+export const abnormalLegendCount = style({
+  marginLeft: 'auto',
   color: themeVars.ink,
+  fontWeight: 600,
+  fontVariantNumeric: 'tabular-nums',
+});
+
+export const abnormalDonutRow = style({
+  flex: 1,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexWrap: 'wrap',
+  gap: themeVars.space4,
+});
+
+export const abnormalDonutSolo = style({
+  flex: 1,
+  display: 'flex',
+  justifyContent: 'center',
+});
+
+export const abnormalValuationRows = style({
+  flex: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
 });
 
 export const abnormalValuationRow = style({
   display: 'flex',
-  justifyContent: 'space-between',
   alignItems: 'center',
+  gap: themeVars.space2,
   padding: `${themeVars.space2} 0`,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  ':last-child': { borderBottom: 'none' },
+});
+
+export const abnormalValuationLabel = style({
+  fontSize: '0.8rem',
+  color: themeVars.muted,
+  flexShrink: 0,
+});
+
+// 账本式点线引导：标签与金额之间的点线填充
+export const abnormalValuationLeader = style({
+  flex: 1,
+  minWidth: themeVars.space4,
+  borderBottom: `1px dotted ${themeVars.line}`,
+});
+
+export const abnormalValuationValue = style({
+  fontFamily: themeVars.fontSerif,
+  fontSize: '1.35rem',
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
+  lineHeight: 1.1,
+  color: themeVars.ink,
+  fontVariantNumeric: 'tabular-nums',
+  whiteSpace: 'nowrap',
 });
 
 export const abnormalThumb = style({
@@ -5318,36 +5453,6 @@ export const abnormalActionBtn = style({
   color: themeVars.muted,
   transition: 'all 0.1s',
   ':hover': { background: themeVars.bgSoft, color: themeVars.ink },
-});
-
-export const abnormalMoreBtn = style({
-  padding: '3px 6px',
-  borderRadius: '5px',
-  border: 'none',
-  background: 'transparent',
-  cursor: 'pointer',
-  color: themeVars.muted,
-  ':hover': { background: themeVars.bgSoft },
-});
-
-export const abnormalLegendItem = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space2,
-  fontSize: '0.75rem',
-  color: themeVars.muted,
-});
-
-export const abnormalLegendDot = style({
-  width: '8px',
-  height: '8px',
-  borderRadius: '999px',
-  flexShrink: 0,
-});
-
-export const abnormalTrendSvg = style({
-  width: '100%',
-  height: '120px',
 });
 
 export const abnormalFilterBar = style({

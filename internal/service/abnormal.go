@@ -248,6 +248,7 @@ func (s *AbnormalService) Stats(ctx context.Context) (*AbnormalStats, error) {
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT ar.abnormal_type, COUNT(*)
 		FROM abnormal_records ar
+		WHERE ar.processing_status <> 'closed'
 		GROUP BY ar.abnormal_type`)
 	if err != nil {
 		return nil, err
