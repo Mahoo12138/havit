@@ -4,7 +4,7 @@
     "search": "Search",
     "items": "Items",
     "locations": "Locations",
-    "supplies": "Spare Parts",
+    "supplies": "Supplies",
     "essentials": "Essentials",
     "credentials": "Credentials",
     "loans": "Loans",
@@ -354,7 +354,7 @@
     "restockForecast": "Restock Forecast (Predictive Supplies – Purchase Event Model)",
     "viewAllPredictions": "View All Predictions",
     "estimatedDate": "Est. Date",
-    "stockProgress": "Stock Progress",
+    "stockProgress": "Cycle progress",
     "daysLeft": "{{count}} days left",
     "restockDate": "Restock Date",
     "restockChecklist": "Restock Checklist ({{count}})",
@@ -439,7 +439,9 @@
     "viewAll": "View All",
     "quantityShort": "{{count}} pcs",
     "currencyCNY": "¥",
-    "currencyUSD": "$"
+    "currencyUSD": "$",
+    "dueNow": "Due now",
+    "days": "{{count}} days"
   },
   "loans": {
     "title": "Loans",

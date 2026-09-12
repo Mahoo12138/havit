@@ -45,28 +45,11 @@ export const kpiCard = style({
   background: themeVars.panel,
 });
 
-export const kpiIconSm = styleVariants({
-  teal: {
-    width: '2rem', height: '2rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.accentSoft, color: themeVars.accentInk,
-  },
-  warning: {
-    width: '2rem', height: '2rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.warningSoft, color: themeVars.warning,
-  },
-  danger: {
-    width: '2rem', height: '2rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.dangerSoft, color: themeVars.danger,
-  },
-  info: {
-    width: '2rem', height: '2rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.infoSoft, color: themeVars.info,
-  },
-  violet: {
-    width: '2rem', height: '2rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.violetSoft, color: themeVars.violet,
-  },
+export const kpiIconSm = style({
+  width: '2rem', height: '2rem', display: 'inline-grid', placeItems: 'center',
+  borderRadius: themeVars.radius2, background: themeVars.accentSoft, color: themeVars.accentInk,
 });
+
 
 export const kpiLabel = style({
   fontSize: '0.72rem',
@@ -76,7 +59,9 @@ export const kpiLabel = style({
 
 export const kpiValue = style({
   fontSize: '1.15rem',
-  fontWeight: 700,
+  fontWeight: 600,
+  fontFamily: themeVars.fontSerif,
+  fontVariantNumeric: 'tabular-nums',
   color: themeVars.ink,
   letterSpacing: '-0.01em',
 });
@@ -150,32 +135,11 @@ export const quickItem = style({
   },
 });
 
-export const quickIcon = styleVariants({
-  teal: {
-    width: '2.25rem', height: '2.25rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.accentSoft, color: themeVars.accentInk,
-  },
-  info: {
-    width: '2.25rem', height: '2.25rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.infoSoft, color: themeVars.info,
-  },
-  warning: {
-    width: '2.25rem', height: '2.25rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.warningSoft, color: themeVars.warning,
-  },
-  violet: {
-    width: '2.25rem', height: '2.25rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.violetSoft, color: themeVars.violet,
-  },
-  amber: {
-    width: '2.25rem', height: '2.25rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.amberSoft, color: themeVars.amber,
-  },
-  success: {
-    width: '2.25rem', height: '2.25rem', display: 'inline-grid', placeItems: 'center',
-    borderRadius: themeVars.radius2, background: themeVars.successSoft, color: themeVars.success,
-  },
+export const quickIcon = style({
+  width: '2.25rem', height: '2.25rem', display: 'inline-grid', placeItems: 'center',
+  borderRadius: themeVars.radius2, background: themeVars.accentSoft, color: themeVars.accentInk,
 });
+
 
 /* Recent items vertical card list */
 export const recentCard = style({
@@ -201,7 +165,10 @@ export const recentThumb = style({
   placeItems: 'center',
   borderRadius: themeVars.radius2,
   background: themeVars.bgSoft,
-  color: themeVars.muted,
+  border: `1px solid ${themeVars.lineSoft}`,
+  color: themeVars.text,
+  fontSize: '0.85rem',
+  fontWeight: 650,
 });
 
 export const recentMeta = style({
@@ -288,16 +255,21 @@ const catThumbBase = {
   display: 'inline-grid',
   placeItems: 'center',
   borderRadius: themeVars.radius2,
-  color: '#fff',
 };
 
 export const catThumb = styleVariants({
-  teal: [{ ...catThumbBase, background: themeVars.accent }],
-  info: [{ ...catThumbBase, background: themeVars.info }],
-  warning: [{ ...catThumbBase, background: themeVars.warning }],
-  violet: [{ ...catThumbBase, background: themeVars.violet }],
-  amber: [{ ...catThumbBase, background: themeVars.amber }],
-  danger: [{ ...catThumbBase, background: themeVars.danger }],
+  teal: [{ ...catThumbBase, background: themeVars.accentSoft, color: themeVars.accentInk }],
+  info: [{ ...catThumbBase, background: themeVars.infoSoft, color: themeVars.info }],
+  warning: [{ ...catThumbBase, background: themeVars.warningSoft, color: themeVars.warning }],
+  violet: [{ ...catThumbBase, background: themeVars.violetSoft, color: themeVars.violet }],
+  amber: [{ ...catThumbBase, background: themeVars.amberSoft, color: themeVars.amber }],
+  danger: [{ ...catThumbBase, background: themeVars.dangerSoft, color: themeVars.danger }],
+});
+
+export const catInitial = style({
+  fontSize: '0.95rem',
+  fontWeight: 650,
+  lineHeight: 1,
 });
 
 export const catTile = style({
@@ -367,4 +339,22 @@ export const tagNeutral = style({
   borderRadius: '999px',
   background: themeVars.lineSoft,
   color: themeVars.muted,
+});
+
+export const tagSuccess = style({
+  fontSize: '0.68rem',
+  fontWeight: 600,
+  padding: '1px 6px',
+  borderRadius: '999px',
+  background: themeVars.successSoft,
+  color: themeVars.success,
+});
+
+export const tagDanger = style({
+  fontSize: '0.68rem',
+  fontWeight: 600,
+  padding: '1px 6px',
+  borderRadius: '999px',
+  background: themeVars.dangerSoft,
+  color: themeVars.danger,
 });

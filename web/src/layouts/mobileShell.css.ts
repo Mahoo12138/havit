@@ -71,8 +71,8 @@ export const topBarAvatar = style({
   borderRadius: '999px',
   display: 'inline-grid',
   placeItems: 'center',
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
-  color: '#ffffff',
+  background: themeVars.accent,
+  color: themeVars.onAccent,
   fontSize: '0.8rem',
   fontWeight: 700,
   flex: '0 0 auto',
@@ -118,7 +118,7 @@ export const bottomNavItem = style({
   padding: `${themeVars.space1} 0`,
   color: themeVars.muted,
   textDecoration: 'none',
-  fontSize: '0.65rem',
+  fontSize: '0.72rem',
   fontWeight: 500,
   border: 0,
   background: 'transparent',
@@ -145,14 +145,15 @@ export const fabBtn = style({
   borderRadius: '999px',
   display: 'grid',
   placeItems: 'center',
-  background: '#1f2937',
-  color: '#ffffff',
+  // 中央主行动 = 盖章：唯一的大面积印章红
+  background: themeVars.accent,
+  color: themeVars.onAccent,
   border: 0,
-  boxShadow: '0 10px 24px rgba(15, 23, 42, 0.25)',
+  boxShadow: '0 8px 20px rgba(28, 26, 21, 0.28)',
   cursor: 'pointer',
   transition: 'transform 160ms ease, background-color 160ms ease',
   selectors: {
-    '&:hover': { background: '#111827' },
+    '&:hover': { background: themeVars.accentHover },
     '&:active': { transform: 'translateX(-50%) scale(0.96)' },
   },
 });
@@ -166,7 +167,7 @@ export const drawerScrim = style({
   position: 'fixed',
   inset: 0,
   zIndex: 40,
-  background: 'rgba(15, 23, 42, 0.45)',
+  background: 'rgba(28, 26, 21, 0.5)',
   backdropFilter: 'blur(2px)',
 });
 
@@ -196,8 +197,8 @@ export const drawerBrandMark = style({
   height: '2rem',
   placeItems: 'center',
   borderRadius: themeVars.radius2,
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
-  color: '#ffffff',
+  background: themeVars.accent,
+  color: themeVars.onAccent,
   fontSize: '0.95rem',
   fontWeight: 800,
 });
@@ -206,7 +207,7 @@ export const drawerBrandText = style({
   fontSize: '1.05rem',
   fontWeight: 700,
   letterSpacing: '-0.01em',
-  color: '#f1f5f9',
+  color: themeVars.sidebarActiveText,
 });
 
 export const drawerCloseBtn = style({
@@ -267,7 +268,7 @@ export const drawerNavLink = style({
   transition: 'color 160ms ease',
   selectors: {
     '&:hover': {
-      color: '#f1f5f9',
+      color: themeVars.sidebarActiveText,
       textDecoration: 'none',
     },
     '&[data-active="true"]': {
@@ -298,8 +299,8 @@ export const drawerUserAvatar = style({
   borderRadius: '999px',
   display: 'inline-grid',
   placeItems: 'center',
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
-  color: '#ffffff',
+  background: themeVars.accent,
+  color: themeVars.onAccent,
   fontSize: '0.85rem',
   fontWeight: 700,
   flex: '0 0 auto',
@@ -314,7 +315,7 @@ export const drawerUserMeta = style({
 export const drawerUserName = style({
   fontSize: '0.88rem',
   fontWeight: 600,
-  color: '#f1f5f9',
+  color: themeVars.sidebarActiveText,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -339,7 +340,8 @@ export const drawerLogoutBtn = style({
   transition: 'background-color 160ms ease, color 160ms ease',
   selectors: {
     '&:hover': {
-      color: '#f87171',
+      // 抽屉两种配色下都是深色书脊，这里需要亮红保证可读
+      color: '#e07856',
       background: themeVars.sidebarHover,
     },
   },

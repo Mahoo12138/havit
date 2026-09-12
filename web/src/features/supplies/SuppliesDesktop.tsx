@@ -374,7 +374,7 @@ export function SuppliesDesktop() {
         <>
           <div className={uiStyles.supplyKpiStrip}>
             <div className={uiStyles.supplyKpiTile}>
-              <span className={uiStyles.supplyKpiIcon.blue}>
+              <span className={uiStyles.supplyKpiIcon}>
                 <IconPackage size={20} />
               </span>
               <div className={uiStyles.supplyKpiMeta}>
@@ -391,7 +391,7 @@ export function SuppliesDesktop() {
               </div>
             </div>
             <div className={uiStyles.supplyKpiTile}>
-              <span className={uiStyles.supplyKpiIcon.red}>
+              <span className={uiStyles.supplyKpiIcon}>
                 <IconShoppingBag size={20} />
               </span>
               <div className={uiStyles.supplyKpiMeta}>
@@ -404,7 +404,7 @@ export function SuppliesDesktop() {
               </div>
             </div>
             <div className={uiStyles.supplyKpiTile}>
-              <span className={uiStyles.supplyKpiIcon.orange}>
+              <span className={uiStyles.supplyKpiIcon}>
                 <IconAlertTriangle size={20} />
               </span>
               <div className={uiStyles.supplyKpiMeta}>
@@ -418,7 +418,7 @@ export function SuppliesDesktop() {
               </div>
             </div>
             <div className={uiStyles.supplyKpiTile}>
-              <span className={uiStyles.supplyKpiIcon.green}>
+              <span className={uiStyles.supplyKpiIcon}>
                 <IconCheck size={20} />
               </span>
               <div className={uiStyles.supplyKpiMeta}>
@@ -439,7 +439,7 @@ export function SuppliesDesktop() {
               </div>
             </div>
             <div className={uiStyles.supplyKpiTile}>
-              <span className={uiStyles.supplyKpiIcon.violet}>
+              <span className={uiStyles.supplyKpiIcon}>
                 <IconTrendingUp size={20} />
               </span>
               <div className={uiStyles.supplyKpiMeta}>
@@ -506,7 +506,7 @@ export function SuppliesDesktop() {
                     >
                       <div className={uiStyles.supplyForecastHeader}>
                         <div className={uiStyles.supplyForecastThumb}>
-                          <IconPackage size={18} />
+                          {item.name.slice(0, 1)}
                         </div>
                         <div>
                           <div className={uiStyles.supplyForecastName}>
@@ -514,7 +514,9 @@ export function SuppliesDesktop() {
                           </div>
                           <div className={uiStyles.supplyForecastHint}>
                             {hasHistory && daysLeft !== null
-                              ? t('supplies.daysLeft', { count: daysLeft })
+                              ? daysLeft === 0
+                                ? t('supplies.dueNow')
+                                : t('supplies.daysLeft', { count: daysLeft })
                               : t('supplies.insufficientHistory')}
                           </div>
                         </div>
@@ -535,7 +537,7 @@ export function SuppliesDesktop() {
                           <div
                             className={uiStyles.supplyProgressFill}
                             style={{
-                              width: `${progress}%`,
+                              transform: `scaleX(${progress / 100})`,
                               background:
                                 progress < 30
                                   ? 'var(--havit-danger)'
@@ -627,7 +629,11 @@ export function SuppliesDesktop() {
                             : null;
                         const restockLabel =
                           isTypeA && next
-                            ? `${fmtMonthDay(next, locale)} (${t('supplies.daysLeft', { count: daysLeft ?? 0 })})`
+                            ? `${fmtMonthDay(next, locale)} (${
+                                daysLeft === 0
+                                  ? t('supplies.dueNow')
+                                  : t('supplies.daysLeft', { count: daysLeft ?? 0 })
+                              })`
                             : '—';
                         const badgeStatus = isTypeA ? 'low' : stockStatus;
                         return (
@@ -883,15 +889,17 @@ export function SuppliesDesktop() {
                   {t('supplies.last6Months')}
                 </span>
               </div>
-              {allPurchaseEvents.length === 0 ? (
+              {allPurchaseEvents.length === 0 || monthMax <= 1 ? (
                 <div className={uiStyles.supplyChartGrid}>
                   <div
                     style={{
-                      height: '200px',
+                      height: '160px',
                       borderRadius: 'var(--havit-radius2)',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      gap: '0.375rem',
                       color: 'var(--havit-muted)',
                       background: 'var(--havit-bg-soft)',
                       fontSize: '0.85rem',
@@ -905,27 +913,28 @@ export function SuppliesDesktop() {
                   <div
                     style={{
                       height: '200px',
-                      background: `linear-gradient(180deg, var(--havit-accent-soft) 0%, transparent 100%)`,
-                      borderRadius: 'var(--havit-radius2)',
                       display: 'flex',
                       alignItems: 'flex-end',
                       padding: '0 1rem',
+                      borderBottom: '1px solid var(--havit-line)',
                       gap: '6px',
                     }}
                   >
                     {monthBuckets.map((bucket, i) => {
                       const h = Math.max(
-                        4,
-                        Math.round((bucket.total / monthMax) * 90),
+                        2,
+                        Math.round((bucket.total / monthMax) * 100),
                       );
                       return (
                         <div
                           key={bucket.key}
                           style={{
                             flex: 1,
+                            height: '100%',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
+                            justifyContent: 'flex-end',
                             gap: '4px',
                           }}
                           title={`${bucket.label} · ${fmtAmount(bucket.total, chartCurrency, locale)}`}
@@ -935,8 +944,8 @@ export function SuppliesDesktop() {
                               width: '100%',
                               height: `${h}%`,
                               background: 'var(--havit-accent)',
-                              borderRadius: '4px 4px 0 0',
-                              opacity: 0.55 + i * 0.07,
+                              opacity: 0.45 + (i / monthBuckets.length) * 0.55,
+                              borderRadius: '3px 3px 0 0',
                             }}
                           />
                           <span

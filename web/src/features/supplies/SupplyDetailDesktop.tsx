@@ -715,9 +715,11 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                           {daysToNext ?? 0}
                         </span>
                         <span className={uiStyles.supplyLifeCountdownLabel}>
-                          {t('supplies.daysLeft', {
-                            count: daysToNext ?? 0,
-                          })}
+                          {daysToNext === 0
+                            ? t('supplies.dueNow')
+                            : t('supplies.daysLeft', {
+                                count: daysToNext ?? 0,
+                              })}
                         </span>
                       </div>
                       <div className={uiStyles.supplyStatCard}>
@@ -734,7 +736,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                             {t('supplies.medianInterval')}
                           </span>
                           <span className={uiStyles.supplyStatValue}>
-                            {t('supplies.daysLeft', { count: medDays })}
+                            {t('supplies.days', { count: medDays })}
                           </span>
                           <span className={uiStyles.supplyStatHint}>
                             {t('supplies.samples', {

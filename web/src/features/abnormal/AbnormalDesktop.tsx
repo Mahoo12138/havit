@@ -78,12 +78,12 @@ function InlineSelect({
 }
 
 const PROGRESS_COLORS: Record<string, string> = {
-  reporting: '#3b82f6',
-  searching: '#38bdf8',
-  pending_compensation: '#f59e0b',
-  compensated: '#22c55e',
-  scrapped: '#94a3b8',
-  closed: '#16a34a',
+  reporting: '#3f5e8c',
+  searching: '#31708c',
+  pending_compensation: '#92600e',
+  compensated: '#4e6b41',
+  scrapped: '#6f6757',
+  closed: '#3d5a35',
 };
 
 export function AbnormalDesktop() {
@@ -195,7 +195,7 @@ export function AbnormalDesktop() {
       <div className={uiStyles.abnormalPageHeader}>
         <div>
           <h2 className="page-heading" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <IconAlertTriangle size={20} style={{ color: '#ef4444' }} />
+            <IconAlertTriangle size={20} style={{ color: 'var(--havit-danger, #9c2f1d)' }} />
             {t('abnormal.title')}
           </h2>
           <p className="page-kicker" style={{ marginTop: '4px' }}>{t('abnormal.description')}</p>
@@ -225,7 +225,7 @@ export function AbnormalDesktop() {
       <div className={uiStyles.abnormalAlertBanner}>
         <IconAlertTriangle size={16} style={{ flexShrink: 0 }} />
         <span>{t('abnormal.alertBanner')}</span>
-        <a href="#" style={{ marginLeft: 'auto', color: '#c0392b', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+        <a href="#" style={{ marginLeft: 'auto', color: 'var(--havit-danger, #9c2f1d)', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
           {t('abnormal.learnMore')} &gt;
         </a>
       </div>
@@ -502,13 +502,13 @@ export function AbnormalDesktop() {
               segments={progress.map((p) => ({
                 label: progressLabel(p.status),
                 value: p.count,
-                color: PROGRESS_COLORS[p.status] ?? '#94a3b8',
+                color: PROGRESS_COLORS[p.status] ?? '#6f6757',
               }))}
             />
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.72rem' }}>
               {progress.map((p) => (
                 <div key={p.status} className={uiStyles.abnormalLegendItem}>
-                  <div className={uiStyles.abnormalLegendDot} style={{ background: PROGRESS_COLORS[p.status] ?? '#94a3b8' }} />
+                  <div className={uiStyles.abnormalLegendDot} style={{ background: PROGRESS_COLORS[p.status] ?? '#6f6757' }} />
                   <span>{progressLabel(p.status)}</span>
                   <span style={{ color: 'var(--havit-ink)', fontWeight: 600 }}>{p.count}</span>
                 </div>
@@ -529,7 +529,7 @@ export function AbnormalDesktop() {
             </div>
             <div className={uiStyles.abnormalValuationRow}>
               <span style={{ fontSize: '0.78rem', color: 'var(--havit-muted)' }}>{t('abnormal.valuationRecoverable')}</span>
-              <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--havit-success, #16a34a)', fontVariantNumeric: 'tabular-nums' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--havit-success, #4e6b41)', fontVariantNumeric: 'tabular-nums' }}>
                 {formatCurrency(valuation?.recoverable_amount, valuation?.recoverable_currency)}
               </span>
             </div>
@@ -625,11 +625,11 @@ function TrendLineChart({ data }: { data: Array<{ month: string; count: number }
         );
       })}
       {/* Line */}
-      <path d={pathD} fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={pathD} fill="none" stroke="#9c2f1d" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       {/* Dots + labels */}
       {points.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r="3" fill="#ef4444" />
+          <circle cx={p.x} cy={p.y} r="3" fill="#9c2f1d" />
           <text x={p.x} y={p.y - 7} textAnchor="middle" fill="var(--havit-ink)" fontSize="9" fontWeight="600">
             {data[i].count}
           </text>

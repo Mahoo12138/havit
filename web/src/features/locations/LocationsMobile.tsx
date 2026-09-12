@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
-  IconChevronRight, IconMapPin, IconMapPlus, IconPackage, IconPhoto,
-  IconPlus, IconX,
+  IconChevronRight, IconMapPin, IconMapPlus, IconPackage,
+  IconX,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
 import { TextField } from '../../components/ui/text-field';
@@ -12,6 +12,7 @@ import {
   allowedChildTypes, getLocationTypeMeta, LOCATION_TYPES, type LocationType,
 } from '../../features/locations/types';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
+import { useEscapeKey } from '../../utils/useEscapeKey';
 import {
   useLocationsData, breadcrumbOf, locationTypeLabel, formatPrice,
   locationTypeDesc,
@@ -26,6 +27,18 @@ export function LocationsMobile() {
   // Drill-down: current node ID (null = root level)
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+
+  useEffect(() => {
+    function handlePrimaryAction(event: Event) {
+      const custom = event as CustomEvent<{ path: string; handled: boolean }>;
+      if (!custom.detail?.path.startsWith('/locations')) return;
+      custom.detail.handled = true;
+      if (isOnline) setShowCreate(true);
+    }
+
+    window.addEventListener('havit:mobile-primary-action', handlePrimaryAction);
+    return () => window.removeEventListener('havit:mobile-primary-action', handlePrimaryAction);
+  }, [isOnline]);
 
   const current = currentId ? index.byId.get(currentId) ?? null : null;
   const breadcrumb = breadcrumbOf(index, currentId);
@@ -42,23 +55,25 @@ export function LocationsMobile() {
 
   return (
     <div className={s.page}>
-      {/* Breadcrumb */}
-      <div className={s.breadcrumb}>
-        <span className={s.breadcrumbItem} data-current={!currentId} onClick={() => handleBreadcrumbClick(null)}>
-          {t('locations.tree')}
-        </span>
-        {breadcrumb.map((node, idx) => {
-          const last = idx === breadcrumb.length - 1;
-          return (
-            <span key={node.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-              <span className={s.breadcrumbSep}>/</span>
-              <span className={s.breadcrumbItem} data-current={last} onClick={() => !last && handleBreadcrumbClick(node.id)}>
-                {node.name}
+      {/* Breadcrumb (root level already shows the tree heading below) */}
+      {currentId && (
+        <div className={s.breadcrumb}>
+          <span className={s.breadcrumbItem} onClick={() => handleBreadcrumbClick(null)}>
+            {t('locations.tree')}
+          </span>
+          {breadcrumb.map((node, idx) => {
+            const last = idx === breadcrumb.length - 1;
+            return (
+              <span key={node.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span className={s.breadcrumbSep}>/</span>
+                <span className={s.breadcrumbItem} data-current={last} onClick={() => !last && handleBreadcrumbClick(node.id)}>
+                  {node.name}
+                </span>
               </span>
-            </span>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Current node info card */}
       {current && (
@@ -119,7 +134,7 @@ export function LocationsMobile() {
           ) : (
             directItems.map((it) => (
               <Link key={it.id} to="/items/$itemId" params={{ itemId: it.id }} className={s.itemRow}>
-                <span className={s.itemThumb}><IconPhoto size={16} /></span>
+                <span className={s.itemThumb}>{it.name.slice(0, 1)}</span>
                 <div className={s.itemMeta}>
                   <span className={s.itemName}>{it.name}</span>
                   <span className={s.itemSub}>
@@ -127,7 +142,7 @@ export function LocationsMobile() {
                   </span>
                 </div>
                 <span className={s.itemPrice}>
-                  {it.purchase_price ? formatPrice(it.purchase_price, t) : '—'}
+                  {it.purchase_price ? formatPrice(it.purchase_price, t) : ''}
                 </span>
               </Link>
             ))
@@ -144,12 +159,7 @@ export function LocationsMobile() {
         </div>
       )}
 
-      {/* FAB */}
-      <Button type="button" variant="ghost" size="icon" className={s.fab} onClick={() => setShowCreate(true)} disabled={!isOnline} aria-label={t('locations.addRoot')}>
-        <IconPlus size={22} />
-      </Button>
-
-      {/* Create overlay */}
+      {/* Create overlay (opened via the top bar + button) */}
       {showCreate && (
         <CreateOverlay
           parent={current}
@@ -221,6 +231,7 @@ function CreateOverlay({ parent, onClose, onSubmit, pending, isOnline }: {
   pending: boolean; isOnline: boolean;
 }) {
   const { t } = useTranslation();
+  useEscapeKey(onClose);
   const allowed = allowedChildTypes(parent?.type ?? null);
   const [name, setName] = useState('');
   const [type, setType] = useState<LocationType>(allowed[0] ?? 'room');

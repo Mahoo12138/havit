@@ -106,7 +106,7 @@ export function QrScanner({ onDetected, busy }: QrScannerProps) {
         )}
       </div>
 
-      {error && <span style={{ color: 'var(--danger, #c53030)' }}>{error}</span>}
+      {error && <span style={{ color: 'var(--havit-danger, #9c2f1d)' }}>{error}</span>}
       {active && <span className={uiStyles.muted}>{t('capture.scanning')}</span>}
     </div>
   );

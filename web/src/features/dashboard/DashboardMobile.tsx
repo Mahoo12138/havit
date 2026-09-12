@@ -12,11 +12,11 @@ import {
   IconFileImport,
   IconMap2,
   IconPackage,
-  IconPhoto,
   IconPlus,
   type Icon,
 } from '@tabler/icons-react';
 import { Badge } from '../../components/ui/badge';
+import { uiStyles } from '../../components/ui';
 import type { Item } from '../../api/client';
 import {
   useDashboardData,
@@ -32,19 +32,21 @@ const quickActions: Array<{
   to: string;
   translationKey: string;
   icon: Icon;
-  tone: 'teal' | 'info' | 'warning' | 'violet' | 'amber' | 'success';
 }> = [
-  { to: '/assets', translationKey: 'quickAction.newItem', icon: IconPlus, tone: 'teal' },
-  { to: '/capture', translationKey: 'quickAction.scan', icon: IconBarcode, tone: 'info' },
-  { to: '/locations', translationKey: 'quickAction.manageLocations', icon: IconMap2, tone: 'violet' },
-  { to: '/loans', translationKey: 'quickAction.registerLoan', icon: IconClipboardList, tone: 'warning' },
-  { to: '/import', translationKey: 'quickAction.batchImport', icon: IconFileImport, tone: 'amber' },
-  { to: '/operations', translationKey: 'quickAction.export', icon: IconDatabaseExport, tone: 'success' },
+  { to: '/assets', translationKey: 'quickAction.newItem', icon: IconPlus },
+  { to: '/capture', translationKey: 'quickAction.scan', icon: IconBarcode },
+  { to: '/locations', translationKey: 'quickAction.manageLocations', icon: IconMap2 },
+  { to: '/loans', translationKey: 'quickAction.registerLoan', icon: IconClipboardList },
+  { to: '/import', translationKey: 'quickAction.batchImport', icon: IconFileImport },
+  { to: '/operations', translationKey: 'quickAction.export', icon: IconDatabaseExport },
 ];
 
 export function DashboardMobile() {
   const { t, me, items, locs, reminders, totals, categoryBreakdown, recent, locationTotal } =
     useDashboardData();
+  const itemNames = new Map(
+    (items.data?.items ?? []).map((it) => [it.id, it.name] as const),
+  );
 
   return (
     <div className={s.page}>
@@ -57,13 +59,13 @@ export function DashboardMobile() {
       </div>
 
       {/* KPI horizontal scroll */}
-      <div className={s.kpiScroll}>
-        <KpiCard icon={IconPackage} label={t('kpi.totalItems')} value={totals.totalItems} tone="teal" loading={items.isPending} />
-        <KpiCard icon={IconCoin} label={t('kpi.totalValue')} value={totals.totalValue > 0 ? formatPrice(totals.totalValue, t) : '—'} tone="warning" loading={items.isPending} />
-        <KpiCard icon={IconCategory2} label={t('kpi.categories')} value={totals.categoryCount} tone="info" loading={items.isPending} />
-        <KpiCard icon={IconBox} label={t('kpi.inStock')} value={totals.inStock} tone="violet" loading={items.isPending} />
-        <KpiCard icon={IconBuildingWarehouse} label={t('kpi.locations')} value={locationTotal ?? '—'} tone="danger" loading={locs.isPending} />
-      </div>
+        <div className={s.kpiScroll}>
+          <KpiCard icon={IconPackage} label={t('kpi.totalItems')} value={totals.totalItems} loading={items.isPending} />
+          <KpiCard icon={IconCoin} label={t('kpi.totalValue')} value={formatPrice(totals.totalValue, t)} loading={items.isPending} />
+          <KpiCard icon={IconCategory2} label={t('kpi.categories')} value={totals.categoryCount} loading={items.isPending} />
+          <KpiCard icon={IconBox} label={t('kpi.inStock')} value={totals.inStock} loading={items.isPending} />
+          <KpiCard icon={IconBuildingWarehouse} label={t('kpi.locations')} value={locationTotal ?? '—'} loading={locs.isPending} />
+        </div>
 
       {/* Quick actions */}
       <section className={s.section}>
@@ -76,7 +78,7 @@ export function DashboardMobile() {
               const Icon = qa.icon;
               return (
                 <Link key={qa.to} to={qa.to} className={s.quickItem}>
-                  <span className={s.quickIcon[qa.tone]}><Icon size={18} /></span>
+                  <span className={s.quickIcon}><Icon size={18} /></span>
                   {t(qa.translationKey)}
                 </Link>
               );
@@ -106,7 +108,9 @@ export function DashboardMobile() {
                 const tone = CATEGORY_PALETTE[idx % CATEGORY_PALETTE.length];
                 return (
                   <Link key={name} className={s.catTile} to="/assets" search={{ category: name } as never}>
-                    <div className={s.catThumb[tone]}><IconPhoto size={18} /></div>
+                    <div className={s.catThumb[tone]}>
+                      <span className={s.catInitial}>{name.slice(0, 1)}</span>
+                    </div>
                     <span className={s.catName}>{name}</span>
                     <span className={s.catCount}>{count} {t('common.items')}</span>
                   </Link>
@@ -133,6 +137,12 @@ export function DashboardMobile() {
               sub={t('dashboard.noItemsHint')}
             />
           </div>
+        ) : items.isPending ? (
+          <div className={s.sectionBody} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+            {[0, 1, 2].map((i) => (
+              <span key={i} className={uiStyles.skeletonLine} style={{ width: `${78 - i * 14}%` }} />
+            ))}
+          </div>
         ) : (
           recent.map((it) => <RecentRow key={it.id} item={it} />)
         )}
@@ -148,13 +158,18 @@ export function DashboardMobile() {
         </header>
         <div className={s.sectionBody}>
           {reminders.isPending ? (
-            <div className={s.reminderEmpty}>{t('common.loading')}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+              <span className={uiStyles.skeletonLine} style={{ width: '80%' }} />
+              <span className={uiStyles.skeletonLine} style={{ width: '55%' }} />
+            </div>
           ) : (reminders.data?.reminders ?? []).length === 0 ? (
             <div className={s.reminderEmpty}>{t('dashboard.noReminders')}</div>
           ) : (
             (reminders.data?.reminders ?? []).slice(0, 5).map((r: any) => (
               <div key={r.id} className={s.reminderRow}>
-                <span>{t(`reminder.${r.type}`, r.type)} — {r.item_id}</span>
+                <span>
+                  {t(`reminder.${r.type}`, r.type)} — {itemNames.get(r.item_id) ?? r.item_id}
+                </span>
                 <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
               </div>
             ))
@@ -198,19 +213,22 @@ export function DashboardMobile() {
 /* ── sub-components ── */
 
 function KpiCard({
-  icon: Icon, label, value, tone, loading,
+  icon: Icon, label, value, loading,
 }: {
   icon: Icon;
   label: string;
   value: number | string;
-  tone: keyof typeof s.kpiIconSm;
   loading?: boolean;
 }) {
   return (
     <div className={s.kpiCard}>
-      <span className={s.kpiIconSm[tone]}><Icon size={18} /></span>
+      <span className={s.kpiIconSm}><Icon size={18} /></span>
       <span className={s.kpiLabel}>{label}</span>
-      <span className={s.kpiValue}>{loading ? '—' : value}</span>
+      {loading ? (
+        <span className={uiStyles.skeletonLine} style={{ width: '2.5rem', height: '1.15rem' }} />
+      ) : (
+        <span className={s.kpiValue}>{value}</span>
+      )}
     </div>
   );
 }
@@ -227,11 +245,13 @@ function RecentRow({ item: it }: { item: Item }) {
   const tagClass =
     variant === 'info' ? s.tagInfo
     : variant === 'warning' ? s.tagWarning
+    : variant === 'success' ? s.tagSuccess
+    : variant === 'danger' ? s.tagDanger
     : s.tagNeutral;
 
   return (
     <Link to="/items/$itemId" params={{ itemId: it.id }} className={s.recentCard}>
-      <span className={s.recentThumb}><IconPhoto size={18} /></span>
+      <span className={s.recentThumb}>{it.name.slice(0, 1)}</span>
       <div className={s.recentMeta}>
         <span className={s.recentName}>{it.name}</span>
         <span className={s.recentSub}>
@@ -240,9 +260,9 @@ function RecentRow({ item: it }: { item: Item }) {
       </div>
       <div className={s.recentRight}>
         <span className={tagClass}>{statusLabel(it.status)}</span>
-        <span className={s.recentPrice}>
-          {it.purchase_price ? formatPrice(it.purchase_price, t) : '—'}
-        </span>
+        {it.purchase_price ? (
+          <span className={s.recentPrice}>{formatPrice(it.purchase_price, t)}</span>
+        ) : null}
       </div>
     </Link>
   );
@@ -253,7 +273,7 @@ function EmptyState({ icon, title, sub }: { icon: React.ReactNode; title: string
     <div className={s.emptyState}>
       <span className={s.emptyIcon}>{icon}</span>
       <strong>{title}</strong>
-      <span style={{ color: 'var(--color-muted, #7b8497)', fontSize: '0.82rem' }}>{sub}</span>
+      <span style={{ color: 'var(--havit-muted, #6f6757)', fontSize: '0.82rem' }}>{sub}</span>
     </div>
   );
 }

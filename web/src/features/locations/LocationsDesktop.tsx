@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {
   IconEdit, IconMapPin, IconMapPlus, IconPackage,
-  IconPhoto, IconPlus, IconPrinter, IconQrcode, IconTrash,
+  IconPlus, IconPrinter, IconQrcode, IconTrash,
 } from '@tabler/icons-react';
 import {
   Row, Stack, StackTight, uiStyles,
@@ -251,10 +251,10 @@ function LocationDetail({ location, breadcrumb, children, directItems, childrenT
           <div className={uiStyles.detailItemList}>
             {directItems.map((it: any) => (
               <Link key={it.id} to="/items/$itemId" params={{ itemId: it.id }} className={uiStyles.detailItemRow}>
-                <span className={uiStyles.recentThumb}><IconPhoto size={18} /></span>
+                <span className={uiStyles.recentThumb}>{it.name.slice(0, 1)}</span>
                 <div className={uiStyles.recentMeta}><span className={uiStyles.recentName}>{it.name}</span><span className={uiStyles.recentSub}>{it.category ?? t('locations.uncategorized')} · {t(`status.${it.status}`, it.status)}</span></div>
                 {it.tags?.length > 0 && <div className={uiStyles.recentTags}>{it.tags.slice(0, 2).map((tag: any) => <span key={tag.id} className={uiStyles.tagChipNeutral}>{tag.name}</span>)}</div>}
-                <span className={uiStyles.detailItemPrice}>{it.purchase_price ? formatPrice(it.purchase_price, t) : '—'}</span>
+                <span className={uiStyles.detailItemPrice}>{it.purchase_price ? formatPrice(it.purchase_price, t) : ''}</span>
               </Link>
             ))}
           </div>

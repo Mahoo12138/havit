@@ -5,24 +5,21 @@ import { useTranslation } from 'react-i18next';
 import {
   IconBell,
   IconHome,
-  IconInfoCircle,
   IconLogout,
   IconMenu2,
   IconSearch,
-  IconWorld,
   IconX,
 } from '@tabler/icons-react';
 import {
-  RowBetween,
   uiStyles,
 } from '../components/ui';
-import { Alert } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { SelectField } from '../components/ui/select-field';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
+import { DemoBanner } from './DemoBanner';
 import { getNavSections, formatToday } from './nav-data';
 
 interface ShellProps {
@@ -130,10 +127,6 @@ export function DesktopShell({ systemStatus }: ShellProps) {
 
         <div className={uiStyles.sidebarFooter}>
           <div style={{ padding: '0.5rem 0.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--sidebar-muted, #7b8497)', fontSize: '0.75rem' }}>
-              <IconWorld size={14} />
-              <span>{t('settings.language')}</span>
-            </div>
             <SelectField
               label={t('settings.language')}
               options={[
@@ -194,7 +187,6 @@ export function DesktopShell({ systemStatus }: ShellProps) {
             <span className={uiStyles.shellHeaderDate}>{formatToday(t)}</span>
             <Button variant="subtle" className={uiStyles.headerIconBtn} aria-label={t('common.notifications')}>
               <IconBell size={18} />
-              <span className={uiStyles.headerIconDot} aria-hidden />
             </Button>
             <span className={uiStyles.headerAvatar} aria-label={username}>
               {initials}
@@ -205,27 +197,12 @@ export function DesktopShell({ systemStatus }: ShellProps) {
         <main className={uiStyles.shellMain}>
           <div className="page-shell">
             {systemStatus.mode === 'demo' && (
-              <DemoBanner status={systemStatus} />
+              <DemoBanner version={systemStatus.version} />
             )}
             <Outlet />
           </div>
         </main>
       </div>
-    </div>
-  );
-}
-
-function DemoBanner({ status }: { status: SystemStatus }) {
-  const { t } = useTranslation();
-  return (
-    <div className={uiStyles.bannerOffset}>
-      <Alert icon={<IconInfoCircle size={18} />}>
-        <RowBetween>
-          <strong>{t('demo.mode')}</strong>
-          <span>{t('demo.version')} {status.version}</span>
-        </RowBetween>
-        <div>{t('demo.description')}</div>
-      </Alert>
     </div>
   );
 }

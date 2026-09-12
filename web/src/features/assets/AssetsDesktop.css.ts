@@ -80,9 +80,11 @@ export const statLabel = style({
 
 export const statValue = style({
   color: themeVars.ink,
+  fontFamily: themeVars.fontSerif,
   fontSize: '1.55rem',
   lineHeight: 1.1,
-  fontWeight: 760,
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -94,47 +96,15 @@ export const statNote = style({
   whiteSpace: 'nowrap',
 });
 
-export const statIcon = styleVariants({
-  blue: {
-    width: '2.1rem',
-    height: '2.1rem',
-    display: 'inline-grid',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.infoSoft,
-    color: themeVars.info,
-    flex: '0 0 auto',
-  },
-  green: {
-    width: '2.1rem',
-    height: '2.1rem',
-    display: 'inline-grid',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.successSoft,
-    color: themeVars.success,
-    flex: '0 0 auto',
-  },
-  orange: {
-    width: '2.1rem',
-    height: '2.1rem',
-    display: 'inline-grid',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.warningSoft,
-    color: themeVars.warning,
-    flex: '0 0 auto',
-  },
-  red: {
-    width: '2.1rem',
-    height: '2.1rem',
-    display: 'inline-grid',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.dangerSoft,
-    color: themeVars.danger,
-    flex: '0 0 auto',
-  },
+export const statIcon = style({
+  width: '2.1rem',
+  height: '2.1rem',
+  display: 'inline-grid',
+  placeItems: 'center',
+  borderRadius: themeVars.radius2,
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
+  flex: '0 0 auto',
 });
 
 export const bodyGrid = style({
@@ -282,8 +252,10 @@ export const itemThumb = style({
   placeItems: 'center',
   flex: '0 0 auto',
   borderRadius: themeVars.radius2,
-  background: `linear-gradient(145deg, ${themeVars.bgSoft}, ${themeVars.lineSoft})`,
-  color: themeVars.muted,
+  background: themeVars.bgSoft,
+  color: themeVars.text,
+  fontSize: '0.95rem',
+  fontWeight: 650,
   border: `1px solid ${themeVars.lineSoft}`,
 });
 

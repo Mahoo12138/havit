@@ -12,7 +12,6 @@ import {
   IconFileImport,
   IconMap2,
   IconPackage,
-  IconPhoto,
   IconPlus,
   type Icon,
 } from '@tabler/icons-react';
@@ -33,19 +32,21 @@ const quickActions: Array<{
   to: string;
   translationKey: string;
   icon: Icon;
-  tone: 'teal' | 'info' | 'warning' | 'violet' | 'amber' | 'success';
 }> = [
-  { to: '/assets', translationKey: 'quickAction.newItem', icon: IconPlus, tone: 'teal' },
-  { to: '/capture', translationKey: 'quickAction.scan', icon: IconBarcode, tone: 'info' },
-  { to: '/locations', translationKey: 'quickAction.manageLocations', icon: IconMap2, tone: 'violet' },
-  { to: '/loans', translationKey: 'quickAction.registerLoan', icon: IconClipboardList, tone: 'warning' },
-  { to: '/import', translationKey: 'quickAction.batchImport', icon: IconFileImport, tone: 'amber' },
-  { to: '/operations', translationKey: 'quickAction.export', icon: IconDatabaseExport, tone: 'success' },
+  { to: '/assets', translationKey: 'quickAction.newItem', icon: IconPlus },
+  { to: '/capture', translationKey: 'quickAction.scan', icon: IconBarcode },
+  { to: '/locations', translationKey: 'quickAction.manageLocations', icon: IconMap2 },
+  { to: '/loans', translationKey: 'quickAction.registerLoan', icon: IconClipboardList },
+  { to: '/import', translationKey: 'quickAction.batchImport', icon: IconFileImport },
+  { to: '/operations', translationKey: 'quickAction.export', icon: IconDatabaseExport },
 ];
 
 export function DashboardDesktop() {
   const { t, me, items, locs, reminders, totals, categoryBreakdown, recent, locationTotal } =
     useDashboardData();
+  const itemNames = new Map(
+    (items.data?.items ?? []).map((it) => [it.id, it.name] as const),
+  );
 
   return (
     <div className={uiStyles.dashboardLayout}>
@@ -53,20 +54,24 @@ export function DashboardDesktop() {
         <Greeting username={me.data?.username} />
 
         <div className={uiStyles.kpiStrip}>
-          <Kpi icon={IconPackage} label={t('kpi.totalItems')} value={totals.totalItems} tone="teal" loading={items.isPending} />
-          <Kpi icon={IconCoin} label={t('kpi.totalValue')} value={totals.totalValue > 0 ? formatPrice(totals.totalValue, t) : '—'} tone="warning" loading={items.isPending} />
-          <Kpi icon={IconCategory2} label={t('kpi.categories')} value={totals.categoryCount} tone="info" loading={items.isPending} />
-          <Kpi icon={IconBox} label={t('kpi.inStock')} value={totals.inStock} tone="violet" loading={items.isPending} />
-          <Kpi icon={IconBuildingWarehouse} label={t('kpi.locations')} value={locationTotal ?? '—'} tone="danger" loading={locs.isPending} />
+          <Kpi icon={IconPackage} label={t('kpi.totalItems')} value={totals.totalItems} loading={items.isPending} />
+          <Kpi icon={IconCoin} label={t('kpi.totalValue')} value={formatPrice(totals.totalValue, t)} loading={items.isPending} />
+          <Kpi icon={IconCategory2} label={t('kpi.categories')} value={totals.categoryCount} loading={items.isPending} />
+          <Kpi icon={IconBox} label={t('kpi.inStock')} value={totals.inStock} loading={items.isPending} />
+          <Kpi icon={IconBuildingWarehouse} label={t('kpi.locations')} value={locationTotal ?? '—'} loading={locs.isPending} />
         </div>
 
         <CategoryOverview categories={categoryBreakdown} empty={!items.isPending && categoryBreakdown.length === 0} />
-        <RecentAdditions items={recent} empty={!items.isPending && recent.length === 0} />
+        <RecentAdditions items={recent} loading={items.isPending} empty={!items.isPending && recent.length === 0} />
       </div>
 
       <aside className={uiStyles.dashboardRail}>
         <QuickActionsCard />
-        <RemindersCard reminders={reminders.data?.reminders ?? []} loading={reminders.isPending} />
+        <RemindersCard
+          reminders={reminders.data?.reminders ?? []}
+          loading={reminders.isPending}
+          itemNames={itemNames}
+        />
         <LocationsCard tree={locs.data?.tree ?? []} loading={locs.isPending} />
       </aside>
     </div>
@@ -79,7 +84,7 @@ function Greeting({ username }: { username: string | undefined }) {
     <div className={uiStyles.greetingRow}>
       <div>
         <h1 className="page-heading">
-          {formatGreeting(t)}，{username ?? t('common.friend')} <span aria-hidden>👋</span>
+          {formatGreeting(t)}，{username ?? t('common.friend')}
         </h1>
         <p className="page-kicker">{t('dashboard.subtitle')}</p>
       </div>
@@ -88,21 +93,24 @@ function Greeting({ username }: { username: string | undefined }) {
 }
 
 function Kpi({
-  icon: Icon, label, value, tone, loading,
+  icon: Icon, label, value, loading,
 }: {
   icon: Icon;
   label: string;
   value: number | string;
-  tone: keyof typeof uiStyles.kpiIcon;
   loading?: boolean;
 }) {
   return (
     <div className={uiStyles.kpiTile}>
-      <span className={uiStyles.kpiIcon[tone]}><Icon size={20} /></span>
       <div className={uiStyles.kpiMeta}>
+        <span className={uiStyles.kpiIcon}><Icon size={14} /></span>
         <span className={uiStyles.kpiLabel}>{label}</span>
-        <span className={uiStyles.kpiValue}>{loading ? '—' : value}</span>
       </div>
+      {loading ? (
+        <span className={uiStyles.skeletonLine} style={{ width: '3.5rem', height: '1.5rem' }} />
+      ) : (
+        <span className={uiStyles.kpiValue}>{value}</span>
+      )}
     </div>
   );
 }
@@ -131,10 +139,12 @@ function CategoryOverview({ categories, empty }: { categories: Array<[string, nu
               return (
                 <Link key={name} className={uiStyles.categoryTile} to="/assets" search={{ category: name } as never}>
                   <div className={uiStyles.categoryThumb[tone]}>
-                    <IconPhoto size={22} />
+                    <span className={uiStyles.categoryInitial}>{name.slice(0, 1)}</span>
                   </div>
-                  <span className={uiStyles.categoryName}>{name}</span>
-                  <span className={uiStyles.categoryCount}>{count} {t('common.items')}</span>
+                  <div className={uiStyles.categoryMeta}>
+                    <span className={uiStyles.categoryName}>{name}</span>
+                    <span className={uiStyles.categoryCount}>{count} {t('common.items')}</span>
+                  </div>
                 </Link>
               );
             })}
@@ -145,7 +155,7 @@ function CategoryOverview({ categories, empty }: { categories: Array<[string, nu
   );
 }
 
-function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
+function RecentAdditions({ items, loading, empty }: { items: Item[]; loading?: boolean; empty: boolean }) {
   const { t } = useTranslation();
   const statusLabel = (status: string): string => {
     const key = `status.${status}`;
@@ -165,6 +175,12 @@ function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
         <div className={uiStyles.sectionBody}>
           <EmptyHint icon={<IconPackage size={20} />} title={t('dashboard.noItems')} sub={t('dashboard.noItemsHint')} />
         </div>
+      ) : loading ? (
+        <div className={uiStyles.sectionBody} style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
+          {[0, 1, 2].map((i) => (
+            <span key={i} className={uiStyles.skeletonLine} style={{ width: `${78 - i * 14}%` }} />
+          ))}
+        </div>
       ) : (
         <div className={uiStyles.recentList}>
           {items.map((it) => {
@@ -174,12 +190,14 @@ function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
                 ? uiStyles.tagChipInfo
                 : variant === 'warning'
                   ? uiStyles.tagChipWarning
-                  : variant === 'danger'
-                    ? uiStyles.tagChip
-                    : uiStyles.tagChipNeutral;
+                  : variant === 'success'
+                    ? uiStyles.tagChipSuccess
+                    : variant === 'danger'
+                      ? uiStyles.tagChipDanger
+                      : uiStyles.tagChipNeutral;
             return (
               <Link key={it.id} to="/items/$itemId" params={{ itemId: it.id }} className={uiStyles.recentRow}>
-                <span className={uiStyles.recentThumb}><IconPhoto size={20} /></span>
+                <span className={uiStyles.recentThumb}>{it.name.slice(0, 1)}</span>
                 <div className={uiStyles.recentMeta}>
                   <span className={uiStyles.recentName}>{it.name}</span>
                   <span className={uiStyles.recentSub}>
@@ -189,9 +207,11 @@ function RecentAdditions({ items, empty }: { items: Item[]; empty: boolean }) {
                 <div className={uiStyles.recentTags}>
                   <span className={variantClass}>{statusLabel(it.status)}</span>
                 </div>
-                <span className={uiStyles.recentPrice}>
-                  {it.purchase_price ? formatPrice(it.purchase_price, t) : '—'}
-                </span>
+                {it.purchase_price ? (
+                  <span className={uiStyles.recentPrice}>{formatPrice(it.purchase_price, t)}</span>
+                ) : (
+                  <span className={uiStyles.recentPrice} />
+                )}
               </Link>
             );
           })}
@@ -214,7 +234,7 @@ function QuickActionsCard() {
             const Icon = qa.icon;
             return (
               <Link key={qa.to} to={qa.to} className={uiStyles.quickAction}>
-                <span className={uiStyles.quickActionIcon[qa.tone]}><Icon size={18} /></span>
+                <span className={uiStyles.quickActionIcon}><Icon size={18} /></span>
                 {t(qa.translationKey)}
               </Link>
             );
@@ -225,7 +245,15 @@ function QuickActionsCard() {
   );
 }
 
-function RemindersCard({ reminders, loading }: { reminders: any[]; loading: boolean }) {
+function RemindersCard({
+  reminders,
+  loading,
+  itemNames,
+}: {
+  reminders: any[];
+  loading: boolean;
+  itemNames: Map<string, string>;
+}) {
   const { t } = useTranslation();
   return (
     <section className={uiStyles.sectionCard}>
@@ -237,14 +265,19 @@ function RemindersCard({ reminders, loading }: { reminders: any[]; loading: bool
       </header>
       <div className={uiStyles.sectionBody}>
         {loading ? (
-          <div className={uiStyles.reminderEmpty}>{t('common.loading')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <span className={uiStyles.skeletonLine} style={{ width: '80%' }} />
+            <span className={uiStyles.skeletonLine} style={{ width: '60%' }} />
+          </div>
         ) : reminders.length === 0 ? (
           <div className={uiStyles.reminderEmpty}>{t('dashboard.noReminders')}</div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {reminders.slice(0, 5).map((r: any) => (
               <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{t(`reminder.${r.type}`, r.type)} — {r.item_id}</span>
+                <span>
+                  {t(`reminder.${r.type}`, r.type)} — {itemNames.get(r.item_id) ?? r.item_id}
+                </span>
                 <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
               </div>
             ))}
@@ -267,7 +300,10 @@ function LocationsCard({ tree, loading }: { tree: Location[]; loading: boolean }
       </header>
       <ScrollArea className={uiStyles.locationTreeWrap}>
         {loading ? (
-          <div className={uiStyles.reminderEmpty}>{t('common.loading')}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+            <span className={uiStyles.skeletonLine} style={{ width: '70%' }} />
+            <span className={uiStyles.skeletonLine} style={{ width: '50%' }} />
+          </div>
         ) : tree.length === 0 ? (
           <div className={uiStyles.reminderEmpty}>{t('dashboard.noLocations')}</div>
         ) : (

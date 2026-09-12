@@ -45,7 +45,6 @@ import { formatDate, formatPrice, getWarrantyStatus, useAssetsData } from './use
 import * as s from './AssetsDesktop.css';
 
 type AssetTab = string;
-type StatTone = keyof typeof s.statIcon;
 
 export function AssetsDesktop() {
   const data = useAssetsData();
@@ -145,10 +144,10 @@ export function AssetsDesktop() {
       ) : (
         <>
           <section className={s.statsGrid} aria-label={t('assets.overview')}>
-            <StatCard icon={IconPackage} tone="blue" label={t('assets.totalAssets')} value={stats.total} note={t('assets.totalAssetsHint')} />
-            <StatCard icon={IconMapPin} tone="green" label={t('assets.inUseCount')} value={stats.inUse} note={t('assets.inUseCountHint')} />
-            <StatCard icon={IconShieldCheck} tone="orange" label={t('assets.underWarranty')} value={stats.warrantyActive} note={t('assets.underWarrantyHint')} />
-            <StatCard icon={IconAlertTriangle} tone="red" label={t('assets.needsAttention')} value={stats.warrantyExpiring} note={t('assets.needsAttentionHint')} />
+            <StatCard icon={IconPackage} label={t('assets.totalAssets')} value={stats.total} note={t('assets.totalAssetsHint')} />
+            <StatCard icon={IconMapPin} label={t('assets.inUseCount')} value={stats.inUse} note={t('assets.inUseCountHint')} />
+            <StatCard icon={IconShieldCheck} label={t('assets.underWarranty')} value={stats.warrantyActive} note={t('assets.underWarrantyHint')} />
+            <StatCard icon={IconAlertTriangle} label={t('assets.needsAttention')} value={stats.warrantyExpiring} note={t('assets.needsAttentionHint')} />
           </section>
 
           <section className={s.bodyGrid}>
@@ -363,7 +362,7 @@ function AssetTable({ items, locOptions, t, isOnline, updateStatus, archive, onV
               <tr className={s.tableRow} key={item.id}>
                 <td className={s.tableCell}>
                   <div className={s.itemInfo}>
-                    <div className={s.itemThumb}><IconPackage size={16} /></div>
+                    <div className={s.itemThumb}>{item.name.slice(0, 1)}</div>
                     <div className={s.itemMeta}>
                       <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
                       <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
@@ -477,7 +476,7 @@ function AssetCards({ items, locOptions, t }: {
         return (
           <article className={s.assetCard} key={item.id}>
             <div className={s.cardHeader}>
-              <div className={s.itemThumb}><IconPackage size={18} /></div>
+              <div className={s.itemThumb}>{item.name.slice(0, 1)}</div>
               <div className={s.itemMeta}>
                 <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
                 <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
@@ -498,9 +497,8 @@ function AssetCards({ items, locOptions, t }: {
   );
 }
 
-function StatCard({ icon: Icon, tone, label, value, note }: {
+function StatCard({ icon: Icon, label, value, note }: {
   icon: TablerIcon;
-  tone: StatTone;
   label: string;
   value: number;
   note: string;
@@ -512,7 +510,7 @@ function StatCard({ icon: Icon, tone, label, value, note }: {
         <strong className={s.statValue}>{value}</strong>
         <span className={s.statNote}>{note}</span>
       </div>
-      <span className={s.statIcon[tone]}><Icon size={18} /></span>
+      <span className={s.statIcon}><Icon size={18} /></span>
     </article>
   );
 }

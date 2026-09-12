@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
-  IconAlertTriangle, IconMinus, IconPackage, IconPlus,
+  IconAlertTriangle, IconMinus, IconPackage,
   IconShoppingBag, IconX,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
@@ -14,9 +14,12 @@ import { TreeSelectField } from '../../components/ui/tree-select-field';
 import { useToast } from '../../components/ui/use-toast';
 import { itemsApi, locationsApi, suppliesExtendedApi, type Item, type Location } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
+import { useEscapeKey } from '../../utils/useEscapeKey';
 import * as s from '../assets/assetsMobile.css';
 
 type SupplyTab = 'overview' | 'typeA' | 'typeB' | 'restock';
+
+const DAY = 86400;
 
 function getStockStatus(item: Item): 'normal' | 'sufficient' | 'low' | 'below' {
   if (item.current_stock == null || item.min_stock_threshold == null) return 'normal';
@@ -36,6 +39,18 @@ export function SuppliesMobile() {
   const [activeTab, setActiveTab] = useState<SupplyTab>('overview');
   const [addOpen, setAddOpen] = useState(false);
 
+  useEffect(() => {
+    function handlePrimaryAction(event: Event) {
+      const custom = event as CustomEvent<{ path: string; handled: boolean }>;
+      if (!custom.detail?.path.startsWith('/supplies')) return;
+      custom.detail.handled = true;
+      if (isOnline) setAddOpen(true);
+    }
+
+    window.addEventListener('havit:mobile-primary-action', handlePrimaryAction);
+    return () => window.removeEventListener('havit:mobile-primary-action', handlePrimaryAction);
+  }, [isOnline]);
+
   const supplies = useQuery({
     queryKey: ['items', 'supplies'],
     queryFn: async () => {
@@ -53,8 +68,32 @@ export function SuppliesMobile() {
   const typeAItems = items.filter((i) => i.type === 'predictive_supplies');
   const typeBItems = items.filter((i) => i.type === 'tracked_spares');
 
+  const purchaseEventQueries = useQueries({
+    queries: typeAItems.map((it) => ({
+      queryKey: ['supplies', it.id, 'purchase-events'] as const,
+      queryFn: () => suppliesExtendedApi.listPurchaseEvents(it.id),
+    })),
+  });
+
+  const nextPurchaseByItem = useMemo(() => {
+    const map = new Map<string, number | undefined>();
+    typeAItems.forEach((it, idx) => {
+      map.set(it.id, purchaseEventQueries[idx]?.data?.next_purchase_at);
+    });
+    return map;
+  }, [typeAItems, purchaseEventQueries]);
+
+  // 与桌面端同一口径：低库存备件 + 7 天内到期的预测型消耗品都算待补货
   const warningItems = items.filter((it) => {
-    if (it.type === 'tracked_spares') { const s = getStockStatus(it); return s === 'low' || s === 'below'; }
+    if (it.type === 'tracked_spares') {
+      const st = getStockStatus(it);
+      return st === 'low' || st === 'below';
+    }
+    if (it.type === 'predictive_supplies') {
+      const next = nextPurchaseByItem.get(it.id);
+      if (next == null) return false;
+      return next - Math.floor(Date.now() / 1000) <= 7 * DAY;
+    }
     return false;
   });
 
@@ -148,12 +187,7 @@ export function SuppliesMobile() {
         </div>
       )}
 
-      {/* FAB */}
-      <Button type="button" variant="ghost" size="icon" className={s.fab} onClick={() => setAddOpen(true)} disabled={!isOnline} aria-label={t('supplies.addItem')}>
-        <IconPlus size={22} />
-      </Button>
-
-      {/* Simplified create overlay */}
+      {/* Simplified create overlay (opened via the top bar + button) */}
       {addOpen && (
         <MobileAddOverlay
           locationTree={locations.data?.tree ?? []}
@@ -184,6 +218,7 @@ function MobileAddOverlay({ locationTree, isOnline, onClose }: { locationTree: L
   const [name, setName] = useState('');
   const [locationId, setLocationId] = useState('');
   const [stock, setStock] = useState('1');
+  useEscapeKey(onClose);
 
   const create = useMutation({
     mutationFn: () => itemsApi.create({ name: name.trim(), type: 'tracked_spares', location_id: locationId || undefined, current_stock: Number(stock) || 0, min_stock_threshold: 1 }),

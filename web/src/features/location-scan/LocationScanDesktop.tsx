@@ -60,9 +60,9 @@ export function LocationScanDesktop({ initialCode }: { initialCode?: string }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <QrScanner onDetected={handleDetected} busy={scanMutation.isPending} />
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--line, #e2e0d8)' }} />
+            <div style={{ flex: 1, height: '1px', background: 'var(--havit-line, #ddd5c4)' }} />
             <span className={uiStyles.muted}>{t('capture.orManual')}</span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--line, #e2e0d8)' }} />
+            <div style={{ flex: 1, height: '1px', background: 'var(--havit-line, #ddd5c4)' }} />
           </div>
           <TextField
             label={t('locationScan.codeInput')}
@@ -74,7 +74,7 @@ export function LocationScanDesktop({ initialCode }: { initialCode?: string }) {
             {scanMutation.isPending ? t('locationScan.lookupPending') : t('locationScan.lookup')}
           </Button>
           {scanMutation.isError && (
-            <span style={{ color: 'var(--danger, #c53030)' }}>
+            <span style={{ color: 'var(--havit-danger, #9c2f1d)' }}>
               {scanMutation.error instanceof Error
                 ? scanMutation.error.message
                 : t('locationScan.lookupFailed')}

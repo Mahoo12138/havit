@@ -80,7 +80,7 @@ export const photoCount = style({
   bottom: themeVars.space3,
   padding: '0.15rem 0.45rem',
   borderRadius: '999px',
-  background: 'rgba(15, 23, 42, 0.72)',
+  background: 'rgba(28, 26, 21, 0.72)',
   color: '#fff',
   fontSize: '0.72rem',
   fontWeight: 700,
@@ -423,5 +423,5 @@ export const bottomBar = style({
   padding: `${themeVars.space2} ${themeVars.space4} calc(${themeVars.space2} + env(safe-area-inset-bottom, 0px))`,
   borderTop: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
-  boxShadow: '0 -6px 18px rgba(15, 23, 42, 0.06)',
+  boxShadow: '0 -6px 18px rgba(28, 26, 21, 0.07)',
 });

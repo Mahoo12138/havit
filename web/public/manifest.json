@@ -4,8 +4,8 @@
   "description": "个人与家庭的全资产台账",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8f7f4",
-  "theme_color": "#0d9488",
+  "background_color": "#f4f1e9",
+  "theme_color": "#ad3a25",
   "icons": [
     {
       "src": "/pwa-192.svg",

@@ -56,8 +56,7 @@ globalStyle('body', {
   background: themeVars.bg,
   color: themeVars.text,
   fontFamily: themeVars.fontSans,
-  fontFeatureSettings: '"cv11", "ss01"',
-  letterSpacing: '-0.005em',
+  letterSpacing: '0',
   WebkitFontSmoothing: 'antialiased',
   MozOsxFontSmoothing: 'grayscale',
 });
@@ -75,7 +74,7 @@ globalStyle('.auth-screen', {
   minHeight: '100dvh',
   padding: 'clamp(1rem, 4vw, 3rem)',
   background:
-    `radial-gradient(ellipse 70% 50% at 50% 0%, rgba(13, 148, 136, 0.10), transparent 60%), ${themeVars.bg}`,
+    `radial-gradient(ellipse 70% 50% at 50% 0%, rgba(173, 58, 37, 0.07), transparent 60%), ${themeVars.bg}`,
 });
 
 globalStyle('.auth-card', {
@@ -102,11 +101,10 @@ globalStyle('.brand-mark', {
   height: '2.1rem',
   placeItems: 'center',
   borderRadius: themeVars.radius2,
-  background:
-    `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
+  background: themeVars.accent,
   color: themeVars.onAccent,
   fontWeight: 700,
-  boxShadow: `0 4px 12px rgba(13, 148, 136, 0.25)`,
+  boxShadow: '0 2px 6px rgba(28, 26, 21, 0.18)',
 });
 
 globalStyle('.shell-header', {

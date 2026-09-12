@@ -196,7 +196,10 @@ export const itemThumb = style({
   placeItems: 'center',
   borderRadius: themeVars.radius2,
   background: themeVars.bgSoft,
-  color: themeVars.muted,
+  border: `1px solid ${themeVars.lineSoft}`,
+  color: themeVars.text,
+  fontSize: '0.8rem',
+  fontWeight: 650,
 });
 
 export const itemMeta = style({
@@ -252,25 +255,6 @@ export const sectionHead = style({
   justifyContent: 'space-between',
   padding: `${themeVars.space3} ${themeVars.space4}`,
   borderBottom: `1px solid ${themeVars.lineSoft}`,
-});
-
-/* FAB */
-export const fab = style({
-  position: 'fixed',
-  bottom: '5rem',
-  right: themeVars.space4,
-  width: '3rem',
-  height: '3rem',
-  borderRadius: '999px',
-  display: 'grid',
-  placeItems: 'center',
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
-  color: '#ffffff',
-  border: 0,
-  boxShadow: '0 4px 16px rgba(13, 148, 136, 0.35)',
-  cursor: 'pointer',
-  zIndex: 15,
-  selectors: { '&:disabled': { opacity: 0.5, cursor: 'not-allowed' } },
 });
 
 /* Overlay (for create/edit) */

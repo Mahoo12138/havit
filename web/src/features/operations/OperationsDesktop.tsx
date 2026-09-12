@@ -114,7 +114,7 @@ export function OperationsDesktop() {
               <span className={uiStyles.muted}>{t('operations.backupComplete', { path: backupMutation.data.path })}</span>
             )}
 
-            <div style={{ height: '1px', background: 'var(--line, #e2e0d8)', margin: '0.5rem 0' }} />
+            <div style={{ height: '1px', background: 'var(--havit-line, #ddd5c4)', margin: '0.5rem 0' }} />
 
             <Button
               variant="quiet"

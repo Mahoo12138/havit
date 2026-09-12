@@ -10,6 +10,25 @@ export const center = style({
   placeItems: 'center',
 });
 
+const skeletonShimmer = keyframes({
+  '0%': { backgroundPosition: '200% 0' },
+  '100%': { backgroundPosition: '-200% 0' },
+});
+
+export const skeletonLine = style({
+  display: 'block',
+  height: '0.875rem',
+  borderRadius: themeVars.radius1,
+  background: `linear-gradient(90deg, ${themeVars.lineSoft}, ${themeVars.bgSoft}, ${themeVars.lineSoft})`,
+  backgroundSize: '200% 100%',
+  animation: `1.4s ease infinite ${skeletonShimmer}`,
+  '@media': {
+    '(prefers-reduced-motion: reduce)': {
+      animation: 'none',
+    },
+  },
+});
+
 export const stack = style({
   display: 'flex',
   flexDirection: 'column',
@@ -331,24 +350,13 @@ export const headerIconBtn = style({
   },
 });
 
-export const headerIconDot = style({
-  position: 'absolute',
-  top: 8,
-  right: 8,
-  width: 7,
-  height: 7,
-  borderRadius: '999px',
-  background: themeVars.danger,
-  border: `2px solid ${themeVars.panel}`,
-});
-
 export const headerAvatar = style({
   width: '2.25rem',
   height: '2.25rem',
   borderRadius: '999px',
   display: 'inline-grid',
   placeItems: 'center',
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
+  background: themeVars.accent,
   color: themeVars.onAccent,
   fontSize: '0.85rem',
   fontWeight: 700,
@@ -403,7 +411,7 @@ export const shellNav = style({
       width: themeVars.shellNavW,
       zIndex: 50,
       transform: 'translateX(-100%)',
-      transition: 'transform 220ms cubic-bezier(0.34, 1.4, 0.64, 1)',
+      transition: 'transform 220ms cubic-bezier(0.22, 1, 0.36, 1)',
     },
   },
 });
@@ -425,7 +433,7 @@ export const shellNavScrim = style({
       position: 'fixed',
       inset: 0,
       zIndex: 40,
-      background: 'rgba(15, 23, 42, 0.45)',
+      background: 'rgba(28, 26, 21, 0.5)',
       backdropFilter: 'blur(2px)',
     },
   },
@@ -445,8 +453,8 @@ export const sidebarBrandMark = style({
   height: '2rem',
   placeItems: 'center',
   borderRadius: themeVars.radius2,
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
-  color: '#ffffff',
+  background: themeVars.accent,
+  color: themeVars.onAccent,
   fontSize: '0.95rem',
   fontWeight: 800,
 });
@@ -455,7 +463,7 @@ export const sidebarBrandText = style({
   fontSize: '1.05rem',
   fontWeight: 700,
   letterSpacing: '-0.01em',
-  color: '#f1f5f9',
+  color: themeVars.sidebarActiveText,
 });
 
 export const sidebarBrandClose = style({
@@ -513,8 +521,8 @@ export const sidebarUserAvatar = style({
   borderRadius: '999px',
   display: 'inline-grid',
   placeItems: 'center',
-  background: `linear-gradient(135deg, ${themeVars.accent}, ${themeVars.accentHover})`,
-  color: '#ffffff',
+  background: themeVars.accent,
+  color: themeVars.onAccent,
   fontSize: '0.85rem',
   fontWeight: 700,
   flex: '0 0 auto',
@@ -529,7 +537,7 @@ export const sidebarUserMeta = style({
 export const sidebarUserName = style({
   fontSize: '0.88rem',
   fontWeight: 600,
-  color: '#f1f5f9',
+  color: themeVars.sidebarActiveText,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -554,7 +562,8 @@ export const sidebarLogout = style({
   transition: 'background-color 160ms ease, color 160ms ease',
   selectors: {
     '&:hover': {
-      color: '#f87171',
+      // 侧边栏两种配色下都是深色书脊，这里需要亮红保证可读
+      color: '#e07856',
       background: themeVars.sidebarHover,
     },
   },
@@ -623,7 +632,7 @@ export const navLink = style({
   transition: 'color 160ms ease',
   selectors: {
     '&:hover': {
-      color: '#f1f5f9',
+      color: themeVars.sidebarActiveText,
       textDecoration: 'none',
     },
     '&[data-active="true"]': {
@@ -643,7 +652,7 @@ export const navLink = style({
       transition: 'background 160ms ease',
     },
     '&[data-active="true"]::before': {
-      background: themeVars.sidebarActiveText,
+      background: themeVars.accent,
     },
   },
 });
@@ -849,115 +858,60 @@ export const greetingRow = style({
 
 export const kpiStrip = style({
   display: 'grid',
-  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-  gap: themeVars.space4,
-  '@media': {
-    '(max-width: 64em)': {
-      gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
-    },
-  },
+  // One ledger-strip card: 1px gaps over a hairline background read as
+  // dividers that stay correct whichever way the cells wrap.
+  gridTemplateColumns: 'repeat(auto-fit, minmax(7.5rem, 1fr))',
+  gap: 1,
+  padding: 0,
+  background: themeVars.lineSoft,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius3,
+  boxShadow: themeVars.shadowSoft,
+  overflow: 'hidden',
 });
 
 export const kpiTile = style({
   display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  padding: themeVars.space4,
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  padding: `${themeVars.space3} ${themeVars.space4}`,
   background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  boxShadow: themeVars.shadowSoft,
-  transition: 'transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease',
-  selectors: {
-    '&:hover': {
-      transform: 'translateY(-1px)',
-      borderColor: `color-mix(in srgb, ${themeVars.accent} 25%, ${themeVars.line})`,
-      boxShadow: themeVars.shadow,
-    },
-  },
+  minWidth: 0,
 });
 
-export const kpiIcon = styleVariants({
-  teal: [
-    {
-      flex: '0 0 auto',
-      display: 'inline-grid',
-      width: '2.6rem',
-      height: '2.6rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.accentSoft,
-      color: themeVars.accentInk,
-    },
-  ],
-  warning: [
-    {
-      flex: '0 0 auto',
-      display: 'inline-grid',
-      width: '2.6rem',
-      height: '2.6rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.warningSoft,
-      color: themeVars.warning,
-    },
-  ],
-  danger: [
-    {
-      flex: '0 0 auto',
-      display: 'inline-grid',
-      width: '2.6rem',
-      height: '2.6rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.dangerSoft,
-      color: themeVars.danger,
-    },
-  ],
-  info: [
-    {
-      flex: '0 0 auto',
-      display: 'inline-grid',
-      width: '2.6rem',
-      height: '2.6rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.infoSoft,
-      color: themeVars.info,
-    },
-  ],
-  violet: [
-    {
-      flex: '0 0 auto',
-      display: 'inline-grid',
-      width: '2.6rem',
-      height: '2.6rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.violetSoft,
-      color: themeVars.violet,
-    },
-  ],
+export const kpiIcon = style({
+  flex: '0 0 auto',
+  display: 'inline-grid',
+  width: '1.6rem',
+  height: '1.6rem',
+  placeItems: 'center',
+  borderRadius: themeVars.radius1,
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
 });
 
 export const kpiMeta = style({
   display: 'flex',
-  flexDirection: 'column',
-  gap: '2px',
+  alignItems: 'center',
+  gap: themeVars.space2,
   minWidth: 0,
 });
 
 export const kpiLabel = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: '0.75rem',
   fontWeight: 500,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const kpiValue = style({
   color: themeVars.ink,
-  fontSize: '1.5rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
+  fontFamily: themeVars.fontSerif,
+  fontSize: '1.4rem',
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
   lineHeight: 1.1,
   fontVariantNumeric: 'tabular-nums',
 });
@@ -1002,9 +956,10 @@ export const heroPanel = style([
 
 export const statValue = style({
   color: themeVars.ink,
+  fontFamily: themeVars.fontSerif,
   fontSize: '2rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
   lineHeight: 1,
   fontVariantNumeric: 'tabular-nums',
 });
@@ -1067,104 +1022,104 @@ export const categoryRow = style({
 
 export const categoryTile = style({
   display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'flex-start',
-  gap: themeVars.space2,
-  padding: themeVars.space3,
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  padding: `${themeVars.space2} ${themeVars.space3}`,
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius2,
   background: themeVars.panel,
   color: themeVars.text,
   textDecoration: 'none',
-  transition: 'border-color 180ms ease, transform 180ms ease, background-color 180ms ease',
+  transition: 'border-color 180ms ease, background-color 180ms ease',
   cursor: 'pointer',
   selectors: {
     '&:hover': {
       borderColor: `color-mix(in srgb, ${themeVars.accent} 28%, ${themeVars.line})`,
-      transform: 'translateY(-2px)',
       background: themeVars.bgSoft,
       textDecoration: 'none',
     },
   },
 });
 
+const categoryThumbBase = {
+  width: '2.5rem',
+  height: '2.5rem',
+  borderRadius: themeVars.radius2,
+  display: 'grid',
+  placeItems: 'center',
+  flex: '0 0 auto',
+} as const;
+
 export const categoryThumb = styleVariants({
   teal: [
     {
-      width: '100%',
-      aspectRatio: '16 / 10',
-      borderRadius: themeVars.radius1,
-      background: `linear-gradient(135deg, ${themeVars.accentSoft}, color-mix(in srgb, ${themeVars.accent} 22%, ${themeVars.panel}))`,
-      display: 'grid',
-      placeItems: 'center',
+      ...categoryThumbBase,
+      background: themeVars.accentSoft,
       color: themeVars.accentInk,
     },
   ],
   warning: [
     {
-      width: '100%',
-      aspectRatio: '16 / 10',
-      borderRadius: themeVars.radius1,
-      background: `linear-gradient(135deg, ${themeVars.warningSoft}, color-mix(in srgb, ${themeVars.warning} 22%, ${themeVars.panel}))`,
-      display: 'grid',
-      placeItems: 'center',
+      ...categoryThumbBase,
+      background: themeVars.warningSoft,
       color: themeVars.warning,
     },
   ],
   danger: [
     {
-      width: '100%',
-      aspectRatio: '16 / 10',
-      borderRadius: themeVars.radius1,
-      background: `linear-gradient(135deg, ${themeVars.dangerSoft}, color-mix(in srgb, ${themeVars.danger} 22%, ${themeVars.panel}))`,
-      display: 'grid',
-      placeItems: 'center',
+      ...categoryThumbBase,
+      background: themeVars.dangerSoft,
       color: themeVars.danger,
     },
   ],
   info: [
     {
-      width: '100%',
-      aspectRatio: '16 / 10',
-      borderRadius: themeVars.radius1,
-      background: `linear-gradient(135deg, ${themeVars.infoSoft}, color-mix(in srgb, ${themeVars.info} 22%, ${themeVars.panel}))`,
-      display: 'grid',
-      placeItems: 'center',
+      ...categoryThumbBase,
+      background: themeVars.infoSoft,
       color: themeVars.info,
     },
   ],
   violet: [
     {
-      width: '100%',
-      aspectRatio: '16 / 10',
-      borderRadius: themeVars.radius1,
-      background: `linear-gradient(135deg, ${themeVars.violetSoft}, color-mix(in srgb, ${themeVars.violet} 22%, ${themeVars.panel}))`,
-      display: 'grid',
-      placeItems: 'center',
+      ...categoryThumbBase,
+      background: themeVars.violetSoft,
       color: themeVars.violet,
     },
   ],
   amber: [
     {
-      width: '100%',
-      aspectRatio: '16 / 10',
-      borderRadius: themeVars.radius1,
-      background: `linear-gradient(135deg, ${themeVars.amberSoft}, color-mix(in srgb, ${themeVars.amber} 22%, ${themeVars.panel}))`,
-      display: 'grid',
-      placeItems: 'center',
+      ...categoryThumbBase,
+      background: themeVars.amberSoft,
       color: themeVars.amber,
     },
   ],
+});
+
+export const categoryInitial = style({
+  fontSize: '0.95rem',
+  fontWeight: 650,
+  lineHeight: 1,
+});
+
+export const categoryMeta = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '1px',
+  minWidth: 0,
 });
 
 export const categoryName = style({
   fontSize: '0.88rem',
   fontWeight: 600,
   color: themeVars.ink,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
 });
 
 export const categoryCount = style({
-  fontSize: '0.78rem',
+  fontSize: '0.75rem',
   color: themeVars.muted,
 });
 
@@ -1203,10 +1158,13 @@ export const recentThumb = style({
   width: '3rem',
   height: '3rem',
   borderRadius: themeVars.radius2,
-  background: themeVars.lineSoft,
+  background: themeVars.bgSoft,
+  border: `1px solid ${themeVars.lineSoft}`,
   display: 'grid',
   placeItems: 'center',
-  color: themeVars.muted,
+  color: themeVars.text,
+  fontSize: '0.95rem',
+  fontWeight: 650,
   flex: '0 0 auto',
 });
 
@@ -1266,93 +1224,33 @@ export const quickAction = style({
   alignItems: 'center',
   gap: themeVars.space2,
   padding: `${themeVars.space3} ${themeVars.space2}`,
-  border: `1px solid ${themeVars.lineSoft}`,
+  border: 0,
   borderRadius: themeVars.radius2,
-  background: themeVars.panel,
+  background: 'transparent',
   color: themeVars.text,
   textDecoration: 'none',
   fontSize: '0.78rem',
   fontWeight: 500,
   cursor: 'pointer',
-  transition: 'border-color 160ms ease, background-color 160ms ease, transform 200ms ease',
+  transition: 'background-color 160ms ease',
   selectors: {
     '&:hover': {
-      borderColor: `color-mix(in srgb, ${themeVars.accent} 28%, ${themeVars.line})`,
       background: themeVars.bgSoft,
-      transform: 'translateY(-1px)',
       textDecoration: 'none',
     },
   },
 });
 
-export const quickActionIcon = styleVariants({
-  teal: [
-    {
-      display: 'inline-grid',
-      width: '2.4rem',
-      height: '2.4rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.accentSoft,
-      color: themeVars.accentInk,
-    },
-  ],
-  info: [
-    {
-      display: 'inline-grid',
-      width: '2.4rem',
-      height: '2.4rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.infoSoft,
-      color: themeVars.info,
-    },
-  ],
-  warning: [
-    {
-      display: 'inline-grid',
-      width: '2.4rem',
-      height: '2.4rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.warningSoft,
-      color: themeVars.warning,
-    },
-  ],
-  violet: [
-    {
-      display: 'inline-grid',
-      width: '2.4rem',
-      height: '2.4rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.violetSoft,
-      color: themeVars.violet,
-    },
-  ],
-  amber: [
-    {
-      display: 'inline-grid',
-      width: '2.4rem',
-      height: '2.4rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.amberSoft,
-      color: themeVars.amber,
-    },
-  ],
-  success: [
-    {
-      display: 'inline-grid',
-      width: '2.4rem',
-      height: '2.4rem',
-      placeItems: 'center',
-      borderRadius: themeVars.radius2,
-      background: themeVars.successSoft,
-      color: themeVars.success,
-    },
-  ],
+export const quickActionIcon = style({
+  display: 'inline-grid',
+  width: '2.4rem',
+  height: '2.4rem',
+  placeItems: 'center',
+  borderRadius: themeVars.radius2,
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
 });
+
 
 export const reminderItem = style({
   display: 'flex',
@@ -1609,6 +1507,22 @@ export const tagChipWarning = style([
   {
     background: themeVars.warningSoft,
     color: themeVars.warningText,
+  },
+]);
+
+export const tagChipSuccess = style([
+  tagChip,
+  {
+    background: themeVars.successSoft,
+    color: themeVars.success,
+  },
+]);
+
+export const tagChipDanger = style([
+  tagChip,
+  {
+    background: themeVars.dangerSoft,
+    color: themeVars.danger,
   },
 ]);
 
@@ -2047,9 +1961,10 @@ export const metaChipLabel = style({
 
 export const metaChipValue = style({
   color: themeVars.ink,
+  fontFamily: themeVars.fontSerif,
   fontSize: '1.4rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
   fontVariantNumeric: 'tabular-nums',
   '@media': {
     '(max-width: 36em)': {
@@ -2221,7 +2136,7 @@ export const switchThumb = style({
   borderRadius: '999px',
   background: '#fff',
   boxShadow: themeVars.shadowSoft,
-  transition: 'transform 180ms cubic-bezier(0.34, 1.4, 0.64, 1)',
+  transition: 'transform 180ms cubic-bezier(0.22, 1, 0.36, 1)',
   selectors: {
     [`${switchTrack}[data-checked="true"] &`]: {
       transform: 'translateX(1rem)',
@@ -2389,7 +2304,7 @@ export const itemPhotoCount = style({
   gap: '4px',
   padding: `${themeVars.space1} ${themeVars.space2}`,
   borderRadius: '999px',
-  background: 'rgba(15, 23, 42, 0.55)',
+  background: 'rgba(28, 26, 21, 0.55)',
   color: '#fff',
   fontSize: '0.72rem',
   fontWeight: 600,
@@ -2687,9 +2602,10 @@ export const itemStockHero = style({
 
 export const itemStockValue = style({
   color: themeVars.ink,
+  fontFamily: themeVars.fontSerif,
   fontSize: '2.2rem',
-  fontWeight: 700,
-  letterSpacing: '-0.025em',
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
   lineHeight: 1,
   fontVariantNumeric: 'tabular-nums',
 });
@@ -2937,9 +2853,10 @@ export const loanMetricLabel = style({
 
 export const loanMetricValue = style({
   color: themeVars.ink,
+  fontFamily: themeVars.fontSerif,
   fontSize: '1.6rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
   lineHeight: 1.1,
   fontVariantNumeric: 'tabular-nums',
 });
@@ -3726,57 +3643,15 @@ export const supplyKpiTile = style({
   boxShadow: themeVars.shadowSoft,
 });
 
-export const supplyKpiIcon = styleVariants({
-  blue: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.6rem',
-    height: '2.6rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.infoSoft,
-    color: themeVars.info,
-  },
-  red: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.6rem',
-    height: '2.6rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.dangerSoft,
-    color: themeVars.danger,
-  },
-  orange: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.6rem',
-    height: '2.6rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.warningSoft,
-    color: themeVars.warning,
-  },
-  green: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.6rem',
-    height: '2.6rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.successSoft,
-    color: themeVars.success,
-  },
-  violet: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.6rem',
-    height: '2.6rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.violetSoft,
-    color: themeVars.violet,
-  },
+export const supplyKpiIcon = style({
+  flex: '0 0 auto',
+  display: 'inline-grid',
+  width: '1.6rem',
+  height: '1.6rem',
+  placeItems: 'center',
+  borderRadius: themeVars.radius1,
+  background: themeVars.accentSoft,
+  color: themeVars.accentInk,
 });
 
 export const supplyKpiMeta = style({
@@ -3794,9 +3669,10 @@ export const supplyKpiLabel = style({
 
 export const supplyKpiValue = style({
   color: themeVars.ink,
+  fontFamily: themeVars.fontSerif,
   fontSize: '1.5rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
+  fontWeight: 600,
+  letterSpacing: '-0.01em',
   lineHeight: 1.1,
   fontVariantNumeric: 'tabular-nums',
 });
@@ -3848,10 +3724,13 @@ export const supplyForecastThumb = style({
   width: '2.5rem',
   height: '2.5rem',
   borderRadius: themeVars.radius2,
-  background: themeVars.lineSoft,
+  background: themeVars.bgSoft,
+  border: `1px solid ${themeVars.lineSoft}`,
   display: 'grid',
   placeItems: 'center',
-  color: themeVars.muted,
+  color: themeVars.text,
+  fontSize: '0.95rem',
+  fontWeight: 650,
   flex: '0 0 auto',
 });
 
@@ -3882,9 +3761,11 @@ export const supplyProgressBar = style({
 });
 
 export const supplyProgressFill = style({
+  width: '100%',
   height: '100%',
   borderRadius: '999px',
-  transition: 'width 300ms ease',
+  transformOrigin: '0 50%',
+  transition: 'transform 300ms ease',
 });
 
 export const supplyTwoCol = style({
@@ -5164,15 +5045,15 @@ export const abnormalTwoCol = style({
 });
 
 export const abnormalAlertBanner = style({
-  background: 'rgba(255, 100, 130, 0.10)',
-  border: '1px solid rgba(255, 100, 130, 0.35)',
-  borderRadius: '8px',
+  background: themeVars.dangerSoft,
+  border: `1px solid color-mix(in srgb, ${themeVars.danger} 35%, transparent)`,
+  borderRadius: themeVars.radius2,
   padding: `${themeVars.space3} ${themeVars.space4}`,
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
   fontSize: '0.875rem',
-  color: '#c0392b',
+  color: themeVars.danger,
 });
 
 export const abnormalBottomGrid = style({

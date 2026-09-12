@@ -17,7 +17,6 @@ const listBase = style({
   width: 'fit-content',
   maxWidth: '100%',
   alignItems: 'center',
-  justifyContent: 'center',
   overflowX: 'auto',
   scrollbarWidth: 'none',
   borderRadius: themeVars.radius2,
@@ -53,6 +52,16 @@ export const listVariant = styleVariants({
       background: 'transparent',
     },
   ],
+});
+
+// Centered via auto margins instead of justify-content so overflowing
+// strips stay scrollable to the left edge on narrow screens.
+globalStyle(`${listVariant.default} > *:first-child, ${listVariant.line} > *:first-child`, {
+  marginInlineStart: 'auto',
+});
+
+globalStyle(`${listVariant.default} > *:last-child, ${listVariant.line} > *:last-child`, {
+  marginInlineEnd: 'auto',
 });
 
 export const trigger = style({

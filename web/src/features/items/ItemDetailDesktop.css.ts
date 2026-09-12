@@ -135,7 +135,7 @@ export const photoCount = style({
   bottom: themeVars.space3,
   padding: '0.15rem 0.45rem',
   borderRadius: '999px',
-  background: 'rgba(15, 23, 42, 0.7)',
+  background: 'rgba(28, 26, 21, 0.72)',
   color: '#fff',
   fontSize: '0.72rem',
   fontWeight: 700,

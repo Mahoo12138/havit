@@ -10,15 +10,13 @@ import {
   IconPlus,
   IconX,
   IconLogout,
-  IconInfoCircle,
   IconSearch,
   IconUser,
 } from '@tabler/icons-react';
-import { RowBetween } from '../components/ui';
-import { Alert } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
+import { DemoBanner } from './DemoBanner';
 import { getNavSections } from './nav-data';
 import * as s from './mobileShell.css';
 
@@ -136,15 +134,7 @@ export function MobileShell({ systemStatus }: ShellProps) {
         <main className={s.contentInner}>
           <div className="page-shell">
             {systemStatus.mode === 'demo' && (
-              <div style={{ marginBottom: '0.75rem' }}>
-                <Alert icon={<IconInfoCircle size={18} />}>
-                  <RowBetween>
-                    <strong>{t('demo.mode')}</strong>
-                    <span>{t('demo.version')} {systemStatus.version}</span>
-                  </RowBetween>
-                  <div>{t('demo.description')}</div>
-                </Alert>
-              </div>
+              <DemoBanner version={systemStatus.version} />
             )}
             <Outlet />
           </div>

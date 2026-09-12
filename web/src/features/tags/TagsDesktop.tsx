@@ -22,19 +22,19 @@ import { tagsApi, type Tag } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 
 const COLOR_PRESETS = [
-  '#0d9488',
-  '#2563eb',
-  '#7c3aed',
-  '#ef4444',
-  '#f97316',
-  '#16a34a',
-  '#d97706',
-  '#0891b2',
-  '#db2777',
-  '#6b7280',
+  '#ad3a25',
+  '#3f5e8c',
+  '#4e6b41',
+  '#92600e',
+  '#7c4a5d',
+  '#31708c',
+  '#6f6757',
+  '#6b4a2f',
+  '#8c2f4b',
+  '#5d6b75',
 ];
 
-const DEFAULT_SWATCH = '#94a3b8';
+const DEFAULT_SWATCH = '#6f6757';
 
 async function extractApiError(err: unknown, fallback: string): Promise<string> {
   const anyErr = err as { response?: Response; message?: string };

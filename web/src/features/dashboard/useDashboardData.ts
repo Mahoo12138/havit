@@ -37,8 +37,8 @@ export function formatDateShort(ts: number): string {
 
 export const CATEGORY_PALETTE = ['teal', 'info', 'warning', 'violet', 'amber', 'danger'] as const;
 
-export const STATUS_VARIANT: Record<string, 'neutral' | 'info' | 'warning' | 'danger'> = {
-  in_stock: 'info',
+export const STATUS_VARIANT: Record<string, 'neutral' | 'info' | 'warning' | 'danger' | 'success'> = {
+  in_stock: 'success',
   in_use: 'neutral',
   loaned: 'warning',
   archived: 'neutral',
