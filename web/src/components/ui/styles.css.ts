@@ -1451,58 +1451,6 @@ export const tagList = style({
   gap: themeVars.space1,
 });
 
-export const tagChip = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: themeVars.space1,
-  borderRadius: '999px',
-  background: themeVars.accentSoft,
-  color: themeVars.accentInk,
-  fontSize: '0.74rem',
-  fontWeight: 600,
-  padding: `2px ${themeVars.space2}`,
-});
-
-export const tagChipNeutral = style([
-  tagChip,
-  {
-    background: themeVars.lineSoft,
-    color: themeVars.text,
-  },
-]);
-
-export const tagChipInfo = style([
-  tagChip,
-  {
-    background: themeVars.infoSoft,
-    color: themeVars.info,
-  },
-]);
-
-export const tagChipWarning = style([
-  tagChip,
-  {
-    background: themeVars.warningSoft,
-    color: themeVars.warningText,
-  },
-]);
-
-export const tagChipSuccess = style([
-  tagChip,
-  {
-    background: themeVars.successSoft,
-    color: themeVars.success,
-  },
-]);
-
-export const tagChipDanger = style([
-  tagChip,
-  {
-    background: themeVars.dangerSoft,
-    color: themeVars.danger,
-  },
-]);
-
 export const tagRemove = style({
   display: 'inline-grid',
   width: '1.1rem',
@@ -3558,40 +3506,6 @@ export const essentialsChecklistStatus = style({
   color: themeVars.accentInk,
   fontWeight: 500,
 });
-
-export const essentialsTagBadge = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '1px 6px',
-  borderRadius: '999px',
-  fontSize: '0.68rem',
-  fontWeight: 600,
-  lineHeight: 1.5,
-});
-
-export const essentialsTagBadgeCommon = style([
-  essentialsTagBadge,
-  {
-    background: themeVars.accentSoft,
-    color: themeVars.accentInk,
-  },
-]);
-
-export const essentialsTagBadgeEssential = style([
-  essentialsTagBadge,
-  {
-    background: themeVars.warningSoft,
-    color: themeVars.warningText,
-  },
-]);
-
-export const essentialsTagBadgeRead = style([
-  essentialsTagBadge,
-  {
-    background: themeVars.infoSoft,
-    color: themeVars.info,
-  },
-]);
 
 /* ---------- supplys Page ---------- */
 

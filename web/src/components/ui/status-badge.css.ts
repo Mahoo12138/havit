@@ -6,7 +6,7 @@ const base = style({
   display: 'inline-flex',
   alignItems: 'center',
   width: 'fit-content',
-  borderRadius: '999px',
+  borderRadius: themeVars.radius1,
   padding: '0.125rem 0.5rem',
   fontSize: '0.75rem',
   fontWeight: 600,

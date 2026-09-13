@@ -188,17 +188,6 @@ export const tagRow = style({
   gap: themeVars.space2,
 });
 
-export const tagChip = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '0.15rem 0.45rem',
-  borderRadius: themeVars.radius1,
-  background: themeVars.accentSoft,
-  color: themeVars.accentInk,
-  fontSize: '0.74rem',
-  fontWeight: 650,
-});
-
 export const mutedText = style({
   color: themeVars.muted,
   fontSize: '0.8rem',

@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from 'next-themes';
 import {
   IconAlertCircle,
   IconArrowLeft,
@@ -573,6 +574,7 @@ function preferencePanelKeys(panel: SettingsPanel): Array<keyof UserPreferences>
 
 function PreferencesPanel({ panel }: { panel: PanelDefinition }) {
   const { t } = useTranslation();
+  const { setTheme } = useTheme();
   const queryClient = useQueryClient();
   const toast = useToast();
   const [draft, setDraft] = useState<Partial<UserPreferences>>({});
@@ -618,11 +620,15 @@ function PreferencesPanel({ panel }: { panel: PanelDefinition }) {
   function field<K extends keyof UserPreferences>(key: K) {
     return {
       value: String(merged?.[key] ?? ''),
-      onChange: (event: { currentTarget: { value: string } }) =>
+      onChange: (event: { currentTarget: { value: string } }) => {
+        if (key === 'theme') {
+          setTheme(event.currentTarget.value);
+        }
         setDraft((prev) => ({
           ...prev,
           [key]: event.currentTarget.value as UserPreferences[K],
-        })),
+        }));
+      },
     };
   }
 

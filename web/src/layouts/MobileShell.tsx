@@ -18,6 +18,7 @@ import { ScrollArea } from '../components/ui/scroll-area';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
 import { DemoBanner } from './DemoBanner';
 import { getNavSections } from './nav-data';
+import { ThemeToggle } from '../lib/theme';
 import * as s from './mobileShell.css';
 
 interface ShellProps {
@@ -96,6 +97,7 @@ export function MobileShell({ systemStatus }: ShellProps) {
         )}
         <h1 className={s.topBarTitle}>{pageTitle}</h1>
         <div className={s.topBarActions}>
+          <ThemeToggle iconClassName={s.topBarIconBtn} />
           <Button
             type="button"
             variant="ghost"

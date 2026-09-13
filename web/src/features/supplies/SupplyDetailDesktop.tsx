@@ -27,6 +27,7 @@ import {
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { Tag } from '../../components/ui/tag';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { SelectField } from '../../components/ui/select-field';
@@ -353,9 +354,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
             {it.tags && it.tags.length > 0 && (
               <div className={uiStyles.tagList}>
                 {it.tags.map((tag) => (
-                  <span className={uiStyles.tagChip} key={tag.id}>
-                    {tag.name}
-                  </span>
+                  <Tag key={tag.id}>{tag.name}</Tag>
                 ))}
               </div>
             )}

@@ -25,6 +25,7 @@ import { Button } from '../../components/ui/button';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { StatusBadge } from '../../components/ui/status-badge';
+import { Tag } from '../../components/ui/tag';
 import {
   loansApi,
   suppliesExtendedApi,
@@ -98,7 +99,7 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
             {data.category && <span className={s.categoryBadge}>{data.category}</span>}
           </div>
           <div className={s.tagRow}>
-            {currentTags.map((tag: any) => <span className={s.tagChip} key={tag.id}>#{tag.name}</span>)}
+            {currentTags.map((tag: any) => <Tag key={tag.id}>#{tag.name}</Tag>)}
             {currentTags.length === 0 && <span className={s.mutedText}>{t('items.noTags')}</span>}
           </div>
 

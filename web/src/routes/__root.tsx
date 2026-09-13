@@ -12,6 +12,7 @@ import {
   type SystemStatus,
 } from '../api/client';
 import { useDevice, type DeviceType } from '../lib/device';
+import { ThemePreferenceSync } from '../lib/theme';
 import { DesktopShell } from '../layouts/DesktopShell';
 import { MobileShell } from '../layouts/MobileShell';
 import { TabletShell } from '../layouts/TabletShell';
@@ -74,8 +75,11 @@ function RootLayout() {
   const Shell = SHELL_MAP[device];
 
   return (
-    <Shell systemStatus={systemStatus}>
-      <Outlet />
-    </Shell>
+    <>
+      <ThemePreferenceSync />
+      <Shell systemStatus={systemStatus}>
+        <Outlet />
+      </Shell>
+    </>
   );
 }

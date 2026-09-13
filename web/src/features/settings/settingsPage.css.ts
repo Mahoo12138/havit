@@ -373,7 +373,7 @@ export const sectionCard = style({
 
 export const row = style({
   display: 'grid',
-  gridTemplateColumns: '2.5rem minmax(0, 1fr) minmax(13rem, 24rem) 1rem',
+  gridTemplateColumns: '2.5rem minmax(0, 1fr) minmax(11rem, max-content) 1rem',
   alignItems: 'center',
   gap: themeVars.space4,
   minWidth: 0,
@@ -442,9 +442,7 @@ export const rowTitle = style({
   color: themeVars.ink,
   fontSize: '0.9rem',
   fontWeight: 700,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
+  overflowWrap: 'anywhere',
 });
 
 export const rowDescription = style({

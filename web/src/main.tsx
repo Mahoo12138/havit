@@ -7,6 +7,7 @@ import './i18n';
 import './styles/global.css';
 import { ToastProvider } from './components/ui/toast-provider';
 import { DeviceProvider } from './lib/device';
+import { AppThemeProvider } from './lib/theme';
 import { routeTree } from './routeTree.gen';
 
 // import './styles.css'
@@ -30,12 +31,14 @@ declare module '@tanstack/react-router' {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <DeviceProvider>
-      <ToastProvider>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
-      </ToastProvider>
-    </DeviceProvider>
+    <AppThemeProvider>
+      <DeviceProvider>
+        <ToastProvider>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </ToastProvider>
+      </DeviceProvider>
+    </AppThemeProvider>
   </StrictMode>,
 );
