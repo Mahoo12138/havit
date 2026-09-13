@@ -2,7 +2,16 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { Button } from '../../components/ui/button';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  usePaginationRange,
+} from '../../components/ui/pagination';
 import { Card } from '../../components/ui/card';
 import { Spinner } from '../../components/ui/spinner';
 import {
@@ -155,29 +164,11 @@ export function ReturnLog() {
       {total > 0 && (
         <div className={s.footerBar}>
           <span>共 {total} 条</span>
-          <div className={s.pagination}>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              aria-label="Previous page"
-              disabled={offset === 0}
-              onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-            >
-              &lt;
-            </Button>
-            <Button variant="outline" size="icon-xs">
-              {Math.floor(offset / PAGE_SIZE) + 1}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              aria-label="Next page"
-              disabled={offset + PAGE_SIZE >= total}
-              onClick={() => setOffset(offset + PAGE_SIZE)}
-            >
-              &gt;
-            </Button>
-          </div>
+          <ReturnLogPager
+            offset={offset}
+            total={total}
+            onOffsetChange={setOffset}
+          />
         </div>
       )}
     </Card>
@@ -212,5 +203,45 @@ function FilterSelect({ label, options, value, onChange }: {
         </SelectGroup>
       </SelectContent>
     </Select>
+  );
+}
+
+function ReturnLogPager({
+  offset,
+  total,
+  onOffsetChange,
+}: {
+  offset: number;
+  total: number;
+  onOffsetChange: (offset: number) => void;
+}) {
+  const page = Math.floor(offset / PAGE_SIZE) + 1;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const range = usePaginationRange({ page, totalPages });
+
+  const goTo = (next: number) => onOffsetChange((next - 1) * PAGE_SIZE);
+
+  return (
+    <Pagination className={s.pagination}>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious disabled={page === 1} onClick={() => goTo(page - 1)} />
+        </PaginationItem>
+        {range.map((p) => (
+          <PaginationItem key={p}>
+            {typeof p === 'number' ? (
+              <PaginationLink isActive={p === page} onClick={() => goTo(p)}>
+                {p}
+              </PaginationLink>
+            ) : (
+              <PaginationEllipsis />
+            )}
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationNext disabled={offset + PAGE_SIZE >= total} onClick={() => goTo(page + 1)} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 }

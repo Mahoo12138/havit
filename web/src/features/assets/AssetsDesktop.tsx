@@ -26,6 +26,16 @@ import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  usePaginationRange,
+} from '../../components/ui/pagination';
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -45,6 +55,8 @@ import { formatDate, formatPrice, getWarrantyStatus, useAssetsData } from './use
 import * as s from './AssetsDesktop.css';
 
 type AssetTab = string;
+
+const PAGE_SIZE = 20;
 
 export function AssetsDesktop() {
   const data = useAssetsData();
@@ -75,6 +87,7 @@ export function AssetsDesktop() {
   const [opened, setOpened] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('all');
+  const [page, setPage] = useState(1);
 
   const filteredItems = useMemo(() => {
     let items = allItems;
@@ -83,6 +96,13 @@ export function AssetsDesktop() {
     if (locationFilter !== 'all') items = items.filter((item) => item.location_id === locationFilter);
     return items;
   }, [activeTab, allItems, locationFilter, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedItems = useMemo(
+    () => filteredItems.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredItems, safePage],
+  );
 
   function handleExport() {
     const headers = [
@@ -137,7 +157,7 @@ export function AssetsDesktop() {
         </div>
       </header>
 
-      <CategoryTabs rootType="physical" value={activeTab} onChange={(value) => setActiveTab(value)} />
+          <CategoryTabs rootType="physical" value={activeTab} onChange={(value) => { setActiveTab(value); setPage(1); }} />
 
       {isLoading ? (
         <Spinner />
@@ -173,13 +193,13 @@ export function AssetsDesktop() {
                       { value: 'borrowed', label: t('status.borrowed') },
                     ]}
                     value={statusFilter}
-                    onChange={setStatusFilter}
+                    onChange={(value) => { setStatusFilter(value); setPage(1); }}
                   />
                   <FilterSelect
                     label={t('assets.location')}
                     options={[{ value: 'all', label: t('assets.allLocations') }, ...locOptions]}
                     value={locationFilter}
-                    onChange={setLocationFilter}
+                    onChange={(value) => { setLocationFilter(value); setPage(1); }}
                   />
                 </div>
                 <div className={s.toolbarRight}>
@@ -217,7 +237,7 @@ export function AssetsDesktop() {
 
               {viewMode === 'list' ? (
                 <AssetTable
-                  items={filteredItems}
+                  items={paginatedItems}
                   locOptions={locOptions}
                   t={t}
                   isOnline={isOnline}
@@ -226,17 +246,13 @@ export function AssetsDesktop() {
                   onViewDetails={(itemId) => navigate({ to: '/items/$itemId', params: { itemId } })}
                 />
               ) : (
-                <AssetCards items={filteredItems} locOptions={locOptions} t={t} />
+                <AssetCards items={paginatedItems} locOptions={locOptions} t={t} />
               )}
 
               {filteredItems.length > 0 && (
                 <div className={s.footerBar}>
                   <span>共 {filteredItems.length} 项</span>
-                  <div className={s.pagination}>
-                    <Button variant="ghost" size="icon-xs" aria-label="Previous page">&lt;</Button>
-                    <Button variant="outline" size="icon-xs">1</Button>
-                    <Button variant="ghost" size="icon-xs" aria-label="Next page">&gt;</Button>
-                  </div>
+                  <AssetPager page={safePage} totalPages={totalPages} onChange={setPage} />
                 </div>
               )}
             </Card>
@@ -583,4 +599,40 @@ function WarrantyBadge({ ws, t }: { ws: string; t: ReturnType<typeof useAssetsDa
 function csvEscape(value: string | number) {
   const text = String(value);
   return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function AssetPager({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  const range = usePaginationRange({ page, totalPages });
+  if (totalPages <= 1) return null;
+  return (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious disabled={page === 1} onClick={() => onChange(page - 1)} />
+        </PaginationItem>
+        {range.map((p) => (
+          <PaginationItem key={p}>
+            {typeof p === 'number' ? (
+              <PaginationLink isActive={p === page} onClick={() => onChange(p)}>
+                {p}
+              </PaginationLink>
+            ) : (
+              <PaginationEllipsis />
+            )}
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationNext disabled={page === totalPages} onClick={() => onChange(page + 1)} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
 }

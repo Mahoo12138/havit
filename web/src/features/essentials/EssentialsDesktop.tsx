@@ -19,6 +19,16 @@ import {
   type TablerIcon,
 } from '@tabler/icons-react';
 import { Stack } from '../../components/ui';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  usePaginationRange,
+} from '../../components/ui/pagination';
 import { Button } from '../../components/ui/button';
 import { ButtonGroup } from '../../components/ui/button-group';
 import { Card } from '../../components/ui/card';
@@ -122,6 +132,8 @@ function DonutChart({
   );
 }
 
+const PAGE_SIZE = 20;
+
 export function EssentialsDesktop() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -133,6 +145,7 @@ export function EssentialsDesktop() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [page, setPage] = useState(1);
   const [createOpened, setCreateOpened] = useState(false);
   const [packOpened, setPackOpened] = useState(false);
   const [form, setForm] = useState({ name: '', home_base_location_id: '' });
@@ -215,6 +228,13 @@ export function EssentialsDesktop() {
     }
     return result;
   }, [items, searchQuery, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paginatedItems = useMemo(
+    () => filteredItems.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredItems, safePage],
+  );
 
   const carryCount = items.filter((i) => getStatusType(i) === 'carry').length;
   const bagCount = items.filter((i) => getStatusType(i) === 'bag').length;
@@ -302,7 +322,7 @@ export function EssentialsDesktop() {
                       className={s.searchInput}
                       placeholder={t('essentials.searchPlaceholder')}
                       value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                      onChange={(event) => { setSearchQuery(event.currentTarget.value); setPage(1); }}
                     />
                   </span>
                   <FilterSelect
@@ -315,7 +335,7 @@ export function EssentialsDesktop() {
                       { value: 'away', label: t('essentials.notOnPersonShort') },
                     ]}
                     value={statusFilter}
-                    onChange={setStatusFilter}
+                    onChange={(value) => { setStatusFilter(value); setPage(1); }}
                   />
                 </div>
                 <div className={s.toolbarRight}>
@@ -344,7 +364,7 @@ export function EssentialsDesktop() {
 
               {effectiveViewMode === 'list' ? (
                 <EssentialsTable
-                  items={filteredItems}
+                  items={paginatedItems}
                   locOptions={locOptions}
                   t={t}
                   returnHome={returnHome}
@@ -352,17 +372,13 @@ export function EssentialsDesktop() {
                   onViewDetails={(itemId) => navigate({ to: '/items/$itemId', params: { itemId } })}
                 />
               ) : (
-                <EssentialsCards items={filteredItems} locOptions={locOptions} t={t} />
+                <EssentialsCards items={paginatedItems} locOptions={locOptions} t={t} />
               )}
 
               {filteredItems.length > 0 && (
                 <div className={s.footerBar}>
                   <span>共 {filteredItems.length} 项</span>
-                  <div className={s.pagination}>
-                    <Button variant="ghost" size="icon-xs" aria-label="Previous page">&lt;</Button>
-                    <Button variant="outline" size="icon-xs">1</Button>
-                    <Button variant="ghost" size="icon-xs" aria-label="Next page">&gt;</Button>
-                  </div>
+                  <EssentialsPager page={safePage} totalPages={totalPages} onChange={setPage} />
                 </div>
               )}
             </Card>
@@ -691,5 +707,41 @@ function EssentialsCards({ items, locOptions, t }: {
         );
       })}
     </div>
+  );
+}
+
+function EssentialsPager({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  const range = usePaginationRange({ page, totalPages });
+  if (totalPages <= 1) return null;
+  return (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious disabled={page === 1} onClick={() => onChange(page - 1)} />
+        </PaginationItem>
+        {range.map((p) => (
+          <PaginationItem key={p}>
+            {typeof p === 'number' ? (
+              <PaginationLink isActive={p === page} onClick={() => onChange(p)}>
+                {p}
+              </PaginationLink>
+            ) : (
+              <PaginationEllipsis />
+            )}
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationNext disabled={page === totalPages} onClick={() => onChange(page + 1)} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 }

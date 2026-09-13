@@ -1497,5 +1497,10 @@
     "updateFailed": "更新失败：{{error}}",
     "deleted": "分类已删除",
     "deleteFailed": "删除失败：{{error}}"
+  },
+  "pagination": {
+    "previous": "上一页",
+    "next": "下一页",
+    "more": "更多页面"
   }
 }

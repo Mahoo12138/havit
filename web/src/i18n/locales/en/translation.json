@@ -1506,5 +1506,10 @@
     "updateFailed": "Update failed: {{error}}",
     "deleted": "Category deleted",
     "deleteFailed": "Delete failed: {{error}}"
+  },
+  "pagination": {
+    "previous": "Previous page",
+    "next": "Next page",
+    "more": "More pages"
   }
 }

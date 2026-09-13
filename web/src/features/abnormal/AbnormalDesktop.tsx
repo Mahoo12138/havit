@@ -8,7 +8,6 @@ import {
   IconEye,
   IconSearch,
   IconPlus,
-  IconChevronLeft,
   IconChevronRight,
   IconDownload,
   IconCircleCheck,
@@ -17,6 +16,16 @@ import {
   IconClipboardList,
 } from '@tabler/icons-react';
 import { Stack, uiStyles } from '../../components/ui';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  usePaginationRange,
+} from '../../components/ui/pagination';
 import { themeVars } from '../../styles/theme.css';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -588,34 +597,7 @@ export function AbnormalDesktop() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className={uiStyles.abnormalPagination}>
-                <Button
-                  variant="subtle"
-                  className={uiStyles.abnormalPageBtn}
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <IconChevronLeft size={12} />
-                </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <Button
-                    variant="subtle"
-                    key={p}
-                    className={`${uiStyles.abnormalPageBtn}${p === page ? ' active' : ''}`}
-                    onClick={() => setPage(p)}
-                  >
-                    {p}
-                  </Button>
-                ))}
-                <Button
-                  variant="subtle"
-                  className={uiStyles.abnormalPageBtn}
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  <IconChevronRight size={12} />
-                </Button>
-              </div>
+              <AbnormalPager page={page} totalPages={totalPages} onChange={setPage} />
             )}
           </div>
 
@@ -656,34 +638,7 @@ export function AbnormalDesktop() {
               </div>
             ))}
             {totalPages > 1 && (
-              <div className={uiStyles.abnormalPagination}>
-                <Button
-                  variant="subtle"
-                  className={uiStyles.abnormalPageBtn}
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  <IconChevronLeft size={12} />
-                </Button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                  <Button
-                    variant="subtle"
-                    key={p}
-                    className={`${uiStyles.abnormalPageBtn}${p === page ? ' active' : ''}`}
-                    onClick={() => setPage(p)}
-                  >
-                    {p}
-                  </Button>
-                ))}
-                <Button
-                  variant="subtle"
-                  className={uiStyles.abnormalPageBtn}
-                  disabled={page === totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                >
-                  <IconChevronRight size={12} />
-                </Button>
-              </div>
+              <AbnormalPager page={page} totalPages={totalPages} onChange={setPage} />
             )}
           </Card>
         </div>
@@ -1202,5 +1157,40 @@ function TrendLineChart({
         </g>
       ))}
     </svg>
+  );
+}
+
+function AbnormalPager({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  const range = usePaginationRange({ page, totalPages });
+  return (
+    <Pagination className={uiStyles.abnormalPagination}>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious disabled={page === 1} onClick={() => onChange(page - 1)} />
+        </PaginationItem>
+        {range.map((p) => (
+          <PaginationItem key={p}>
+            {typeof p === 'number' ? (
+              <PaginationLink isActive={p === page} onClick={() => onChange(p)}>
+                {p}
+              </PaginationLink>
+            ) : (
+              <PaginationEllipsis />
+            )}
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationNext disabled={page === totalPages} onClick={() => onChange(page + 1)} />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 }

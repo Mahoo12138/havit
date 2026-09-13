@@ -15,4 +15,14 @@ export {
   TreeItemLabel,
   useTree,
 } from './tree';
+export {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+  usePaginationRange,
+} from './pagination';
 export { s as uiStyles };
