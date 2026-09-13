@@ -161,12 +161,13 @@ type VirtualAddonPurchase struct {
 }
 
 type Reminder struct {
-	ID          string `json:"id"`
-	ItemID      string `json:"item_id"`
-	Type        string `json:"type"`
-	TriggerAt   int64  `json:"trigger_at"`
-	SentAt      *int64 `json:"sent_at,omitempty"`
-	IsDismissed bool   `json:"is_dismissed"`
+	ID          string  `json:"id"`
+	ItemID      string  `json:"item_id"`
+	ItemName    *string `json:"item_name,omitempty"`
+	Type        string  `json:"type"`
+	TriggerAt   int64   `json:"trigger_at"`
+	SentAt      *int64  `json:"sent_at,omitempty"`
+	IsDismissed bool    `json:"is_dismissed"`
 }
 
 type Location struct {

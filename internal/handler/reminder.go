@@ -26,8 +26,10 @@ func (h *ReminderHandler) Mount(r chi.Router) {
 }
 
 func (h *ReminderHandler) list(w http.ResponseWriter, r *http.Request) {
-	dueOnly := r.URL.Query().Get("due_only") == "true"
-	reminders, err := h.svc.List(r.Context(), service.ReminderListFilter{DueOnly: dueOnly})
+	reminders, err := h.svc.List(r.Context(), service.ReminderListFilter{
+		DueOnly: r.URL.Query().Get("due_only") == "true",
+		ItemID:  r.URL.Query().Get("item_id"),
+	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return

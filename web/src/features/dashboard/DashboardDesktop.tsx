@@ -16,9 +16,10 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { uiStyles } from '../../components/ui';
-import { Badge } from '../../components/ui/badge';
 import { ScrollArea } from '../../components/ui/scroll-area';
+import { Tag } from '../../components/ui/tag';
 import type { Item, Location } from '../../api/client';
+import { ReminderRow } from '../reminders/reminderUi';
 import {
   useDashboardData,
   formatGreeting,
@@ -44,9 +45,6 @@ const quickActions: Array<{
 export function DashboardDesktop() {
   const { t, me, items, locs, reminders, totals, categoryBreakdown, recent, locationTotal } =
     useDashboardData();
-  const itemNames = new Map(
-    (items.data?.items ?? []).map((it) => [it.id, it.name] as const),
-  );
 
   return (
     <div className={uiStyles.dashboardLayout}>
@@ -70,7 +68,6 @@ export function DashboardDesktop() {
         <RemindersCard
           reminders={reminders.data?.reminders ?? []}
           loading={reminders.isPending}
-          itemNames={itemNames}
         />
         <LocationsCard tree={locs.data?.tree ?? []} loading={locs.isPending} />
       </aside>
@@ -185,16 +182,6 @@ function RecentAdditions({ items, loading, empty }: { items: Item[]; loading?: b
         <div className={uiStyles.recentList}>
           {items.map((it) => {
             const variant = STATUS_VARIANT[it.status] ?? 'neutral';
-            const variantClass =
-              variant === 'info'
-                ? uiStyles.tagChipInfo
-                : variant === 'warning'
-                  ? uiStyles.tagChipWarning
-                  : variant === 'success'
-                    ? uiStyles.tagChipSuccess
-                    : variant === 'danger'
-                      ? uiStyles.tagChipDanger
-                      : uiStyles.tagChipNeutral;
             return (
               <Link key={it.id} to="/items/$itemId" params={{ itemId: it.id }} className={uiStyles.recentRow}>
                 <span className={uiStyles.recentThumb}>{it.name.slice(0, 1)}</span>
@@ -205,7 +192,7 @@ function RecentAdditions({ items, loading, empty }: { items: Item[]; loading?: b
                   </span>
                 </div>
                 <div className={uiStyles.recentTags}>
-                  <span className={variantClass}>{statusLabel(it.status)}</span>
+                  <Tag variant={variant}>{statusLabel(it.status)}</Tag>
                 </div>
                 {it.purchase_price ? (
                   <span className={uiStyles.recentPrice}>{formatPrice(it.purchase_price, t)}</span>
@@ -248,19 +235,17 @@ function QuickActionsCard() {
 function RemindersCard({
   reminders,
   loading,
-  itemNames,
 }: {
   reminders: any[];
   loading: boolean;
-  itemNames: Map<string, string>;
 }) {
   const { t } = useTranslation();
   return (
     <section className={uiStyles.sectionCard}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.reminders')}</h2>
-        <Link to="/operations" className={uiStyles.sectionLink}>
-          {t('dashboard.manage')} <IconArrowRight size={14} />
+        <Link to="/reminders" className={uiStyles.sectionLink}>
+          {t('dashboard.viewAll')} <IconArrowRight size={14} />
         </Link>
       </header>
       <div className={uiStyles.sectionBody}>
@@ -272,14 +257,9 @@ function RemindersCard({
         ) : reminders.length === 0 ? (
           <div className={uiStyles.reminderEmpty}>{t('dashboard.noReminders')}</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {reminders.slice(0, 5).map((r: any) => (
-              <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>
-                  {t(`reminder.${r.type}`, r.type)} — {itemNames.get(r.item_id) ?? r.item_id}
-                </span>
-                <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
-              </div>
+              <ReminderRow key={r.id} reminder={r} />
             ))}
           </div>
         )}

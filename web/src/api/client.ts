@@ -414,6 +414,7 @@ export interface LossRecord {
 export interface Reminder {
   id: string;
   item_id: string;
+  item_name?: string;
   type: string;
   trigger_at: number;
   sent_at?: number;
@@ -591,9 +592,10 @@ export const virtualCredentialsApi = {
 };
 
 export const remindersApi = {
-  list: (dueOnly?: boolean) => {
+  list: (opts?: { dueOnly?: boolean; itemId?: string }) => {
     const params: Record<string, string> = {};
-    if (dueOnly) params.due_only = 'true';
+    if (opts?.dueOnly) params.due_only = 'true';
+    if (opts?.itemId) params.item_id = opts.itemId;
     return api.get('reminders', { searchParams: params }).json<{ reminders: Reminder[] }>();
   },
   markSent: (id: string, body?: { sent_at?: number }) =>

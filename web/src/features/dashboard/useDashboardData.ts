@@ -76,7 +76,7 @@ export function useDashboardData() {
 
   const reminders = useQuery({
     queryKey: ['reminders'],
-    queryFn: () => remindersApi.list(true),
+    queryFn: () => remindersApi.list({ dueOnly: true }),
   });
 
   const allItems = items.data?.items ?? [];

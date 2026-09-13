@@ -2,6 +2,7 @@ import type { useTranslation } from 'react-i18next';
 import {
   IconArchive,
   IconBarcode,
+  IconBellRinging,
   IconBox,
   IconBriefcase,
   IconCategory2,
@@ -50,6 +51,7 @@ export function getNavSections(t: TFn): NavSection[] {
       label: t('navSection.lifecycle'),
       items: [
         { to: '/loans', label: t('nav.loans'), icon: IconClipboardList },
+        { to: '/reminders', label: t('nav.reminders'), icon: IconBellRinging },
         { to: '/credentials', label: t('nav.credentials'), icon: IconReceipt },
         { to: '/abnormal', label: t('nav.abnormal'), icon: IconArchive },
       ],

@@ -19,6 +19,7 @@ func NewReminderService(db *sql.DB) *ReminderService {
 
 type ReminderListFilter struct {
 	DueOnly bool
+	ItemID  string
 	Now     int64
 }
 
@@ -29,15 +30,20 @@ func (s *ReminderService) List(ctx context.Context, f ReminderListFilter) ([]*mo
 		if f.Now == 0 {
 			f.Now = time.Now().Unix()
 		}
-		where += " AND sent_at IS NULL AND is_dismissed = 0 AND trigger_at <= ?"
+		where += " AND r.sent_at IS NULL AND r.is_dismissed = 0 AND r.trigger_at <= ?"
 		args = append(args, f.Now)
+	}
+	if f.ItemID != "" {
+		where += " AND r.item_id = ?"
+		args = append(args, f.ItemID)
 	}
 
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, item_id, type, trigger_at, sent_at, is_dismissed
-		FROM reminders
+		SELECT r.id, r.item_id, r.type, r.trigger_at, r.sent_at, r.is_dismissed, i.name
+		FROM reminders r
+		LEFT JOIN items i ON i.id = r.item_id
 		WHERE `+where+`
-		ORDER BY trigger_at ASC, id ASC`, args...)
+		ORDER BY r.trigger_at ASC, r.id ASC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -81,8 +87,10 @@ func (s *ReminderService) Dismiss(ctx context.Context, id string) (*model.Remind
 
 func (s *ReminderService) Get(ctx context.Context, id string) (*model.Reminder, error) {
 	row := s.db.QueryRowContext(ctx, `
-		SELECT id, item_id, type, trigger_at, sent_at, is_dismissed
-		FROM reminders WHERE id = ?`, id)
+		SELECT r.id, r.item_id, r.type, r.trigger_at, r.sent_at, r.is_dismissed, i.name
+		FROM reminders r
+		LEFT JOIN items i ON i.id = r.item_id
+		WHERE r.id = ?`, id)
 	reminder, err := scanReminder(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -100,12 +108,16 @@ type reminderScanner interface {
 func scanReminder(row reminderScanner) (*model.Reminder, error) {
 	var reminder model.Reminder
 	var dismissed int
+	var itemName sql.NullString
 	if err := row.Scan(
 		&reminder.ID, &reminder.ItemID, &reminder.Type,
-		&reminder.TriggerAt, &reminder.SentAt, &dismissed,
+		&reminder.TriggerAt, &reminder.SentAt, &dismissed, &itemName,
 	); err != nil {
 		return nil, err
 	}
 	reminder.IsDismissed = dismissed != 0
+	if itemName.Valid {
+		reminder.ItemName = &itemName.String
+	}
 	return &reminder, nil
 }

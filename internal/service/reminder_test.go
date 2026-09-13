@@ -35,6 +35,34 @@ func TestReminderListMarkSentAndDismiss(t *testing.T) {
 	if len(due) != 1 || due[0].ID != dueID {
 		t.Fatalf("expected only due reminder, got %#v", due)
 	}
+	if due[0].ItemName == nil || *due[0].ItemName != "滤芯" {
+		t.Fatalf("expected item name joined, got %#v", due[0].ItemName)
+	}
+
+	if _, err := database.ExecContext(ctx,
+		`INSERT INTO items (id, name, type, status, is_private, created_at, updated_at)
+		 VALUES ('item-2', '另一件', 'durable', 'in_stock', 0, 1, 1)`); err != nil {
+		t.Fatalf("insert second item: %v", err)
+	}
+	otherID := ulid.Make().String()
+	if _, err := database.ExecContext(ctx,
+		`INSERT INTO reminders (id, item_id, type, trigger_at, is_dismissed)
+		 VALUES (?, 'item-2', 'loan_due', 100, 0)`, otherID); err != nil {
+		t.Fatalf("insert other reminder: %v", err)
+	}
+
+	byItem, err := svc.List(ctx, ReminderListFilter{ItemID: "item-1"})
+	if err != nil {
+		t.Fatalf("list by item: %v", err)
+	}
+	if len(byItem) != 2 {
+		t.Fatalf("expected 2 reminders for item-1, got %d", len(byItem))
+	}
+	for _, r := range byItem {
+		if r.ItemID != "item-1" {
+			t.Fatalf("unexpected item %q in filtered list", r.ItemID)
+		}
+	}
 
 	sent, err := svc.MarkSent(ctx, dueID, 210)
 	if err != nil {

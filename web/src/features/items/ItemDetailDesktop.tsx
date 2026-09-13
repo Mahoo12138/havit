@@ -34,6 +34,7 @@ import { Dialog } from '../../components/ui/dialog-compat';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { StatusBadge } from '../../components/ui/status-badge';
+import { Tag } from '../../components/ui/tag';
 import { TextField } from '../../components/ui/text-field';
 import {
   containerApi,
@@ -42,6 +43,7 @@ import {
   suppliesExtendedApi,
   virtualAssetsApi,
   virtualCredentialsApi,
+  remindersApi,
   type Attachment,
   type Item,
 } from '../../api/client';
@@ -49,6 +51,7 @@ import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { formatDate, formatDateTime, formatPrice, useItemDetailData } from './useItemDetailData';
 import { CredentialFormDialog } from '../credentials/CredentialFormDialog';
 import { WarrantyEditDialog } from '../credentials/WarrantyTab';
+import { ReminderRow } from '../reminders/reminderUi';
 import * as s from './ItemDetailDesktop.css';
 
 export function ItemDetailDesktop({ itemId }: { itemId: string }) {
@@ -193,9 +196,7 @@ export function ItemDetailDesktop({ itemId }: { itemId: string }) {
               <span className={s.mutedText}>{t('items.noTags')}</span>
             ) : (
               currentTags.map((tag: any) => (
-                <span className={s.tagChip} key={tag.id}>
-                  #{tag.name}
-                </span>
+                <Tag key={tag.id}>#{tag.name}</Tag>
               ))
             )}
           </div>
@@ -230,7 +231,7 @@ export function ItemDetailDesktop({ itemId }: { itemId: string }) {
 
         <div className={s.rightColumn}>
           <LoansSection itemId={itemId} />
-          <TasksPanel item={it} />
+          <TasksPanel itemId={it.id} />
           {isConsumable && <ConsumableSection itemId={itemId} item={it} />}
           {isVirtual && <VirtualSection itemId={itemId} />}
           <RelatedPanel itemId={itemId} />
@@ -245,7 +246,7 @@ export function ItemDetailDesktop({ itemId }: { itemId: string }) {
         <div className={s.dialogStack}>
           <div className={s.tagList}>
             {currentTags.map((tag: any) => (
-              <span className={s.tagChip} key={tag.id}>
+              <Tag key={tag.id}>
                 {tag.name}
                 <button
                   type="button"
@@ -256,7 +257,7 @@ export function ItemDetailDesktop({ itemId }: { itemId: string }) {
                 >
                   <IconX size={12} />
                 </button>
-              </span>
+              </Tag>
             ))}
             {currentTags.length === 0 && <span className={s.mutedText}>{t('items.noTags')}</span>}
           </div>
@@ -389,7 +390,13 @@ function WarrantyPanel({ item }: { item: Item }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState(false);
+  const [credentialOpen, setCredentialOpen] = useState(false);
+  const creds = useQuery({ queryKey: ['item', item.id, 'credentials'], queryFn: () => virtualAssetsApi.listCredentials(item.id) });
+  const credentialCount = creds.data?.credentials.length ?? 0;
   const warranty = getWarrantyView(item, t);
+  const purchaseSummary = item.purchase_date
+    ? `${formatDate(item.purchase_date)}${item.purchase_price != null ? ` · ${formatPrice(item.purchase_price, item.purchase_currency, t)}` : ''}`
+    : t('common.notSet');
   return (
     <SectionCard
       icon={<IconShieldCheck size={15} />}
@@ -397,9 +404,22 @@ function WarrantyPanel({ item }: { item: Item }) {
       action={<Button variant="ghost" size="sm" onClick={() => setEditing(true)}>{t('common.edit')}</Button>}
     >
       <div className={s.documentStrip}>
-        <div className={s.documentThumb}><IconReceipt size={20} /></div>
-        <div className={s.documentThumb} data-card><IconKey size={20} /></div>
-        <button type="button" className={s.documentAdd}><IconPlus size={16} />{t('common.add')}</button>
+        <div className={s.documentThumb}>
+          <IconReceipt size={20} />
+          <span className={s.documentThumbTitle}>{t('itemDetail.purchaseProof')}</span>
+          <span className={s.documentThumbSub}>{purchaseSummary}</span>
+        </div>
+        <button type="button" className={s.documentThumb} data-card={credentialCount > 0 || undefined} onClick={() => setCredentialOpen(true)}>
+          <IconKey size={20} />
+          <span className={s.documentThumbTitle}>{t('itemDetail.platformCredentials')}</span>
+          <span className={s.documentThumbSub}>
+            {credentialCount > 0 ? t('itemDetail.credentialCount', { count: credentialCount }) : t('common.add')}
+          </span>
+        </button>
+        <button type="button" className={s.documentAdd} onClick={() => setCredentialOpen(true)}>
+          <IconPlus size={16} />
+          {t('itemDetail.addCredential')}
+        </button>
       </div>
       <div className={s.kvList}>
         <KvRow label={t('itemDetail.warrantyExpiry')}>{warranty.expiresAt ? formatDate(warranty.expiresAt) : t('common.notSet')}</KvRow>
@@ -418,34 +438,47 @@ function WarrantyPanel({ item }: { item: Item }) {
           }}
         />
       )}
+      {credentialOpen && (
+        <CredentialFormDialog
+          open
+          itemId={item.id}
+          onClose={() => {
+            setCredentialOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['item', item.id, 'credentials'] });
+            queryClient.invalidateQueries({ queryKey: ['virtual-credentials'] });
+          }}
+        />
+      )}
     </SectionCard>
   );
 }
 
-function TasksPanel({ item }: { item: Item }) {
+function TasksPanel({ itemId }: { itemId: string }) {
   const { t } = useTranslation();
-  const warranty = getWarrantyView(item, t);
+  const reminders = useQuery({
+    queryKey: ['reminders', 'item', itemId],
+    queryFn: () => remindersApi.list({ itemId }),
+  });
+  const all = reminders.data?.reminders ?? [];
+  const pending = all.filter((r) => !r.is_dismissed && !r.sent_at);
+
   return (
     <SectionCard icon={<IconBell size={15} />} title={t('itemDetail.tasks')}>
-      <div className={s.taskList}>
-        <TaskRow title={t('itemDetail.warrantyReminder')} meta={warranty.expiresAt ? formatDate(warranty.expiresAt) : t('common.notSet')} tone={warranty.tone} />
-        <TaskRow title={t('itemDetail.cleaningReminder')} meta={t('itemDetail.everySixMonths')} tone="info" />
-      </div>
-      <button type="button" className={s.blockLinkButton}>{t('itemDetail.viewAllTasks')}</button>
+      {reminders.isPending ? (
+        <Spinner />
+      ) : pending.length === 0 ? (
+        <div className={s.taskEmpty}>{t('reminders.noPendingForItem')}</div>
+      ) : (
+        <div className={s.taskList}>
+          {pending.map((r) => (
+            <ReminderRow key={r.id} reminder={r} showItem={false} />
+          ))}
+        </div>
+      )}
+      <Link to="/reminders" className={s.blockLinkButton}>
+        {t('itemDetail.viewAllTasks')}
+      </Link>
     </SectionCard>
-  );
-}
-
-function TaskRow({ title, meta, tone }: { title: string; meta: string | undefined; tone: 'success' | 'warning' | 'danger' | 'neutral' | 'info' }) {
-  return (
-    <div className={s.taskRow}>
-      <span className={s.taskIcon} data-tone={tone}><IconBell size={14} /></span>
-      <div className={s.taskMeta}>
-        <span className={s.taskTitle}>{title}</span>
-        <span className={s.taskSub}>{meta}</span>
-      </div>
-      <span className={s.taskState}>{tone === 'danger' ? '!' : ''}</span>
-    </div>
   );
 }
 
@@ -622,9 +655,9 @@ function EventsSection({ itemId }: { itemId: string }) {
             <div className={s.timelineRow} key={event.id}>
               <span className={s.timelineIcon}><IconHistory size={13} /></span>
               <div className={s.timelineMeta}>
-                <span className={s.compactTitle}>{String(t(`events.${event.event_type}`, event.event_type))}</span>
+                <span className={s.compactTitle}>{formatEventTitle(event, t)}</span>
                 <span className={s.compactSub}>{formatDateTime(event.created_at)}</span>
-                {event.payload && <code className={s.payload}>{event.payload}</code>}
+                {formatEventPayload(event, t) && <code className={s.payload}>{formatEventPayload(event, t)}</code>}
               </div>
             </div>
           ))}
@@ -633,6 +666,23 @@ function EventsSection({ itemId }: { itemId: string }) {
       {events.length > 5 && <button type="button" className={s.blockLinkButton}>{t('itemDetail.viewAllEvents')}</button>}
     </SectionCard>
   );
+}
+
+function formatEventTitle(event: any, t: (key: string, params?: any) => string) {
+  return String(t(`events.${event.event_type}`, event.event_type));
+}
+
+function formatEventPayload(event: any, t: (key: string, params?: any) => string): string | null {
+  if (!event.payload) return null;
+  try {
+    const parsed = JSON.parse(event.payload);
+    if (parsed && typeof parsed.exit_type === 'string') {
+      return `${t('items.exitType')}: ${t(`status.${parsed.exit_type}`, parsed.exit_type)}`;
+    }
+    return event.payload;
+  } catch {
+    return event.payload;
+  }
 }
 
 function MetadataSection({ itemId, item }: { itemId: string; item: Item }) {

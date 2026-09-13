@@ -272,18 +272,6 @@ export const tagList = style({
   gap: themeVars.space2,
 });
 
-export const tagChip = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.25rem',
-  padding: '0.15rem 0.45rem',
-  borderRadius: themeVars.radius1,
-  background: themeVars.accentSoft,
-  color: themeVars.accentInk,
-  fontSize: '0.74rem',
-  fontWeight: 650,
-});
-
 export const tagRemove = style({
   display: 'inline-grid',
   placeItems: 'center',
@@ -542,18 +530,40 @@ export const documentStrip = style({
 
 export const documentThumb = style({
   minHeight: '4.2rem',
-  display: 'grid',
-  placeItems: 'center',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: themeVars.space1,
+  textAlign: 'center',
+  padding: `${themeVars.space2} ${themeVars.space3}`,
   borderRadius: themeVars.radius2,
   background: themeVars.bgSoft,
   border: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.muted,
+  fontSize: '0.78rem',
+  cursor: 'default',
   selectors: {
     '&[data-card]': {
       background: themeVars.dangerSoft,
       color: themeVars.danger,
     },
+    '&:is(button)': {
+      cursor: 'pointer',
+    },
   },
+});
+
+export const documentThumbTitle = style({
+  fontWeight: 650,
+  fontSize: '0.8rem',
+  color: 'inherit',
+});
+
+export const documentThumbSub = style({
+  fontSize: '0.72rem',
+  color: themeVars.muted,
+  wordBreak: 'break-all',
 });
 
 export const documentAdd = style({
@@ -624,6 +634,12 @@ export const iconOnly = style({
   background: 'transparent',
   color: themeVars.muted,
   cursor: 'pointer',
+});
+
+export const taskEmpty = style({
+  padding: themeVars.space2 + ' 0',
+  color: themeVars.muted,
+  fontSize: '0.8rem',
 });
 
 export const taskList = style({

@@ -105,7 +105,7 @@ export function OperationsDesktop() {
                 <div className={s.reminderRow} key={r.id}>
                   <div className={s.reminderMeta}>
                     <h4 className={s.reminderType}>{t(`reminder.${r.type}`, r.type)}</h4>
-                    <span className={s.reminderItem}>{r.item_id}</span>
+                    <span className={s.reminderItem}>{r.item_name ?? r.item_id}</span>
                   </div>
                   <div className={s.reminderSide}>
                     <span className={s.reminderTime}>{formatDateTime(r.trigger_at)}</span>
@@ -120,6 +120,11 @@ export function OperationsDesktop() {
           {reminders.length > REMINDER_PREVIEW_LIMIT && (
             <span className={s.exportHint}>{t('operations.reminderPreview', { count: REMINDER_PREVIEW_LIMIT })}</span>
           )}
+          <div className={s.cardFoot}>
+            <Link to="/reminders" className={uiStyles.sectionLink}>
+              {t('reminders.viewAll')}
+            </Link>
+          </div>
         </DataCard>
 
         <DataCard title={t('operations.backupExport')}>

@@ -18,7 +18,8 @@
     "assets": "资产台账",
     "virtualAssets": "虚拟资产",
     "tags": "标签管理",
-    "categories": "分类管理"
+    "categories": "分类管理",
+    "reminders": "提醒中心"
   },
   "navSection": {
     "inventory": "资产大盘",
@@ -158,7 +159,8 @@
     "tagsLoading": "标签加载中…",
     "selectTagPlaceholder": "选择已有标签",
     "photoReadFailed": "照片加载失败",
-    "downloadClaim": "下载理赔凭证 PDF"
+    "downloadClaim": "下载理赔凭证 PDF",
+    "exitType": "退出类型"
   },
   "itemType": {
     "durable": "耐用品",
@@ -230,14 +232,14 @@
     "locationPath": "位置路径",
     "viewItemsAtLocation": "查看该位置的物品",
     "tasks": "任务与提醒",
-    "warrantyReminder": "保修到期提醒",
-    "cleaningReminder": "清洁保养提醒",
-    "everySixMonths": "每 6 个月",
     "viewAllTasks": "查看全部任务",
     "relatedAssets": "关联资产",
     "noRelatedAssets": "暂无关联资产",
     "viewAllEvents": "查看全部记录",
-    "addLoan": "添加借出"
+    "addLoan": "添加借出",
+    "purchaseProof": "购买凭证",
+    "credentialCount_other": "{{count}} 条凭证",
+    "credentialCount_one": "{{count}} 条凭证"
   },
   "events": {
     "created": "已创建",
@@ -256,7 +258,12 @@
     "edited": "已编辑",
     "loan_unreturned": "借出未还（遗失）",
     "essentials_returned_home": "已归位",
-    "essentials_status_changed": "动态状态变更"
+    "essentials_status_changed": "动态状态变更",
+    "updated": "已更新",
+    "exited": "退出登记",
+    "used_one": "消耗一个",
+    "put_into_container": "放入收纳",
+    "removed_from_container": "移出收纳"
   },
   "locations": {
     "title": "位置",
@@ -1292,6 +1299,8 @@
     "loginSubtitle": "个人与家庭的全资产台账",
     "loggingIn": "登录中…",
     "demoHint": "当前为演示模式，已为你预填测试账号。",
+    "ledgerEntry": "台账登记",
+    "sealed": "已盖章",
     "setupTitle": "初始设置",
     "setupDescription": "创建管理员账户以开始使用。",
     "setupButton": "初始化",
@@ -1376,7 +1385,9 @@
     "warranty_expiry": "保修即将到期",
     "stock_low": "库存不足",
     "loan_overdue": "借出逾期",
-    "default": "提醒"
+    "default": "提醒",
+    "filter_life": "滤芯更换提醒",
+    "loan_due": "借出归还到期"
   },
   "date": {
     "weekday_sun": "周日",
@@ -1502,5 +1513,27 @@
     "previous": "上一页",
     "next": "下一页",
     "more": "更多页面"
+  },
+  "reminders": {
+    "title": "提醒中心",
+    "description": "保修、滤芯、库存与借出到期提醒集中在这里，可标记处理或忽略。",
+    "bellTitle": "待办提醒",
+    "viewAll": "查看全部",
+    "moreCount": "还有 {{count}} 条，点击查看全部",
+    "markDone": "标记已处理",
+    "dismissAction": "忽略此提醒",
+    "markedDone": "已标记处理",
+    "dismissed": "已忽略",
+    "actionFailed": "操作失败：{{error}}",
+    "noPendingForItem": "该物品暂无待办提醒。",
+    "status": {
+      "pending": "待处理",
+      "sent": "已处理",
+      "dismissed": "已忽略"
+    },
+    "filter": {
+      "all": "全部",
+      "pending": "待处理"
+    }
   }
 }

@@ -433,9 +433,10 @@ func (s *ExportService) virtualAddons(ctx context.Context) ([]*model.VirtualAddo
 
 func (s *ExportService) reminders(ctx context.Context) ([]*model.Reminder, error) {
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, item_id, type, trigger_at, sent_at, is_dismissed
-		FROM reminders
-		ORDER BY trigger_at ASC, id ASC`)
+		SELECT r.id, r.item_id, r.type, r.trigger_at, r.sent_at, r.is_dismissed, i.name
+		FROM reminders r
+		LEFT JOIN items i ON i.id = r.item_id
+		ORDER BY r.trigger_at ASC, r.id ASC`)
 	if err != nil {
 		return nil, err
 	}

@@ -18,7 +18,8 @@
     "assets": "Asset Ledger",
     "virtualAssets": "Virtual Assets",
     "tags": "Tags",
-    "categories": "Categories"
+    "categories": "Categories",
+    "reminders": "Reminders"
   },
   "navSection": {
     "inventory": "Inventory Views",
@@ -158,7 +159,8 @@
     "tagsLoading": "Loading tags…",
     "selectTagPlaceholder": "Select an existing tag",
     "photoReadFailed": "Photo unavailable",
-    "downloadClaim": "Download Claim PDF"
+    "downloadClaim": "Download Claim PDF",
+    "exitType": "Exit type"
   },
   "itemType": {
     "durable": "Durable",
@@ -230,14 +232,14 @@
     "locationPath": "Location Path",
     "viewItemsAtLocation": "View items at this location",
     "tasks": "Tasks & Reminders",
-    "warrantyReminder": "Warranty expiry reminder",
-    "cleaningReminder": "Cleaning reminder",
-    "everySixMonths": "Every 6 months",
     "viewAllTasks": "View all tasks",
     "relatedAssets": "Related Assets",
     "noRelatedAssets": "No related assets",
     "viewAllEvents": "View all records",
-    "addLoan": "Add Loan"
+    "addLoan": "Add Loan",
+    "purchaseProof": "Purchase proof",
+    "credentialCount_other": "{{count}} credentials",
+    "credentialCount_one": "{{count}} credential"
   },
   "events": {
     "created": "Created",
@@ -256,7 +258,12 @@
     "edited": "Edited",
     "loan_unreturned": "Loan Lost & Unreturned",
     "essentials_returned_home": "Returned home",
-    "essentials_status_changed": "Status changed"
+    "essentials_status_changed": "Status changed",
+    "updated": "Updated",
+    "exited": "Exited",
+    "used_one": "Used one",
+    "put_into_container": "Put into container",
+    "removed_from_container": "Removed from container"
   },
   "locations": {
     "title": "Locations",
@@ -1296,6 +1303,8 @@
     "loginSubtitle": "Full asset ledger for individuals and families",
     "loggingIn": "Logging in…",
     "demoHint": "Demo mode active. Test credentials are pre-filled.",
+    "ledgerEntry": "Ledger entry",
+    "sealed": "Sealed",
     "setupTitle": "Initial Setup",
     "setupDescription": "Create your admin account to get started.",
     "setupButton": "Initialize",
@@ -1380,7 +1389,9 @@
     "warranty_expiry": "Warranty Expiring",
     "stock_low": "Low Stock",
     "loan_overdue": "Loan Overdue",
-    "default": "Reminder"
+    "default": "Reminder",
+    "filter_life": "Filter replacement due",
+    "loan_due": "Loan due for return"
   },
   "date": {
     "weekday_sun": "Sun",
@@ -1511,5 +1522,27 @@
     "previous": "Previous page",
     "next": "Next page",
     "more": "More pages"
+  },
+  "reminders": {
+    "title": "Reminders",
+    "description": "Warranty, filter, restock and loan reminders in one place — mark them done or dismiss.",
+    "bellTitle": "Pending reminders",
+    "viewAll": "View all",
+    "moreCount": "{{count}} more — view all",
+    "markDone": "Mark as done",
+    "dismissAction": "Dismiss reminder",
+    "markedDone": "Marked as done",
+    "dismissed": "Dismissed",
+    "actionFailed": "Action failed: {{error}}",
+    "noPendingForItem": "No pending reminders for this item.",
+    "status": {
+      "pending": "Pending",
+      "sent": "Done",
+      "dismissed": "Dismissed"
+    },
+    "filter": {
+      "all": "All",
+      "pending": "Pending"
+    }
   }
 }

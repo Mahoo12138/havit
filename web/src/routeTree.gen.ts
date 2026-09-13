@@ -14,6 +14,7 @@ import { Route as SuppliesRouteImport } from './routes/supplies'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as QrPrintRouteImport } from './routes/qr-print'
 import { Route as OperationsRouteImport } from './routes/operations'
 import { Route as LoginRouteImport } from './routes/login'
@@ -55,6 +56,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RemindersRoute = RemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const QrPrintRoute = QrPrintRouteImport.update({
@@ -157,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
+  '/reminders': typeof RemindersRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
+  '/reminders': typeof RemindersRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/operations': typeof OperationsRoute
   '/qr-print': typeof QrPrintRoute
+  '/reminders': typeof RemindersRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/setup': typeof SetupRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/operations'
     | '/qr-print'
+    | '/reminders'
     | '/search'
     | '/settings'
     | '/setup'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/operations'
     | '/qr-print'
+    | '/reminders'
     | '/search'
     | '/settings'
     | '/setup'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/operations'
     | '/qr-print'
+    | '/reminders'
     | '/search'
     | '/settings'
     | '/setup'
@@ -305,6 +317,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OperationsRoute: typeof OperationsRoute
   QrPrintRoute: typeof QrPrintRoute
+  RemindersRoute: typeof RemindersRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   SetupRoute: typeof SetupRoute
@@ -350,6 +363,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reminders': {
+      id: '/reminders'
+      path: '/reminders'
+      fullPath: '/reminders'
+      preLoaderRoute: typeof RemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/qr-print': {
@@ -500,6 +520,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OperationsRoute: OperationsRoute,
   QrPrintRoute: QrPrintRoute,
+  RemindersRoute: RemindersRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   SetupRoute: SetupRoute,

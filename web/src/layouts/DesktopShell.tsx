@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { IconBell, IconHome, IconLogout, IconMenu2, IconSearch } from '@tabler/icons-react';
+import { IconHome, IconLogout, IconMenu2, IconSearch } from '@tabler/icons-react';
 import {
   uiStyles,
 } from '../components/ui';
@@ -14,6 +14,8 @@ import { SelectField } from '../components/ui/select-field';
 import { authApi, clearToken, type SystemStatus } from '../api/client';
 import { DemoBanner } from './DemoBanner';
 import { getNavSections, formatToday } from './nav-data';
+import { ThemeToggle } from '../lib/theme';
+import { NotificationBell } from '../features/reminders/NotificationBell';
 
 interface ShellProps {
   systemStatus: SystemStatus;
@@ -162,9 +164,8 @@ export function DesktopShell({ systemStatus }: ShellProps) {
           <div className={uiStyles.headerActions}>
             {systemStatus.mode === 'demo' && <Badge>{t('demo.badge')}</Badge>}
             <span className={uiStyles.shellHeaderDate}>{formatToday(t)}</span>
-            <Button variant="subtle" className={uiStyles.headerIconBtn} aria-label={t('common.notifications')}>
-              <IconBell size={18} />
-            </Button>
+            <ThemeToggle iconClassName={uiStyles.headerIconBtn} />
+            <NotificationBell iconClassName={uiStyles.headerIconBtn} />
             <span className={uiStyles.headerAvatar} aria-label={username}>
               {initials}
             </span>

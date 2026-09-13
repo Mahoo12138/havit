@@ -17,6 +17,7 @@ import {
 } from '@tabler/icons-react';
 import { Badge } from '../../components/ui/badge';
 import { uiStyles } from '../../components/ui';
+import { Tag } from '../../components/ui/tag';
 import type { Item } from '../../api/client';
 import {
   useDashboardData,
@@ -152,8 +153,8 @@ export function DashboardMobile() {
       <section className={s.section}>
         <header className={s.sectionHead}>
           <h2 className={s.sectionTitle}>{t('dashboard.reminders')}</h2>
-          <Link to="/operations" className={s.sectionLink}>
-            {t('dashboard.manage')} <IconArrowRight size={14} />
+          <Link to="/reminders" className={s.sectionLink}>
+            {t('dashboard.viewAll')} <IconArrowRight size={14} />
           </Link>
         </header>
         <div className={s.sectionBody}>
@@ -168,7 +169,7 @@ export function DashboardMobile() {
             (reminders.data?.reminders ?? []).slice(0, 5).map((r: any) => (
               <div key={r.id} className={s.reminderRow}>
                 <span>
-                  {t(`reminder.${r.type}`, r.type)} — {itemNames.get(r.item_id) ?? r.item_id}
+                  {t(`reminder.${r.type}`, r.type)} — {r.item_name ?? itemNames.get(r.item_id) ?? r.item_id}
                 </span>
                 <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
               </div>
@@ -242,12 +243,6 @@ function RecentRow({ item: it }: { item: Item }) {
   };
 
   const variant = STATUS_VARIANT[it.status] ?? 'neutral';
-  const tagClass =
-    variant === 'info' ? s.tagInfo
-    : variant === 'warning' ? s.tagWarning
-    : variant === 'success' ? s.tagSuccess
-    : variant === 'danger' ? s.tagDanger
-    : s.tagNeutral;
 
   return (
     <Link to="/items/$itemId" params={{ itemId: it.id }} className={s.recentCard}>
@@ -259,7 +254,7 @@ function RecentRow({ item: it }: { item: Item }) {
         </span>
       </div>
       <div className={s.recentRight}>
-        <span className={tagClass}>{statusLabel(it.status)}</span>
+        <Tag variant={variant}>{statusLabel(it.status)}</Tag>
         {it.purchase_price ? (
           <span className={s.recentPrice}>{formatPrice(it.purchase_price, t)}</span>
         ) : null}
