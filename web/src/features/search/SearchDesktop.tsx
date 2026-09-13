@@ -1,76 +1,101 @@
-﻿import { useCallback, useState } from 'react';
+﻿import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
-import { IconSearch, IconSparkles } from '@tabler/icons-react';
-import { Row, Stack, uiStyles } from '../../components/ui';
+import {
+  IconMapPin,
+  IconPackage,
+  IconSearch,
+  IconSparkles,
+  IconX,
+} from '@tabler/icons-react';
+import { Stack, uiStyles } from '../../components/ui';
 import { Card } from '../../components/ui/card';
+import { Input } from '../../components/ui/input';
 import { Spinner } from '../../components/ui/spinner';
 import { StatusBadge } from '../../components/ui/status-badge';
-import { TextField } from '../../components/ui/text-field';
-import { DataCard, FeatureHeader, MetricStrip } from '../m2/components';
+import { DataCard, FeatureHeader } from '../m2/components';
+import { searchApi } from '../../api/client';
 import type { SearchResult } from '../../api/client';
+import * as s from './search.css';
+
+const SEARCH_DEBOUNCE_MS = 350;
+
+type SearchPhase = 'idle' | 'searching' | 'refining' | 'done' | 'error';
+
+const EXAMPLE_QUERIES = [
+  'search.exampleIdle',
+  'search.exampleBorrowed',
+  'search.exampleExpiring',
+] as const;
 
 export function SearchDesktop() {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [ftsResults, setFtsResults] = useState<SearchResult[]>([]);
   const [llmResults, setLlmResults] = useState<SearchResult[]>([]);
-  const [isRefining, setIsRefining] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [esRef, setEsRef] = useState<EventSource | null>(null);
+  const [phase, setPhase] = useState<SearchPhase>('idle');
+  const [error, setError] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const esRef = useRef<EventSource | null>(null);
 
-  const handleSearch = useCallback(
-    (q: string) => {
-      setQuery(q);
-      esRef?.close();
-      setFtsResults([]);
-      setLlmResults([]);
-      setIsRefining(false);
-      setSearchError(null);
+  const runSearch = useCallback((q: string) => {
+    esRef.current?.close();
+    esRef.current = null;
+    setFtsResults([]);
+    setLlmResults([]);
+    setError(false);
 
-      if (!q.trim()) return;
+    if (!q.trim()) {
+      setPhase('idle');
+      return;
+    }
 
-      const token = localStorage.getItem('havit_token');
-      const url = new URL('/api/v1/search', window.location.origin);
-      url.searchParams.set('q', q);
-      const init: RequestInit = {};
-      if (token) {
-        init.headers = { Authorization: `Bearer ${token}` };
-      }
+    setPhase('searching');
+    const es = searchApi.search(q);
+    esRef.current = es;
 
-      const es = new EventSource(url.toString());
-      setEsRef(es);
+    es.addEventListener('fts_results', ((e: MessageEvent) => {
+      setFtsResults(JSON.parse(e.data) ?? []);
+      setPhase('refining');
+    }) as EventListener);
 
-      es.addEventListener('fts_results', ((e: MessageEvent) => {
-        const data = JSON.parse(e.data);
-        setFtsResults(data ?? []);
-        setIsRefining(true);
-      }) as EventListener);
+    es.addEventListener('llm_results', ((e: MessageEvent) => {
+      setLlmResults(JSON.parse(e.data) ?? []);
+    }) as EventListener);
 
-      es.addEventListener('llm_results', ((e: MessageEvent) => {
-        const data = JSON.parse(e.data);
-        setLlmResults(data ?? []);
-      }) as EventListener);
+    es.addEventListener('search_error', (() => {
+      setError(true);
+      setPhase('error');
+      es.close();
+    }) as EventListener);
 
-      es.addEventListener('search_error', (() => {
-        setSearchError(t('search.searchError'));
-        setIsRefining(false);
-        es.close();
-      }) as EventListener);
+    es.addEventListener('done', () => {
+      setPhase('done');
+      es.close();
+    });
 
-      es.addEventListener('done', () => {
-        setIsRefining(false);
-        es.close();
-      });
+    es.onerror = () => {
+      setPhase((prev) => (prev === 'refining' ? 'done' : 'error'));
+      es.close();
+    };
+  }, []);
 
-      es.onerror = () => {
-        setIsRefining(false);
-        es.close();
-      };
-    },
-    [esRef, t],
-  );
+  useEffect(() => {
+    const timer = window.setTimeout(() => runSearch(query), SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [query, runSearch]);
 
-  const results = llmResults.length > 0 ? llmResults : ftsResults;
+  useEffect(() => {
+    return () => esRef.current?.close();
+  }, []);
+
+  const isRefining = phase === 'refining';
+  const hasResults = ftsResults.length > 0 || llmResults.length > 0;
+  const useLlm = llmResults.length > 0;
+  const results = useLlm ? llmResults : ftsResults;
+  const showSkeleton = phase === 'searching';
+  const showEmptyState =
+    !showSkeleton && phase !== 'idle' && !hasResults && !isRefining && !error;
 
   return (
     <Stack>
@@ -81,81 +106,155 @@ export function SearchDesktop() {
       />
 
       <Card className="surface-card">
-        <Stack>
-          <TextField
-            label={t('search.query')}
-            placeholder={t('search.queryPlaceholder')}
-            value={query}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-          {searchError && (
-            <Row>
-              <IconSearch size={16} />
-              <span className={uiStyles.help}>{searchError}</span>
-            </Row>
+        <Stack className={uiStyles.cardContent}>
+          <div className={s.searchWrap}>
+            <IconSearch size={18} className={s.searchIcon} />
+            <Input
+              ref={inputRef}
+              type="search"
+              className={s.searchInput}
+              placeholder={t('search.placeholder')}
+              value={query}
+              onChange={(e) => setQuery(e.currentTarget.value)}
+              aria-label={t('search.query')}
+              autoFocus
+            />
+            {query && (
+              <button
+                type="button"
+                className={s.clearButton}
+                onClick={() => {
+                  setQuery('');
+                  inputRef.current?.focus();
+                }}
+                aria-label={t('search.clear')}
+              >
+                <IconX size={15} />
+              </button>
+            )}
+          </div>
+
+          {(error || phase !== 'idle') && (
+            <div className={s.statusLine}>
+              {error && <span className={s.errorText}>{t('search.searchError')}</span>}
+              {!error && phase === 'searching' && (
+                <span className={s.skeletonPulse}>{t('search.searching')}</span>
+              )}
+              {!error && isRefining && (
+                <>
+                  <Spinner />
+                  <span>{t('search.aiRefining')}</span>
+                </>
+              )}
+              {!error && phase === 'done' && hasResults && (
+                <>
+                  <span className={s.sourceChip[useLlm ? 'llm' : 'fts']}>
+                    {useLlm && <IconSparkles size={12} />}
+                    {useLlm ? t('search.llmRefined') : 'FTS5'}
+                  </span>
+                  <span>{t('search.results')}: {results.length}</span>
+                  {!useLlm && llmResults.length === 0 && ftsResults.length > 0 && (
+                    <span>{t('search.ftsOnly')}</span>
+                  )}
+                </>
+              )}
+            </div>
           )}
-          <Row>
-            {ftsResults.length > 0 && <StatusBadge status="in_stock" />}
-            {isRefining && (
-              <Row>
-                <Spinner />
-                <span className={uiStyles.muted}>{t('search.aiRefining')}</span>
-              </Row>
-            )}
-            {!isRefining && ftsResults.length > 0 && llmResults.length === 0 && (
-              <span className={uiStyles.muted}>{t('search.ftsReturned')}</span>
-            )}
-          </Row>
         </Stack>
       </Card>
 
-      <MetricStrip
-        metrics={[
-          { label: t('search.results'), value: results.length },
-          {
-            label: t('search.abnormalStatus'),
-            value: results.filter((r) => r.status !== 'in_stock').length,
-          },
-          {
-            label: t('search.searchSource'),
-            value: llmResults.length > 0 ? t('search.llmRefined') : ftsResults.length > 0 ? 'FTS5' : '—',
-          },
-        ]}
-      />
-
-      {results.length > 0 && (
-        <DataCard title={t('search.searchResults')}>
-          <div className={uiStyles.cardGrid}>
-            {results.map((result) => (
-              <Card className="surface-card" key={result.id}>
-                <Stack>
-                  {result.thumbnail_url && (
-                    <img src={result.thumbnail_url} alt="" className={uiStyles.searchThumb} />
-                  )}
-                  <Row>
-                    <IconSparkles size={16} />
-                    <h3 className={uiStyles.heading}>{result.name}</h3>
-                  </Row>
-                  {result.location_path && <span>{result.location_path}</span>}
-                  {result.essentials_hint && <p className={uiStyles.help}>{result.essentials_hint}</p>}
-                  {result.loan_hint && <p className={uiStyles.help}>{result.loan_hint}</p>}
-                  <Row>
-                    <StatusBadge status={result.status} />
-                    <span className={uiStyles.muted}>{t(`itemType.${result.type}`, result.type)}</span>
-                  </Row>
-                </Stack>
-              </Card>
+      {showSkeleton && (
+        <DataCard title={t('search.searching')}>
+          <div className={s.resultList}>
+            {Array.from({ length: 4 }, (_, i) => (
+              <div className={s.skeletonRow} key={i} aria-hidden>
+                <div className={s.skeletonThumb} />
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.375rem',
+                    flex: 1,
+                  }}
+                >
+                  <div className={s.skeletonLine} style={{ width: '38%' }} />
+                  <div className={s.skeletonLine} style={{ width: '62%' }} />
+                </div>
+              </div>
             ))}
           </div>
         </DataCard>
       )}
 
-      {query && !isRefining && results.length === 0 && (
+      {hasResults && !showSkeleton && (
+        <DataCard
+          title={t('search.searchResults')}
+          meta={
+            <span className={s.sourceChip[useLlm ? 'llm' : 'fts']}>
+              {useLlm && <IconSparkles size={12} />}
+              {useLlm ? t('search.llmRefined') : 'FTS5'}
+            </span>
+          }
+        >
+          <div className={s.resultList}>
+            {results.map((result) => (
+              <Link
+                to="/items/$itemId"
+                params={{ itemId: result.id }}
+                className={s.resultRow}
+                key={result.id}
+              >
+                {result.thumbnail_url ? (
+                  <img src={result.thumbnail_url} alt="" className={s.thumb} />
+                ) : (
+                  <span className={s.thumbFallback}>
+                    <IconPackage size={18} />
+                  </span>
+                )}
+                <span className={s.resultMain}>
+                  <h4 className={s.resultName}>{result.name}</h4>
+                  {result.location_path && (
+                    <span className={s.resultMeta}>
+                      <IconMapPin size={13} />
+                      <span className={s.resultPath}>{result.location_path}</span>
+                    </span>
+                  )}
+                  {(result.essentials_hint || result.loan_hint) && (
+                    <p className={s.resultHint}>
+                      {result.essentials_hint || result.loan_hint}
+                    </p>
+                  )}
+                </span>
+                <span className={s.resultSide}>
+                  <StatusBadge status={result.status} />
+                  <span className={s.resultType}>
+                    {t(`itemType.${result.type}`, result.type)}
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </DataCard>
+      )}
+
+      {showEmptyState && (
         <Card className="surface-card">
-          <Row>
-            <IconSearch size={16} />
-            <span className={uiStyles.muted}>{t('search.noResults')}</span>
-          </Row>
+          <div className="empty-state">
+            <p>{t('search.noResults')}</p>
+            <p>{t('search.exampleTitle')}</p>
+            <div className={s.exampleRow}>
+              {EXAMPLE_QUERIES.map((key) => (
+                <button
+                  type="button"
+                  className={s.exampleChip}
+                  key={key}
+                  onClick={() => setQuery(t(key))}
+                >
+                  {t(key)}
+                </button>
+              ))}
+            </div>
+          </div>
         </Card>
       )}
     </Stack>

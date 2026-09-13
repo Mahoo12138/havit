@@ -1012,7 +1012,12 @@
     "searchSource": "搜索源",
     "llmRefined": "LLM 精排",
     "searchResults": "搜索结果",
-    "meta": "FTS5 + SSE"
+    "meta": "FTS5 + SSE",
+    "clear": "清空搜索",
+    "exampleTitle": "试试这些：",
+    "exampleIdle": "家里有哪些闲置超过半年的数码产品",
+    "exampleBorrowed": "现在有哪些物品借出去了",
+    "exampleExpiring": "今年有哪些保修即将到期"
   },
   "settings": {
     "title": "设置",

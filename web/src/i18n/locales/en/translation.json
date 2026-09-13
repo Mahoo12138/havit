@@ -1016,7 +1016,12 @@
     "searchSource": "Search Source",
     "llmRefined": "LLM Reranked",
     "searchResults": "Search Results",
-    "meta": "FTS5 + SSE"
+    "meta": "FTS5 + SSE",
+    "clear": "Clear search",
+    "exampleTitle": "Try one of these:",
+    "exampleIdle": "What electronics have been idle for over six months?",
+    "exampleBorrowed": "What items are currently lent out?",
+    "exampleExpiring": "Which warranties expire this year?"
   },
   "settings": {
     "title": "Settings",
