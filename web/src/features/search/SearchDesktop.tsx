@@ -105,7 +105,7 @@ export function SearchDesktop() {
         meta={t('search.meta')}
       />
 
-      <Card className="surface-card">
+      <Card>
         <Stack className={uiStyles.cardContent}>
           <div className={s.searchWrap}>
             <IconSearch size={18} className={s.searchIcon} />
@@ -238,7 +238,7 @@ export function SearchDesktop() {
       )}
 
       {showEmptyState && (
-        <Card className="surface-card">
+        <Card>
           <div className="empty-state">
             <p>{t('search.noResults')}</p>
             <p>{t('search.exampleTitle')}</p>

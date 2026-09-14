@@ -45,6 +45,14 @@ import {
   SelectValue,
 } from '../../components/ui/select';
 import { Spinner } from '../../components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
@@ -556,63 +564,61 @@ function EssentialsTable({ items, locOptions, t, returnHome, setStatus, onViewDe
   onViewDetails: (itemId: string) => void;
 }) {
   return (
-    <div className={s.tableScroll}>
-      <table className={s.table}>
-        <thead>
-          <tr>
-            <th className={s.tableHead}>{t('essentials.item')}</th>
-            <th className={s.tableHead}>{t('essentials.homeBase')}</th>
-            <th className={s.tableHead}>{t('essentials.currentStatus')}</th>
-            <th className={s.tableHead}>{t('essentials.lastConfirmedCol')}</th>
-            <th className={s.tableHead}>{t('essentials.action')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => {
-            const statusType = getStatusType(item);
-            return (
-              <tr className={s.tableRow} key={item.id}>
-                <td className={s.tableCell}>
-                  <div className={s.itemInfo}>
-                    <div className={s.itemThumb}><IconPackage size={16} /></div>
-                    <div className={s.itemMeta}>
-                      <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
-                      <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
-                    </div>
+    <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{t('essentials.item')}</TableHead>
+          <TableHead>{t('essentials.homeBase')}</TableHead>
+          <TableHead>{t('essentials.currentStatus')}</TableHead>
+          <TableHead>{t('essentials.lastConfirmedCol')}</TableHead>
+          <TableHead>{t('essentials.action')}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {items.map((item) => {
+          const statusType = getStatusType(item);
+          return (
+            <TableRow key={item.id}>
+              <TableCell>
+                <div className={s.itemInfo}>
+                  <div className={s.itemThumb}><IconPackage size={16} /></div>
+                  <div className={s.itemMeta}>
+                    <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
+                    <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
                   </div>
-                </td>
-                <td className={`${s.tableCell} ${s.muted}`}>
-                  {locOptions.find((option) => option.value === item.home_base_location_id)?.label ?? '—'}
-                </td>
-                <td className={s.tableCell}>
-                  <span className={s.badge[STATUS_TONE[statusType]]}>{getStatusLabel(t, item)}</span>
-                </td>
-                <td className={`${s.tableCell} ${s.muted}`}>{formatRelative(t, item.updated_at)}</td>
-                <td className={s.tableCell}>
-                  <div className={s.actionGroup}>
-                    <EssentialsActionMenu
-                      item={item}
-                      statusType={statusType}
-                      t={t}
-                      returnHome={returnHome}
-                      setStatus={setStatus}
-                      onViewDetails={onViewDetails}
-                    />
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-          {items.length === 0 && (
-            <tr>
-              <td className={s.tableCell} colSpan={5}>
-                <div className={s.empty}>{t('essentials.noEdc')}</div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+                </div>
+              </TableCell>
+              <TableCell className={s.muted}>
+                {locOptions.find((option) => option.value === item.home_base_location_id)?.label ?? '—'}
+              </TableCell>
+              <TableCell>
+                <span className={s.badge[STATUS_TONE[statusType]]}>{getStatusLabel(t, item)}</span>
+              </TableCell>
+              <TableCell className={s.muted}>{formatRelative(t, item.updated_at)}</TableCell>
+              <TableCell>
+                <div className={s.actionGroup}>
+                  <EssentialsActionMenu
+                    item={item}
+                    statusType={statusType}
+                    t={t}
+                    returnHome={returnHome}
+                    setStatus={setStatus}
+                    onViewDetails={onViewDetails}
+                  />
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+        {items.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={5}>
+              <div className={s.empty}>{t('essentials.noEdc')}</div>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
 

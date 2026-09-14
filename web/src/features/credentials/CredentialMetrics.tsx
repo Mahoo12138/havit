@@ -1,4 +1,5 @@
 import type { TablerIcon } from '@tabler/icons-react';
+import { uiStyles } from '../../components/ui';
 import * as s from './credentials.css';
 
 export type MetricTone = keyof typeof s.metricIcon;
@@ -11,7 +12,7 @@ export function CredentialMetrics({
   return (
     <div className={s.metricStrip}>
       {metrics.map((metric) => (
-        <div className={`surface-card ${s.metricCard}`} key={metric.label}>
+        <div className={`${uiStyles.card} ${s.metricCard}`} key={metric.label}>
           <span className={s.metricIcon[metric.tone]}>
             <metric.icon size={16} />
           </span>

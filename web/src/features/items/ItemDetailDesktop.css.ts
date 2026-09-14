@@ -474,15 +474,15 @@ export const rightColumn = style({
   },
 });
 
+// Applied as a className on the Card component; head/body carry the padding.
 export const sectionCard = style({
-  display: 'flex',
-  flexDirection: 'column',
-  minWidth: 0,
-  overflow: 'hidden',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  boxShadow: themeVars.shadowSoft,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+      minWidth: 0,
+    },
+  },
 });
 
 export const sectionHead = style({

@@ -77,45 +77,6 @@ globalStyle(`${searchWrap} [data-slot="input"]`, {
   paddingLeft: '2.4rem',
 });
 
-export const tabs = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  width: 'fit-content',
-  maxWidth: '100%',
-  overflowX: 'auto',
-  gap: themeVars.space1,
-  padding: themeVars.space1,
-  borderRadius: themeVars.radius2,
-  background: themeVars.bgSoft,
-  border: `1px solid ${themeVars.lineSoft}`,
-});
-
-export const tab = style({
-  border: 0,
-  borderRadius: themeVars.radius1,
-  background: 'transparent',
-  color: themeVars.muted,
-  height: '2.15rem',
-  padding: `0 ${themeVars.space4}`,
-  font: 'inherit',
-  fontSize: '0.85rem',
-  fontWeight: 650,
-  whiteSpace: 'nowrap',
-  cursor: 'pointer',
-  transition: 'background-color 160ms ease, color 160ms ease, box-shadow 160ms ease',
-  selectors: {
-    '&[data-active="true"]': {
-      background: themeVars.panel,
-      color: themeVars.accentInk,
-      boxShadow: themeVars.shadowSoft,
-    },
-    '&:focus-visible': {
-      outline: `3px solid ${themeVars.focusRing}`,
-      outlineOffset: '2px',
-    },
-  },
-});
-
 export const kpiGrid = style({
   display: 'grid',
   gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
@@ -248,43 +209,6 @@ export const resultMeta = style({
   fontWeight: 520,
 });
 
-export const tableWrap = style({
-  overflowX: 'auto',
-});
-
-export const table = style({
-  width: '100%',
-  borderCollapse: 'collapse',
-  minWidth: '47rem',
-});
-
-export const tableHead = style({
-  textAlign: 'left',
-  color: themeVars.muted,
-  fontWeight: 600,
-  fontSize: '0.72rem',
-  letterSpacing: '0.02em',
-  padding: `${themeVars.space3} ${themeVars.space5}`,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  background: themeVars.bgSoft,
-});
-
-export const tableRow = style({
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  transition: 'background-color 140ms ease',
-  selectors: {
-    '&:hover': { background: themeVars.bgSoft },
-    '&:last-child': { borderBottom: 'none' },
-  },
-});
-
-export const tableCell = style({
-  padding: `${themeVars.space3} ${themeVars.space5}`,
-  color: themeVars.text,
-  fontSize: '0.88rem',
-  verticalAlign: 'middle',
-});
-
 export const nameCell = style({
   display: 'flex',
   alignItems: 'center',
@@ -350,14 +274,6 @@ export const mobilePage = style({
   minWidth: 0,
   paddingBottom: '5rem',
 });
-
-export const mobileTabs = style([
-  tabs,
-  {
-    width: '100%',
-    justifyContent: 'flex-start',
-  },
-]);
 
 export const mobileFilterBar = style({
   display: 'grid',

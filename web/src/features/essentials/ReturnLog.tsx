@@ -15,6 +15,14 @@ import {
 import { Card } from '../../components/ui/card';
 import { Spinner } from '../../components/ui/spinner';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
+import {
   Select,
   SelectContent,
   SelectGroup,
@@ -115,50 +123,48 @@ export function ReturnLog() {
       {isLoading ? (
         <Spinner />
       ) : (
-        <div className={s.tableScroll}>
-          <table className={s.table}>
-            <thead>
-              <tr>
-                <th className={s.tableHead}>{t('essentials.time')}</th>
-                <th className={s.tableHead}>{t('essentials.item')}</th>
-                <th className={s.tableHead}>{t('essentials.action')}</th>
-                <th className={s.tableHead}>{t('essentials.change')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((event) => (
-                <tr className={s.tableRow} key={event.id}>
-                  <td className={`${s.tableCell} ${s.muted}`}>
-                    <div className={s.itemMeta}>
-                      <span>{formatRelative(t, event.created_at)}</span>
-                      <span className={s.itemSub}>{formatDateTime(event.created_at)}</span>
-                    </div>
-                  </td>
-                  <td className={s.tableCell}>
-                    <Link to="/items/$itemId" params={{ itemId: event.item_id }} className={s.itemName}>
-                      {event.item_name}
-                    </Link>
-                  </td>
-                  <td className={s.tableCell}>
-                    {event.event_type === 'essentials_returned_home' ? (
-                      <span className={s.badge.success}>{t('events.essentials_returned_home')}</span>
-                    ) : (
-                      <span className={s.badge.info}>{t('events.essentials_status_changed')}</span>
-                    )}
-                  </td>
-                  <td className={`${s.tableCell} ${s.muted} ${s.changeText}`}>{changeText(event)}</td>
-                </tr>
-              ))}
-              {events.length === 0 && (
-                <tr>
-                  <td className={s.tableCell} colSpan={4}>
-                    <div className={s.empty}>{t('essentials.returnLogEmpty')}</div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('essentials.time')}</TableHead>
+              <TableHead>{t('essentials.item')}</TableHead>
+              <TableHead>{t('essentials.action')}</TableHead>
+              <TableHead>{t('essentials.change')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {events.map((event) => (
+              <TableRow key={event.id}>
+                <TableCell className={s.muted}>
+                  <div className={s.itemMeta}>
+                    <span>{formatRelative(t, event.created_at)}</span>
+                    <span className={s.itemSub}>{formatDateTime(event.created_at)}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Link to="/items/$itemId" params={{ itemId: event.item_id }} className={s.itemName}>
+                    {event.item_name}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  {event.event_type === 'essentials_returned_home' ? (
+                    <span className={s.badge.success}>{t('events.essentials_returned_home')}</span>
+                  ) : (
+                    <span className={s.badge.info}>{t('events.essentials_status_changed')}</span>
+                  )}
+                </TableCell>
+                <TableCell className={`${s.muted} ${s.changeText}`}>{changeText(event)}</TableCell>
+              </TableRow>
+            ))}
+            {events.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <div className={s.empty}>{t('essentials.returnLogEmpty')}</div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       )}
 
       {total > 0 && (

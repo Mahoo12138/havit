@@ -37,6 +37,7 @@ import {
 import { Stack } from '../../components/ui';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
@@ -298,7 +299,7 @@ function SettingSection({ title, children }: { title: string; children: ReactNod
   return (
     <section className={s.section}>
       <h2 className={s.sectionTitle}>{title}</h2>
-      <div className={s.sectionCard}>{children}</div>
+      <Card className={s.sectionCard}>{children}</Card>
     </section>
   );
 }
@@ -816,7 +817,7 @@ function APITokensPanel({ panel }: { panel: PanelDefinition }) {
         </div>
       }
     >
-      <div className={s.sectionCard}>
+      <Card className={s.sectionCard}>
         {isLoading ? (
           <div className={s.empty}>
             <Spinner />
@@ -851,7 +852,7 @@ function APITokensPanel({ panel }: { panel: PanelDefinition }) {
             </EntityRow>
           ))
         )}
-      </div>
+      </Card>
 
       <Dialog open={createOpen} onClose={() => setCreateOpen(false)} title={t('settings.tokens.create')}>
         <Stack>
@@ -1177,7 +1178,7 @@ function MembersPanel({
         </Button>
       }
     >
-      <div className={s.sectionCard}>
+      <Card className={s.sectionCard}>
         {isLoading ? (
           <div className={s.empty}>
             <Spinner />
@@ -1199,7 +1200,7 @@ function MembersPanel({
             />
           ))
         )}
-      </div>
+      </Card>
 
       <Dialog open={addOpen} onClose={() => setAddOpen(false)} title={t('settings.addMember')}>
         <Stack>

@@ -13,9 +13,18 @@ import {
   uiStyles,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { FieldLabel } from '../../components/ui/field';
 import { Input } from '../../components/ui/input';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
 import { tagsApi, type Tag } from '../../api/client';
@@ -201,7 +210,7 @@ export function TagsDesktop() {
       </div>
 
       <div className={uiStyles.tagsLayout}>
-        <section className={uiStyles.tagsListCard}>
+        <Card className={uiStyles.tagsListCard}>
           <div className={uiStyles.tagsListToolbar}>
             <div className={uiStyles.tagsSearchWrap}>
               <span className={uiStyles.tagsSearchIcon} aria-hidden>
@@ -219,34 +228,34 @@ export function TagsDesktop() {
           </div>
 
           <div className={uiStyles.tagsTableWrap}>
-            <table className={uiStyles.tagsTable}>
-              <thead>
-                <tr>
-                  <th className={uiStyles.tagsTableHead}>{t('tags.colName')}</th>
-                  <th className={uiStyles.tagsTableHead}>{t('tags.colUsage')}</th>
-                  <th className={uiStyles.tagsTableHead}>{t('tags.colCreated')}</th>
-                  <th className={uiStyles.tagsTableHead} style={{ textAlign: 'right' }}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('tags.colName')}</TableHead>
+                  <TableHead>{t('tags.colUsage')}</TableHead>
+                  <TableHead>{t('tags.colCreated')}</TableHead>
+                  <TableHead style={{ textAlign: 'right' }}>
                     {t('tags.colActions')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {tagsQuery.isPending ? (
-                  <tr>
-                    <td colSpan={4} className={uiStyles.tagsEmptyState}>
+                  <TableRow>
+                    <TableCell colSpan={4} className={uiStyles.tagsEmptyState}>
                       {t('tags.loading')}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className={uiStyles.tagsEmptyState}>
+                  <TableRow>
+                    <TableCell colSpan={4} className={uiStyles.tagsEmptyState}>
                       {tags.length === 0 ? t('tags.emptyAll') : t('tags.emptyFiltered')}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   filtered.map((tg) => (
-                    <tr key={tg.id} className={uiStyles.tagsTableRow}>
-                      <td className={uiStyles.tagsTableCell}>
+                    <TableRow key={tg.id}>
+                      <TableCell>
                         <div className={uiStyles.tagsTableNameCell}>
                           <span
                             className={uiStyles.tagsColorSwatch}
@@ -255,8 +264,8 @@ export function TagsDesktop() {
                           />
                           <span className={uiStyles.tagsName}>{tg.name}</span>
                         </div>
-                      </td>
-                      <td className={uiStyles.tagsTableCell}>
+                      </TableCell>
+                      <TableCell>
                         <span
                           className={
                             (tg.usage_count ?? 0) > 0
@@ -266,11 +275,11 @@ export function TagsDesktop() {
                         >
                           {t('tags.usageBadge', { count: tg.usage_count ?? 0 })}
                         </span>
-                      </td>
-                      <td className={uiStyles.tagsTableCell}>
+                      </TableCell>
+                      <TableCell>
                         {formatRelative(tg.created_at, t)}
-                      </td>
-                      <td className={uiStyles.tagsTableCell}>
+                      </TableCell>
+                      <TableCell>
                         <div className={uiStyles.tagsRowActions}>
                           <Button
                             variant="subtle"
@@ -289,17 +298,17 @@ export function TagsDesktop() {
                             {t('common.delete')}
                           </Button>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
-        </section>
+        </Card>
 
         <aside className={uiStyles.tagsRail}>
-          <div className={uiStyles.tagsRailCard}>
+          <Card className={uiStyles.tagsRailCard}>
             <h3 className={uiStyles.tagsRailTitle}>{t('tags.railSummary')}</h3>
             <div className={uiStyles.tagsMiniKpi}>
               <span className={uiStyles.tagsMiniKpiLabel}>{t('tags.kpiInUse')}</span>
@@ -313,9 +322,9 @@ export function TagsDesktop() {
               <span className={uiStyles.tagsMiniKpiLabel}>{t('tags.kpiUsageRate')}</span>
               <span className={uiStyles.tagsMiniKpiValue}>{stats.rate}%</span>
             </div>
-          </div>
+          </Card>
 
-          <div className={uiStyles.tagsRailCard}>
+          <Card className={uiStyles.tagsRailCard}>
             <h3 className={uiStyles.tagsRailTitle}>{t('tags.railRecent')}</h3>
             {recent.length === 0 ? (
               <div className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>
@@ -336,9 +345,9 @@ export function TagsDesktop() {
                 </div>
               ))
             )}
-          </div>
+          </Card>
 
-          <div className={uiStyles.tagsRailCard}>
+          <Card className={uiStyles.tagsRailCard}>
             <h3 className={uiStyles.tagsRailTitle}>{t('tags.railMostUsed')}</h3>
             {mostUsed.length === 0 ? (
               <div className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>
@@ -359,7 +368,7 @@ export function TagsDesktop() {
                 </div>
               ))
             )}
-          </div>
+          </Card>
         </aside>
       </div>
 
@@ -442,11 +451,11 @@ function KpiCard({ label, value, hint, accent, warn }: KpiCardProps) {
     ? uiStyles.tagsKpiValueWarn
     : uiStyles.tagsKpiValue;
   return (
-    <div className={uiStyles.tagsKpiCard}>
+    <Card className={uiStyles.tagsKpiCard}>
       <span className={uiStyles.tagsKpiLabel}>{label}</span>
       <span className={valueClass}>{value}</span>
       {hint && <span className={uiStyles.tagsKpiHint}>{hint}</span>}
-    </div>
+    </Card>
   );
 }
 

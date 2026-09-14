@@ -30,6 +30,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
@@ -793,13 +794,13 @@ function ContentsSection({ itemId }: { itemId: string }) {
 
 function SectionCard({ icon, title, action, children }: { icon: ReactNode; title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <section className={s.sectionCard}>
+    <Card className={s.sectionCard} padded={false}>
       <header className={s.sectionHead}>
         <h2 className={s.sectionTitle}><span className={s.sectionIcon}>{icon}</span>{title}</h2>
         {action}
       </header>
       <div className={s.sectionBody}>{children}</div>
-    </section>
+    </Card>
   );
 }
 

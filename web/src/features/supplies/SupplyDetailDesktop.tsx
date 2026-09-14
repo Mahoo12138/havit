@@ -32,6 +32,14 @@ import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
@@ -333,7 +341,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
         </div>
       </div>
 
-      <Card className="surface-card">
+      <Card>
         <div className={uiStyles.supplyDetailHero}>
           <div className={uiStyles.supplyDetailHeroMain}>
             <div className={uiStyles.supplyDetailHeroMeta}>
@@ -366,7 +374,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
         <div className={uiStyles.itemMain}>
           {isTypeA && (
             <>
-              <section className={uiStyles.itemSection}>
+              <Card className={uiStyles.itemSection} padded={false}>
                 <header className={uiStyles.itemSectionHead}>
                   <h3 className={uiStyles.itemSectionTitle}>
                     <span className={uiStyles.itemSectionTitleIcon}>
@@ -409,9 +417,9 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                     </Button>
                   </div>
                 </div>
-              </section>
+              </Card>
 
-              <section className={uiStyles.itemSection}>
+              <Card className={uiStyles.itemSection} padded={false}>
                 <header className={uiStyles.itemSectionHead}>
                   <h3 className={uiStyles.itemSectionTitle}>
                     <span className={uiStyles.itemSectionTitleIcon}>
@@ -426,69 +434,62 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                       {t('supplies.noPurchaseData')}
                     </div>
                   ) : (
-                    <div style={{ overflowX: 'auto' }}>
-                      <table className={uiStyles.supplyTable}>
-                        <thead>
-                          <tr>
-                            <th className={uiStyles.supplyTableHead}>
-                              {t('supplies.purchaseDate')}
-                            </th>
-                            <th className={uiStyles.supplyTableHead}>
-                              {t('supplies.purchaseQuantity')}
-                            </th>
-                            <th className={uiStyles.supplyTableHead}>
-                              {t('supplies.purchasePrice')}
-                            </th>
-                            <th className={uiStyles.supplyTableHead}>
-                              {t('supplies.purchaseNotes')}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {[...purchaseEvents]
-                            .sort((a, b) => b.purchased_at - a.purchased_at)
-                            .map((ev) => (
-                              <tr
-                                key={ev.id}
-                                className={uiStyles.supplyTableRow}
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>
+                            {t('supplies.purchaseDate')}
+                          </TableHead>
+                          <TableHead>
+                            {t('supplies.purchaseQuantity')}
+                          </TableHead>
+                          <TableHead>
+                            {t('supplies.purchasePrice')}
+                          </TableHead>
+                          <TableHead>
+                            {t('supplies.purchaseNotes')}
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[...purchaseEvents]
+                          .sort((a, b) => b.purchased_at - a.purchased_at)
+                          .map((ev) => (
+                            <TableRow key={ev.id}>
+                              <TableCell>
+                                {formatDate(ev.purchased_at)}
+                              </TableCell>
+                              <TableCell
+                                style={{ fontVariantNumeric: 'tabular-nums' }}
                               >
-                                <td className={uiStyles.supplyTableCell}>
-                                  {formatDate(ev.purchased_at)}
-                                </td>
-                                <td
-                                  className={uiStyles.supplyTableCell}
-                                  style={{ fontVariantNumeric: 'tabular-nums' }}
-                                >
-                                  {ev.quantity}
-                                </td>
-                                <td className={uiStyles.supplyTableCell}>
-                                  {ev.price != null
-                                    ? fmtAmount(
-                                        ev.price,
-                                        ev.currency ?? currency,
-                                        locale,
-                                      )
-                                    : '—'}
-                                </td>
-                                <td
-                                  className={uiStyles.supplyTableCell}
-                                  style={{
-                                    color: 'var(--havit-muted)',
-                                    fontSize: '0.82rem',
-                                  }}
-                                >
-                                  {ev.notes ?? '—'}
-                                </td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
+                                {ev.quantity}
+                              </TableCell>
+                              <TableCell>
+                                {ev.price != null
+                                  ? fmtAmount(
+                                      ev.price,
+                                      ev.currency ?? currency,
+                                      locale,
+                                    )
+                                  : '—'}
+                              </TableCell>
+                              <TableCell
+                                style={{
+                                  color: 'var(--havit-muted)',
+                                  fontSize: '0.82rem',
+                                }}
+                              >
+                                {ev.notes ?? '—'}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
                   )}
                 </div>
-              </section>
+              </Card>
 
-              <section className={uiStyles.itemSection}>
+              <Card className={uiStyles.itemSection} padded={false}>
                 <header className={uiStyles.itemSectionHead}>
                   <h3 className={uiStyles.itemSectionTitle}>
                     <span className={uiStyles.itemSectionTitleIcon}>
@@ -537,13 +538,13 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                     </div>
                   )}
                 </div>
-              </section>
+              </Card>
             </>
           )}
 
           {isTypeB && (
             <>
-              <section className={uiStyles.itemSection}>
+              <Card className={uiStyles.itemSection} padded={false}>
                 <header className={uiStyles.itemSectionHead}>
                   <h3 className={uiStyles.itemSectionTitle}>
                     <span className={uiStyles.itemSectionTitleIcon}>
@@ -604,10 +605,10 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                     </Button>
                   </div>
                 </div>
-              </section>
+              </Card>
 
               {lifespan != null && lifespan > 0 && (
-                <section className={uiStyles.itemSection}>
+                <Card className={uiStyles.itemSection} padded={false}>
                   <header className={uiStyles.itemSectionHead}>
                     <h3 className={uiStyles.itemSectionTitle}>
                       <span className={uiStyles.itemSectionTitleIcon}>
@@ -645,10 +646,10 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                       )}
                     </div>
                   </div>
-                </section>
+                </Card>
               )}
 
-              <section className={uiStyles.itemSection}>
+              <Card className={uiStyles.itemSection} padded={false}>
                 <header className={uiStyles.itemSectionHead}>
                   <h3 className={uiStyles.itemSectionTitle}>
                     <span className={uiStyles.itemSectionTitleIcon}>
@@ -685,7 +686,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                     </div>
                   )}
                 </div>
-              </section>
+              </Card>
             </>
           )}
         </div>
@@ -693,7 +694,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
         <div className={uiStyles.itemRail}>
           {isTypeA && (
             <>
-              <section className={uiStyles.itemSection}>
+              <Card className={uiStyles.itemSection} padded={false}>
                 <header className={uiStyles.itemSectionHead}>
                   <h3 className={uiStyles.itemSectionTitle}>
                     <span className={uiStyles.itemSectionTitleIcon}>
@@ -747,9 +748,9 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                     </Stack>
                   )}
                 </div>
-              </section>
+              </Card>
 
-              <section className={uiStyles.itemSection}>
+              <Card className={uiStyles.itemSection} padded={false}>
                 <header className={uiStyles.itemSectionHead}>
                   <h3 className={uiStyles.itemSectionTitle}>
                     <span className={uiStyles.itemSectionTitleIcon}>
@@ -794,12 +795,12 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                     </div>
                   </div>
                 </div>
-              </section>
+              </Card>
             </>
           )}
 
           {isTypeB && (
-            <section className={uiStyles.itemSection}>
+            <Card className={uiStyles.itemSection} padded={false}>
               <header className={uiStyles.itemSectionHead}>
                 <h3 className={uiStyles.itemSectionTitle}>
                   <span className={uiStyles.itemSectionTitleIcon}>
@@ -838,10 +839,10 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                   )}
                 </div>
               </div>
-            </section>
+            </Card>
           )}
 
-          <section className={uiStyles.itemSection}>
+          <Card className={uiStyles.itemSection} padded={false}>
             <header className={uiStyles.itemSectionHead}>
               <h3 className={uiStyles.itemSectionTitle}>
                 <span className={uiStyles.itemSectionTitleIcon}>
@@ -856,7 +857,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                 <span>{locationPath ?? t('common.notSet')}</span>
               </div>
             </div>
-          </section>
+          </Card>
         </div>
       </div>
 

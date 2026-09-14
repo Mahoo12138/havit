@@ -6,6 +6,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { TextField } from '../../components/ui/text-field';
 import type { Location } from '../../api/client';
 import {
@@ -122,7 +123,7 @@ export function LocationsMobile() {
 
       {/* Direct items at this location */}
       {current && (
-        <div className={s.sectionCard}>
+        <Card className={s.sectionCard} padded={false}>
           <div className={s.sectionHead}>
             <h3 className={s.sectionTitle}>{t('locations.directItems')}</h3>
           </div>
@@ -147,7 +148,7 @@ export function LocationsMobile() {
               </Link>
             ))
           )}
-        </div>
+        </Card>
       )}
 
       {/* Empty state at root */}

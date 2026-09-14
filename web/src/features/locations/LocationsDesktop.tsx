@@ -9,6 +9,7 @@ import {
   Row, Stack, StackTight, uiStyles,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { FieldLabel } from '../../components/ui/field';
 import { ScrollArea } from '../../components/ui/scroll-area';
@@ -90,7 +91,7 @@ export function LocationsDesktop() {
       </div>
 
       <div className={uiStyles.locationLayout}>
-        <aside className={uiStyles.locationTreePane}>
+        <Card className={uiStyles.locationTreePane} padded={false}>
           <div className={uiStyles.locationTreeHead}>
             <span className={uiStyles.locationTreeHeadTitle}>{t('locations.tree')}</span>
             <span className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>{t('locations.nodeCount', { count: index.byId.size })}</span>
@@ -103,9 +104,9 @@ export function LocationsDesktop() {
                 {virtualRoots.length > 0 && <TreeSection label={t('locations.virtualPositions')} nodes={virtualRoots} index={index} expanded={expanded} selectedId={selectedId} onSelect={setSelectedId} onToggle={toggleExpand} subtreeCount={subtreeItemCount} />}
               </Tree>}
           </ScrollArea>
-        </aside>
+        </Card>
 
-        <section className={uiStyles.locationDetailPane}>
+        <Card className={uiStyles.locationDetailPane} padded={false}>
           {!selected ? <DetailEmpty /> : (
             <LocationDetail
               location={selected} breadcrumb={breadcrumb}
@@ -120,7 +121,7 @@ export function LocationsDesktop() {
               onSelectChild={setSelectedId} qrPending={qrMutation.isPending} subtreeCount={subtreeItemCount}
             />
           )}
-        </section>
+        </Card>
       </div>
 
       <CreateLocationDialog state={createDialog} onClose={() => setCreateDialog({ open: false, parent: null })} onSubmit={(p) => { createMutation.mutate(p, { onSuccess: (created) => { if (created.parent_id) setExpanded((prev) => new Set(prev).add(created.parent_id!)); setSelectedId(created.id); setCreateDialog({ open: false, parent: null }); } }); }} pending={createMutation.isPending} isOnline={isOnline} />

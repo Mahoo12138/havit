@@ -13,6 +13,14 @@ import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { Stack } from '../../components/ui';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
 import { locationsApi, type Item, type Location } from '../../api/client';
@@ -155,51 +163,50 @@ export function DynamicNodes({ items }: { items: Item[] }) {
       {isLoading ? (
         <div className={s.empty}>…</div>
       ) : (
-        <div className={s.tableScroll}>
-          <table className={s.table}>
-            <thead>
-              <tr>
-                <th className={s.tableHead}>{t('essentials.nodeName')}</th>
-                <th className={s.tableHead}>{t('essentials.mountedItems')}</th>
-                <th className={s.tableHead}>{t('essentials.createdAt')}</th>
-                <th className={s.tableHead}>{t('essentials.action')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {nodes.map((node) => {
-                const mounted = mountedItems(items, node);
-                const isExpanded = expanded.has(node.id);
-                return (
-                  <NodeRow
-                    key={node.id}
-                    node={node}
-                    mounted={mounted}
-                    expanded={isExpanded}
-                    onToggle={() => toggleExpanded(node.id)}
-                    onRename={() => {
-                      setEditingNode(node);
-                      setNodeName(node.name);
-                      setDialogMode('rename');
-                    }}
-                    onDelete={() => {
-                      if (window.confirm(t('essentials.deleteNodeConfirm', { name: node.name }))) {
-                        deleteNode.mutate(node.id);
-                      }
-                    }}
-                    busy={deleteNode.isPending}
-                    t={t}
-                  />                );
-              })}
-              {nodes.length === 0 && (
-                <tr>
-                  <td className={s.tableCell} colSpan={4}>
-                    <div className={s.empty}>{t('essentials.nodesEmpty')}</div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('essentials.nodeName')}</TableHead>
+              <TableHead>{t('essentials.mountedItems')}</TableHead>
+              <TableHead>{t('essentials.createdAt')}</TableHead>
+              <TableHead>{t('essentials.action')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {nodes.map((node) => {
+              const mounted = mountedItems(items, node);
+              const isExpanded = expanded.has(node.id);
+              return (
+                <NodeRow
+                  key={node.id}
+                  node={node}
+                  mounted={mounted}
+                  expanded={isExpanded}
+                  onToggle={() => toggleExpanded(node.id)}
+                  onRename={() => {
+                    setEditingNode(node);
+                    setNodeName(node.name);
+                    setDialogMode('rename');
+                  }}
+                  onDelete={() => {
+                    if (window.confirm(t('essentials.deleteNodeConfirm', { name: node.name }))) {
+                      deleteNode.mutate(node.id);
+                    }
+                  }}
+                  busy={deleteNode.isPending}
+                  t={t}
+                />
+              );
+            })}
+            {nodes.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <div className={s.empty}>{t('essentials.nodesEmpty')}</div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       )}
 
       <Dialog
@@ -242,8 +249,8 @@ function NodeRow({ node, mounted, expanded, onToggle, onRename, onDelete, busy, 
 }) {
   return (
     <>
-      <tr className={s.tableRow}>
-        <td className={s.tableCell}>
+      <TableRow>
+        <TableCell>
           <button type="button" className={s.nodeToggle} onClick={onToggle} aria-expanded={expanded}>
             <IconChevronRight
               size={14}
@@ -252,18 +259,18 @@ function NodeRow({ node, mounted, expanded, onToggle, onRename, onDelete, busy, 
             />
             <span className={s.itemName}>{node.name}</span>
           </button>
-        </td>
-        <td className={`${s.tableCell} ${s.muted}`}>{t('essentials.mountedCount', { count: mounted.length })}</td>
-        <td className={`${s.tableCell} ${s.muted}`}>{formatDateTime(node.created_at)}</td>
-        <td className={s.tableCell}>
+        </TableCell>
+        <TableCell className={s.muted}>{t('essentials.mountedCount', { count: mounted.length })}</TableCell>
+        <TableCell className={s.muted}>{formatDateTime(node.created_at)}</TableCell>
+        <TableCell>
           <div className={s.actionGroup}>
             <NodeActionMenu onRename={onRename} onDelete={onDelete} busy={busy} />
           </div>
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
       {expanded && (
-        <tr className={s.tableRow}>
-          <td className={s.tableCell} colSpan={4}>
+        <TableRow>
+          <TableCell colSpan={4}>
             <div className={s.mountedPanel}>
               {mounted.length === 0 ? (
                 <span className={s.muted}>{t('essentials.noMountedItems')}</span>
@@ -273,8 +280,8 @@ function NodeRow({ node, mounted, expanded, onToggle, onRename, onDelete, busy, 
                 ))
               )}
             </div>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       )}
     </>
   );

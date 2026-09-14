@@ -103,31 +103,12 @@ export const empty = style({
   fontSize: '0.85rem',
 });
 
-export const filterRow = style({
-  display: 'flex',
-  gap: themeVars.space2,
-});
-
-export const filterChip = style({
-  padding: '0.3rem 0.85rem',
-  borderRadius: 999,
-  border: `1px solid ${themeVars.line}`,
-  background: themeVars.panel,
-  color: themeVars.muted,
-  fontSize: '0.8rem',
-  cursor: 'pointer',
+// Applied as a className on the Card component; reminders rows sit flush
+// inside with their own hairlines.
+export const pageCard = style({
   selectors: {
-    '&[data-active]': {
-      background: themeVars.accent,
-      borderColor: themeVars.accent,
-      color: '#fff',
+    '&[data-slot="card"]': {
+      padding: `${themeVars.space3} ${themeVars.space4}`,
     },
   },
-});
-
-export const pageCard = style({
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius2,
-  padding: `${themeVars.space3} ${themeVars.space4}`,
 });

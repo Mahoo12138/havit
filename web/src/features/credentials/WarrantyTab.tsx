@@ -177,7 +177,7 @@ function WarrantyCard({ item, onEdit }: { item: Item; onEdit: () => void }) {
   const daysLeft = warrantyDaysLeft(item.warranty_expires_at);
 
   return (
-    <Card className="surface-card">
+    <Card>
       <div className={s.cardBody}>
         <div className={s.cardHead}>
           <span className={s.statusTile[tone]}>

@@ -66,12 +66,15 @@ export const kpiValue = style({
   letterSpacing: '-0.01em',
 });
 
-/* Section card (mobile) */
+/* Section card (mobile) — applied as a className on the Card component;
+   head/body carry the padding. */
 export const section = style({
-  borderRadius: themeVars.radius3,
-  border: `1px solid ${themeVars.line}`,
-  background: themeVars.panel,
-  overflow: 'hidden',
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+    },
+  },
 });
 
 export const sectionHead = style({

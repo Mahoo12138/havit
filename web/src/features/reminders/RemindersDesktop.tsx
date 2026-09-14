@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { Card } from '../../components/ui/card';
 import { Spinner } from '../../components/ui/spinner';
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { FeatureHeader } from '../m2/components';
 import { remindersApi } from '../../api/client';
 import { ReminderRow } from './reminderUi';
@@ -29,21 +31,22 @@ export function RemindersDesktop() {
         meta={t('operations.reminderCount', { count: pendingCount })}
       />
 
-      <div className={s.filterRow}>
-        {(['all', 'pending'] as Filter[]).map((f) => (
-          <button
-            key={f}
-            type="button"
-            className={s.filterChip}
-            data-active={filter === f || undefined}
-            onClick={() => setFilter(f)}
-          >
-            {t(`reminders.filter.${f}`)}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        value={filter}
+        onValueChange={(nextValue) => {
+          if (typeof nextValue === 'string') setFilter(nextValue as Filter);
+        }}
+      >
+        <TabsList>
+          {(['all', 'pending'] as Filter[]).map((f) => (
+            <TabsTrigger key={f} value={f}>
+              {t(`reminders.filter.${f}`)}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
-      <section className={s.pageCard}>
+      <Card className={s.pageCard} padded={false}>
         {reminders.isPending ? (
           <Spinner />
         ) : visible.length === 0 ? (
@@ -51,7 +54,7 @@ export function RemindersDesktop() {
         ) : (
           visible.map((r) => <ReminderRow key={r.id} reminder={r} />)
         )}
-      </section>
+      </Card>
     </div>
   );
 }

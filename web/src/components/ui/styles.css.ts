@@ -1,4 +1,4 @@
-﻿import { style, styleVariants, keyframes } from '@vanilla-extract/css';
+import { style, styleVariants, keyframes } from '@vanilla-extract/css';
 
 import { globalStyle } from '@vanilla-extract/css';
 
@@ -105,13 +105,6 @@ export const card = style({
   boxShadow: themeVars.shadowSoft,
 });
 
-export const cardPadded = style([
-  card,
-  {
-    padding: themeVars.space5,
-  },
-]);
-
 export const iconButton = style({
   width: '2.25rem',
   minWidth: '2.25rem',
@@ -120,87 +113,8 @@ export const iconButton = style({
   borderRadius: themeVars.radius2,
 });
 
-/* ---------- Card (shadcn-style) ---------- */
-
-export const cardRoot = style({
-  vars: {
-    '--card-spacing': themeVars.space4,
-  },
-  background: themeVars.panel,
-  borderRadius: themeVars.radius3,
-  boxShadow: `0 0 0 1px ${themeVars.line}`,
-  color: themeVars.text,
-  display: 'flex',
-  flexDirection: 'column',
-  fontSize: '0.875rem',
-  gap: 'var(--card-spacing)',
-  overflow: 'hidden',
-  padding: 'var(--card-spacing) 0',
-  selectors: {
-    '&:has([data-slot="card-footer"])': {
-      paddingBottom: 0,
-    },
-    '&:has(> img:first-child)': {
-      paddingTop: 0,
-    },
-  },
-});
-
-export const cardSizeSm = style({
-  vars: {
-    '--card-spacing': themeVars.space3,
-  },
-});
-
-export const cardHeader = style({
-  alignItems: 'start',
-  display: 'grid',
-  gap: '0.25rem',
-  gridTemplateRows: 'auto auto',
-  padding: `0 var(--card-spacing)`,
-  selectors: {
-    '&:has([data-slot="card-action"])': {
-      gridTemplateColumns: '1fr auto',
-    },
-  },
-});
-
-export const cardTitle = style({
-  color: themeVars.ink,
-  fontSize: '0.875rem',
-  fontWeight: 500,
-  lineHeight: '1.375',
-  selectors: {
-    '[data-size="sm"] &': {
-      fontSize: '0.8125rem',
-    },
-  },
-});
-
-export const cardDescription = style({
-  color: themeVars.muted,
-  fontSize: '0.8125rem',
-});
-
-export const cardAction = style({
-  alignSelf: 'start',
-  gridColumn: 2,
-  gridRow: '1 / 3',
-  justifySelf: 'end',
-});
-
 export const cardContent = style({
   padding: `0 var(--card-spacing)`,
-});
-
-export const cardFooter = style({
-  alignItems: 'center',
-  background: themeVars.bgSoft,
-  borderBottomLeftRadius: themeVars.radius3,
-  borderBottomRightRadius: themeVars.radius3,
-  borderTop: `1px solid ${themeVars.line}`,
-  display: 'flex',
-  padding: 'var(--card-spacing)',
 });
 
 export const help = style({
@@ -922,15 +836,6 @@ export const dashboardSummary = style({
   gap: themeVars.space4,
 });
 
-export const heroPanel = style([
-  cardPadded,
-  {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: themeVars.space4,
-  },
-]);
-
 export const statValue = style({
   color: themeVars.ink,
   fontFamily: themeVars.fontSerif,
@@ -941,11 +846,15 @@ export const statValue = style({
   fontVariantNumeric: 'tabular-nums',
 });
 
+// Applied as a className on the Card component: section-style cards keep
+// their head/body flush (head supplies the bottom border, body the padding).
 export const sectionCard = style({
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  boxShadow: themeVars.shadowSoft,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+    },
+  },
 });
 
 export const sectionHead = style({
@@ -1309,44 +1218,6 @@ export const locationNodeMuted = style({
   fontVariantNumeric: 'tabular-nums',
 });
 
-export const tableWrap = style({
-  minWidth: 0,
-});
-
-export const tableRow = style({
-  transition: 'background-color 160ms ease',
-  selectors: {
-    '&:hover': {
-      background: themeVars.bgSoft,
-    },
-  },
-});
-
-export const table = style({
-  width: '100%',
-  minWidth: '40rem',
-  borderCollapse: 'separate',
-  borderSpacing: 0,
-});
-
-export const th = style({
-  borderBottom: `1px solid ${themeVars.line}`,
-  color: themeVars.muted,
-  fontSize: '0.76rem',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
-  textTransform: 'uppercase',
-  padding: `${themeVars.space2} ${themeVars.space4}`,
-  textAlign: 'left',
-  background: themeVars.bgSoft,
-});
-
-export const td = style({
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  padding: `${themeVars.space3} ${themeVars.space4}`,
-  fontSize: '0.92rem',
-});
-
 export const textCenter = style({
   textAlign: 'center',
 });
@@ -1544,14 +1415,15 @@ export const locationLayout = style({
   },
 });
 
+// Applied as a className on the Card component; sticky rail behaviour
+// stays here while the surface comes from Card.
 export const locationTreePane = style({
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  boxShadow: themeVars.shadowSoft,
-  overflow: 'hidden',
-  display: 'flex',
-  flexDirection: 'column',
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+    },
+  },
   '@media': {
     '(min-width: 64.01em)': {
       position: 'sticky',
@@ -1586,14 +1458,13 @@ export const locationTreeFooter = style({
 });
 
 export const locationDetailPane = style({
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  boxShadow: themeVars.shadowSoft,
-  display: 'flex',
-  flexDirection: 'column',
-  minWidth: 0,
-  overflow: 'hidden',
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+      minWidth: 0,
+    },
+  },
 });
 
 export const locationDetailHead = style({
@@ -2416,15 +2287,15 @@ export const itemSectionGrid = style({
   gap: themeVars.space4,
 });
 
+// Applied as a className on the Card component; head/body carry the padding.
 export const itemSection = style({
-  display: 'flex',
-  flexDirection: 'column',
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  boxShadow: themeVars.shadowSoft,
-  overflow: 'hidden',
-  minWidth: 0,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+      minWidth: 0,
+    },
+  },
 });
 
 export const itemSectionHead = style({
@@ -2755,17 +2626,10 @@ export const loanPageMetrics = style({
 });
 
 export const loanMetricCard = style({
-  padding: themeVars.space4,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space1,
-  transition: 'border-color 160ms ease',
   selectors: {
-    '&:hover': {
-      borderColor: themeVars.accent,
+    '&[data-slot="card"]': {
+      padding: themeVars.space4,
+      gap: themeVars.space1,
     },
   },
 });
@@ -2996,10 +2860,11 @@ export const loanBottomGrid = style({
 });
 
 export const loanBottomCard = style({
-  padding: themeVars.space5,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: themeVars.space5,
+    },
+  },
 });
 
 export const loanBottomTitle = style({
@@ -3011,13 +2876,12 @@ export const loanBottomTitle = style({
 });
 
 export const loanMobileCard = style({
-  padding: themeVars.space4,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space3,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: themeVars.space4,
+      gap: themeVars.space3,
+    },
+  },
 });
 
 export const loanMobileRow = style({
@@ -3062,17 +2926,6 @@ export const essentialsStatsRow = style({
       gridTemplateColumns: '1fr',
     },
   },
-});
-
-export const essentialsStatCard = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space4,
-  padding: themeVars.space4,
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  boxShadow: themeVars.shadowSoft,
 });
 
 export const essentialsStatIcon = styleVariants({
@@ -3587,16 +3440,14 @@ export const supplyForecastScroll = style({
 });
 
 export const supplyForecastCard = style({
-  flex: '0 0 16rem',
+  selectors: {
+    '&[data-slot="card"]': {
+      flex: '0 0 16rem',
+      padding: themeVars.space4,
+      gap: themeVars.space3,
+    },
+  },
   scrollSnapAlign: 'start',
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space3,
-  padding: themeVars.space4,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  boxShadow: themeVars.shadowSoft,
   minWidth: 0,
   '@media': {
     '(max-width: 48em)': {
@@ -3671,40 +3522,6 @@ export const supplyTwoCol = style({
   },
 });
 
-export const supplyTable = style({
-  width: '100%',
-  borderCollapse: 'separate',
-  borderSpacing: 0,
-});
-
-export const supplyTableHead = style({
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  color: themeVars.muted,
-  letterSpacing: '0.02em',
-  textTransform: 'uppercase',
-  textAlign: 'left',
-  padding: `${themeVars.space2} ${themeVars.space3}`,
-  borderBottom: `1px solid ${themeVars.line}`,
-  background: themeVars.bgSoft,
-});
-
-export const supplyTableRow = style({
-  transition: 'background-color 160ms ease',
-  selectors: {
-    '&:hover': {
-      background: themeVars.bgSoft,
-    },
-  },
-});
-
-export const supplyTableCell = style({
-  padding: `${themeVars.space3} ${themeVars.space3}`,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  fontSize: '0.88rem',
-  verticalAlign: 'middle',
-});
-
 export const supplyStatusBadge = styleVariants({
   normal: {
     display: 'inline-flex',
@@ -3770,13 +3587,11 @@ export const supplyViewAllLink = style({
 });
 
 export const supplyChartPlaceholder = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space4,
-  padding: themeVars.space5,
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: themeVars.space5,
+    },
+  },
 });
 
 export const supplyChartGrid = style({
@@ -3803,15 +3618,14 @@ export const tagsKpiGrid = style({
   },
 });
 
-export const tagsKpiCard = style([
-  card,
-  {
-    padding: themeVars.space4,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: themeVars.space1,
+export const tagsKpiCard = style({
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: themeVars.space4,
+      gap: themeVars.space1,
+    },
   },
-]);
+});
 
 export const tagsKpiLabel = style({
   fontSize: '0.78rem',
@@ -3853,13 +3667,14 @@ export const tagsLayout = style({
   },
 });
 
-export const tagsListCard = style([
-  card,
-  {
-    padding: themeVars.space4,
-    minWidth: 0,
+export const tagsListCard = style({
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: themeVars.space4,
+      minWidth: 0,
+    },
   },
-]);
+});
 
 export const tagsListToolbar = style({
   display: 'flex',
@@ -3912,37 +3727,6 @@ globalStyle(`${tagsSearchWrap} [data-slot="input"]`, {
 export const tagsTableWrap = style({
   overflowX: 'auto',
   margin: `0 -${themeVars.space4}`,
-});
-
-export const tagsTable = style({
-  width: '100%',
-  borderCollapse: 'collapse',
-});
-
-export const tagsTableHead = style({
-  textAlign: 'left',
-  color: themeVars.muted,
-  fontWeight: 500,
-  fontSize: '0.72rem',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  padding: `${themeVars.space2} ${themeVars.space3}`,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-});
-
-export const tagsTableRow = style({
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  selectors: {
-    '&:hover': { background: themeVars.bgSoft },
-    '&:last-child': { borderBottom: 'none' },
-  },
-});
-
-export const tagsTableCell = style({
-  padding: `${themeVars.space3}`,
-  fontSize: '0.85rem',
-  color: themeVars.text,
-  verticalAlign: 'middle',
 });
 
 export const tagsTableNameCell = style({
@@ -4006,12 +3790,13 @@ export const tagsRail = style({
   gap: themeVars.space4,
 });
 
-export const tagsRailCard = style([
-  card,
-  {
-    padding: themeVars.space4,
+export const tagsRailCard = style({
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: themeVars.space4,
+    },
   },
-]);
+});
 
 export const tagsRailTitle = style({
   fontSize: '0.72rem',
@@ -4486,432 +4271,6 @@ export const supplyForecastActions = style({
   borderTop: `1px solid ${themeVars.lineSoft}`,
 });
 
-/* ---------- Virtual Assets Page ---------- */
-
-export const vaKpiStrip = style({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-  gap: themeVars.space4,
-  '@media': {
-    '(max-width: 72em)': {
-      gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))',
-    },
-    '(max-width: 40em)': {
-      gridTemplateColumns: '1fr 1fr',
-    },
-  },
-});
-
-export const vaKpiTile = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  padding: themeVars.space4,
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  boxShadow: themeVars.shadowSoft,
-  minWidth: 0,
-  '@media': {
-    '(max-width: 40em)': {
-      alignItems: 'flex-start',
-      gap: themeVars.space2,
-      padding: themeVars.space3,
-    },
-  },
-});
-
-export const vaKpiIcon = styleVariants({
-  blue: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.5rem',
-    height: '2.5rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.infoSoft,
-    color: themeVars.info,
-  },
-  teal: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.5rem',
-    height: '2.5rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.accentSoft,
-    color: themeVars.accentInk,
-  },
-  green: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.5rem',
-    height: '2.5rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.successSoft,
-    color: themeVars.success,
-  },
-  orange: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.5rem',
-    height: '2.5rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.warningSoft,
-    color: themeVars.warning,
-  },
-  red: {
-    flex: '0 0 auto',
-    display: 'inline-grid',
-    width: '2.5rem',
-    height: '2.5rem',
-    placeItems: 'center',
-    borderRadius: themeVars.radius2,
-    background: themeVars.dangerSoft,
-    color: themeVars.danger,
-  },
-});
-
-export const vaKpiMeta = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '2px',
-  minWidth: 0,
-});
-
-export const vaKpiLabel = style({
-  color: themeVars.muted,
-  fontSize: '0.75rem',
-  fontWeight: 500,
-});
-
-export const vaKpiValue = style({
-  color: themeVars.ink,
-  fontSize: '1.5rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
-  lineHeight: 1.1,
-  fontVariantNumeric: 'tabular-nums',
-});
-
-export const vaKpiNote = style({
-  color: themeVars.muted,
-  fontSize: '0.72rem',
-  '@media': {
-    '(max-width: 40em)': {
-      display: 'none',
-    },
-  },
-});
-
-export const vaFilterRow = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  flexWrap: 'wrap',
-  '@media': {
-    '(max-width: 48em)': {
-      gap: themeVars.space2,
-    },
-    '(max-width: 40em)': {
-      alignItems: 'stretch',
-      flexDirection: 'column',
-    },
-  },
-});
-
-export const vaFilterRowLeft = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space2,
-  flex: '1 1 auto',
-  minWidth: 0,
-  flexWrap: 'wrap',
-  '@media': {
-    '(max-width: 40em)': {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    },
-  },
-});
-
-export const vaFilterRowRight = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space2,
-  flexShrink: 0,
-  '@media': {
-    '(max-width: 40em)': {
-      justifyContent: 'space-between',
-      overflowX: 'auto',
-      WebkitOverflowScrolling: 'touch',
-    },
-  },
-});
-
-export const vaFilterSelect = style({
-  padding: '5px 8px',
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius2,
-  background: themeVars.panel,
-  fontSize: '0.82rem',
-  color: themeVars.text,
-  minWidth: '7rem',
-  cursor: 'pointer',
-  outline: 'none',
-  transition: 'border-color 160ms ease',
-  selectors: {
-    '&:hover': {
-      borderColor: `color-mix(in srgb, ${themeVars.accent} 22%, ${themeVars.line})`,
-    },
-    '&:focus': {
-      borderColor: themeVars.accent,
-    },
-  },
-});
-
-export const vaItemRow = style({
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.2fr) auto',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  padding: `${themeVars.space3} ${themeVars.space4}`,
-  borderTop: `1px solid ${themeVars.lineSoft}`,
-  color: themeVars.text,
-  textDecoration: 'none',
-  transition: 'background-color 160ms ease',
-  selectors: {
-    '&:hover': {
-      background: themeVars.bgSoft,
-      textDecoration: 'none',
-    },
-    '&:first-child': {
-      borderTop: 0,
-    },
-  },
-});
-
-export const vaItemInfo = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  minWidth: 0,
-});
-
-export const vaItemThumb = style({
-  width: '2.5rem',
-  height: '2.5rem',
-  borderRadius: themeVars.radius2,
-  background: themeVars.lineSoft,
-  display: 'grid',
-  placeItems: 'center',
-  color: themeVars.muted,
-  flex: '0 0 auto',
-  overflow: 'hidden',
-});
-
-export const vaItemName = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
-  color: themeVars.ink,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-});
-
-export const vaItemCategory = style({
-  fontSize: '0.75rem',
-  color: themeVars.muted,
-});
-
-export const vaPlatformBadge = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '4px',
-  padding: '2px 8px',
-  borderRadius: '999px',
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  background: themeVars.bgSoft,
-  color: themeVars.text,
-  border: `1px solid ${themeVars.line}`,
-});
-
-export const vaPlatformBadgeSteam = style([
-  vaPlatformBadge,
-  {
-    background: themeVars.infoSoft,
-    color: themeVars.info,
-  },
-]);
-
-export const vaPlatformBadgeAppStore = style([
-  vaPlatformBadge,
-  {
-    background: themeVars.lineSoft,
-    color: themeVars.text,
-  },
-]);
-
-export const vaPlatformBadgeKindle = style([
-  vaPlatformBadge,
-  {
-    background: themeVars.warningSoft,
-    color: themeVars.warning,
-  },
-]);
-
-export const vaDlcBadge = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  padding: '1px 6px',
-  borderRadius: '999px',
-  fontSize: '0.68rem',
-  fontWeight: 600,
-  background: themeVars.warningSoft,
-  color: themeVars.warningText,
-});
-
-export const vaDlcBadgeMulti = style([
-  vaDlcBadge,
-  {
-    background: themeVars.infoSoft,
-    color: themeVars.info,
-  },
-]);
-
-export const vaTableHead = style({
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  color: themeVars.muted,
-  letterSpacing: '0.02em',
-  textTransform: 'uppercase',
-  textAlign: 'left',
-  padding: `${themeVars.space2} ${themeVars.space4}`,
-  borderBottom: `1px solid ${themeVars.line}`,
-  background: themeVars.bgSoft,
-});
-
-export const vaTableCell = style({
-  padding: `${themeVars.space3} ${themeVars.space4}`,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  fontSize: '0.88rem',
-  verticalAlign: 'middle',
-});
-
-export const vaTable = style({
-  width: '100%',
-  borderCollapse: 'separate',
-  borderSpacing: 0,
-});
-
-export const vaTableRow = style({
-  transition: 'background-color 160ms ease',
-  selectors: {
-    '&:hover': {
-      background: themeVars.bgSoft,
-    },
-  },
-});
-
-export const vaBottomCards = style({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-  gap: themeVars.space5,
-  '@media': {
-    '(max-width: 72em)': {
-      gridTemplateColumns: '1fr',
-    },
-    '(max-width: 40em)': {
-      gap: themeVars.space3,
-    },
-  },
-});
-
-export const vaBottomCard = style({
-  padding: themeVars.space5,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  '@media': {
-    '(max-width: 40em)': {
-      padding: themeVars.space4,
-    },
-  },
-});
-
-export const vaBottomCardTitle = style({
-  margin: 0,
-  fontSize: '0.88rem',
-  fontWeight: 700,
-  color: themeVars.muted,
-  letterSpacing: '-0.01em',
-  marginBottom: themeVars.space4,
-});
-
-export const vaBottomStatLabel = style({
-  fontSize: '0.78rem',
-  color: themeVars.muted,
-  fontWeight: 500,
-});
-
-export const vaBottomStatValue = style({
-  fontSize: '1.25rem',
-  fontWeight: 700,
-  color: themeVars.ink,
-  fontVariantNumeric: 'tabular-nums',
-  lineHeight: 1.2,
-});
-
-export const vaBottomStatNote = style({
-  fontSize: '0.72rem',
-  color: themeVars.muted,
-});
-
-export const vaMobileCard = style({
-  padding: themeVars.space4,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space3,
-});
-
-export const vaMobileCardHeader = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space3,
-});
-
-export const vaMobileCardMeta = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '2px',
-  minWidth: 0,
-  flex: '1 1 auto',
-});
-
-export const vaMobileCardPrice = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
-  color: themeVars.ink,
-  fontVariantNumeric: 'tabular-nums',
-});
-
-export const vaMobileCardDate = style({
-  fontSize: '0.75rem',
-  color: themeVars.muted,
-});
-
-export const vaMobileCardBadges = style({
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: themeVars.space1,
-});
-
 // ── Abnormal Asset Management Page ───────────────────────────────────────────
 
 export const abnormalPageHeader = style({
@@ -5156,13 +4515,12 @@ export const abnormalMetricStrip = style({
 });
 
 export const abnormalMetricCard = style({
-  background: themeVars.panel,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: '10px',
-  padding: `${themeVars.space3} ${themeVars.space4}`,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '4px',
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: `${themeVars.space3} ${themeVars.space4}`,
+      gap: '4px',
+    },
+  },
 });
 
 export const abnormalMetricLabel = style({

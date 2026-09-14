@@ -167,7 +167,7 @@ export function ImportDesktop() {
         <div>{isCsv ? t('import.csvFormat') : t('import.jsonFormat')}</div>
       </Alert>
 
-      <Card className="surface-card">
+      <Card>
         <Stack className={uiStyles.cardContent}>
           <Row>
             <Button

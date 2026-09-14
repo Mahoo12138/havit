@@ -260,39 +260,6 @@ export const tableScroll = style({
   },
 });
 
-export const table = style({
-  width: '100%',
-  borderCollapse: 'separate',
-  borderSpacing: 0,
-});
-
-export const tableHead = style({
-  padding: `${themeVars.space2} ${themeVars.space4}`,
-  textAlign: 'left',
-  borderBottom: `1px solid ${themeVars.line}`,
-  background: themeVars.bgSoft,
-  color: themeVars.muted,
-  fontSize: '0.72rem',
-  fontWeight: 650,
-  letterSpacing: 0,
-  whiteSpace: 'nowrap',
-});
-
-export const tableCell = style({
-  padding: `${themeVars.space3} ${themeVars.space4}`,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  color: themeVars.text,
-  fontSize: '0.85rem',
-  verticalAlign: 'middle',
-});
-
-export const tableRow = style({
-  transition: 'background-color 160ms ease',
-  selectors: {
-    '&:hover': { background: themeVars.bgSoft },
-  },
-});
-
 export const itemInfo = style({
   display: 'flex',
   alignItems: 'center',

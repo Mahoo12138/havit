@@ -13,6 +13,15 @@ import { Button } from '../../components/ui/button';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
 import { SelectField } from '../../components/ui/select-field';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
 import { AssetIcon } from '../../lib/asset-icons/AssetIcon';
@@ -234,75 +243,73 @@ export function CategoriesDesktop() {
           </span>
         </div>
 
-        <div className={s.tableWrap}>
-          <table className={s.table}>
-            <thead>
-              <tr>
-                <th className={s.tableHead}>{t('categories.colName')}</th>
-                <th className={s.tableHead}>{t('categories.colRootType')}</th>
-                <th className={s.tableHead}>{t('categories.colUsage')}</th>
-                <th className={s.tableHead} style={{ textAlign: 'right' }}>
-                  {t('categories.colActions')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {catsQuery.isPending ? (
-                <tr>
-                  <td colSpan={4} className={s.empty}>
-                    {t('categories.loading')}
-                  </td>
-                </tr>
-              ) : visibleCats.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className={s.empty}>
-                    {cats.length === 0 ? t('categories.emptyAll') : t('categories.emptyFiltered')}
-                  </td>
-                </tr>
-              ) : (
-                visibleCats.map((cat, index) => (
-                  <tr key={cat.id} className={s.tableRow}>
-                    <td className={s.tableCell}>
-                      <span className={s.nameCell}>
-                        <CategoryGlyph category={cat} tone={toneFor(index)} />
-                        <span className={s.nameMeta}>
-                          <span className={s.name}>{cat.name}</span>
-                          <span className={s.sub}>{cat.icon || t('categories.defaultIcon')}</span>
-                        </span>
+        <Table style={{ minWidth: '47rem' }}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('categories.colName')}</TableHead>
+              <TableHead>{t('categories.colRootType')}</TableHead>
+              <TableHead>{t('categories.colUsage')}</TableHead>
+              <TableHead style={{ textAlign: 'right' }}>
+                {t('categories.colActions')}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {catsQuery.isPending ? (
+              <TableRow>
+                <TableCell colSpan={4} className={s.empty}>
+                  {t('categories.loading')}
+                </TableCell>
+              </TableRow>
+            ) : visibleCats.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className={s.empty}>
+                  {cats.length === 0 ? t('categories.emptyAll') : t('categories.emptyFiltered')}
+                </TableCell>
+              </TableRow>
+            ) : (
+              visibleCats.map((cat, index) => (
+                <TableRow key={cat.id}>
+                  <TableCell>
+                    <span className={s.nameCell}>
+                      <CategoryGlyph category={cat} tone={toneFor(index)} />
+                      <span className={s.nameMeta}>
+                        <span className={s.name}>{cat.name}</span>
+                        <span className={s.sub}>{cat.icon || t('categories.defaultIcon')}</span>
                       </span>
-                    </td>
-                    <td className={s.tableCell}>{rootTypeLabel(cat.root_type, t)}</td>
-                    <td className={s.tableCell}>
-                      <span className={s.usage}>
-                        {t('categories.usageBadge', { count: cat.usage_count })}
-                      </span>
-                    </td>
-                    <td className={s.tableCell}>
-                      <div className={s.actions}>
-                        <Button
-                          variant="subtle"
-                          leftSection={<IconEdit size={14} />}
-                          onClick={() => setEditCat(cat)}
-                          disabled={!isOnline}
-                        >
-                          {t('common.edit')}
-                        </Button>
-                        <Button
-                          variant="subtle"
-                          leftSection={<IconTrash size={14} />}
-                          onClick={() => setPendingDelete(cat)}
-                          disabled={!isOnline}
-                        >
-                          {t('common.delete')}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </span>
+                  </TableCell>
+                  <TableCell>{rootTypeLabel(cat.root_type, t)}</TableCell>
+                  <TableCell>
+                    <span className={s.usage}>
+                      {t('categories.usageBadge', { count: cat.usage_count })}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className={s.actions}>
+                      <Button
+                        variant="subtle"
+                        leftSection={<IconEdit size={14} />}
+                        onClick={() => setEditCat(cat)}
+                        disabled={!isOnline}
+                      >
+                        {t('common.edit')}
+                      </Button>
+                      <Button
+                        variant="subtle"
+                        leftSection={<IconTrash size={14} />}
+                        onClick={() => setPendingDelete(cat)}
+                        disabled={!isOnline}
+                      >
+                        {t('common.delete')}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </section>
 
       <CatFormDialog
@@ -384,21 +391,20 @@ function CategoryTabs({
     { value: 'all', label: t('categories.all') },
   ];
   return (
-    <div className={s.tabs} role="tablist" aria-label={t('categories.rootFilter')}>
-      {tabs.map((tab) => (
-        <button
-          key={tab.value}
-          type="button"
-          className={s.tab}
-          data-active={value === tab.value || undefined}
-          onClick={() => onChange(tab.value)}
-          role="tab"
-          aria-selected={value === tab.value}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      value={value}
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === 'string') onChange(nextValue as RootFilter);
+      }}
+    >
+      <TabsList>
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
 }
 

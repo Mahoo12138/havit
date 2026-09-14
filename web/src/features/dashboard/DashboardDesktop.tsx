@@ -16,6 +16,7 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { uiStyles } from '../../components/ui';
+import { Card } from '../../components/ui/card';
 import { ScrollArea } from '../../components/ui/scroll-area';
 import { Tag } from '../../components/ui/tag';
 import type { Item, Location } from '../../api/client';
@@ -115,7 +116,7 @@ function Kpi({
 function CategoryOverview({ categories, empty }: { categories: Array<[string, number]>; empty: boolean }) {
   const { t } = useTranslation();
   return (
-    <section className={uiStyles.sectionCard}>
+    <Card className={uiStyles.sectionCard} padded={false}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.assetOverview')}</h2>
         <Link to="/assets" className={uiStyles.sectionLink}>
@@ -148,7 +149,7 @@ function CategoryOverview({ categories, empty }: { categories: Array<[string, nu
           </div>
         )}
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -161,7 +162,7 @@ function RecentAdditions({ items, loading, empty }: { items: Item[]; loading?: b
   };
 
   return (
-    <section className={uiStyles.sectionCard}>
+    <Card className={uiStyles.sectionCard} padded={false}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.recentAdditions')}</h2>
         <Link to="/assets" className={uiStyles.sectionLink}>
@@ -204,14 +205,14 @@ function RecentAdditions({ items, loading, empty }: { items: Item[]; loading?: b
           })}
         </div>
       )}
-    </section>
+    </Card>
   );
 }
 
 function QuickActionsCard() {
   const { t } = useTranslation();
   return (
-    <section className={uiStyles.sectionCard}>
+    <Card className={uiStyles.sectionCard} padded={false}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.quickActions')}</h2>
       </header>
@@ -228,7 +229,7 @@ function QuickActionsCard() {
           })}
         </div>
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -241,7 +242,7 @@ function RemindersCard({
 }) {
   const { t } = useTranslation();
   return (
-    <section className={uiStyles.sectionCard}>
+    <Card className={uiStyles.sectionCard} padded={false}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.reminders')}</h2>
         <Link to="/reminders" className={uiStyles.sectionLink}>
@@ -264,14 +265,14 @@ function RemindersCard({
           </div>
         )}
       </div>
-    </section>
+    </Card>
   );
 }
 
 function LocationsCard({ tree, loading }: { tree: Location[]; loading: boolean }) {
   const { t } = useTranslation();
   return (
-    <section className={uiStyles.sectionCard}>
+    <Card className={uiStyles.sectionCard} padded={false}>
       <header className={uiStyles.sectionHead}>
         <h2 className={uiStyles.sectionTitle}>{t('dashboard.locations')}</h2>
         <Link to="/locations" className={uiStyles.sectionLink}>
@@ -298,7 +299,7 @@ function LocationsCard({ tree, loading }: { tree: Location[]; loading: boolean }
           ))
         )}
       </ScrollArea>
-    </section>
+    </Card>
   );
 }
 

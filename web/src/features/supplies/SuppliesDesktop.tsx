@@ -29,6 +29,14 @@ import { Field, FieldLabel } from '../../components/ui/field';
 import { RadioGroup, RadioGroupItem } from '../../components/ui/radio-group';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
@@ -462,7 +470,7 @@ export function SuppliesDesktop() {
           </div>
 
           {showForecast && (
-            <Card className="surface-card">
+            <Card>
               <div className={uiStyles.sectionHead}>
                 <h3 className={uiStyles.sectionTitle}>
                   {t('supplies.restockForecast')}
@@ -496,7 +504,7 @@ export function SuppliesDesktop() {
                     }
                   }
                   return (
-                    <div
+                    <Card
                       className={uiStyles.supplyForecastCard}
                       key={item.id}
                       onClick={() => goToDetail(item.id)}
@@ -579,7 +587,7 @@ export function SuppliesDesktop() {
                           {t('supplies.plentyLeft')}
                         </Button>
                       </div>
-                    </div>
+                    </Card>
                   );
                 })}
               </div>
@@ -588,7 +596,7 @@ export function SuppliesDesktop() {
 
           <div className={uiStyles.supplyTwoCol}>
             {showRestockChecklist && (
-              <Card className="surface-card" padded={false}>
+              <Card padded={false}>
                 <div className={uiStyles.sectionHead}>
                   <h3 className={uiStyles.sectionTitle}>
                     {t('supplies.restockChecklist', {
@@ -596,286 +604,273 @@ export function SuppliesDesktop() {
                     })}
                   </h3>
                 </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table className={uiStyles.supplyTable}>
-                    <thead>
-                      <tr>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.tracked')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.type')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.status')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.restockDate')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.action')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {warningItems.map((item) => {
-                        const isTypeA = item.type === 'predictive_supplies';
-                        const stockStatus = getStockStatus(item);
-                        const meta = purchaseEventsByItem.get(item.id);
-                        const next = meta?.next;
-                        const daysLeft =
-                          next != null
-                            ? Math.max(0, Math.round((next - now) / DAY))
-                            : null;
-                        const restockLabel =
-                          isTypeA && next
-                            ? `${fmtMonthDay(next, locale)} (${
-                                daysLeft === 0
-                                  ? t('supplies.dueNow')
-                                  : t('supplies.daysLeft', { count: daysLeft ?? 0 })
-                              })`
-                            : '—';
-                        const badgeStatus = isTypeA ? 'low' : stockStatus;
-                        return (
-                          <tr
-                            className={uiStyles.supplyTableRow}
-                            key={item.id}
-                            onClick={() => goToDetail(item.id)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <td className={uiStyles.supplyTableCell}>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.5rem',
-                                }}
-                              >
-                                <IconPackage
-                                  size={16}
-                                  style={{ color: 'var(--havit-muted)' }}
-                                />
-                                <span style={{ fontWeight: 500 }}>
-                                  {item.name}
-                                </span>
-                              </div>
-                            </td>
-                            <td className={uiStyles.supplyTableCell}>
-                              <span
-                                style={{
-                                  display: 'inline-flex',
-                                  padding: '2px 6px',
-                                  borderRadius: '999px',
-                                  fontSize: '0.68rem',
-                                  fontWeight: 600,
-                                  background: isTypeA
-                                    ? 'var(--havit-info-soft)'
-                                    : 'var(--havit-accent-soft)',
-                                  color: isTypeA
-                                    ? 'var(--havit-info)'
-                                    : 'var(--havit-accent-ink)',
-                                }}
-                              >
-                                {isTypeA
-                                  ? t('supplies.typeA')
-                                  : t('supplies.typeB')}
-                              </span>
-                            </td>
-                            <td className={uiStyles.supplyTableCell}>
-                              <span
-                                className={
-                                  uiStyles.supplyStatusBadge[badgeStatus]
-                                }
-                              >
-                                {getStockStatusLabel(t, badgeStatus)}
-                              </span>
-                            </td>
-                            <td
-                              className={uiStyles.supplyTableCell}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        {t('supplies.tracked')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.type')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.status')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.restockDate')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.action')}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {warningItems.map((item) => {
+                      const isTypeA = item.type === 'predictive_supplies';
+                      const stockStatus = getStockStatus(item);
+                      const meta = purchaseEventsByItem.get(item.id);
+                      const next = meta?.next;
+                      const daysLeft =
+                        next != null
+                          ? Math.max(0, Math.round((next - now) / DAY))
+                          : null;
+                      const restockLabel =
+                        isTypeA && next
+                          ? `${fmtMonthDay(next, locale)} (${
+                              daysLeft === 0
+                                ? t('supplies.dueNow')
+                                : t('supplies.daysLeft', { count: daysLeft ?? 0 })
+                            })`
+                          : '—';
+                      const badgeStatus = isTypeA ? 'low' : stockStatus;
+                      return (
+                        <TableRow
+                          key={item.id}
+                          onClick={() => goToDetail(item.id)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <TableCell>
+                            <div
                               style={{
-                                color: 'var(--havit-muted)',
-                                fontSize: '0.82rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
                               }}
                             >
-                              {restockLabel}
-                            </td>
-                            <td
-                              className={uiStyles.supplyTableCell}
-                              onClick={(e) => e.stopPropagation()}
+                              <IconPackage
+                                size={16}
+                                style={{ color: 'var(--havit-muted)' }}
+                              />
+                              <span style={{ fontWeight: 500 }}>
+                                {item.name}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                padding: '2px 6px',
+                                borderRadius: '999px',
+                                fontSize: '0.68rem',
+                                fontWeight: 600,
+                                background: isTypeA
+                                  ? 'var(--havit-info-soft)'
+                                  : 'var(--havit-accent-soft)',
+                                color: isTypeA
+                                  ? 'var(--havit-info)'
+                                  : 'var(--havit-accent-ink)',
+                              }}
                             >
-                              {isTypeA ? (
-                                <Button
-                                  variant="quiet"
-                                  onClick={() =>
-                                    setPurchaseDialog({
-                                      open: true,
-                                      item,
-                                    })
-                                  }
-                                  disabled={!isOnline}
-                                  title={offlineTitle}
-                                >
-                                  {t('supplies.goBuy')}
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="quiet"
-                                  onClick={() =>
-                                    setStockDialog({ open: true, item })
-                                  }
-                                  disabled={!isOnline}
-                                  title={offlineTitle}
-                                >
-                                  {t('supplies.addStock')}
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {warningItems.length === 0 && (
-                        <tr>
-                          <td
-                            className={uiStyles.supplyTableCell}
-                            colSpan={5}
+                              {isTypeA
+                                ? t('supplies.typeA')
+                                : t('supplies.typeB')}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={
+                                uiStyles.supplyStatusBadge[badgeStatus]
+                              }
+                            >
+                              {getStockStatusLabel(t, badgeStatus)}
+                            </span>
+                          </TableCell>
+                          <TableCell
                             style={{
-                              textAlign: 'center',
                               color: 'var(--havit-muted)',
-                              padding: '2rem',
+                              fontSize: '0.82rem',
                             }}
                           >
-                            {t('supplies.noConsumables')}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                            {restockLabel}
+                          </TableCell>
+                          <TableCell
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {isTypeA ? (
+                              <Button
+                                variant="quiet"
+                                onClick={() =>
+                                  setPurchaseDialog({
+                                    open: true,
+                                    item,
+                                  })
+                                }
+                                disabled={!isOnline}
+                                title={offlineTitle}
+                              >
+                                {t('supplies.goBuy')}
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="quiet"
+                                onClick={() =>
+                                  setStockDialog({ open: true, item })
+                                }
+                                disabled={!isOnline}
+                                title={offlineTitle}
+                              >
+                                {t('supplies.addStock')}
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {warningItems.length === 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          style={{
+                            textAlign: 'center',
+                            color: 'var(--havit-muted)',
+                            padding: '2rem',
+                          }}
+                        >
+                          {t('supplies.noConsumables')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </Card>
             )}
 
             {showInventoryCount && (
-              <Card className="surface-card" padded={false}>
+              <Card padded={false}>
                 <div className={uiStyles.sectionHead}>
                   <h3 className={uiStyles.sectionTitle}>
                     {t('supplies.inventoryCount', { count: typeBItems.length })}
                   </h3>
                 </div>
-                <div style={{ overflowX: 'auto' }}>
-                  <table className={uiStyles.supplyTable}>
-                    <thead>
-                      <tr>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.tracked')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.currentQty')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.minThreshold')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.status')}
-                        </th>
-                        <th className={uiStyles.supplyTableHead}>
-                          {t('supplies.action')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {typeBItems.map((item) => {
-                        const stockStatus = getStockStatus(item);
-                        const stock = item.current_stock ?? 0;
-                        return (
-                          <tr
-                            className={uiStyles.supplyTableRow}
-                            key={item.id}
-                            onClick={() => goToDetail(item.id)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <td className={uiStyles.supplyTableCell}>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '0.5rem',
-                                }}
-                              >
-                                <IconPackage
-                                  size={16}
-                                  style={{ color: 'var(--havit-muted)' }}
-                                />
-                                <span style={{ fontWeight: 500 }}>
-                                  {item.name}
-                                </span>
-                              </div>
-                            </td>
-                            <td
-                              className={uiStyles.supplyTableCell}
-                              style={{ fontVariantNumeric: 'tabular-nums' }}
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        {t('supplies.tracked')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.currentQty')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.minThreshold')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.status')}
+                      </TableHead>
+                      <TableHead>
+                        {t('supplies.action')}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {typeBItems.map((item) => {
+                      const stockStatus = getStockStatus(item);
+                      const stock = item.current_stock ?? 0;
+                      return (
+                        <TableRow
+                          key={item.id}
+                          onClick={() => goToDetail(item.id)}
+                          style={{ cursor: 'pointer' }}
+                        >
+                          <TableCell>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                              }}
                             >
-                              {item.current_stock ?? '—'}
-                            </td>
-                            <td
-                              className={uiStyles.supplyTableCell}
-                              style={{ fontVariantNumeric: 'tabular-nums' }}
-                            >
-                              {item.min_stock_threshold ?? '—'}
-                            </td>
-                            <td className={uiStyles.supplyTableCell}>
-                              <span
-                                className={
-                                  uiStyles.supplyStatusBadge[stockStatus]
-                                }
-                              >
-                                {getStockStatusLabel(t, stockStatus)}
+                              <IconPackage
+                                size={16}
+                                style={{ color: 'var(--havit-muted)' }}
+                              />
+                              <span style={{ fontWeight: 500 }}>
+                                {item.name}
                               </span>
-                            </td>
-                            <td
-                              className={uiStyles.supplyTableCell}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                variant="quiet"
-                                leftSection={<IconMinus size={12} />}
-                                onClick={() => useOne.mutate(item.id)}
-                                disabled={
-                                  !isOnline ||
-                                  stock <= 0 ||
-                                  useOne.isPending
-                                }
-                                title={offlineTitle}
-                              >
-                                {t('supplies.useOneAction')}
-                              </Button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {typeBItems.length === 0 && (
-                        <tr>
-                          <td
-                            className={uiStyles.supplyTableCell}
-                            colSpan={5}
-                            style={{
-                              textAlign: 'center',
-                              color: 'var(--havit-muted)',
-                              padding: '2rem',
-                            }}
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            style={{ fontVariantNumeric: 'tabular-nums' }}
                           >
-                            {t('supplies.noConsumables')}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                            {item.current_stock ?? '—'}
+                          </TableCell>
+                          <TableCell
+                            style={{ fontVariantNumeric: 'tabular-nums' }}
+                          >
+                            {item.min_stock_threshold ?? '—'}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={
+                                uiStyles.supplyStatusBadge[stockStatus]
+                              }
+                            >
+                              {getStockStatusLabel(t, stockStatus)}
+                            </span>
+                          </TableCell>
+                          <TableCell
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="quiet"
+                              leftSection={<IconMinus size={12} />}
+                              onClick={() => useOne.mutate(item.id)}
+                              disabled={
+                                !isOnline ||
+                                stock <= 0 ||
+                                useOne.isPending
+                              }
+                              title={offlineTitle}
+                            >
+                              {t('supplies.useOneAction')}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {typeBItems.length === 0 && (
+                      <TableRow>
+                        <TableCell
+                          colSpan={5}
+                          style={{
+                            textAlign: 'center',
+                            color: 'var(--havit-muted)',
+                            padding: '2rem',
+                          }}
+                        >
+                          {t('supplies.noConsumables')}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </Card>
             )}
           </div>
 
           {showChart && (
-            <div className={uiStyles.supplyChartPlaceholder}>
+            <Card className={uiStyles.supplyChartPlaceholder}>
               <div
                 className={uiStyles.sectionHead}
                 style={{ padding: 0, borderBottom: 0 }}
@@ -989,7 +984,7 @@ export function SuppliesDesktop() {
                   </div>
                 </div>
               )}
-            </div>
+            </Card>
           )}
         </>
       )}

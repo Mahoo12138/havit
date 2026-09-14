@@ -6,6 +6,14 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Code } from '../../components/ui/code';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { IMPORT_FIELDS, type ImportResult } from '../../api/client';
 import { downloadBlob } from './ImportDesktop';
 
@@ -14,8 +22,6 @@ interface ImportResultCardProps {
   format: 'csv' | 'json';
   onRestart: () => void;
 }
-
-const lineStyle = { borderBottom: '1px solid var(--havit-line, #ddd5c4)' } as const;
 
 export function ImportResultCard({ result, format, onRestart }: ImportResultCardProps) {
   const { t } = useTranslation();
@@ -50,7 +56,7 @@ export function ImportResultCard({ result, format, onRestart }: ImportResultCard
   }
 
   return (
-    <Card className="surface-card">
+    <Card>
       <Stack className={uiStyles.cardContent}>
         <h3 className={uiStyles.heading}>{t('import.resultTitle')}</h3>
 
@@ -65,41 +71,36 @@ export function ImportResultCard({ result, format, onRestart }: ImportResultCard
         {failedRows.length === 0 ? (
           <p className={uiStyles.muted}>{t('import.noErrors')}</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.colRow')}
-                  </th>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.colName')}
-                  </th>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.statError')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {failedRows.map((e, i) => (
-                  <tr key={i}>
-                    <td style={lineStyle} className={uiStyles.muted}>{e.line}</td>
-                    <td style={lineStyle}>{e.name && <Code>{e.name}</Code>}</td>
-                    <td style={lineStyle}>{e.message}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
-              <Button
-                variant="quiet"
-                leftSection={<IconDownload size={15} />}
-                onClick={downloadFailedRows}
-              >
-                {t('import.downloadFailedRows')}
-              </Button>
-              <span className={uiStyles.help}>{t('import.failedRowsHint')}</span>
-            </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('import.colRow')}</TableHead>
+                <TableHead>{t('import.colName')}</TableHead>
+                <TableHead>{t('import.statError')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {failedRows.map((e, i) => (
+                <TableRow key={i}>
+                  <TableCell className={uiStyles.muted}>{e.line}</TableCell>
+                  <TableCell>{e.name && <Code>{e.name}</Code>}</TableCell>
+                  <TableCell>{e.message}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+
+        {failedRows.length > 0 && (
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <Button
+              variant="quiet"
+              leftSection={<IconDownload size={15} />}
+              onClick={downloadFailedRows}
+            >
+              {t('import.downloadFailedRows')}
+            </Button>
+            <span className={uiStyles.help}>{t('import.failedRowsHint')}</span>
           </div>
         )}
 

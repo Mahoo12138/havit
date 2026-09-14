@@ -242,11 +242,14 @@ export const emptyState = style({
   gap: themeVars.space2,
 });
 
+// Applied as a className on the Card component; head carries the padding.
 export const sectionCard = style({
-  borderRadius: themeVars.radius3,
-  border: `1px solid ${themeVars.line}`,
-  background: themeVars.panel,
-  overflow: 'hidden',
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+    },
+  },
 });
 
 export const sectionHead = style({

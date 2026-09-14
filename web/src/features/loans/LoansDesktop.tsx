@@ -17,6 +17,14 @@ import {
 } from '../../components/ui/select';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextField } from '../../components/ui/text-field';
 import { itemsApi, loansApi, type LoanWithItem } from '../../api/client';
@@ -342,31 +350,31 @@ export function LoansDesktop() {
       ) : (
         <>
           <div className={uiStyles.loanPageMetrics}>
-            <div className={uiStyles.loanMetricCard}>
+            <Card className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricBorrowed')}</span>
               <span className={uiStyles.loanMetricValue}>{metrics.borrowedCount}</span>
               <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.borrowedValue, t('common.currencySymbol'))}</span>
-            </div>
-            <div className={uiStyles.loanMetricCard}>
+            </Card>
+            <Card className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricOverdue')}</span>
               <span className={uiStyles.loanMetricValueDanger}>{metrics.overdueCount}</span>
               <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.overdueValue, t('common.currencySymbol'))}</span>
-            </div>
-            <div className={uiStyles.loanMetricCard}>
+            </Card>
+            <Card className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricDueSoon')}</span>
               <span className={uiStyles.loanMetricValue}>{metrics.dueSoonCount}</span>
               <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.dueSoonValue, t('common.currencySymbol'))}</span>
-            </div>
-            <div className={uiStyles.loanMetricCard}>
+            </Card>
+            <Card className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricThisMonth')}</span>
               <span className={uiStyles.loanMetricValue}>{metrics.thisMonthCount}</span>
               <span className={uiStyles.loanMetricSub}>{t('loans.totalValue')} {formatMoney(metrics.thisMonthValue, t('common.currencySymbol'))}</span>
-            </div>
-            <div className={uiStyles.loanMetricCard}>
+            </Card>
+            <Card className={uiStyles.loanMetricCard}>
               <span className={uiStyles.loanMetricLabel}>{t('loans.metricReturned')}</span>
               <span className={uiStyles.loanMetricValue}>{metrics.returnedCount}</span>
               <span className={uiStyles.loanMetricSub}>{t('loans.returnedValue')} {formatMoney(metrics.returnedValue, t('common.currencySymbol'))}</span>
-            </div>
+            </Card>
           </div>
 
           <div className={uiStyles.loanFilterBar}>
@@ -397,79 +405,77 @@ export function LoansDesktop() {
           </div>
 
           {/* Desktop table */}
-          <Card className="surface-card loan-table-wrap" padded={false}>
-            <div className={uiStyles.tableWrap}>
-              <table className={uiStyles.table}>
-                <thead>
-                  <tr>
-                    <th className={uiStyles.th}>{t('loans.colItem')}</th>
-                    <th className={uiStyles.th}>{t('loans.colBorrower')}</th>
-                    <th className={uiStyles.th}>{t('loans.colLoanDate')}</th>
-                    <th className={uiStyles.th}>{t('loans.colDueDate')}</th>
-                    <th className={uiStyles.th}>{t('loans.colStatus')}</th>
-                    <th className={uiStyles.th}>{t('loans.colValue')}</th>
-                    <th className={uiStyles.th}>{t('loans.colAction')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--havit-muted)' }}>
-                        {t('loans.noLoans')}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredData.map((loan) => {
-                      const status = getLoanStatus(loan);
-                      const dueInfo = formatDueInfo(loan);
-                      return (
-                        <tr className={uiStyles.tableRow} key={loan.id}>
-                          <td className={uiStyles.td}>
-                            <div className={uiStyles.loanItemCell}>
-                              <div className={uiStyles.loanItemThumbPlaceholder}>
-                                {loan.item_name.charAt(0)}
-                              </div>
-                              <div className={uiStyles.loanItemInfo}>
-                                <div className={uiStyles.loanItemName}>{loan.item_name}</div>
-                                {loan.item_serial_number && (
-                                  <div className={uiStyles.loanItemSn}>{t('common.sn', { number: loan.item_serial_number })}</div>
-                                )}
-                              </div>
+          <Card className="loan-table-wrap" padded={false}>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('loans.colItem')}</TableHead>
+                  <TableHead>{t('loans.colBorrower')}</TableHead>
+                  <TableHead>{t('loans.colLoanDate')}</TableHead>
+                  <TableHead>{t('loans.colDueDate')}</TableHead>
+                  <TableHead>{t('loans.colStatus')}</TableHead>
+                  <TableHead>{t('loans.colValue')}</TableHead>
+                  <TableHead>{t('loans.colAction')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredData.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--havit-muted)' }}>
+                      {t('loans.noLoans')}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredData.map((loan) => {
+                    const status = getLoanStatus(loan);
+                    const dueInfo = formatDueInfo(loan);
+                    return (
+                      <TableRow key={loan.id}>
+                        <TableCell>
+                          <div className={uiStyles.loanItemCell}>
+                            <div className={uiStyles.loanItemThumbPlaceholder}>
+                              {loan.item_name.charAt(0)}
                             </div>
-                          </td>
-                          <td className={uiStyles.td}>
-                            <div>{loan.borrower_name}</div>
-                            {loan.borrower_contact && (
-                              <div className={uiStyles.loanItemSn}>{loan.borrower_contact}</div>
-                            )}
-                          </td>
-                          <td className={uiStyles.td}>{formatDate(loan.loaned_at)}</td>
-                          <td className={uiStyles.td}>
-                            <div>{formatDate(loan.due_at)}</div>
-                            {dueInfo.text !== '-' && (
-                              <div style={{ color: dueInfo.isOverdue ? 'var(--havit-danger)' : 'var(--havit-muted)', fontSize: '0.78rem' }}>
-                                {dueInfo.text}
-                              </div>
-                            )}
-                          </td>
-                          <td className={uiStyles.td}>
-                            <span className={`${uiStyles.loanStatusBadgeBase} ${uiStyles.loanStatusBadge[status]}`}>
-                              {getStatusLabel(status)}
-                            </span>
-                          </td>
-                          <td className={uiStyles.td} style={{ fontVariantNumeric: 'tabular-nums' }}>
-                            {formatMoney(loan.item_purchase_price, loan.item_purchase_currency)}
-                          </td>
-                          <td className={uiStyles.td}>
-                            {renderActions(loan, status)}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                            <div className={uiStyles.loanItemInfo}>
+                              <div className={uiStyles.loanItemName}>{loan.item_name}</div>
+                              {loan.item_serial_number && (
+                                <div className={uiStyles.loanItemSn}>{t('common.sn', { number: loan.item_serial_number })}</div>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>{loan.borrower_name}</div>
+                          {loan.borrower_contact && (
+                            <div className={uiStyles.loanItemSn}>{loan.borrower_contact}</div>
+                          )}
+                        </TableCell>
+                        <TableCell>{formatDate(loan.loaned_at)}</TableCell>
+                        <TableCell>
+                          <div>{formatDate(loan.due_at)}</div>
+                          {dueInfo.text !== '-' && (
+                            <div style={{ color: dueInfo.isOverdue ? 'var(--havit-danger)' : 'var(--havit-muted)', fontSize: '0.78rem' }}>
+                              {dueInfo.text}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`${uiStyles.loanStatusBadgeBase} ${uiStyles.loanStatusBadge[status]}`}>
+                            {getStatusLabel(status)}
+                          </span>
+                        </TableCell>
+                        <TableCell style={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {formatMoney(loan.item_purchase_price, loan.item_purchase_currency)}
+                        </TableCell>
+                        <TableCell>
+                          {renderActions(loan, status)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
           </Card>
 
           {/* Mobile card list */}
@@ -483,7 +489,7 @@ export function LoansDesktop() {
                 const status = getLoanStatus(loan);
                 const dueInfo = formatDueInfo(loan);
                 return (
-                  <div className={uiStyles.loanMobileCard} key={loan.id}>
+                  <Card className={uiStyles.loanMobileCard} key={loan.id}>
                     <div className={uiStyles.loanMobileItemRow}>
                       <div className={uiStyles.loanItemThumbPlaceholder}>
                         {loan.item_name.charAt(0)}
@@ -518,14 +524,14 @@ export function LoansDesktop() {
                       </span>
                     </div>
                     {renderActions(loan, status)}
-                  </div>
+                  </Card>
                 );
               })
             )}
           </div>
 
           {metrics.overdueCount > 0 && (
-            <div className={uiStyles.loanBottomCard}>
+            <Card className={uiStyles.loanBottomCard}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <IconAlertTriangle size={16} color="var(--havit-danger)" />
@@ -567,7 +573,7 @@ export function LoansDesktop() {
                   );
                 })}
               </div>
-            </div>
+            </Card>
           )}
         </>
       )}

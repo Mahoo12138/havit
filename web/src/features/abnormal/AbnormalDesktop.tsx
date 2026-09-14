@@ -30,6 +30,14 @@ import { themeVars } from '../../styles/theme.css';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { Dialog } from '../../components/ui/dialog-compat';
 import {
   Select,
@@ -432,11 +440,11 @@ export function AbnormalDesktop() {
       {/* KPI Metric Strip */}
       <div className={uiStyles.abnormalMetricStrip}>
         {kpiMetrics.map((m) => (
-          <div className={uiStyles.abnormalMetricCard} key={m.label}>
+          <Card className={uiStyles.abnormalMetricCard} key={m.label}>
             <span className={uiStyles.abnormalMetricLabel}>{m.label}</span>
             <span className={uiStyles.abnormalMetricValue}>{m.value}</span>
             <span className={uiStyles.abnormalMetricSub}>{m.sub}</span>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -504,95 +512,93 @@ export function AbnormalDesktop() {
             </div>
 
             {/* Table */}
-            <Card className="surface-card" padded={false}>
-              <div className={uiStyles.tableWrap}>
-                <table className={uiStyles.table}>
-                  <thead>
-                    <tr>
-                      <th className={uiStyles.th}>{t('abnormal.colAsset')}</th>
-                      <th className={uiStyles.th}>{t('abnormal.colType')}</th>
-                      <th className={uiStyles.th}>{t('abnormal.colAbnormalTime')}</th>
-                      <th className={uiStyles.th}>{t('abnormal.colLocation')}</th>
-                      <th className={uiStyles.th}>{t('abnormal.colResponsible')}</th>
-                      <th className={uiStyles.th}>{t('abnormal.colProgress')}</th>
-                      <th className={uiStyles.th}>{t('abnormal.colUpdatedAt')}</th>
-                      <th className={uiStyles.th}>{t('abnormal.colActions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.length === 0 ? (
-                      <tr>
-                        <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--havit-muted)' }}>
-                          {t('abnormal.noRecords')}
-                        </td>
-                      </tr>
-                    ) : items.map((item) => (
-                      <tr className={uiStyles.tableRow} key={item.abnormal_id}>
-                        <td className={uiStyles.td}>
-                          <div className={uiStyles.abnormalItemCell}>
-                            {item.photo_url ? (
-                              <img src={item.photo_url} alt="" className={uiStyles.abnormalThumb} />
-                            ) : (
-                              <div className={uiStyles.abnormalThumbPlaceholder}>
-                                {item.name.charAt(0)}
-                              </div>
-                            )}
-                            <div className={uiStyles.abnormalItemInfo}>
-                              <span className={uiStyles.abnormalItemName}>{item.name}</span>
-                              {item.serial_number && (
-                                <span className={uiStyles.abnormalItemSn}>SN: {item.serial_number}</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className={uiStyles.td}>
-                          <span className={getTypeBadgeClass(item.abnormal_type)}>
-                            {typeLabel(item.abnormal_type)}
-                          </span>
-                        </td>
-                        <td className={uiStyles.td}>{formatDate(item.exit_date)}</td>
-                        <td className={uiStyles.td}>
-                          {item.location_name ?? '-'}
-                        </td>
-                        <td className={uiStyles.td}>
-                          {item.responsible_person ?? '-'}
-                        </td>
-                        <td className={uiStyles.td}>
-                          {updateId === item.abnormal_id ? (
-                            <InlineSelect
-                              value={updateStatus}
-                              placeholder={t('abnormal.selectStatus')}
-                              options={PROCESSING_STATUS_OPTIONS.map((opt) => ({ value: opt.key, label: t(opt.labelKey) }))}
-                              autoFocus
-                              onChange={(nextValue) => {
-                                setUpdateStatus(nextValue);
-                                if (nextValue) updateMutation.mutate({ id: item.abnormal_id, status: nextValue });
-                                setUpdateId(null);
-                              }}
-                            />
+            <Card padded={false}>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('abnormal.colAsset')}</TableHead>
+                    <TableHead>{t('abnormal.colType')}</TableHead>
+                    <TableHead>{t('abnormal.colAbnormalTime')}</TableHead>
+                    <TableHead>{t('abnormal.colLocation')}</TableHead>
+                    <TableHead>{t('abnormal.colResponsible')}</TableHead>
+                    <TableHead>{t('abnormal.colProgress')}</TableHead>
+                    <TableHead>{t('abnormal.colUpdatedAt')}</TableHead>
+                    <TableHead>{t('abnormal.colActions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--havit-muted)' }}>
+                        {t('abnormal.noRecords')}
+                      </TableCell>
+                    </TableRow>
+                  ) : items.map((item) => (
+                    <TableRow key={item.abnormal_id}>
+                      <TableCell>
+                        <div className={uiStyles.abnormalItemCell}>
+                          {item.photo_url ? (
+                            <img src={item.photo_url} alt="" className={uiStyles.abnormalThumb} />
                           ) : (
-                            <span
-                              className={getProgressBadgeClass(item.processing_status)}
-                              style={{ cursor: 'pointer' }}
-                              onClick={() => { setUpdateId(item.abnormal_id); setUpdateStatus(item.processing_status); }}
-                            >
-                              {progressLabel(item.processing_status)}
-                            </span>
+                            <div className={uiStyles.abnormalThumbPlaceholder}>
+                              {item.name.charAt(0)}
+                            </div>
                           )}
-                        </td>
-                        <td className={uiStyles.td}>{formatDate(item.updated_at)}</td>
-                        <td className={uiStyles.td}>
-                          <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                            <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.viewItem')}>
-                              <IconEye size={13} />
-                            </Button>
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          <div className={uiStyles.abnormalItemInfo}>
+                            <span className={uiStyles.abnormalItemName}>{item.name}</span>
+                            {item.serial_number && (
+                              <span className={uiStyles.abnormalItemSn}>SN: {item.serial_number}</span>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={getTypeBadgeClass(item.abnormal_type)}>
+                          {typeLabel(item.abnormal_type)}
+                        </span>
+                      </TableCell>
+                      <TableCell>{formatDate(item.exit_date)}</TableCell>
+                      <TableCell>
+                        {item.location_name ?? '-'}
+                      </TableCell>
+                      <TableCell>
+                        {item.responsible_person ?? '-'}
+                      </TableCell>
+                      <TableCell>
+                        {updateId === item.abnormal_id ? (
+                          <InlineSelect
+                            value={updateStatus}
+                            placeholder={t('abnormal.selectStatus')}
+                            options={PROCESSING_STATUS_OPTIONS.map((opt) => ({ value: opt.key, label: t(opt.labelKey) }))}
+                            autoFocus
+                            onChange={(nextValue) => {
+                              setUpdateStatus(nextValue);
+                              if (nextValue) updateMutation.mutate({ id: item.abnormal_id, status: nextValue });
+                              setUpdateId(null);
+                            }}
+                          />
+                        ) : (
+                          <span
+                            className={getProgressBadgeClass(item.processing_status)}
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => { setUpdateId(item.abnormal_id); setUpdateStatus(item.processing_status); }}
+                          >
+                            {progressLabel(item.processing_status)}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{formatDate(item.updated_at)}</TableCell>
+                      <TableCell>
+                        <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
+                          <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.viewItem')}>
+                            <IconEye size={13} />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </Card>
 
             {/* Pagination */}
@@ -602,7 +608,7 @@ export function AbnormalDesktop() {
           </div>
 
           {/* Right sidebar: compact card list */}
-          <Card className="surface-card" padded={false}>
+          <Card padded={false}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--havit-line-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--havit-ink)' }}>
                 {t('abnormal.sidebarTitle')}
@@ -955,7 +961,7 @@ function InsightCard({
   foot?: ReactNode;
 }) {
   return (
-    <Card className="surface-card">
+    <Card>
       <div className={`${uiStyles.cardContent} ${uiStyles.abnormalPanelHead}`}>
         <h3 className={uiStyles.abnormalPanelTitle}>{title}</h3>
         {meta != null && <span className={uiStyles.abnormalPanelMeta}>{meta}</span>}

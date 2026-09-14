@@ -43,6 +43,14 @@ import {
   SelectValue,
 } from '../../components/ui/select';
 import { Spinner } from '../../components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TextField } from '../../components/ui/text-field';
 import { itemsApi, type Item, type VirtualAddonPurchase, type VirtualCredential } from '../../api/client';
 import { useDevice } from '../../lib/device';
@@ -354,21 +362,21 @@ function KpiTile({ icon: Icon, tone, label, value, note }: {
 function VirtualAssetTable({ items, t }: { items: VaItem[]; t: (key: string, params?: any) => string }) {
   return (
     <div className={s.tableScroll}>
-      <table className={s.table}>
-        <thead>
-          <tr>
-            <th className={s.tableHead}>{t('virtualAssets.itemName')}</th>
-            <th className={s.tableHead}>{t('virtualAssets.platformAccount')}</th>
-            <th className={s.tableHead}>{t('virtualAssets.purchaseDate')}</th>
-            <th className={s.tableHead}>{t('virtualAssets.price')}</th>
-            <th className={s.tableHead}>{t('virtualAssets.statusTags')}</th>
-            <th className={s.tableHead}>{t('virtualAssets.action')}</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table style={{ whiteSpace: 'nowrap' }}>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t('virtualAssets.itemName')}</TableHead>
+            <TableHead>{t('virtualAssets.platformAccount')}</TableHead>
+            <TableHead>{t('virtualAssets.purchaseDate')}</TableHead>
+            <TableHead>{t('virtualAssets.price')}</TableHead>
+            <TableHead>{t('virtualAssets.statusTags')}</TableHead>
+            <TableHead>{t('virtualAssets.action')}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {items.map((item) => (
-            <tr className={s.tableRow} key={item.id}>
-              <td className={s.tableCell}>
+            <TableRow key={item.id}>
+              <TableCell>
                 <div className={s.itemInfo}>
                   <div className={s.itemThumb}><IconPackage size={16} /></div>
                   <div className={s.itemMeta}>
@@ -376,38 +384,38 @@ function VirtualAssetTable({ items, t }: { items: VaItem[]; t: (key: string, par
                     <span className={s.itemSub}>{item.category ?? '—'}</span>
                   </div>
                 </div>
-              </td>
-              <td className={s.tableCell}>
+              </TableCell>
+              <TableCell>
                 <div className={s.itemMeta}>
                   <span className={s.badge[platformTone(item.category)]}>{item.category ?? '—'}</span>
                   <span className={s.itemSub}>{item.serial_number ?? '—'}</span>
                 </div>
-              </td>
-              <td className={`${s.tableCell} ${s.muted}`}>{formatDate(item.purchase_date)}</td>
-              <td className={`${s.tableCell} ${s.price}`}>{formatPrice(item.purchase_price, item.purchase_currency)}</td>
-              <td className={s.tableCell}>
+              </TableCell>
+              <TableCell className={s.muted}>{formatDate(item.purchase_date)}</TableCell>
+              <TableCell className={s.price}>{formatPrice(item.purchase_price, item.purchase_currency)}</TableCell>
+              <TableCell>
                 <div className={s.badges}>
                   <span className={s.badge.blue}>{t('virtualAssets.multiDLC')}</span>
                   <span className={s.badge.amber}>{t('virtualAssets.steamGGOG')}</span>
                 </div>
-              </td>
-              <td className={s.tableCell}>
+              </TableCell>
+              <TableCell>
                 <div className={s.actionGroup}>
                   <Button variant="outline" size="sm" leftSection={<IconEye size={12} />}>{t('virtualAssets.viewDetails')}</Button>
                   <Button variant="ghost" size="icon-sm" aria-label={t('virtualAssets.action')}><IconDots size={14} /></Button>
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
           {items.length === 0 && (
-            <tr>
-              <td className={s.tableCell} colSpan={6}>
+            <TableRow>
+              <TableCell colSpan={6}>
                 <div className={s.empty}>{t('virtualAssets.noItems')}</div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           )}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

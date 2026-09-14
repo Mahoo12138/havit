@@ -4,6 +4,14 @@ import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { SelectField } from '../../components/ui/select-field';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import type { ImportPreview, OnDuplicate } from '../../api/client';
 
 interface ImportPreviewCardProps {
@@ -15,8 +23,6 @@ interface ImportPreviewCardProps {
   onBack: () => void;
   onStartOver: () => void;
 }
-
-const lineStyle = { borderBottom: '1px solid var(--havit-line, #ddd5c4)' } as const;
 
 export function ImportPreviewCard({
   preview,
@@ -51,7 +57,7 @@ export function ImportPreviewCard({
   }
 
   return (
-    <Card className="surface-card">
+    <Card>
       <Stack className={uiStyles.cardContent}>
         <h3 className={uiStyles.heading}>{t('import.previewTitle')}</h3>
         <p className={uiStyles.muted}>{t('import.previewDescription')}</p>
@@ -83,45 +89,33 @@ export function ImportPreviewCard({
         {preview.rows.length === 0 ? (
           <p className={uiStyles.muted}>{t('import.noRows')}</p>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.colRow')}
-                  </th>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.colName')}
-                  </th>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.colCategory')}
-                  </th>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.colLocation')}
-                  </th>
-                  <th style={{ ...lineStyle, textAlign: 'left', padding: '0.375rem 0.5rem', fontWeight: 500 }}>
-                    {t('import.colStatus')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {preview.rows.map((row) => (
-                  <tr key={row.row}>
-                    <td style={lineStyle} className={uiStyles.muted}>{row.row}</td>
-                    <td style={lineStyle}>{row.name}</td>
-                    <td style={lineStyle}>{row.category ?? ''}</td>
-                    <td style={lineStyle}>{row.location ?? ''}</td>
-                    <td style={lineStyle}>
-                      <Badge variant={statusVariant(row.status)}>{statusLabel(row.status)}</Badge>
-                      {row.errors && row.errors.length > 0 && (
-                        <span className={uiStyles.muted}> · {row.errors.map((e) => e.message).join('; ')}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('import.colRow')}</TableHead>
+                <TableHead>{t('import.colName')}</TableHead>
+                <TableHead>{t('import.colCategory')}</TableHead>
+                <TableHead>{t('import.colLocation')}</TableHead>
+                <TableHead>{t('import.colStatus')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {preview.rows.map((row) => (
+                <TableRow key={row.row}>
+                  <TableCell className={uiStyles.muted}>{row.row}</TableCell>
+                  <TableCell>{row.name}</TableCell>
+                  <TableCell>{row.category ?? ''}</TableCell>
+                  <TableCell>{row.location ?? ''}</TableCell>
+                  <TableCell>
+                    <Badge variant={statusVariant(row.status)}>{statusLabel(row.status)}</Badge>
+                    {row.errors && row.errors.length > 0 && (
+                      <span className={uiStyles.muted}> · {row.errors.map((e) => e.message).join('; ')}</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
         {preview.truncated && (
           <p className={uiStyles.help}>{t('import.truncatedNote', { count: preview.total })}</p>

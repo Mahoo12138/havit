@@ -301,13 +301,15 @@ export const chevron = style({
   color: themeVars.muted,
 });
 
+// Applied as a className on the Card component; head/body carry the padding.
 export const section = style({
-  minWidth: 0,
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  overflow: 'hidden',
-  boxShadow: themeVars.shadowSoft,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+      minWidth: 0,
+    },
+  },
 });
 
 export const sectionHead = style({

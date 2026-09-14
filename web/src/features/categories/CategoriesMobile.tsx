@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { SelectField } from '../../components/ui/select-field';
+import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
 import { IconPickerField } from '../../lib/asset-icons/IconPickerField';
@@ -312,21 +313,20 @@ function CategoryTabs({
     { value: 'all', label: t('categories.all') },
   ];
   return (
-    <div className={s.mobileTabs} role="tablist" aria-label={t('categories.rootFilter')}>
-      {tabs.map((tab) => (
-        <button
-          key={tab.value}
-          type="button"
-          className={s.tab}
-          data-active={value === tab.value || undefined}
-          onClick={() => onChange(tab.value)}
-          role="tab"
-          aria-selected={value === tab.value}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
+    <Tabs
+      value={value}
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === 'string') onChange(nextValue as RootFilter);
+      }}
+    >
+      <TabsList>
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
 }
 

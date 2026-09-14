@@ -16,6 +16,7 @@ import {
   type Icon,
 } from '@tabler/icons-react';
 import { Badge } from '../../components/ui/badge';
+import { Card } from '../../components/ui/card';
 import { uiStyles } from '../../components/ui';
 import { Tag } from '../../components/ui/tag';
 import type { Item } from '../../api/client';
@@ -69,7 +70,7 @@ export function DashboardMobile() {
         </div>
 
       {/* Quick actions */}
-      <section className={s.section}>
+      <Card className={s.section} padded={false}>
         <header className={s.sectionHead}>
           <h2 className={s.sectionTitle}>{t('dashboard.quickActions')}</h2>
         </header>
@@ -86,10 +87,10 @@ export function DashboardMobile() {
             })}
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* Category overview */}
-      <section className={s.section}>
+      <Card className={s.section} padded={false}>
         <header className={s.sectionHead}>
           <h2 className={s.sectionTitle}>{t('dashboard.assetOverview')}</h2>
           <Link to="/assets" className={s.sectionLink}>
@@ -120,10 +121,10 @@ export function DashboardMobile() {
             </div>
           )}
         </div>
-      </section>
+      </Card>
 
       {/* Recent additions */}
-      <section className={s.section}>
+      <Card className={s.section} padded={false}>
         <header className={s.sectionHead}>
           <h2 className={s.sectionTitle}>{t('dashboard.recentAdditions')}</h2>
           <Link to="/assets" className={s.sectionLink}>
@@ -147,10 +148,10 @@ export function DashboardMobile() {
         ) : (
           recent.map((it) => <RecentRow key={it.id} item={it} />)
         )}
-      </section>
+      </Card>
 
       {/* Reminders */}
-      <section className={s.section}>
+      <Card className={s.section} padded={false}>
         <header className={s.sectionHead}>
           <h2 className={s.sectionTitle}>{t('dashboard.reminders')}</h2>
           <Link to="/reminders" className={s.sectionLink}>
@@ -176,10 +177,10 @@ export function DashboardMobile() {
             ))
           )}
         </div>
-      </section>
+      </Card>
 
       {/* Locations */}
-      <section className={s.section}>
+      <Card className={s.section} padded={false}>
         <header className={s.sectionHead}>
           <h2 className={s.sectionTitle}>{t('dashboard.locations')}</h2>
           <Link to="/locations" className={s.sectionLink}>
@@ -206,7 +207,7 @@ export function DashboardMobile() {
             })
           )}
         </div>
-      </section>
+      </Card>
     </div>
   );
 }

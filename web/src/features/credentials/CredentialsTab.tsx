@@ -225,7 +225,7 @@ function CredentialCard({
     rows.push({ label: t('credentials.purchasedAt'), value: formatDate(credential.purchased_at) });
 
   return (
-    <Card className="surface-card">
+    <Card>
       <div className={s.cardBody}>
         <div className={s.cardHead}>
           <span className={s.statusTile.credential}>

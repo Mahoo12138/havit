@@ -6,6 +6,14 @@ import { IconBriefcase, IconPackage, IconRun } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Checkbox } from '../../components/ui/checkbox';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { useToast } from '../../components/ui/use-toast';
 import { essentialsBulkApi, suppliesExtendedApi, type Item } from '../../api/client';
 import { getStatusType, getStatusLabel, STATUS_TONE } from './shared';
@@ -86,81 +94,79 @@ export function DepartureList({ items }: { items: Item[] }) {
         </div>
       </div>
 
-      <div className={s.tableScroll}>
-        <table className={s.table}>
-          <thead>
-            <tr>
-              <th className={`${s.tableHead} ${s.checkCol}`}>
-                <Checkbox
-                  checked={allSelected}
-                  onCheckedChange={toggleAll}
-                  aria-label={t('essentials.selectAll')}
-                />
-              </th>
-              <th className={s.tableHead}>{t('essentials.item')}</th>
-              <th className={s.tableHead}>{t('essentials.currentStatusShort')}</th>
-              <th className={s.tableHead}>{t('essentials.action')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedItems.map((item) => {
-              const statusType = getStatusType(item);
-              return (
-                <tr className={s.tableRow} key={item.id}>
-                  <td className={`${s.tableCell} ${s.checkCol}`}>
-                    <Checkbox
-                      checked={selected.has(item.id)}
-                      onCheckedChange={() => toggleOne(item.id)}
-                      aria-label={item.name}
-                    />
-                  </td>
-                  <td className={s.tableCell}>
-                    <div className={s.itemInfo}>
-                      <div className={s.itemThumb}><IconPackage size={16} /></div>
-                      <div className={s.itemMeta}>
-                        <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
-                        <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
-                      </div>
+      <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+        <TableHeader>
+          <TableRow>
+            <TableHead className={s.checkCol}>
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={toggleAll}
+                aria-label={t('essentials.selectAll')}
+              />
+            </TableHead>
+            <TableHead>{t('essentials.item')}</TableHead>
+            <TableHead>{t('essentials.currentStatusShort')}</TableHead>
+            <TableHead>{t('essentials.action')}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedItems.map((item) => {
+            const statusType = getStatusType(item);
+            return (
+              <TableRow key={item.id}>
+                <TableCell className={s.checkCol}>
+                  <Checkbox
+                    checked={selected.has(item.id)}
+                    onCheckedChange={() => toggleOne(item.id)}
+                    aria-label={item.name}
+                  />
+                </TableCell>
+                <TableCell>
+                  <div className={s.itemInfo}>
+                    <div className={s.itemThumb}><IconPackage size={16} /></div>
+                    <div className={s.itemMeta}>
+                      <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
+                      <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
                     </div>
-                  </td>
-                  <td className={s.tableCell}>
-                    <span className={s.badge[STATUS_TONE[statusType]]}>{getStatusLabel(t, item)}</span>
-                  </td>
-                  <td className={s.tableCell}>
-                    <div className={s.actionGroup}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={busy || statusType === 'carry'}
-                        onClick={() => setStatus.mutate({ id: item.id, tag: 'carry' })}
-                      >
-                        <IconRun size={12} />
-                        {t('essentials.carry')}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={busy || statusType === 'bag'}
-                        onClick={() => setStatus.mutate({ id: item.id, tag: 'travel_bag' })}
-                      >
-                        <IconBriefcase size={12} />
-                        {t('essentials.travelBag')}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-            {sortedItems.length === 0 && (
-              <tr>
-                <td className={s.tableCell} colSpan={4}>
-                  <div className={s.empty}>{t('essentials.noEdc')}</div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className={s.badge[STATUS_TONE[statusType]]}>{getStatusLabel(t, item)}</span>
+                </TableCell>
+                <TableCell>
+                  <div className={s.actionGroup}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy || statusType === 'carry'}
+                      onClick={() => setStatus.mutate({ id: item.id, tag: 'carry' })}
+                    >
+                      <IconRun size={12} />
+                      {t('essentials.carry')}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={busy || statusType === 'bag'}
+                      onClick={() => setStatus.mutate({ id: item.id, tag: 'travel_bag' })}
+                    >
+                      <IconBriefcase size={12} />
+                      {t('essentials.travelBag')}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
+          {sortedItems.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4}>
+                <div className={s.empty}>{t('essentials.noEdc')}</div>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
 
       {sortedItems.length > 0 && (
         <div className={s.checklistBar}>

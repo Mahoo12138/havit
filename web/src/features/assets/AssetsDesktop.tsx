@@ -46,6 +46,14 @@ import {
 } from '../../components/ui/select';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../components/ui/table';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
 import { CategoryTabs } from '../../features/categories/CategoryTabs';
@@ -358,63 +366,61 @@ function AssetTable({ items, locOptions, t, isOnline, updateStatus, archive, onV
   onViewDetails: (itemId: string) => void;
 }) {
   return (
-    <div className={s.tableScroll}>
-      <table className={s.table}>
-        <thead>
-          <tr>
-            <th className={s.tableHead}>{t('assets.itemName')}</th>
-            <th className={s.tableHead}>{t('assets.location')}</th>
-            <th className={s.tableHead}>{t('assets.status')}</th>
-            <th className={s.tableHead}>{t('assets.warranty')}</th>
-            <th className={s.tableHead}>{t('assets.serialNumber')}</th>
-            <th className={s.tableHead}>{t('assets.purchasePrice')}</th>
-            <th className={s.tableHead}>{t('assets.action')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item) => {
-            const ws = getWarrantyStatus(item);
-            return (
-              <tr className={s.tableRow} key={item.id}>
-                <td className={s.tableCell}>
-                  <div className={s.itemInfo}>
-                    <div className={s.itemThumb}>{item.name.slice(0, 1)}</div>
-                    <div className={s.itemMeta}>
-                      <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
-                      <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
-                    </div>
+    <Table style={{ minWidth: '56rem', whiteSpace: 'nowrap' }}>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{t('assets.itemName')}</TableHead>
+          <TableHead>{t('assets.location')}</TableHead>
+          <TableHead>{t('assets.status')}</TableHead>
+          <TableHead>{t('assets.warranty')}</TableHead>
+          <TableHead>{t('assets.serialNumber')}</TableHead>
+          <TableHead>{t('assets.purchasePrice')}</TableHead>
+          <TableHead>{t('assets.action')}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {items.map((item) => {
+          const ws = getWarrantyStatus(item);
+          return (
+            <TableRow key={item.id}>
+              <TableCell>
+                <div className={s.itemInfo}>
+                  <div className={s.itemThumb}>{item.name.slice(0, 1)}</div>
+                  <div className={s.itemMeta}>
+                    <Link to="/items/$itemId" params={{ itemId: item.id }} className={s.itemName}>{item.name}</Link>
+                    <span className={s.itemSub}>{item.category ?? t('common.uncategorized')}</span>
                   </div>
-                </td>
-                <td className={`${s.tableCell} ${s.muted}`}>{locOptions.find((option) => option.value === item.location_id)?.label ?? '—'}</td>
-                <td className={s.tableCell}><StatusBadge status={item.status} t={t} /></td>
-                <td className={s.tableCell}><WarrantyBadge ws={ws} t={t} /></td>
-                <td className={`${s.tableCell} ${s.muted} ${s.mono}`}>{item.serial_number ?? '—'}</td>
-                <td className={`${s.tableCell} ${s.price}`}>{formatPrice(item.purchase_price, item.purchase_currency)}</td>
-                <td className={s.tableCell}>
-                  <div className={s.actionGroup}>
-                    <AssetActionMenu
-                      item={item}
-                      t={t}
-                      isOnline={isOnline}
-                      updateStatus={updateStatus}
-                      archive={archive}
-                      onViewDetails={onViewDetails}
-                    />
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-          {items.length === 0 && (
-            <tr>
-              <td className={s.tableCell} colSpan={7}>
-                <div className={s.empty}>{t('assets.noItems')}</div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+                </div>
+              </TableCell>
+              <TableCell className={s.muted}>{locOptions.find((option) => option.value === item.location_id)?.label ?? '—'}</TableCell>
+              <TableCell><StatusBadge status={item.status} t={t} /></TableCell>
+              <TableCell><WarrantyBadge ws={ws} t={t} /></TableCell>
+              <TableCell className={`${s.muted} ${s.mono}`}>{item.serial_number ?? '—'}</TableCell>
+              <TableCell className={s.price}>{formatPrice(item.purchase_price, item.purchase_currency)}</TableCell>
+              <TableCell>
+                <div className={s.actionGroup}>
+                  <AssetActionMenu
+                    item={item}
+                    t={t}
+                    isOnline={isOnline}
+                    updateStatus={updateStatus}
+                    archive={archive}
+                    onViewDetails={onViewDetails}
+                  />
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+        {items.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={7}>
+              <div className={s.empty}>{t('assets.noItems')}</div>
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }
 

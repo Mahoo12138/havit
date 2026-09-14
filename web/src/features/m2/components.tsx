@@ -35,7 +35,7 @@ export function MetricStrip({
   return (
     <div className={uiStyles.dashboardStats}>
       {metrics.map((metric) => (
-        <Card className="surface-card stat-card" key={metric.label}>
+        <Card className="stat-card" key={metric.label}>
           <StackTight className={uiStyles.cardContent}>
             <span className={uiStyles.muted}>{metric.label}</span>
             <strong className={uiStyles.statValue}>{metric.value}</strong>
@@ -57,7 +57,7 @@ export function DataCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="surface-card">
+    <Card>
       <Stack className={uiStyles.cardContent}>
         <RowBetween>
           <h3 className={uiStyles.heading}>{title}</h3>

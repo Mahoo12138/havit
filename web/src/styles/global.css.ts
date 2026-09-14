@@ -142,24 +142,8 @@ globalStyle('.page-kicker', {
   textWrap: 'pretty',
 });
 
-globalStyle('.surface-card', {
-  border: `1px solid ${themeVars.line}`,
-  borderRadius: themeVars.radius3,
-  background: themeVars.panel,
-  boxShadow: themeVars.shadowSoft,
-  transition: 'border-color 200ms ease, box-shadow 200ms ease',
-});
-
-globalStyle('.surface-card:hover', {
-  borderColor: `color-mix(in srgb, ${themeVars.accent} 25%, ${themeVars.line})`,
-});
-
 globalStyle('.stat-card', {
   position: 'relative',
-});
-
-globalStyle('.table-card', {
-  overflow: 'hidden',
 });
 
 globalStyle('.empty-state', {

@@ -22,6 +22,7 @@ import {
 } from '@tabler/icons-react';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { SelectField } from '../../components/ui/select-field';
 import { Spinner } from '../../components/ui/spinner';
 import { StatusBadge } from '../../components/ui/status-badge';
@@ -123,12 +124,12 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
         <ActionRow icon={<IconPackage size={16} />} label={t('itemDetail.relatedAssets')} value="1" />
       </section>
 
-      <section className={s.section}>
+      <Card className={s.section} padded={false}>
         <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconMapPin size={15} />{t('itemDetail.statusAndLocation')}</h2></div>
         <div className={s.sectionBody}>
           <SelectField label={t('items.switchStatus')} options={statusOptions} value={data.status} disabled={!isOnline || updateStatus.isPending} onChange={(event) => updateStatus.mutate(event.currentTarget.value)} />
         </div>
-      </section>
+      </Card>
 
       <WarrantySection item={data} />
       {isConsumable && <ConsumableSection itemId={itemId} item={data} />}
@@ -136,13 +137,13 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
       <LoansSection itemId={itemId} />
       <EventsSection itemId={itemId} />
 
-      <section className={s.section}>
+      <Card className={s.section} padded={false}>
         <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconCalendar size={15} />{t('itemDetail.timestamps')}</h2></div>
         <div className={s.sectionBody}>
           <SpecRow label={t('itemDetail.createdAt')}>{formatDateTime(data.created_at)}</SpecRow>
           <SpecRow label={t('itemDetail.updatedAt')}>{formatDateTime(data.updated_at)}</SpecRow>
         </div>
-      </section>
+      </Card>
 
       <div className={s.bottomBar}>
         <Button variant="quiet" leftSection={<IconMapPin size={15} />}>{t('itemDetail.moveLocation')}</Button>
@@ -187,7 +188,7 @@ function WarrantySection({ item }: { item: Item }) {
   const { t } = useTranslation();
   const warranty = getWarrantyView(item, t);
   return (
-    <section className={s.section}>
+    <Card className={s.section} padded={false}>
       <div className={s.sectionHead}>
         <h2 className={s.sectionTitle}><IconShieldCheck size={15} />{t('itemDetail.warranty')}</h2>
         {warranty.tone === 'danger' && <span className={s.warningText}><IconAlertTriangle size={12} />{t('itemDetail.warrantyExpired')}</span>}
@@ -197,7 +198,7 @@ function WarrantySection({ item }: { item: Item }) {
         <SpecRow label={t('itemDetail.daysLeft')}>{warranty.summary}</SpecRow>
         <SpecRow label={t('itemDetail.warrantyContact')}>{item.warranty_contact ?? t('common.notSet')}</SpecRow>
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -206,14 +207,14 @@ function ConsumableSection({ itemId, item }: { itemId: string; item: Item }) {
   const qc = useQueryClient();
   const useOne = useMutation({ mutationFn: () => suppliesExtendedApi.useOne(itemId), onSuccess: (next) => qc.setQueryData(['item', itemId], next) });
   return (
-    <section className={s.section}>
+    <Card className={s.section} padded={false}>
       <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconShoppingCart size={15} />{t('itemDetail.consumable')}</h2></div>
       <div className={s.sectionBody}>
         <SpecRow label={t('itemDetail.currentStock')}>{item.current_stock ?? 0} {t('common.pieces')}</SpecRow>
         <SpecRow label={t('itemDetail.minStock')}>{item.min_stock_threshold ?? '—'}</SpecRow>
         {item.type === 'tracked_spares' && <Button leftSection={<IconShoppingCart size={15} />} onClick={() => useOne.mutate()} disabled={useOne.isPending || (item.current_stock ?? 0) <= 0}>{t('itemDetail.useOne')}</Button>}
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -223,7 +224,7 @@ function VirtualSection({ itemId }: { itemId: string }) {
   const creds = useQuery({ queryKey: ['item', itemId, 'credentials'], queryFn: () => virtualAssetsApi.listCredentials(itemId) });
   const credentials = creds.data?.credentials ?? [];
   return (
-    <section className={s.section}>
+    <Card className={s.section} padded={false}>
       <div className={s.sectionHead}>
         <h2 className={s.sectionTitle}><IconKey size={15} />{t('itemDetail.platformCredentials')}</h2>
         <Button variant="ghost" size="sm" onClick={() => setFormOpen(true)}>{t('itemDetail.addCredential')}</Button>
@@ -238,7 +239,7 @@ function VirtualSection({ itemId }: { itemId: string }) {
         ))}
       </div>
       {formOpen && <CredentialFormDialog open itemId={itemId} onClose={() => setFormOpen(false)} />}
-    </section>
+    </Card>
   );
 }
 
@@ -247,7 +248,7 @@ function LoansSection({ itemId }: { itemId: string }) {
   const { data, isLoading } = useQuery({ queryKey: ['item', itemId, 'loans'], queryFn: () => loansApi.listForItem(itemId) });
   const loans = data?.loans ?? [];
   return (
-    <section className={s.section}>
+    <Card className={s.section} padded={false}>
       <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconClipboardList size={15} />{t('itemDetail.loans')}</h2>{loans.length > 0 && <Badge>{loans.length}</Badge>}</div>
       <div className={s.sectionBody}>
         {isLoading ? <Spinner /> : loans.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noLoans')}</div> : loans.map((loan: any) => (
@@ -257,7 +258,7 @@ function LoansSection({ itemId }: { itemId: string }) {
           </div>
         ))}
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -266,7 +267,7 @@ function EventsSection({ itemId }: { itemId: string }) {
   const { data, isLoading } = useQuery({ queryKey: ['item', itemId, 'events'], queryFn: () => suppliesExtendedApi.listEvents(itemId) });
   const events = data?.events ?? [];
   return (
-    <section className={s.section}>
+    <Card className={s.section} padded={false}>
       <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconHistory size={15} />{t('itemDetail.events')}</h2></div>
       <div className={s.sectionBody}>
         {isLoading ? <Spinner /> : events.length === 0 ? <div className={s.sectionEmpty}>{t('itemDetail.noEvents')}</div> : events.slice(0, 4).map((event: any) => (
@@ -276,7 +277,7 @@ function EventsSection({ itemId }: { itemId: string }) {
           </div>
         ))}
       </div>
-    </section>
+    </Card>
   );
 }
 

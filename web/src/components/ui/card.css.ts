@@ -11,12 +11,17 @@ export const root = style({
   gap: 'var(--card-spacing)',
   overflow: 'hidden',
   borderRadius: themeVars.radius3,
+  border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   color: themeVars.text,
-  boxShadow: `0 0 0 1px ${themeVars.line}`,
+  boxShadow: themeVars.shadowSoft,
   padding: 'var(--card-spacing) 0',
   fontSize: '0.875rem',
+  transition: 'border-color 200ms ease, box-shadow 200ms ease',
   selectors: {
+    '&:hover': {
+      borderColor: `color-mix(in srgb, ${themeVars.accent} 25%, ${themeVars.line})`,
+    },
     '&:has([data-slot="card-footer"])': {
       paddingBottom: 0,
     },

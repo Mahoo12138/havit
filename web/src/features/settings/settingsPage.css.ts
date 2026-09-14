@@ -363,12 +363,14 @@ export const sectionTitle = style({
   fontWeight: 720,
 });
 
+// Applied as a className on the Card component; content carries the padding.
 export const sectionCard = style({
-  overflow: 'hidden',
-  borderRadius: themeVars.radius3,
-  border: `1px solid ${themeVars.lineSoft}`,
-  background: themeVars.panel,
-  boxShadow: themeVars.shadowSoft,
+  selectors: {
+    '&[data-slot="card"]': {
+      padding: 0,
+      gap: 0,
+    },
+  },
 });
 
 export const row = style({
@@ -524,32 +526,6 @@ globalStyle(`${actionRow} > *`, {
       flex: '1 1 9rem',
     },
   },
-});
-
-export const tableWrap = style({
-  overflowX: 'auto',
-});
-
-export const table = style({
-  width: '100%',
-  minWidth: '42rem',
-  borderCollapse: 'collapse',
-});
-
-export const th = style({
-  padding: `${themeVars.space3} ${themeVars.space4}`,
-  color: themeVars.muted,
-  background: themeVars.bgSoft,
-  fontSize: '0.72rem',
-  fontWeight: 650,
-  textAlign: 'left',
-});
-
-export const td = style({
-  padding: `${themeVars.space3} ${themeVars.space4}`,
-  borderTop: `1px solid ${themeVars.lineSoft}`,
-  color: themeVars.text,
-  fontSize: '0.84rem',
 });
 
 export const list = style({

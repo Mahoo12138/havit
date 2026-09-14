@@ -31,7 +31,7 @@ export function ImportMapping({ headers, initial, busy, onConfirm, onBack }: Imp
   const mappedCount = Object.values(mapping).filter((v) => v !== IGNORE).length;
 
   return (
-    <Card className="surface-card">
+    <Card>
       <Stack className={uiStyles.cardContent}>
         <h3 className={uiStyles.heading}>{t('import.mappingTitle')}</h3>
         <p className={uiStyles.muted}>{t('import.mappingDescription')}</p>
