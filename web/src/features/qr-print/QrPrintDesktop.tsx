@@ -7,7 +7,15 @@ import { Button } from '../../components/ui/button';
 import { Checkbox } from '../../components/ui/checkbox';
 import { Input } from '../../components/ui/input';
 import { Spinner } from '../../components/ui/spinner';
-import { Tabs, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select';
 import { useToast } from '../../components/ui/use-toast';
 import { DataCard, FeatureHeader, MetricStrip } from '../m2/components';
 import { QrPrintLabel } from '../qr/QrPrintLabel';
@@ -50,6 +58,15 @@ export function QrPrintDesktop() {
     const withCode = locations.filter((l) => l.qr_code).length;
     return { withCode, withoutCode: locations.length - withCode };
   }, [locations]);
+
+  const filterOptions = useMemo(
+    () => [
+      { value: 'all', label: `${t('qrPrint.filter.all')} · ${locations.length}` },
+      { value: 'withCode', label: `${t('qrPrint.filter.withCode')} · ${counts.withCode}` },
+      { value: 'withoutCode', label: `${t('qrPrint.filter.withoutCode')} · ${counts.withoutCode}` },
+    ],
+    [t, locations.length, counts.withCode, counts.withoutCode],
+  );
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -154,6 +171,12 @@ export function QrPrintDesktop() {
               aria-label={t('qrPrint.searchPlaceholder')}
               className={s.searchInput}
             />
+            <FilterSelect
+              label={t('qrPrint.filterLabel')}
+              options={filterOptions}
+              value={filter}
+              onChange={(nextValue) => setFilter(nextValue as FilterMode)}
+            />
             <Button
               variant="quiet"
               onClick={selectAllVisible}
@@ -167,29 +190,6 @@ export function QrPrintDesktop() {
           </div>
 
           <div className={s.listBlock}>
-            <div className={s.filterTabsBar}>
-              <Tabs
-                value={filter}
-                onValueChange={(nextValue) => {
-                  if (typeof nextValue === 'string') setFilter(nextValue as FilterMode);
-                }}
-              >
-                <TabsList variant="line">
-                  <TabsTrigger value="all">
-                    {t('qrPrint.filter.all')}
-                    <span className={s.tabCount}>{locations.length}</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="withCode">
-                    {t('qrPrint.filter.withCode')}
-                    <span className={s.tabCount}>{counts.withCode}</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="withoutCode">
-                    {t('qrPrint.filter.withoutCode')}
-                    <span className={s.tabCount}>{counts.withoutCode}</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
 
             {isLoading ? (
               <Spinner />
@@ -279,5 +279,36 @@ export function QrPrintDesktop() {
         )
       )}
     </div>
+  );
+}
+
+function FilterSelect({ label, options, value, onChange }: {
+  label: string;
+  options: Array<{ value: string; label: string }>;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Select
+      value={value}
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === 'string') onChange(nextValue);
+      }}
+      items={options}
+    >
+      <SelectTrigger className={s.filterSelectTrigger} size="sm" aria-label={label}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent alignItemWithTrigger={false}>
+        <SelectGroup>
+          <SelectLabel>{label}</SelectLabel>
+          {options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   );
 }

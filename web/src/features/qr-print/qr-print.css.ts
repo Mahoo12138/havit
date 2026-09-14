@@ -31,22 +31,13 @@ export const searchInput = style({
   width: 'auto',
 });
 
-// Left-aligned line-variant filter strip sitting directly on top of the row
-// list; the active tab's ink underline overlays this bar's bottom hairline.
-export const filterTabsBar = style({
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
+export const filterSelectTrigger = style({
+  width: '9.5rem',
 });
 
 export const listBlock = style({
   display: 'flex',
   flexDirection: 'column',
-});
-
-export const tabCount = style({
-  fontSize: '0.72rem',
-  fontWeight: 500,
-  fontVariantNumeric: 'tabular-nums',
-  opacity: 0.6,
 });
 
 export const locationList = style({

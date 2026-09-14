@@ -985,6 +985,7 @@
     "previewTitle": "Label sheet preview",
     "previewMeta": "{{count}} labels · 3 per row · 50×30 mm",
     "previewEmpty": "Select locations that already have codes, and the printable label sheet will appear here.",
+    "filterLabel": "Filter",
     "filter": {
       "all": "All",
       "withCode": "Has code",

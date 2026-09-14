@@ -981,6 +981,7 @@
     "previewTitle": "标签纸预览",
     "previewMeta": "{{count}} 张 · 每行 3 张 · 50×30 mm",
     "previewEmpty": "勾选已有编号的位置后，可打印的标签纸会出现在这里。",
+    "filterLabel": "筛选",
     "filter": {
       "all": "全部",
       "withCode": "已有编号",
