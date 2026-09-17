@@ -1385,8 +1385,8 @@
     "badge": "DEMO"
   },
   "reminder": {
-    "warranty_30d": "Warranty, 30 days left",
-    "warranty_7d": "Warranty, 7 days left",
+    "warrantyDays": "Warranty, {{count}} days left",
+    "loanDueDays": "Loan due in {{count}} days",
     "warranty_expiry": "Warranty Expiring",
     "stock_low": "Low Stock",
     "loan_overdue": "Loan Overdue",

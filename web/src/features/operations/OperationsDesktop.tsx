@@ -10,6 +10,7 @@ import { backupApi, exportApi, remindersApi, locationsApi } from '../../api/clie
 import { LocationQrCode } from '../qr/QrCode';
 import { flattenLocationTree } from '../qr/locationQr';
 import { formatDateTime } from '../essentials/shared';
+import { reminderLabel } from '../reminders/reminderUi';
 import * as s from './operations.css';
 
 const REMINDER_PREVIEW_LIMIT = 10;
@@ -104,7 +105,7 @@ export function OperationsDesktop() {
               {reminderPreview.map((r) => (
                 <div className={s.reminderRow} key={r.id}>
                   <div className={s.reminderMeta}>
-                    <h4 className={s.reminderType}>{t(`reminder.${r.type}`, r.type)}</h4>
+                    <h4 className={s.reminderType}>{reminderLabel(t, r.type)}</h4>
                     <span className={s.reminderItem}>{r.item_name ?? r.item_id}</span>
                   </div>
                   <div className={s.reminderSide}>

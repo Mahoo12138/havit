@@ -28,6 +28,7 @@ import {
   CATEGORY_PALETTE,
   STATUS_VARIANT,
 } from './useDashboardData';
+import { reminderLabel } from '../reminders/reminderUi';
 import * as s from './dashboardMobile.css';
 
 const quickActions: Array<{
@@ -170,7 +171,7 @@ export function DashboardMobile() {
             (reminders.data?.reminders ?? []).slice(0, 5).map((r: any) => (
               <div key={r.id} className={s.reminderRow}>
                 <span>
-                  {t(`reminder.${r.type}`, r.type)} — {r.item_name ?? itemNames.get(r.item_id) ?? r.item_id}
+                  {reminderLabel(t, r.type)} — {r.item_name ?? itemNames.get(r.item_id) ?? r.item_id}
                 </span>
                 <Badge>{r.is_dismissed ? t('operations.dismissed') : r.sent_at ? t('operations.sent') : t('operations.pending')}</Badge>
               </div>

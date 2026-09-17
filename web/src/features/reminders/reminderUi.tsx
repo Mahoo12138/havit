@@ -10,8 +10,29 @@ import * as s from './reminderUi.css';
 
 type TFn = ReturnType<typeof useTranslation>['t'];
 
+// The backend builds warranty reminder types from the configured lead times
+// (`warranty_<N>d`, see item.go replaceWarrantyReminders), and the shipped
+// defaults are 30/7. Anything else used to fall through to the raw key, so the
+// patterns below resolve the family instead of the two literal variants.
+const WARRANTY_DAYS = /^warranty_(\d+)d$/;
+const LOAN_DUE_DAYS = /^loan_due_(\d+)d$/;
+
+/**
+ * Resolves a reminder type to its localized label, falling back to a generic
+ * label rather than leaking the raw type key when the type is unknown.
+ */
 export function reminderLabel(t: TFn, type: string) {
-  return t(`reminder.${type}`, type);
+  const warranty = WARRANTY_DAYS.exec(type);
+  if (warranty) {
+    return t('reminder.warrantyDays', { count: Number(warranty[1]) });
+  }
+
+  const loanDue = LOAN_DUE_DAYS.exec(type);
+  if (loanDue) {
+    return t('reminder.loanDueDays', { count: Number(loanDue[1]) });
+  }
+
+  return t(`reminder.${type}`, { defaultValue: t('reminder.default') });
 }
 
 export function reminderStatus(r: Reminder): 'dismissed' | 'sent' | 'pending' {

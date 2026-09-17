@@ -1381,8 +1381,8 @@
     "badge": "演示"
   },
   "reminder": {
-    "warranty_30d": "保修到期前 30 天",
-    "warranty_7d": "保修到期前 7 天",
+    "warrantyDays": "保修到期前 {{count}} 天",
+    "loanDueDays": "借出归还到期（{{count}} 天）",
     "warranty_expiry": "保修即将到期",
     "stock_low": "库存不足",
     "loan_overdue": "借出逾期",
