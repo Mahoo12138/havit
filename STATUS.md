@@ -3,7 +3,7 @@
 > 本文档由开发过程持续维护，记录当前进行中的工作、最近完成的内容与下一步计划。
 > 完整的里程碑规划与功能分区进度见 `PROJECT.md`，产品需求见 `docs/havit-product-design.md`。
 
-更新时间：2026-09-12
+更新时间：2026-09-17
 
 ## 当前阶段
 
@@ -36,6 +36,65 @@
 | E2E | `pnpm test:e2e` | 61 条全部通过（新增凭证保修 3 条） |
 
 ## 最近完成
+
+- 2026-09-17：**异常资产管理页移动端响应式适配**。
+  - 根因：`web/src/routes/abnormal.tsx` 对**所有设备**都渲染 `AbnormalDesktop`，而
+    `abnormalTwoCol`（`minmax(0,1fr) 320px`）只在 `max-width: 64em` 折成一列——8 列主表格
+    本身从不重排、320px 的侧栏快览列表也照常渲染，两者在手机上必然溢出。
+  - 新增 `web/src/features/abnormal/AbnormalMobile.tsx` + `abnormalMobile.css.ts`，与
+    `assetsMobile` 同一套「纸感台账」语汇；`abnormal.tsx` 改为按 `useDevice()` 分流
+    （与 `assets.tsx` / `supplies.tsx` 一致）。**桌面实现未改动。**
+  - 8 列主表格 → 卡片列表：删掉 `<Table>`，每张卡 = 缩略图 + 名称/类型·SN，加一个 2×2 事实
+    网格（位置 / 责任人 / 异常时间 / 更新于），页脚放衬线体预损金额 + 进度徽章 + 查看按钮；
+    搜索框改为对当前页做客户端过滤（桌面走服务端筛选）。
+  - 320px 侧栏快览列表 → 一行类型计数 chip（`quickCounts`）：四种类型各一枚「类型 + 数量」
+    胶囊，颜色点与图表配色一致，既保住「一眼看全类型分布」的信息，又不再占一整块竖排空间。
+  - 其余移动化：KPI 五磁贴 2 列网格（「占总资产」跨两列，避免 2+2+1 的缺口）；进度徽章改成
+    可点按钮，弹窗内用 2 列状态网格直接改状态（取代桌面表格单元格里的内联 Select）；弹窗复用
+    已响应式的 `Dialog`，底部按钮做成等宽；接 `havit:mobile-primary-action` 让底部导航「+」
+    直接打开「新增异常」；写操作按 `useNetworkStatus()` 门控。
+  - 验证：`tsc --noEmit` 0 错误、`vite build` 通过；Playwright 在 390×844 与 320×640 两个
+    视口核对（`table` 数为 0、卡片数为 5），逐屏确认卡片流 / 筛选面板 / 进度弹窗 / 底部洞察卡
+    （趋势图、环形图、估值点线行）排版正常。一次性 harness 用完已删。
+
+- 2026-09-17：**页眉通知浮层排版修复（铃铛 Popover「一沓糊涂」）**。
+  - 根因：`76ba8238`（card/tab/table 样式统一）把 Card 表面烘焙进组件后，页面卡片的行式列表
+    改为 flush 布局，但**浮层内的 `ReminderRow` 没有跟上**——行没有左右内边距、操作按钮仍是
+    默认尺寸（2.25rem 高 / `0 1rem` 内边距），又撞上 `PopoverContent` 写死的 `width: 18rem`
+    与 `.panel` 的 `22rem` 打架，于是按钮占掉大半行宽、左右边界对不齐。
+  - `reminderUi.css.ts`：新增 `rowCompact`（浮层专用紧凑行高 2.5rem）、`rowIcon`（1.25rem 定宽
+    图标槽，hover 转 `accentInk`）；`rowActions` 固定 `width: 3.5rem` + 右对齐，使「两个图标按钮」
+    的待处理行与「一个 Badge」的已处理行共享同一条右边界；`row` 加 `minHeight` / `boxSizing`
+    消除有无 meta 行之间的高度抖动。浮层区新增 `panelHead/panelLink/panelBody/panelFoot/
+    panelCenter/panelEmpty`，`panel` 用 `margin: -space3` 抵消浮层自身内边距，让 header、列表、
+    页脚共用同一条 `space4` 左右规线；`pageCard` 行内边距由 `space3` 收到 `space2`。
+  - `reminderUi.tsx`：`ReminderRow` 新增 `compact` 变体；操作按钮改 `size="icon-xs"`（1.75rem）。
+  - `NotificationBell.tsx`：加载态套 `panelCenter` 居中（原先 `Spinner` 在 flex 列里被拉成整行、
+    视觉飘在左上角）；「查看全部」换成 `panelLink` 并在无提醒时隐藏；「还有 N 条」换成带分隔线的
+    `panelFoot` 页脚（原先复用 `empty` 样式，与头部链接样式不一致）。
+  - `popover.css.ts`：`content` 由写死的 `width: 18rem` 改为 `width: fit-content` +
+    `maxWidth: calc(100vw - 1.5rem)`，宽度交给消费者决定（`reminderUi.panel` 现为 23rem）。
+    其余 Popover 消费者（actionMenu 13rem、overflowPopup、date-picker、location picker）本就自带
+    显式宽度，不受影响；`overflowPopup` 的 `&&` 覆写补了 `minWidth: 0` 以保住原来的收缩行为。
+  - 验证：`tsc -b` 与 `vite build` 通过；用 Playwright 起的 demo 后端 + 注入 8 条提醒，
+    对亮/暗两套配色、空态与列表态分别截图核对（浮层宽 368px，10 个操作按钮布局对齐）。
+
+- 2026-09-17：**提醒文案动态 key 修复（`warranty_<N>d` 泄漏成裸 key）**。
+  - 根因：后端 `item.go` 的 `replaceWarrantyReminders` 用
+    `fmt.Sprintf("warranty_%dd", offsetDays)` 按**设置的提醒天数**产出类型，而 i18n 只写了
+    `warranty_30d` / `warranty_7d` 两个字面 key。天数一旦不是默认的 30/7，翻译就落空，
+    前端 `t(key, type)` 的 fallback 把 `warranty_45d` 这种裸 key 直接显示给用户。
+  - `reminderUi.tsx`：`reminderLabel` 改为先按模式匹配 `warranty_<N>d` / `loan_due_<N>d`，
+    命中则用格式化 key `reminder.warrantyDays` / `reminder.loanDueDays`（带 `{{count}}`）；
+    未命中已知类型的，fallback 从「裸 key」改为通用文案 `reminder.default`。
+  - i18n：`reminder` 命名空间新增 `warrantyDays` / `loanDueDays`，删掉已被模式取代的
+    `warranty_30d` / `warranty_7d`（现有 30/7 的显示文案不变）。
+  - 顺带收口：`OperationsDesktop.tsx` 与 `DashboardMobile.tsx` 各自内联的
+    `t(\`reminder.${r.type}\`, r.type)` 改为复用导出的 `reminderLabel`，三处终于同源。
+  - 验证：`tsc -b` 与 `vite build` 通过；注入 `warranty_45d` / `warranty_90d` / 未知类型
+    `some_future_type`，中英双语核对——`保修到期前 45 天` / `Warranty, 90 days left` 正常解析，
+    未知类型显示通用 `提醒` / `Reminder`，不再泄漏裸 key，30/7 的既有文案未变。
+    相关 E2E 17 条（supplies / loans / mobile / settings）全通过。
 
 - 2026-09-13：**登录页动效设计（把「纸感台账 · 印章红」做成可感知的动效）**。
   - 新增 `web/src/routes/-login.css.ts`（`-` 前缀遵循 TanStack Router 的 `routeFileIgnorePrefix`，

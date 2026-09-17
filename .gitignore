@@ -18,3 +18,7 @@ web/playwright/.cache/
 .playwright-mcp
 .go-build-cache
 .tanstack
+
+# 本地智能体工作目录（会话计划、截图、记忆），不入库
+.zcode/
+.workbuddy/
