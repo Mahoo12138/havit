@@ -37,19 +37,27 @@ export function NotificationBell({ iconClassName }: { iconClassName?: string }) 
         <div className={s.panel}>
           <div className={s.panelHead}>
             <span className={s.panelTitle}>{t('reminders.bellTitle')}</span>
-            <Link to="/reminders">{t('reminders.viewAll')}</Link>
+            {count > 0 && (
+              <Link to="/reminders" className={s.panelLink}>
+                {t('reminders.viewAll')}
+              </Link>
+            )}
           </div>
           <div className={s.panelBody}>
             {reminders.isPending ? (
-              <Spinner />
+              <div className={s.panelCenter}>
+                <Spinner />
+              </div>
             ) : count === 0 ? (
-              <div className={s.empty}>{t('dashboard.noReminders')}</div>
+              <div className={s.panelEmpty}>{t('dashboard.noReminders')}</div>
             ) : (
-              due.slice(0, PREVIEW_LIMIT).map((r) => <ReminderRow key={r.id} reminder={r} />)
+              due.slice(0, PREVIEW_LIMIT).map((r) => (
+                <ReminderRow key={r.id} reminder={r} compact />
+              ))
             )}
           </div>
           {count > PREVIEW_LIMIT && (
-            <Link to="/reminders" className={s.empty}>
+            <Link to="/reminders" className={s.panelFoot}>
               {t('reminders.moreCount', { count: count - PREVIEW_LIMIT })}
             </Link>
           )}

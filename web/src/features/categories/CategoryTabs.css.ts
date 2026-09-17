@@ -79,8 +79,11 @@ export const overflowPopup = style({
   gap: 0,
   padding: themeVars.space1,
   selectors: {
+    // `content` is fit-content by default; `&&` outranks it so the dropdown
+    // stays a tidy column instead of stretching to its longest label.
     '&&': {
       width: '8.5rem',
+      minWidth: 0,
       maxWidth: 'calc(100vw - 2rem)',
     },
   },

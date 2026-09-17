@@ -53,13 +53,18 @@ export function useReminderActions() {
  * A single reminder row with item name, trigger time, status badge and
  * mark-done / dismiss actions. Pending reminders get both actions; processed
  * ones are rendered read-only and dimmed.
+ *
+ * `compact` tightens the row for the header popover, where space is at a
+ * premium; the page and dashboard lists keep the roomier default.
  */
 export function ReminderRow({
   reminder,
   showItem = true,
+  compact = false,
 }: {
   reminder: Reminder;
   showItem?: boolean;
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
   const { markSent, dismiss } = useReminderActions();
@@ -68,8 +73,14 @@ export function ReminderRow({
   const itemName = reminder.item_name ?? reminder.item_id;
 
   return (
-    <div className={[s.row, pending ? undefined : s.done].filter(Boolean).join(' ')}>
-      <IconBellRinging size={15} />
+    <div
+      className={[s.row, compact ? s.rowCompact : undefined, pending ? undefined : s.done]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <span className={s.rowIcon} aria-hidden="true">
+        <IconBellRinging size={15} />
+      </span>
       <div className={s.rowMain}>
         <span className={s.rowTitle}>{reminderLabel(t, reminder.type)}</span>
         <span className={s.rowMeta}>
@@ -81,21 +92,23 @@ export function ReminderRow({
         <div className={s.rowActions}>
           <Button
             variant="quiet"
+            size="icon-xs"
             aria-label={t('reminders.markDone')}
             title={t('reminders.markDone')}
             disabled={markSent.isPending || dismiss.isPending}
             onClick={() => markSent.mutate(reminder.id)}
           >
-            <IconCheck size={15} />
+            <IconCheck size={14} />
           </Button>
           <Button
             variant="quiet"
+            size="icon-xs"
             aria-label={t('reminders.dismissAction')}
             title={t('reminders.dismissAction')}
             disabled={markSent.isPending || dismiss.isPending}
             onClick={() => dismiss.mutate(reminder.id)}
           >
-            <IconX size={15} />
+            <IconX size={14} />
           </Button>
         </div>
       ) : (

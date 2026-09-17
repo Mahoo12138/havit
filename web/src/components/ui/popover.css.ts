@@ -10,7 +10,10 @@ export const positioner = style({
 export const content = style({
   zIndex: 80,
   display: 'flex',
-  width: '18rem',
+  // Consumers size the surface via `.popover-panel` (see reminderUi) — the box
+  // grows to its content instead of capping it at a fixed width.
+  maxWidth: 'calc(100vw - 1.5rem)',
+  width: 'fit-content',
   transformOrigin: 'var(--transform-origin)',
   flexDirection: 'column',
   gap: themeVars.space3,

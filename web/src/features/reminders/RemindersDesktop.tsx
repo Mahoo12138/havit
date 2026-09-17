@@ -48,7 +48,9 @@ export function RemindersDesktop() {
 
       <Card className={s.pageCard} padded={false}>
         {reminders.isPending ? (
-          <Spinner />
+          <div className={s.pageCenter}>
+            <Spinner />
+          </div>
         ) : visible.length === 0 ? (
           <div className={s.empty}>{t(filter === 'pending' ? 'dashboard.noReminders' : 'operations.noReminders')}</div>
         ) : (

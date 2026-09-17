@@ -5,10 +5,29 @@ export const row = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space2,
+  minHeight: '2.75rem',
+  boxSizing: 'border-box',
   padding: `${themeVars.space2} 0`,
   borderTop: `1px solid ${themeVars.lineSoft}`,
   selectors: {
     '&:first-child': { borderTop: 'none' },
+  },
+});
+
+// Compact variant used by the header bell popover.
+export const rowCompact = style({
+  minHeight: '2.5rem',
+  padding: `${themeVars.space2} 0`,
+});
+
+export const rowIcon = style({
+  flex: '0 0 auto',
+  display: 'inline-grid',
+  placeItems: 'center',
+  width: '1.25rem',
+  color: themeVars.muted,
+  selectors: {
+    [`${row}:hover &`]: { color: themeVars.accentInk },
   },
 });
 
@@ -37,11 +56,15 @@ export const rowMeta = style({
   whiteSpace: 'nowrap',
 });
 
+// Fixed width keeps every row's trailing slot aligned, so pending rows (two
+// icon buttons) and processed rows (a badge) share one right edge.
 export const rowActions = style({
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'flex-end',
   gap: themeVars.space1,
-  flexShrink: 0,
+  flex: '0 0 auto',
+  width: '3.5rem',
 });
 
 export const done = style({
@@ -70,30 +93,75 @@ export const bellDot = style({
   pointerEvents: 'none',
 });
 
+// The popover surface is deliberately tight: rows run edge-to-edge inside the
+// popover's own padding, so head and body share one left/right rule.
 export const panel = style({
-  width: 'min(22rem, calc(100vw - 2rem))',
   display: 'flex',
   flexDirection: 'column',
   gap: themeVars.space2,
+  margin: `calc(-1 * ${themeVars.space3})`,
+  width: 'min(23rem, calc(100vw - 2.5rem))',
 });
 
 export const panelHead = style({
   display: 'flex',
-  alignItems: 'center',
+  alignItems: 'baseline',
   justifyContent: 'space-between',
+  gap: themeVars.space3,
+  padding: `${themeVars.space3} ${themeVars.space4} 0`,
 });
 
 export const panelTitle = style({
-  fontSize: '0.85rem',
+  fontSize: '0.8rem',
   fontWeight: 700,
-  color: themeVars.text,
+  color: themeVars.ink,
+  letterSpacing: '-0.01em',
+});
+
+export const panelLink = style({
+  flex: '0 0 auto',
+  fontSize: '0.78rem',
+  fontWeight: 500,
+  color: themeVars.muted,
+  selectors: {
+    '&:hover': {
+      color: themeVars.accent,
+    },
+  },
 });
 
 export const panelBody = style({
   display: 'flex',
   flexDirection: 'column',
-  maxHeight: '22rem',
+  maxHeight: '19rem',
   overflowY: 'auto',
+  padding: `0 ${themeVars.space4}`,
+});
+
+export const panelFoot = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  margin: `0 ${themeVars.space4}`,
+  padding: `${themeVars.space2} 0`,
+  borderTop: `1px solid ${themeVars.lineSoft}`,
+  fontSize: '0.78rem',
+  fontWeight: 500,
+  color: themeVars.accent,
+});
+
+export const panelCenter = style({
+  display: 'grid',
+  placeItems: 'center',
+  minHeight: '5rem',
+});
+
+export const panelEmpty = style({
+  padding: `${themeVars.space5} ${themeVars.space4}`,
+  textAlign: 'center',
+  color: themeVars.muted,
+  fontSize: '0.85rem',
+  lineHeight: 1.6,
 });
 
 export const empty = style({
@@ -108,7 +176,13 @@ export const empty = style({
 export const pageCard = style({
   selectors: {
     '&[data-slot="card"]': {
-      padding: `${themeVars.space3} ${themeVars.space4}`,
+      padding: `${themeVars.space2} ${themeVars.space4}`,
     },
   },
+});
+
+export const pageCenter = style({
+  display: 'grid',
+  placeItems: 'center',
+  minHeight: '6rem',
 });
