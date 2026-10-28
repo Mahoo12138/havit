@@ -111,16 +111,12 @@ export function useItemDetailData(itemId: string) {
     replaceTags.mutate(currentTagIDs.filter((id) => id !== tagID));
   }
 
+  // Exit/borrowed statuses have dedicated flows (exit, loan, abnormal
+  // recovery); the generic switcher only exposes safe in-place changes.
   const statusOptions = [
     { value: 'in_stock', label: t('status.in_stock') },
-    { value: 'borrowed', label: t('status.borrowed') },
     { value: 'idle', label: t('status.idle') },
     { value: 'for_sale', label: t('status.for_sale') },
-    { value: 'sold', label: t('status.sold') },
-    { value: 'given_away', label: t('status.given_away') },
-    { value: 'damaged', label: t('status.damaged') },
-    { value: 'lost', label: t('status.lost') },
-    { value: 'stolen', label: t('status.stolen') },
   ];
 
   return {

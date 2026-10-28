@@ -183,7 +183,7 @@ func TestItemCreateRequiresLocation(t *testing.T) {
 	}
 }
 
-func TestItemUpdateCanChangeStatus(t *testing.T) {
+func TestItemUpdateRejectsExitStatusWithoutExitFlow(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)
 	svc := NewItemService(database)
@@ -199,20 +199,70 @@ func TestItemUpdateCanChangeStatus(t *testing.T) {
 	}
 
 	lost := model.StatusLost
-	updated, err := svc.Update(ctx, item.ID, ItemUpdateInput{Status: &lost})
-	if err != nil {
-		t.Fatalf("update item status: %v", err)
-	}
-	if updated.Status != model.StatusLost {
-		t.Fatalf("expected lost status, got %s", updated.Status)
+	if _, err := svc.Update(ctx, item.ID, ItemUpdateInput{Status: &lost}); err == nil {
+		t.Fatal("expected plain PATCH to exit statuses to be rejected")
 	}
 
-	items, err := svc.List(ctx, ItemListFilter{Status: string(model.StatusLost)})
+	exited, err := svc.Exit(ctx, item.ID, ItemExitInput{ExitType: "lost"})
 	if err != nil {
-		t.Fatalf("list lost items: %v", err)
+		t.Fatalf("exit item: %v", err)
 	}
-	if len(items) != 1 || items[0].ID != item.ID {
-		t.Fatalf("expected updated item in lost list, got %#v", items)
+	if exited.Status != model.StatusLost || exited.ExitType == nil || *exited.ExitType != "lost" {
+		t.Fatalf("expected lost exit ledger, got %#v", exited)
+	}
+	var ftsRows int
+	if err := database.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM items_fts WHERE item_id = ?`, item.ID).Scan(&ftsRows); err != nil {
+		t.Fatalf("count fts rows: %v", err)
+	}
+	if ftsRows != 0 {
+		t.Fatalf("expected exited item removed from FTS, got %d rows", ftsRows)
+	}
+
+	inStock := model.StatusInStock
+	recovered, err := svc.Update(ctx, item.ID, ItemUpdateInput{Status: &inStock})
+	if err != nil {
+		t.Fatalf("recover item: %v", err)
+	}
+	if recovered.Status != model.StatusInStock || recovered.ExitType != nil || recovered.ExitDate != nil {
+		t.Fatalf("expected recovered item with cleared exit fields, got %#v", recovered)
+	}
+	if err := database.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM items_fts WHERE item_id = ?`, item.ID).Scan(&ftsRows); err != nil {
+		t.Fatalf("count fts rows after recovery: %v", err)
+	}
+	if ftsRows != 1 {
+		t.Fatalf("expected recovered item back in FTS, got %d rows", ftsRows)
+	}
+}
+
+func TestItemCreateAllowsVirtualAndEssentialsWithoutPhysicalLocation(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewItemService(database)
+	homeID := createTestLocation(t, ctx, database, "玄关")
+
+	game, err := svc.Create(ctx, ItemCreateInput{
+		Name: "Steam 游戏",
+		Type: model.ItemTypeVirtual,
+	})
+	if err != nil {
+		t.Fatalf("create virtual item without location: %v", err)
+	}
+	if game.LocationID != nil {
+		t.Fatalf("expected virtual item without location, got %v", game.LocationID)
+	}
+
+	keys, err := svc.Create(ctx, ItemCreateInput{
+		Name:               "钥匙",
+		Type:               model.ItemTypeEssentials,
+		HomeBaseLocationID: &homeID,
+	})
+	if err != nil {
+		t.Fatalf("create essentials item without location: %v", err)
+	}
+	if keys.LocationID == nil || *keys.LocationID != homeID {
+		t.Fatalf("expected essentials to start at home base %s, got %#v", homeID, keys.LocationID)
 	}
 }
 

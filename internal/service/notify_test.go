@@ -73,6 +73,53 @@ func TestNotifyProcessDueSendsWebhookAndMarksReminderSent(t *testing.T) {
 	}
 }
 
+func TestNotifyProcessDueDeliversPrivateItemRemindersWithoutCaller(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	reminderSvc := NewReminderService(database)
+	seedUser(t, database, "user-alice", "member")
+
+	if _, err := database.ExecContext(ctx,
+		`INSERT INTO items (id, name, type, status, is_private, owner_id, created_at, updated_at)
+		 VALUES ('item-private', '私密滤芯', 'tracked_spares', 'in_stock', 1, 'user-alice', 1, 1)`); err != nil {
+		t.Fatalf("insert private item: %v", err)
+	}
+	reminderID := ulid.Make().String()
+	if _, err := database.ExecContext(ctx,
+		`INSERT INTO reminders (id, item_id, type, trigger_at, is_dismissed)
+		 VALUES (?, 'item-private', 'filter_life', 100, 0)`, reminderID); err != nil {
+		t.Fatalf("insert reminder: %v", err)
+	}
+
+	received := NotifyMessage{}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := json.NewDecoder(r.Body).Decode(&received); err != nil {
+			t.Fatalf("decode webhook: %v", err)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	cfgSvc := config.NewConfigService(database)
+	if _, err := database.ExecContext(ctx,
+		`INSERT INTO system_configs (key, value, updated_at, updated_by) VALUES ('notify.webhook_url', ?, 1, NULL)`,
+		server.URL,
+	); err != nil {
+		t.Fatalf("set notify webhook config: %v", err)
+	}
+	if err := cfgSvc.RefreshDBCache(); err != nil {
+		t.Fatalf("refresh config cache: %v", err)
+	}
+	notifySvc := NewNotifyService(reminderSvc, NewHTTPNotifyGateway(cfgSvc))
+	result, err := notifySvc.ProcessDue(ctx, 200)
+	if err != nil {
+		t.Fatalf("process due reminders: %v", err)
+	}
+	if result.Sent != 1 || received.ReminderID != reminderID {
+		t.Fatalf("expected private reminder delivery, got result=%#v message=%#v", result, received)
+	}
+}
+
 func TestNotifyProcessDueRetriesFailedDelivery(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)

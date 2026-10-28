@@ -27,18 +27,18 @@ type AbnormalListFilter struct {
 
 type AbnormalListItem struct {
 	// From items
-	ItemID            string           `json:"item_id"`
-	Name              string           `json:"name"`
-	Status            model.ItemStatus `json:"status"`
-	SerialNumber      *string          `json:"serial_number,omitempty"`
-	Category          *string          `json:"category,omitempty"`
-	LocationID        *string          `json:"location_id,omitempty"`
-	LocationName      *string          `json:"location_name,omitempty"`
-	PurchasePrice     *float64         `json:"purchase_price,omitempty"`
-	PurchaseCurrency  *string          `json:"purchase_currency,omitempty"`
-	ExitDate          *int64           `json:"exit_date,omitempty"`
-	UpdatedAt         int64            `json:"updated_at"`
-	PhotoURL          *string          `json:"photo_url,omitempty"`
+	ItemID           string           `json:"item_id"`
+	Name             string           `json:"name"`
+	Status           model.ItemStatus `json:"status"`
+	SerialNumber     *string          `json:"serial_number,omitempty"`
+	Category         *string          `json:"category,omitempty"`
+	LocationID       *string          `json:"location_id,omitempty"`
+	LocationName     *string          `json:"location_name,omitempty"`
+	PurchasePrice    *float64         `json:"purchase_price,omitempty"`
+	PurchaseCurrency *string          `json:"purchase_currency,omitempty"`
+	ExitDate         *int64           `json:"exit_date,omitempty"`
+	UpdatedAt        int64            `json:"updated_at"`
+	PhotoURL         *string          `json:"photo_url,omitempty"`
 
 	// From abnormal_records
 	AbnormalID            string   `json:"abnormal_id"`
@@ -71,18 +71,18 @@ type ProgressStatsItem struct {
 }
 
 type LossValuation struct {
-	TotalEstimated     float64 `json:"total_estimated"`
-	EstimatedCurrency  string  `json:"estimated_currency"`
-	RecoverableAmount  float64 `json:"recoverable_amount"`
-	RecoverableCurrency string `json:"recoverable_currency"`
+	TotalEstimated      float64 `json:"total_estimated"`
+	EstimatedCurrency   string  `json:"estimated_currency"`
+	RecoverableAmount   float64 `json:"recoverable_amount"`
+	RecoverableCurrency string  `json:"recoverable_currency"`
 }
 
 type UpdateProgressInput struct {
-	ProcessingStatus  *string  `json:"processing_status,omitempty"`
-	ProcessingNotes   *string  `json:"processing_notes,omitempty"`
-	ResponsiblePerson *string  `json:"responsible_person,omitempty"`
-	RecoverableAmount *float64 `json:"recoverable_amount,omitempty"`
-	RecoverableCurrency *string `json:"recoverable_currency,omitempty"`
+	ProcessingStatus    *string  `json:"processing_status,omitempty"`
+	ProcessingNotes     *string  `json:"processing_notes,omitempty"`
+	ResponsiblePerson   *string  `json:"responsible_person,omitempty"`
+	RecoverableAmount   *float64 `json:"recoverable_amount,omitempty"`
+	RecoverableCurrency *string  `json:"recoverable_currency,omitempty"`
 }
 
 func (s *AbnormalService) Create(ctx context.Context, itemID, abnormalType, responsiblePerson string, estimatedLoss *float64, currency *string) (*model.AbnormalRecord, error) {
@@ -106,15 +106,15 @@ func (s *AbnormalService) Create(ctx context.Context, itemID, abnormalType, resp
 	}
 
 	return &model.AbnormalRecord{
-		ID:                   id,
-		ItemID:               itemID,
-		AbnormalType:         abnormalType,
-		ProcessingStatus:     initialStatus,
-		ResponsiblePerson:    nilIfEmpty(responsiblePerson),
-		EstimatedLoss:        estimatedLoss,
+		ID:                    id,
+		ItemID:                itemID,
+		AbnormalType:          abnormalType,
+		ProcessingStatus:      initialStatus,
+		ResponsiblePerson:     nilIfEmpty(responsiblePerson),
+		EstimatedLoss:         estimatedLoss,
 		EstimatedLossCurrency: currency,
-		CreatedAt:            now,
-		UpdatedAt:            now,
+		CreatedAt:             now,
+		UpdatedAt:             now,
 	}, nil
 }
 
@@ -123,11 +123,25 @@ func (s *AbnormalService) Create(ctx context.Context, itemID, abnormalType, resp
 // second incident on the same item updates the current record instead of
 // colliding; processing_status is reset so the new incident is actionable.
 func (s *AbnormalService) UpsertFromLoan(ctx context.Context, itemID, abnormalType, responsiblePerson string, estimatedLoss *float64, currency *string) (*model.AbnormalRecord, error) {
+	return s.upsertFromLoan(ctx, s.db, itemID, abnormalType, responsiblePerson, estimatedLoss, currency)
+}
+
+// UpsertFromLoanTx lets the loan flow create the abnormal record in the same
+// transaction as the loan/item updates.
+func (s *AbnormalService) UpsertFromLoanTx(ctx context.Context, tx *sql.Tx, itemID, abnormalType, responsiblePerson string, estimatedLoss *float64, currency *string) (*model.AbnormalRecord, error) {
+	return s.upsertFromLoan(ctx, tx, itemID, abnormalType, responsiblePerson, estimatedLoss, currency)
+}
+
+type execRunner interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+}
+
+func (s *AbnormalService) upsertFromLoan(ctx context.Context, q execRunner, itemID, abnormalType, responsiblePerson string, estimatedLoss *float64, currency *string) (*model.AbnormalRecord, error) {
 	now := time.Now().Unix()
 	id := ulid.Make().String()
 	initialStatus := initialProcessingStatus(abnormalType)
 
-	_, err := s.db.ExecContext(ctx, `
+	_, err := q.ExecContext(ctx, `
 		INSERT INTO abnormal_records (
 			id, item_id, abnormal_type, processing_status,
 			responsible_person, estimated_loss, estimated_loss_currency,
@@ -149,15 +163,15 @@ func (s *AbnormalService) UpsertFromLoan(ctx context.Context, itemID, abnormalTy
 	}
 
 	return &model.AbnormalRecord{
-		ID:                   id,
-		ItemID:               itemID,
-		AbnormalType:         abnormalType,
-		ProcessingStatus:     initialStatus,
-		ResponsiblePerson:    nilIfEmpty(responsiblePerson),
-		EstimatedLoss:        estimatedLoss,
+		ID:                    id,
+		ItemID:                itemID,
+		AbnormalType:          abnormalType,
+		ProcessingStatus:      initialStatus,
+		ResponsiblePerson:     nilIfEmpty(responsiblePerson),
+		EstimatedLoss:         estimatedLoss,
 		EstimatedLossCurrency: currency,
-		CreatedAt:            now,
-		UpdatedAt:            now,
+		CreatedAt:             now,
+		UpdatedAt:             now,
 	}, nil
 }
 

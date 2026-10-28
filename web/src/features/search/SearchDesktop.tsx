@@ -98,7 +98,7 @@ export function SearchDesktop() {
     !showSkeleton && phase !== 'idle' && !hasResults && !isRefining && !error;
 
   return (
-    <Stack>
+    <Stack data-search-phase={phase}>
       <FeatureHeader
         title={t('search.title')}
         description={t('search.description')}

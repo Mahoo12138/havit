@@ -94,6 +94,9 @@ func (s *AttachmentService) Store(ctx context.Context, in StoreAttachmentInput) 
 }
 
 func (s *AttachmentService) List(ctx context.Context, itemID string) ([]*model.Attachment, error) {
+	if err := s.ensureItemVisible(ctx, itemID); err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT id, item_id, type, filename, path, size, content_type, is_ai_source, created_at
 		FROM attachments WHERE item_id = ? ORDER BY created_at DESC, id DESC`, itemID)
@@ -133,6 +136,9 @@ func (s *AttachmentService) Open(ctx context.Context, id string) (*model.Attachm
 	if err != nil {
 		return nil, nil, err
 	}
+	if err := s.ensureItemVisible(ctx, att.ItemID); err != nil {
+		return nil, nil, err
+	}
 	file, err := os.Open(filepath.Join(s.dataDir, filepath.FromSlash(att.Path)))
 	if err != nil {
 		return nil, nil, err
@@ -167,6 +173,9 @@ func (s *AttachmentService) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+	if err := s.ensureItemVisible(ctx, att.ItemID); err != nil {
+		return err
+	}
 	if att.IsAISource {
 		return ErrAISourceProtected
 	}
@@ -178,6 +187,17 @@ func (s *AttachmentService) Delete(ctx context.Context, id string) error {
 
 	if _, err := s.db.ExecContext(ctx, `DELETE FROM attachments WHERE id = ?`, id); err != nil {
 		return fmt.Errorf("delete attachment record: %w", err)
+	}
+	return nil
+}
+
+func (s *AttachmentService) ensureItemVisible(ctx context.Context, itemID string) error {
+	visible, err := itemVisibleForCaller(ctx, s.db, itemID)
+	if err != nil {
+		return err
+	}
+	if !visible {
+		return ErrNotFound
 	}
 	return nil
 }

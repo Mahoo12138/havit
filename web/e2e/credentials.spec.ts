@@ -115,7 +115,8 @@ test.describe('Credentials & warranty closed loop', () => {
     await dialog.getByRole('button', { name: 'Add Credential' }).click();
     await expect(dialog).toBeHidden();
 
-    const card = page.locator('.surface-card .surface-card', { hasText: itemName });
+    const recordCards = page.locator('[data-slot="card"] [data-slot="card"]');
+    const card = recordCards.filter({ hasText: itemName });
     await expect(card).toBeVisible();
     await expect(card).toContainText(platform);
 
@@ -126,16 +127,16 @@ test.describe('Credentials & warranty closed loop', () => {
     await editDialog.getByLabel('Platform').fill(`${platform}-改`);
     await editDialog.getByRole('button', { name: 'Save' }).click();
     await expect(editDialog).toBeHidden();
-    await expect(page.locator('.surface-card .surface-card', { hasText: `${platform}-改` })).toBeVisible();
+    await expect(recordCards.filter({ hasText: `${platform}-改` })).toBeVisible();
 
     // Delete with confirmation.
-    const updatedCard = page.locator('.surface-card .surface-card', { hasText: `${platform}-改` });
+    const updatedCard = recordCards.filter({ hasText: `${platform}-改` });
     await updatedCard.getByRole('button', { name: 'Delete' }).click();
     const confirmDialog = page.getByRole('dialog');
     await expect(confirmDialog).toBeVisible();
     await confirmDialog.getByRole('button', { name: 'Delete' }).click();
     await expect(confirmDialog).toBeHidden();
-    await expect(page.locator('.surface-card .surface-card', { hasText: `${platform}-改` })).toBeHidden();
+    await expect(recordCards.filter({ hasText: `${platform}-改` })).toBeHidden();
   });
 
   test('warranty status badge and inline warranty edit form a closed loop', async ({ page }) => {
@@ -164,7 +165,7 @@ test.describe('Credentials & warranty closed loop', () => {
     await page.waitForLoadState('networkidle');
 
     // The warranty tab is the default tab: the expiring item shows up with a badge.
-    const card = page.locator('.surface-card', { hasText: itemName })
+    const card = page.locator('[data-slot="card"]', { hasText: itemName })
       .filter({ has: page.locator('h3') });
     await expect(card).toBeVisible();
     await expect(card).toContainText('Expiring');

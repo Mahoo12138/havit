@@ -495,9 +495,12 @@ function StatusPanel({ statusOptions, status, isOnline, pending, onChange, locat
   return (
     <SectionCard icon={<IconMapPin size={15} />} title={t('itemDetail.statusAndLocation')}>
       <div className={s.kvList}>
+        <KvRow label={t('items.status')}><StatusBadge status={status} /></KvRow>
         <KvRow label={t('items.location')}>{locationPath ?? t('common.notSet')}</KvRow>
       </div>
-      <SelectField label={t('items.switchStatus')} options={statusOptions} value={status} disabled={!isOnline || pending} onChange={(event) => onChange(event.currentTarget.value)} />
+      {statusOptions.some((option) => option.value === status) && (
+        <SelectField label={t('items.switchStatus')} options={statusOptions} value={status} disabled={!isOnline || pending} onChange={(event) => onChange(event.currentTarget.value)} />
+      )}
     </SectionCard>
   );
 }

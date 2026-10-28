@@ -52,7 +52,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import { TextField } from '../../components/ui/text-field';
-import { itemsApi, type Item, type VirtualAddonPurchase, type VirtualCredential } from '../../api/client';
+import { itemsApi, virtualAssetsApi, type Item, type VirtualAddonPurchase, type VirtualCredential } from '../../api/client';
 import { useDevice } from '../../lib/device';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { CategoryTabs } from '../categories/CategoryTabs';
@@ -107,9 +107,6 @@ export function VirtualAssetsDesktop() {
   const [form, setForm] = useState({
     name: '',
     platform: '',
-    account: '',
-    price: '',
-    currency: 'CNY',
   });
 
   useEffect(() => {
@@ -130,18 +127,29 @@ export function VirtualAssetsDesktop() {
   });
 
   const create = useMutation({
-    mutationFn: () =>
-      itemsApi.create({
-        name: form.name,
+    mutationFn: async () => {
+      const item = await itemsApi.create({
+        name: form.name.trim(),
         type: 'virtual',
-      }),
+      });
+      const platform = form.platform.trim();
+      if (platform) {
+        await virtualAssetsApi.createCredential(item.id, { platform });
+      }
+      return item;
+    },
     onSuccess: () => {
       toast.show(t('items.created'));
       queryClient.invalidateQueries({ queryKey: ['items', 'virtual'] });
-      setForm({ name: '', platform: '', account: '', price: '', currency: 'CNY' });
+      queryClient.invalidateQueries({ queryKey: ['virtual-credentials'] });
+      setForm({ name: '', platform: '' });
       setOpened(false);
     },
-    onError: (error: Error) => toast.show(t('items.createFailed', { error: error.message })),
+    onError: (error: Error) => {
+      // The item may have been created before a credential write failed.
+      queryClient.invalidateQueries({ queryKey: ['items', 'virtual'] });
+      toast.show(t('items.createFailed', { error: error.message }));
+    },
   });
 
   const allItems: VaItem[] = data?.items ?? [];

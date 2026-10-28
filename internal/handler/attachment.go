@@ -18,6 +18,18 @@ type AttachmentHandler struct {
 	maxPhotoSizeMB int
 }
 
+var allowedPhotoTypes = map[string]bool{
+	"image/jpeg": true,
+	"image/png":  true,
+	"image/webp": true,
+	"image/gif":  true,
+	"image/heic": true,
+	"image/heif": true,
+	"image/avif": true,
+	"image/bmp":  true,
+	"image/tiff": true,
+}
+
 func NewAttachmentHandler(svc *service.AttachmentService, maxPhotoSizeMB int) *AttachmentHandler {
 	return &AttachmentHandler{svc: svc, maxPhotoSizeMB: maxPhotoSizeMB}
 }
@@ -53,11 +65,10 @@ func (h *AttachmentHandler) uploadPhoto(w http.ResponseWriter, r *http.Request) 
 	}
 	defer file.Close()
 
-	contentType := header.Header.Get("Content-Type")
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-	if !strings.HasPrefix(strings.ToLower(contentType), "image/") {
+	contentType := strings.ToLower(strings.TrimSpace(header.Header.Get("Content-Type")))
+	// Raster-only allowlist: SVG (and HTML masquerading as an image) would run
+	// scripts when served inline from the app origin.
+	if !allowedPhotoTypes[contentType] {
 		writeError(w, 0, apperr.ErrImageRequired)
 		return
 	}
@@ -95,6 +106,7 @@ func (h *AttachmentHandler) readContent(w http.ResponseWriter, r *http.Request) 
 	if att.ContentType != "" {
 		w.Header().Set("Content-Type", att.ContentType)
 	}
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Disposition", `inline; filename="`+strings.ReplaceAll(att.Filename, `"`, "")+`"`)
 	http.ServeContent(w, r, att.Filename, timeFromUnix(att.CreatedAt), file)
 }

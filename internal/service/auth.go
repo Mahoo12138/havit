@@ -21,11 +21,11 @@ var (
 )
 
 type AuthService struct {
-	db                *sql.DB
-	jwtSecret         []byte
-	sessionExpire     time.Duration
-	demoMode          bool
-	onOwnerCreated    func()
+	db             *sql.DB
+	jwtSecret      []byte
+	sessionExpire  time.Duration
+	demoMode       bool
+	onOwnerCreated func()
 }
 
 func NewAuthService(db *sql.DB, jwtSecret string, expireHours int, demoMode bool, onOwnerCreated func()) *AuthService {
@@ -223,7 +223,10 @@ func (s *AuthService) UpdateRole(ctx context.Context, id, role, callerID string)
 	if role != "owner" && role != "member" {
 		return nil, errors.New("role must be 'owner' or 'member'")
 	}
-	res, err := s.db.ExecContext(ctx, `UPDATE users SET role = ? WHERE id = ?`, role, id)
+	// Bump token_version so JWTs issued with the previous role stop working.
+	res, err := s.db.ExecContext(ctx,
+		`UPDATE users SET role = ?, token_version = token_version + 1 WHERE id = ?`,
+		role, id)
 	if err != nil {
 		return nil, err
 	}
@@ -235,7 +238,10 @@ func (s *AuthService) UpdateRole(ctx context.Context, id, role, callerID string)
 }
 
 func (s *AuthService) issueToken(u *User) (string, error) {
-	tv := s.getTokenVersion(u.ID)
+	tv, err := s.getTokenVersion(u.ID)
+	if err != nil {
+		return "", err
+	}
 	now := time.Now()
 	claims := &Claims{
 		UserID:       u.ID,
@@ -251,15 +257,17 @@ func (s *AuthService) issueToken(u *User) (string, error) {
 	return tok.SignedString(s.jwtSecret)
 }
 
-func (s *AuthService) getTokenVersion(userID string) int {
+func (s *AuthService) getTokenVersion(userID string) (int, error) {
 	var v int
-	_ = s.db.QueryRow(`SELECT COALESCE(token_version, 0) FROM users WHERE id = ?`, userID).Scan(&v)
-	return v
+	if err := s.db.QueryRow(`SELECT token_version FROM users WHERE id = ?`, userID).Scan(&v); err != nil {
+		return 0, err
+	}
+	return v, nil
 }
 
 func (s *AuthService) Verify(tokenStr string) (*Claims, error) {
 	parsed, err := jwt.ParseWithClaims(tokenStr, &Claims{}, func(t *jwt.Token) (any, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+		if t.Method != jwt.SigningMethodHS256 {
 			return nil, errors.New("unexpected signing method")
 		}
 		return s.jwtSecret, nil
@@ -271,10 +279,21 @@ func (s *AuthService) Verify(tokenStr string) (*Claims, error) {
 	if !ok || !parsed.Valid {
 		return nil, errors.New("invalid token")
 	}
-	// Check token_version for session invalidation.
-	currentVersion := s.getTokenVersion(claims.UserID)
-	if claims.TokenVersion < currentVersion {
+	// Re-read the user on every verification: a deleted account must lose
+	// access immediately, and the role must not come from a stale token.
+	var role string
+	var currentVersion int
+	if err := s.db.QueryRow(
+		`SELECT role, token_version FROM users WHERE id = ?`, claims.UserID,
+	).Scan(&role, &currentVersion); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errors.New("user not found")
+		}
+		return nil, err
+	}
+	if claims.TokenVersion != currentVersion {
 		return nil, errors.New("token revoked")
 	}
+	claims.Role = role
 	return claims, nil
 }

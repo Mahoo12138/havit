@@ -2,10 +2,57 @@ package service
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/oklog/ulid/v2"
+
+	"github.com/mahoo12138/havit/internal/model"
 )
+
+func TestReminderPrivacyIsolatesPrivateItems(t *testing.T) {
+	db := newTestDB(t)
+	seedUser(t, db, "user-alice", "member")
+	itemSvc := NewItemService(db)
+	locID := createTestLocation(t, context.Background(), db, "书房")
+	alice := "user-alice"
+	item, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
+		Name: "私密耳机", Type: model.ItemTypeDurable, LocationID: &locID,
+		IsPrivate: true, OwnerID: &alice,
+	})
+	if err != nil {
+		t.Fatalf("create private item: %v", err)
+	}
+	reminderID := ulid.Make().String()
+	if _, err := db.ExecContext(context.Background(),
+		`INSERT INTO reminders (id, item_id, type, trigger_at, is_dismissed)
+		 VALUES (?, ?, 'warranty_7d', 1, 0)`, reminderID, item.ID); err != nil {
+		t.Fatalf("insert reminder: %v", err)
+	}
+
+	svc := NewReminderService(db)
+	list, err := svc.List(ctxAs("user-bob"), ReminderListFilter{})
+	if err != nil {
+		t.Fatalf("list as bob: %v", err)
+	}
+	if len(list) != 0 {
+		t.Fatalf("bob should not see private reminders, got %#v", list)
+	}
+	if _, err := svc.MarkSent(ctxAs("user-bob"), reminderID, 0); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob mark private reminder: expected ErrNotFound, got %v", err)
+	}
+	if _, err := svc.Dismiss(ctxAs("user-bob"), reminderID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob dismiss private reminder: expected ErrNotFound, got %v", err)
+	}
+
+	ownerList, err := svc.List(ctxAs(alice), ReminderListFilter{})
+	if err != nil {
+		t.Fatalf("list as alice: %v", err)
+	}
+	if len(ownerList) != 1 || ownerList[0].ID != reminderID {
+		t.Fatalf("expected alice to see her reminder, got %#v", ownerList)
+	}
+}
 
 func TestReminderListMarkSentAndDismiss(t *testing.T) {
 	ctx := context.Background()

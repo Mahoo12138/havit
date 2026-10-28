@@ -44,11 +44,8 @@ func (h *AIHandler) recognizeDraftPhoto(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	contentType := header.Header.Get("Content-Type")
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-	if !strings.HasPrefix(strings.ToLower(contentType), "image/") {
+	contentType := strings.ToLower(strings.TrimSpace(header.Header.Get("Content-Type")))
+	if !allowedPhotoTypes[contentType] {
 		writeError(w, 0, apperr.ErrImageRequired)
 		return
 	}
@@ -83,11 +80,8 @@ func (h *AIHandler) recognizeItemPhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contentType := header.Header.Get("Content-Type")
-	if contentType == "" {
-		contentType = "application/octet-stream"
-	}
-	if !strings.HasPrefix(strings.ToLower(contentType), "image/") {
+	contentType := strings.ToLower(strings.TrimSpace(header.Header.Get("Content-Type")))
+	if !allowedPhotoTypes[contentType] {
 		writeError(w, 0, apperr.ErrImageRequired)
 		return
 	}

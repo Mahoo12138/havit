@@ -104,6 +104,48 @@ func TestPhotoUploadListAndReadHTTPFlow(t *testing.T) {
 	}
 }
 
+func TestPhotoUploadRejectsSVG(t *testing.T) {
+	router := newAuthTestRouter(t)
+	token := setupToken(t, router)
+
+	createLoc := postAuthedJSON(t, router, "/api/v1/locations/", token, map[string]string{"name": "书房"})
+	var loc struct {
+		ID string `json:"id"`
+	}
+	decodeJSON(t, createLoc, &loc)
+	createItem := postAuthedJSON(t, router, "/api/v1/items/", token, map[string]any{
+		"name": "相机", "type": "durable", "location_id": loc.ID,
+	})
+	var item struct {
+		ID string `json:"id"`
+	}
+	decodeJSON(t, createItem, &item)
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	header := make(textproto.MIMEHeader)
+	header.Set("Content-Disposition", `form-data; name="file"; filename="evil.svg"`)
+	header.Set("Content-Type", "image/svg+xml")
+	part, err := writer.CreatePart(header)
+	if err != nil {
+		t.Fatalf("create part: %v", err)
+	}
+	if _, err := part.Write([]byte(`<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>`)); err != nil {
+		t.Fatalf("write part: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	req := authedRequest(http.MethodPost, "/api/v1/items/"+item.ID+"/photos", token, strings.NewReader(body.String()))
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("expected SVG upload rejected, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestPhotoUploadRejectsNonImageFile(t *testing.T) {
 	router := newAuthTestRouter(t)
 	token := setupToken(t, router)

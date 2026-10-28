@@ -277,6 +277,21 @@ func TestPrivacyExport(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create private item: %v", err)
 	}
+	if _, err := db.ExecContext(ctxAs(alice),
+		`INSERT INTO loans (id, item_id, borrower_name, loaned_at, status)
+		 VALUES ('loan-private', ?, 'somebody', 1, 'active')`, priv.ID); err != nil {
+		t.Fatalf("insert private loan: %v", err)
+	}
+	if _, err := db.ExecContext(ctxAs(alice),
+		`INSERT INTO reminders (id, item_id, type, trigger_at, is_dismissed)
+		 VALUES ('reminder-private', ?, 'warranty_7d', 1, 0)`, priv.ID); err != nil {
+		t.Fatalf("insert private reminder: %v", err)
+	}
+	if _, err := db.ExecContext(ctxAs(alice),
+		`INSERT INTO virtual_credentials (id, item_id, platform, license_key)
+		 VALUES ('credential-private', ?, 'steam', NULL)`, priv.ID); err != nil {
+		t.Fatalf("insert private credential: %v", err)
+	}
 
 	export, err := exportSvc.Items(ctxAs("user-bob"))
 	if err != nil {
@@ -285,6 +300,21 @@ func TestPrivacyExport(t *testing.T) {
 	for _, item := range export.Items {
 		if item.ID == priv.ID {
 			t.Fatal("bob's export contained alice's private item")
+		}
+	}
+	for _, loan := range export.Loans {
+		if loan.ItemID == priv.ID {
+			t.Fatal("bob's export contained a loan of alice's private item")
+		}
+	}
+	for _, reminder := range export.Reminders {
+		if reminder.ItemID == priv.ID {
+			t.Fatal("bob's export contained a reminder of alice's private item")
+		}
+	}
+	for _, credential := range export.VirtualCredentials {
+		if credential.ItemID == priv.ID {
+			t.Fatal("bob's export contained a credential of alice's private item")
 		}
 	}
 }

@@ -81,19 +81,26 @@ func visibleLocationIDs(ctx context.Context, q rowQuerier, owner string) (map[st
 	}
 
 	visible := map[string]bool{}
+	visiting := map[string]bool{}
 	var check func(id string) bool
 	check = func(id string) bool {
 		if v, ok := visible[id]; ok {
 			return v
 		}
+		if visiting[id] {
+			// Legacy cycles must not crash every read request.
+			return false
+		}
 		l, ok := locs[id]
 		if !ok {
 			return false
 		}
+		visiting[id] = true
 		v := !l.private || (l.owner != nil && *l.owner == owner)
 		if v && l.parent != nil {
 			v = check(*l.parent)
 		}
+		delete(visiting, id)
 		visible[id] = v
 		return v
 	}
@@ -135,6 +142,27 @@ func applyItemPrivacy(ctx context.Context, q rowQuerier, alias string, where str
 	}
 	where, args = locationClause(alias, visible, where, args)
 	return where, args, nil
+}
+
+// itemVisibleForCaller reports whether the caller may see the item under the
+// own-privacy + location-inheritance rules. Use it before touching child rows
+// (attachments, reminders, loans) that only carry an item_id.
+func itemVisibleForCaller(ctx context.Context, db *sql.DB, itemID string) (bool, error) {
+	owner := callerID(ctx)
+	where := "id = ?"
+	args := []any{itemID}
+	where, args = itemPrivacy("items", owner, where, args)
+	visible, err := visibleLocationIDs(ctx, db, owner)
+	if err != nil {
+		return false, err
+	}
+	where, args = locationClause("items", visible, where, args)
+	var count int
+	if err := db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM items WHERE "+where, args...).Scan(&count); err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }
 
 // applyLocationPrivacy restricts a locations read to nodes visible to the

@@ -128,6 +128,9 @@ func NewOpenAIProvider(cfgSvc *config.ConfigService) *OpenAIProvider {
 }
 
 func (p *OpenAIProvider) RecognizeItem(ctx context.Context, imageData []byte, contentType string) (*ItemDraft, error) {
+	if !p.cfgSvc.GetBool("ai.enabled") {
+		return nil, errors.New("ai disabled")
+	}
 	if len(imageData) == 0 {
 		return nil, errors.New("image data required")
 	}
@@ -181,6 +184,9 @@ func (p *OpenAIProvider) RecognizeItem(ctx context.Context, imageData []byte, co
 }
 
 func (p *OpenAIProvider) ParseSearchQuery(ctx context.Context, query string) (*SearchFilter, error) {
+	if !p.cfgSvc.GetBool("ai.enabled") {
+		return nil, errors.New("ai disabled")
+	}
 	query = strings.TrimSpace(query)
 	if query == "" {
 		return &SearchFilter{}, nil

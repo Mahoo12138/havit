@@ -56,6 +56,78 @@ func TestLoanCreateMarksItemBorrowedAndCreatesDueReminder(t *testing.T) {
 	}
 }
 
+func TestLoanReturnClearsDueReminderAndRejectsRepeat(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	loanSvc := NewLoanService(database, NewAbnormalService(database))
+	locID := createTestLocation(t, ctx, database, "书房")
+
+	item, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "移动硬盘",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	dueAt := int64(1780000000)
+	loan, err := loanSvc.Create(ctx, item.ID, LoanCreateInput{
+		BorrowerName: "小王",
+		DueAt:        &dueAt,
+	})
+	if err != nil {
+		t.Fatalf("create loan: %v", err)
+	}
+	if _, err := loanSvc.Create(ctx, item.ID, LoanCreateInput{BorrowerName: "小李"}); err == nil {
+		t.Fatal("expected second loan on borrowed item to be rejected")
+	}
+	if _, err := loanSvc.Return(ctx, loan.ID, LoanReturnInput{}); err != nil {
+		t.Fatalf("return loan: %v", err)
+	}
+
+	var dueReminders int
+	if err := database.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM reminders WHERE item_id = ? AND type = 'loan_due'`, item.ID,
+	).Scan(&dueReminders); err != nil {
+		t.Fatalf("count due reminders: %v", err)
+	}
+	if dueReminders != 0 {
+		t.Fatalf("expected loan_due reminder removed on return, got %d", dueReminders)
+	}
+	if _, err := loanSvc.Return(ctx, loan.ID, LoanReturnInput{}); err == nil {
+		t.Fatal("expected repeated return to be rejected")
+	}
+
+	// A returned item can be lent again without leaking the old reminder.
+	if _, err := loanSvc.Create(ctx, item.ID, LoanCreateInput{BorrowerName: "小李"}); err != nil {
+		t.Fatalf("lend returned item again: %v", err)
+	}
+}
+
+func TestLoanCreateRejectsExitedItem(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	itemSvc := NewItemService(database)
+	loanSvc := NewLoanService(database, NewAbnormalService(database))
+	locID := createTestLocation(t, ctx, database, "书房")
+
+	item, err := itemSvc.Create(ctx, ItemCreateInput{
+		Name:       "旧手机",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	if _, err := itemSvc.Exit(ctx, item.ID, ItemExitInput{ExitType: "sold"}); err != nil {
+		t.Fatalf("exit item: %v", err)
+	}
+	if _, err := loanSvc.Create(ctx, item.ID, LoanCreateInput{BorrowerName: "小王"}); err == nil {
+		t.Fatal("expected exited item to be rejected for loan")
+	}
+}
+
 func TestLoanLifecycleLogsEvents(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)

@@ -217,6 +217,7 @@ func TestOpenAIProviderRecognizeItemUsesVisionRequestAndParsesDraft(t *testing.T
 	defer server.Close()
 
 	provider := NewOpenAIProvider(testConfigService(t, map[string]string{
+		"ai.enabled":      "true",
 		"ai.base_url":     server.URL,
 		"ai.api_key":      "test-key",
 		"ai.model":        "text-model",
@@ -267,6 +268,7 @@ func TestOpenAIProviderParseSearchQueryParsesAndNormalizesFilter(t *testing.T) {
 	defer server.Close()
 
 	provider := NewOpenAIProvider(testConfigService(t, map[string]string{
+		"ai.enabled":      "true",
 		"ai.base_url":     server.URL,
 		"ai.model":        "text-model",
 		"ai.vision_model": "vision-model",
@@ -286,6 +288,30 @@ func TestOpenAIProviderParseSearchQueryParsesAndNormalizesFilter(t *testing.T) {
 	}
 	if filter.IdleDays == nil || *filter.IdleDays != 180 {
 		t.Fatalf("expected idle days, got %#v", filter.IdleDays)
+	}
+}
+
+func TestOpenAIProviderSkipsExternalCallsWhenDisabled(t *testing.T) {
+	called := false
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	provider := NewOpenAIProvider(testConfigService(t, map[string]string{
+		"ai.base_url": server.URL,
+		"ai.api_key":  "test-key",
+		"ai.model":    "text-model",
+	}))
+	if _, err := provider.ParseSearchQuery(context.Background(), "相机"); err == nil {
+		t.Fatal("expected disabled provider to reject search parsing")
+	}
+	if _, err := provider.RecognizeItem(context.Background(), []byte("image bytes"), "image/jpeg"); err == nil {
+		t.Fatal("expected disabled provider to reject recognition")
+	}
+	if called {
+		t.Fatal("disabled provider must not call the external service")
 	}
 }
 

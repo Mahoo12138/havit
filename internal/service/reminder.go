@@ -24,6 +24,16 @@ type ReminderListFilter struct {
 }
 
 func (s *ReminderService) List(ctx context.Context, f ReminderListFilter) ([]*model.Reminder, error) {
+	return s.list(ctx, f, true)
+}
+
+// ListDueForDelivery is used by the notification scheduler, which has no
+// caller identity and must deliver reminders across all users.
+func (s *ReminderService) ListDueForDelivery(ctx context.Context, now int64) ([]*model.Reminder, error) {
+	return s.list(ctx, ReminderListFilter{DueOnly: true, Now: now}, false)
+}
+
+func (s *ReminderService) list(ctx context.Context, f ReminderListFilter, enforcePrivacy bool) ([]*model.Reminder, error) {
 	args := []any{}
 	where := "1 = 1"
 	if f.DueOnly {
@@ -38,10 +48,18 @@ func (s *ReminderService) List(ctx context.Context, f ReminderListFilter) ([]*mo
 		args = append(args, f.ItemID)
 	}
 
+	if enforcePrivacy {
+		var err error
+		where, args, err = applyItemPrivacy(ctx, s.db, "i", where, args)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT r.id, r.item_id, r.type, r.trigger_at, r.sent_at, r.is_dismissed, i.name
 		FROM reminders r
-		LEFT JOIN items i ON i.id = r.item_id
+		JOIN items i ON i.id = r.item_id
 		WHERE `+where+`
 		ORDER BY r.trigger_at ASC, r.id ASC`, args...)
 	if err != nil {
@@ -61,6 +79,21 @@ func (s *ReminderService) List(ctx context.Context, f ReminderListFilter) ([]*mo
 }
 
 func (s *ReminderService) MarkSent(ctx context.Context, id string, sentAt int64) (*model.Reminder, error) {
+	return s.markSent(ctx, id, sentAt, true)
+}
+
+// MarkSentForDelivery is the scheduler's counterpart to MarkSent: it marks a
+// reminder delivered without applying caller privacy rules.
+func (s *ReminderService) MarkSentForDelivery(ctx context.Context, id string, sentAt int64) (*model.Reminder, error) {
+	return s.markSent(ctx, id, sentAt, false)
+}
+
+func (s *ReminderService) markSent(ctx context.Context, id string, sentAt int64, enforcePrivacy bool) (*model.Reminder, error) {
+	if enforcePrivacy {
+		if err := s.ensureVisible(ctx, id); err != nil {
+			return nil, err
+		}
+	}
 	if sentAt == 0 {
 		sentAt = time.Now().Unix()
 	}
@@ -71,10 +104,13 @@ func (s *ReminderService) MarkSent(ctx context.Context, id string, sentAt int64)
 	if n, _ := res.RowsAffected(); n == 0 {
 		return nil, ErrNotFound
 	}
-	return s.Get(ctx, id)
+	return s.get(ctx, id, enforcePrivacy)
 }
 
 func (s *ReminderService) Dismiss(ctx context.Context, id string) (*model.Reminder, error) {
+	if err := s.ensureVisible(ctx, id); err != nil {
+		return nil, err
+	}
 	res, err := s.db.ExecContext(ctx, `UPDATE reminders SET is_dismissed = 1 WHERE id = ?`, id)
 	if err != nil {
 		return nil, err
@@ -86,11 +122,24 @@ func (s *ReminderService) Dismiss(ctx context.Context, id string) (*model.Remind
 }
 
 func (s *ReminderService) Get(ctx context.Context, id string) (*model.Reminder, error) {
+	return s.get(ctx, id, true)
+}
+
+func (s *ReminderService) get(ctx context.Context, id string, enforcePrivacy bool) (*model.Reminder, error) {
+	where := "r.id = ?"
+	args := []any{id}
+	var err error
+	if enforcePrivacy {
+		where, args, err = applyItemPrivacy(ctx, s.db, "i", where, args)
+		if err != nil {
+			return nil, err
+		}
+	}
 	row := s.db.QueryRowContext(ctx, `
 		SELECT r.id, r.item_id, r.type, r.trigger_at, r.sent_at, r.is_dismissed, i.name
 		FROM reminders r
-		LEFT JOIN items i ON i.id = r.item_id
-		WHERE r.id = ?`, id)
+		JOIN items i ON i.id = r.item_id
+		WHERE `+where, args...)
 	reminder, err := scanReminder(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -99,6 +148,27 @@ func (s *ReminderService) Get(ctx context.Context, id string) (*model.Reminder, 
 		return nil, err
 	}
 	return reminder, nil
+}
+
+// ensureVisible maps a reminder whose item is hidden from the caller to
+// ErrNotFound, so reminder ids do not become an existence oracle.
+func (s *ReminderService) ensureVisible(ctx context.Context, id string) error {
+	var itemID string
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT item_id FROM reminders WHERE id = ?`, id).Scan(&itemID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	visible, err := itemVisibleForCaller(ctx, s.db, itemID)
+	if err != nil {
+		return err
+	}
+	if !visible {
+		return ErrNotFound
+	}
+	return nil
 }
 
 type reminderScanner interface {

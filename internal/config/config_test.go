@@ -27,6 +27,36 @@ func TestLoadGeneratesAndPersistsJWTSecretWhenDataDirDoesNotExist(t *testing.T) 
 	}
 }
 
+func TestLoadReusesPersistedJWTSecretAcrossRestarts(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("HAVIT_DATA_DIR", filepath.Join(root, "data"))
+	t.Setenv("HAVIT_AUTH_JWT_SECRET", "")
+
+	first := LoadFrom([]string{root})
+	if first.Auth.JWTSecret == "" {
+		t.Fatal("expected generated jwt secret")
+	}
+	second := LoadFrom([]string{root})
+	if second.Auth.JWTSecret != first.Auth.JWTSecret {
+		t.Fatalf("expected persisted secret %q, got %q", first.Auth.JWTSecret, second.Auth.JWTSecret)
+	}
+}
+
+func TestLoadAcceptsJWTSecretFromEnv(t *testing.T) {
+	root := t.TempDir()
+	dataDir := filepath.Join(root, "data")
+	t.Setenv("HAVIT_DATA_DIR", dataDir)
+	t.Setenv("HAVIT_AUTH_JWT_SECRET", "env-secret")
+
+	cfg := LoadFrom([]string{root})
+	if cfg.Auth.JWTSecret != "env-secret" {
+		t.Fatalf("expected env secret, got %q", cfg.Auth.JWTSecret)
+	}
+	if _, err := os.Stat(filepath.Join(dataDir, "config.yaml")); !os.IsNotExist(err) {
+		t.Fatalf("expected env secret not to be written to disk, stat err=%v", err)
+	}
+}
+
 func TestLoadKeepsExistingJWTSecret(t *testing.T) {
 	root := t.TempDir()
 	dataDir := filepath.Join(root, "data")

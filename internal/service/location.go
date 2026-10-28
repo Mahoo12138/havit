@@ -196,7 +196,23 @@ func (s *LocationService) Update(ctx context.Context, id string, in LocationUpda
 		cur.Name = *in.Name
 	}
 	if in.ParentID != nil {
-		cur.ParentID = in.ParentID
+		if *in.ParentID == "" {
+			cur.ParentID = nil
+		} else {
+			if *in.ParentID == id {
+				return nil, errors.New("location cannot be its own parent")
+			}
+			descendants, err := s.descendantIDs(ctx, id)
+			if err != nil {
+				return nil, err
+			}
+			for _, descendantID := range descendants {
+				if descendantID == *in.ParentID {
+					return nil, errors.New("location cannot be moved under its own descendant")
+				}
+			}
+			cur.ParentID = in.ParentID
+		}
 	}
 	if in.Type != nil {
 		if !validLocationType(*in.Type) {
@@ -356,8 +372,13 @@ func (s *LocationService) descendantIDs(ctx context.Context, rootID string) ([]s
 	}
 
 	out := []string{}
+	visited := map[string]bool{}
 	var walk func(string)
 	walk = func(id string) {
+		if visited[id] {
+			return
+		}
+		visited[id] = true
 		out = append(out, id)
 		for _, childID := range children[id] {
 			walk(childID)

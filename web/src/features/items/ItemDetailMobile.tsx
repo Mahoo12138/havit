@@ -127,7 +127,10 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
       <Card className={s.section} padded={false}>
         <div className={s.sectionHead}><h2 className={s.sectionTitle}><IconMapPin size={15} />{t('itemDetail.statusAndLocation')}</h2></div>
         <div className={s.sectionBody}>
-          <SelectField label={t('items.switchStatus')} options={statusOptions} value={data.status} disabled={!isOnline || updateStatus.isPending} onChange={(event) => updateStatus.mutate(event.currentTarget.value)} />
+          <StatusBadge status={data.status} />
+          {statusOptions.some((option) => option.value === data.status) && (
+            <SelectField label={t('items.switchStatus')} options={statusOptions} value={data.status} disabled={!isOnline || updateStatus.isPending} onChange={(event) => updateStatus.mutate(event.currentTarget.value)} />
+          )}
         </div>
       </Card>
 

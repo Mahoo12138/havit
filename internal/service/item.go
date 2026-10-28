@@ -30,26 +30,26 @@ func NewItemService(db *sql.DB) *ItemService {
 }
 
 type ItemCreateInput struct {
-	Name               string         `json:"name"`
-	Description        *string        `json:"description,omitempty"`
-	Category           *string        `json:"category,omitempty"`
-	Type               model.ItemType `json:"type"`
-	LocationID         *string        `json:"location_id,omitempty"`
-	HomeBaseLocationID *string        `json:"home_base_location_id,omitempty"`
-	CurrentStatusTag   *string        `json:"current_status_tag,omitempty"`
-	PurchasePrice      *float64       `json:"purchase_price,omitempty"`
-	PurchaseCurrency   *string        `json:"purchase_currency,omitempty"`
-	PurchaseDate       *int64         `json:"purchase_date,omitempty"`
-	PurchasePlatform   *string        `json:"purchase_platform,omitempty"`
-	SerialNumber       *string        `json:"serial_number,omitempty"`
-	WarrantyExpiresAt  *int64         `json:"warranty_expires_at,omitempty"`
-	WarrantyContact    *string        `json:"warranty_contact,omitempty"`
-	CurrentStock       *int           `json:"current_stock,omitempty"`
-	MinStockThreshold  *int           `json:"min_stock_threshold,omitempty"`
-	LifespanDays       *int           `json:"lifespan_days,omitempty"`
-	InUseSince         *int64         `json:"in_use_since,omitempty"`
-	IsPrivate          bool           `json:"is_private,omitempty"`
-	OwnerID            *string        `json:"owner_id,omitempty"`
+	Name               string          `json:"name"`
+	Description        *string         `json:"description,omitempty"`
+	Category           *string         `json:"category,omitempty"`
+	Type               model.ItemType  `json:"type"`
+	LocationID         *string         `json:"location_id,omitempty"`
+	HomeBaseLocationID *string         `json:"home_base_location_id,omitempty"`
+	CurrentStatusTag   *string         `json:"current_status_tag,omitempty"`
+	PurchasePrice      *float64        `json:"purchase_price,omitempty"`
+	PurchaseCurrency   *string         `json:"purchase_currency,omitempty"`
+	PurchaseDate       *int64          `json:"purchase_date,omitempty"`
+	PurchasePlatform   *string         `json:"purchase_platform,omitempty"`
+	SerialNumber       *string         `json:"serial_number,omitempty"`
+	WarrantyExpiresAt  *int64          `json:"warranty_expires_at,omitempty"`
+	WarrantyContact    *string         `json:"warranty_contact,omitempty"`
+	CurrentStock       *int            `json:"current_stock,omitempty"`
+	MinStockThreshold  *int            `json:"min_stock_threshold,omitempty"`
+	LifespanDays       *int            `json:"lifespan_days,omitempty"`
+	InUseSince         *int64          `json:"in_use_since,omitempty"`
+	IsPrivate          bool            `json:"is_private,omitempty"`
+	OwnerID            *string         `json:"owner_id,omitempty"`
 	Metadata           json.RawMessage `json:"metadata,omitempty"`
 }
 
@@ -121,14 +121,24 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 	if in.Name == "" {
 		return nil, errors.New("name required")
 	}
-	if in.LocationID == nil || *in.LocationID == "" {
-		return nil, errors.New("location_id required")
-	}
 	if in.Type == "" {
 		in.Type = model.ItemTypeDurable
 	}
 	if !validItemType(string(in.Type)) {
 		return nil, fmt.Errorf("invalid type: %s", in.Type)
+	}
+	// Virtual items may have no physical location. Essentials use their home
+	// base as the initial location so a new item starts "at home" instead of
+	// being inferred as away.
+	if in.Type == model.ItemTypeEssentials &&
+		(in.LocationID == nil || *in.LocationID == "") &&
+		in.HomeBaseLocationID != nil && *in.HomeBaseLocationID != "" {
+		in.LocationID = in.HomeBaseLocationID
+	}
+	if in.Type != model.ItemTypeVirtual && in.Type != model.ItemTypeEssentials {
+		if in.LocationID == nil || *in.LocationID == "" {
+			return nil, errors.New("location_id required")
+		}
 	}
 	if in.Type == model.ItemTypeTrackedSpares && in.MinStockThreshold == nil {
 		threshold := 1
@@ -545,6 +555,21 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 		if !validItemStatus(*in.Status) {
 			return nil, fmt.Errorf("invalid status: %s", *in.Status)
 		}
+		// Exit statuses carry ledger fields and side effects (abnormal record,
+		// FTS removal, reminder cleanup) and must go through the exit flow.
+		// Borrowing likewise belongs to the loan flow.
+		if isNonActiveStatus(*in.Status) {
+			return nil, fmt.Errorf("status %s must be set through the exit flow", *in.Status)
+		}
+		if *in.Status == model.StatusBorrowed {
+			return nil, errors.New("borrowed status must be set through the loan flow")
+		}
+		if cur.Status == model.StatusBorrowed && *in.Status != model.StatusBorrowed {
+			return nil, errors.New("borrowed item must be returned through the loan flow")
+		}
+		if isNonActiveStatus(cur.Status) && !isNonActiveStatus(*in.Status) {
+			clearExitFields(cur)
+		}
 		cur.Status = *in.Status
 	}
 	if in.LocationID != nil {
@@ -606,6 +631,7 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 			location_id = ?, home_base_location_id = ?, current_status_tag = ?,
 			purchase_price = ?, purchase_currency = ?, purchase_date = ?, purchase_platform = ?,
 			serial_number = ?, warranty_expires_at = ?, warranty_contact = ?,
+			exit_type = ?, exit_date = ?, exit_price = ?, exit_currency = ?, exit_notes = ?,
 			current_stock = ?, min_stock_threshold = ?, lifespan_days = ?, in_use_since = ?,
 			metadata = ?, updated_at = ?
 		WHERE id = ?`,
@@ -613,6 +639,7 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 		cur.LocationID, cur.HomeBaseLocationID, cur.CurrentStatusTag,
 		cur.PurchasePrice, cur.PurchaseCurrency, cur.PurchaseDate, cur.PurchasePlatform,
 		cur.SerialNumber, cur.WarrantyExpiresAt, cur.WarrantyContact,
+		cur.ExitType, cur.ExitDate, cur.ExitPrice, cur.ExitCurrency, cur.ExitNotes,
 		cur.CurrentStock, cur.MinStockThreshold, cur.LifespanDays, cur.InUseSince,
 		metadataStr, now, id,
 	)
@@ -625,10 +652,7 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 		}
 	}
 
-	if _, err := s.db.ExecContext(ctx,
-		`UPDATE items_fts SET name=?, description=?, category=?, serial_number=? WHERE item_id=?`,
-		cur.Name, derefStr(cur.Description), derefStr(cur.Category), derefStr(cur.SerialNumber), id,
-	); err != nil {
+	if err := s.syncFTS(ctx, cur); err != nil {
 		return nil, err
 	}
 
@@ -1080,8 +1104,9 @@ func (s *ItemService) Exit(ctx context.Context, id string, in ItemExitInput) (*m
 	if n, _ := res.RowsAffected(); n == 0 {
 		return nil, ErrNotFound
 	}
-	// Remove from FTS index so exited items are not searchable.
+	// Remove from FTS index and stop all reminders for exited items.
 	_, _ = s.db.ExecContext(ctx, `DELETE FROM items_fts WHERE item_id = ?`, id)
+	s.clearReminders(ctx, id)
 	payload := fmt.Sprintf(`{"exit_type":%q}`, in.ExitType)
 	s.logEvent(ctx, id, "exited", &payload)
 
@@ -1439,6 +1464,13 @@ func nextPurchaseAt(events []*model.PurchaseEvent) *int64 {
 }
 
 func (s *ItemService) Archive(ctx context.Context, id string) error {
+	cur, err := s.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	if cur.Status == model.StatusBorrowed {
+		return errors.New("borrowed item cannot be archived; return it first")
+	}
 	now := time.Now().Unix()
 	res, err := s.db.ExecContext(ctx,
 		`UPDATE items SET status = 'archived', updated_at = ? WHERE id = ?`,
@@ -1451,8 +1483,9 @@ func (s *ItemService) Archive(ctx context.Context, id string) error {
 	if n == 0 {
 		return ErrNotFound
 	}
-	// Remove from FTS index so archived items are not searchable.
+	// Remove from FTS index and stop all reminders for archived items.
 	_, _ = s.db.ExecContext(ctx, `DELETE FROM items_fts WHERE item_id = ?`, id)
+	s.clearReminders(ctx, id)
 	s.logEvent(ctx, id, "archived", nil)
 	return nil
 }
@@ -1548,6 +1581,49 @@ func validItemStatus(s model.ItemStatus) bool {
 		return true
 	}
 	return false
+}
+
+// isNonActiveStatus reports whether an item has left the active ledger. Such
+// statuses require ledger fields and side effects, so they cannot be written
+// through a plain PATCH.
+func isNonActiveStatus(s model.ItemStatus) bool {
+	switch s {
+	case model.StatusSold, model.StatusGivenAway, model.StatusLost, model.StatusStolen,
+		model.StatusUnreturned, model.StatusDamaged, model.StatusArchived:
+		return true
+	}
+	return false
+}
+
+func clearExitFields(item *model.Item) {
+	item.ExitType = nil
+	item.ExitDate = nil
+	item.ExitPrice = nil
+	item.ExitCurrency = nil
+	item.ExitNotes = nil
+}
+
+// syncFTS replaces the item's search row. Non-active items are removed from
+// the index; recovering an item (e.g. lost -> in_stock) restores it.
+func (s *ItemService) syncFTS(ctx context.Context, item *model.Item) error {
+	if _, err := s.db.ExecContext(ctx, `DELETE FROM items_fts WHERE item_id = ?`, item.ID); err != nil {
+		return err
+	}
+	if isNonActiveStatus(item.Status) {
+		return nil
+	}
+	_, err := s.db.ExecContext(ctx,
+		`INSERT INTO items_fts (item_id, name, description, category, serial_number)
+		 VALUES (?, ?, ?, ?, ?)`,
+		item.ID, item.Name, derefStr(item.Description), derefStr(item.Category), derefStr(item.SerialNumber),
+	)
+	return err
+}
+
+func (s *ItemService) clearReminders(ctx context.Context, itemID string) {
+	if _, err := s.db.ExecContext(ctx, `DELETE FROM reminders WHERE item_id = ?`, itemID); err != nil {
+		slog.Warn("clear item reminders failed", "item_id", itemID, "err", err)
+	}
 }
 
 func statusForExitType(exitType string) model.ItemStatus {

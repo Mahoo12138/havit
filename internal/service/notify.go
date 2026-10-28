@@ -44,7 +44,7 @@ func (s *NotifyService) ProcessDue(ctx context.Context, now int64) (*NotifyProce
 	if s.gateway == nil {
 		return nil, errors.New("notify gateway not configured")
 	}
-	due, err := s.reminders.List(ctx, ReminderListFilter{DueOnly: true, Now: now})
+	due, err := s.reminders.ListDueForDelivery(ctx, now)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +54,7 @@ func (s *NotifyService) ProcessDue(ctx context.Context, now int64) (*NotifyProce
 			result.Failed++
 			continue
 		}
-		if _, err := s.reminders.MarkSent(ctx, reminder.ID, now); err != nil {
+		if _, err := s.reminders.MarkSentForDelivery(ctx, reminder.ID, now); err != nil {
 			return nil, err
 		}
 		result.Sent++

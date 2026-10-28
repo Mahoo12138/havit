@@ -41,38 +41,38 @@ type ItemsExport struct {
 }
 
 type ExportItem struct {
-	ID                string       `json:"id"`
-	Name              string       `json:"name"`
-	Type              string       `json:"type"`
-	Status            string       `json:"status"`
-	Category          *string      `json:"category,omitempty"`
-	Description       *string      `json:"description,omitempty"`
-	LocationID        *string      `json:"location_id,omitempty"`
-	LocationPath      *string      `json:"location_path,omitempty"`
-	HomeBaseLocationID *string     `json:"home_base_location_id,omitempty"`
-	HomeBaseLocationPath *string   `json:"home_base_location_path,omitempty"`
-	CurrentStatusTag  *string      `json:"current_status_tag,omitempty"`
-	PurchasePrice     *float64     `json:"purchase_price,omitempty"`
-	PurchaseCurrency  *string      `json:"purchase_currency,omitempty"`
-	PurchaseDate      *int64       `json:"purchase_date,omitempty"`
-	PurchasePlatform  *string      `json:"purchase_platform,omitempty"`
-	WarrantyExpiresAt *int64       `json:"warranty_expires_at,omitempty"`
-	SerialNumber      *string      `json:"serial_number,omitempty"`
-	WarrantyContact   *string      `json:"warranty_contact,omitempty"`
-	ExitType          *string      `json:"exit_type,omitempty"`
-	ExitDate          *int64       `json:"exit_date,omitempty"`
-	ExitPrice         *float64     `json:"exit_price,omitempty"`
-	ExitCurrency      *string      `json:"exit_currency,omitempty"`
-	ExitNotes         *string      `json:"exit_notes,omitempty"`
-	CurrentStock      *int         `json:"current_stock,omitempty"`
-	MinStockThreshold *int         `json:"min_stock_threshold,omitempty"`
-	LifespanDays      *int         `json:"lifespan_days,omitempty"`
-	InUseSince        *int64       `json:"in_use_since,omitempty"`
-	IsPrivate         bool         `json:"is_private"`
-	OwnerID           *string      `json:"owner_id,omitempty"`
-	CreatedAt         int64        `json:"created_at"`
-	UpdatedAt         int64        `json:"updated_at"`
-	Tags              []*model.Tag `json:"tags,omitempty"`
+	ID                   string       `json:"id"`
+	Name                 string       `json:"name"`
+	Type                 string       `json:"type"`
+	Status               string       `json:"status"`
+	Category             *string      `json:"category,omitempty"`
+	Description          *string      `json:"description,omitempty"`
+	LocationID           *string      `json:"location_id,omitempty"`
+	LocationPath         *string      `json:"location_path,omitempty"`
+	HomeBaseLocationID   *string      `json:"home_base_location_id,omitempty"`
+	HomeBaseLocationPath *string      `json:"home_base_location_path,omitempty"`
+	CurrentStatusTag     *string      `json:"current_status_tag,omitempty"`
+	PurchasePrice        *float64     `json:"purchase_price,omitempty"`
+	PurchaseCurrency     *string      `json:"purchase_currency,omitempty"`
+	PurchaseDate         *int64       `json:"purchase_date,omitempty"`
+	PurchasePlatform     *string      `json:"purchase_platform,omitempty"`
+	WarrantyExpiresAt    *int64       `json:"warranty_expires_at,omitempty"`
+	SerialNumber         *string      `json:"serial_number,omitempty"`
+	WarrantyContact      *string      `json:"warranty_contact,omitempty"`
+	ExitType             *string      `json:"exit_type,omitempty"`
+	ExitDate             *int64       `json:"exit_date,omitempty"`
+	ExitPrice            *float64     `json:"exit_price,omitempty"`
+	ExitCurrency         *string      `json:"exit_currency,omitempty"`
+	ExitNotes            *string      `json:"exit_notes,omitempty"`
+	CurrentStock         *int         `json:"current_stock,omitempty"`
+	MinStockThreshold    *int         `json:"min_stock_threshold,omitempty"`
+	LifespanDays         *int         `json:"lifespan_days,omitempty"`
+	InUseSince           *int64       `json:"in_use_since,omitempty"`
+	IsPrivate            bool         `json:"is_private"`
+	OwnerID              *string      `json:"owner_id,omitempty"`
+	CreatedAt            int64        `json:"created_at"`
+	UpdatedAt            int64        `json:"updated_at"`
+	Tags                 []*model.Tag `json:"tags,omitempty"`
 }
 
 func (s *ExportService) Items(ctx context.Context) (*ItemsExport, error) {
@@ -318,10 +318,16 @@ func (s *ExportService) tagsForItems(ctx context.Context) (map[string][]*model.T
 }
 
 func (s *ExportService) purchaseEvents(ctx context.Context) ([]*model.PurchaseEvent, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1 = 1", nil)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, item_id, quantity, price, currency, purchased_at, notes
-		FROM purchase_events
-		ORDER BY purchased_at ASC, id ASC`)
+		SELECT pe.id, pe.item_id, pe.quantity, pe.price, pe.currency, pe.purchased_at, pe.notes
+		FROM purchase_events pe
+		JOIN items i ON i.id = pe.item_id
+		WHERE `+where+`
+		ORDER BY pe.purchased_at ASC, pe.id ASC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -339,10 +345,16 @@ func (s *ExportService) purchaseEvents(ctx context.Context) ([]*model.PurchaseEv
 }
 
 func (s *ExportService) calibrationEvents(ctx context.Context) ([]*model.CalibrationEvent, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1 = 1", nil)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, item_id, signal, created_at
-		FROM calibration_events
-		ORDER BY created_at ASC, id ASC`)
+		SELECT ce.id, ce.item_id, ce.signal, ce.created_at
+		FROM calibration_events ce
+		JOIN items i ON i.id = ce.item_id
+		WHERE `+where+`
+		ORDER BY ce.created_at ASC, ce.id ASC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -360,12 +372,18 @@ func (s *ExportService) calibrationEvents(ctx context.Context) ([]*model.Calibra
 }
 
 func (s *ExportService) loans(ctx context.Context) ([]*model.Loan, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1 = 1", nil)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, item_id, borrower_name, borrower_contact,
-			loaned_at, due_at, returned_at, status,
-			compensation, compensation_currency, notes
-		FROM loans
-		ORDER BY loaned_at ASC, id ASC`)
+		SELECT l.id, l.item_id, l.borrower_name, l.borrower_contact,
+			l.loaned_at, l.due_at, l.returned_at, l.status,
+			l.compensation, l.compensation_currency, l.notes
+		FROM loans l
+		JOIN items i ON i.id = l.item_id
+		WHERE `+where+`
+		ORDER BY l.loaned_at ASC, l.id ASC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -383,10 +401,16 @@ func (s *ExportService) loans(ctx context.Context) ([]*model.Loan, error) {
 }
 
 func (s *ExportService) virtualCredentials(ctx context.Context) ([]*model.VirtualCredential, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1 = 1", nil)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, item_id, platform, account, order_id, license_key, purchased_at, price, currency
-		FROM virtual_credentials
-		ORDER BY platform ASC, id ASC`)
+		SELECT c.id, c.item_id, c.platform, c.account, c.order_id, c.license_key, c.purchased_at, c.price, c.currency
+		FROM virtual_credentials c
+		JOIN items i ON i.id = c.item_id
+		WHERE `+where+`
+		ORDER BY c.platform ASC, c.id ASC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -411,10 +435,16 @@ func (s *ExportService) virtualCredentials(ctx context.Context) ([]*model.Virtua
 }
 
 func (s *ExportService) virtualAddons(ctx context.Context) ([]*model.VirtualAddonPurchase, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1 = 1", nil)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, item_id, name, platform, price, currency, purchased_at
-		FROM virtual_addon_purchases
-		ORDER BY purchased_at ASC, id ASC`)
+		SELECT a.id, a.item_id, a.name, a.platform, a.price, a.currency, a.purchased_at
+		FROM virtual_addon_purchases a
+		JOIN items i ON i.id = a.item_id
+		WHERE `+where+`
+		ORDER BY a.purchased_at ASC, a.id ASC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -432,11 +462,16 @@ func (s *ExportService) virtualAddons(ctx context.Context) ([]*model.VirtualAddo
 }
 
 func (s *ExportService) reminders(ctx context.Context) ([]*model.Reminder, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1 = 1", nil)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT r.id, r.item_id, r.type, r.trigger_at, r.sent_at, r.is_dismissed, i.name
 		FROM reminders r
-		LEFT JOIN items i ON i.id = r.item_id
-		ORDER BY r.trigger_at ASC, r.id ASC`)
+		JOIN items i ON i.id = r.item_id
+		WHERE `+where+`
+		ORDER BY r.trigger_at ASC, r.id ASC`, args...)
 	if err != nil {
 		return nil, err
 	}

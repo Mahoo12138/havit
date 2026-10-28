@@ -47,6 +47,33 @@ func TestLocationTreeBuildsNestedLocations(t *testing.T) {
 	}
 }
 
+func TestLocationUpdateRejectsCycles(t *testing.T) {
+	ctx := context.Background()
+	svc := NewLocationService(newTestDB(t))
+
+	root, err := svc.Create(ctx, LocationCreateInput{Name: "书房", Type: "room"})
+	if err != nil {
+		t.Fatalf("create root location: %v", err)
+	}
+	if _, err := svc.Update(ctx, root.ID, LocationUpdateInput{ParentID: &root.ID}); err == nil {
+		t.Fatal("expected self-parent update to be rejected")
+	}
+
+	node, err := svc.Create(ctx, LocationCreateInput{Name: "@随身", Type: "virtual"})
+	if err != nil {
+		t.Fatalf("create virtual node: %v", err)
+	}
+	// A room may be placed under a virtual node (virtual nodes are exempt
+	// from the type hierarchy), and then the virtual node must not be moved
+	// under that room.
+	if _, err := svc.Update(ctx, root.ID, LocationUpdateInput{ParentID: &node.ID}); err != nil {
+		t.Fatalf("move room under virtual node: %v", err)
+	}
+	if _, err := svc.Update(ctx, node.ID, LocationUpdateInput{ParentID: &root.ID}); err == nil {
+		t.Fatal("expected move under own descendant to be rejected")
+	}
+}
+
 func TestLocationDeleteRejectsNonEmptyLocation(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)

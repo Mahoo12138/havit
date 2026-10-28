@@ -238,6 +238,62 @@ func TestAuthDefaultExpiry(t *testing.T) {
 	}
 }
 
+func TestAuthVerifyRejectsDeletedUser(t *testing.T) {
+	db := newTestDB(t)
+	svc := NewAuthService(db, "test-secret", 720, false, nil)
+
+	user, token, err := svc.Setup(context.Background(), "admin@test.com", "password123")
+	if err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	if err := svc.DeleteUser(context.Background(), user.ID, "someone-else"); err != nil {
+		t.Fatalf("DeleteUser: %v", err)
+	}
+	if _, err := svc.Verify(token); err == nil {
+		t.Fatal("expected token of deleted user to be rejected")
+	}
+}
+
+func TestUpdateRoleInvalidatesExistingToken(t *testing.T) {
+	db := newTestDB(t)
+	svc := NewAuthService(db, "test-secret", 720, false, nil)
+
+	owner, _, err := svc.Setup(context.Background(), "owner@test.com", "password123")
+	if err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	member, err := svc.CreateMember(context.Background(), "member@test.com", "password123")
+	if err != nil {
+		t.Fatalf("CreateMember: %v", err)
+	}
+	_, memberToken, err := svc.Login(context.Background(), "member@test.com", "password123")
+	if err != nil {
+		t.Fatalf("Login: %v", err)
+	}
+	if _, err := svc.Verify(memberToken); err != nil {
+		t.Fatalf("expected member token to verify, got %v", err)
+	}
+
+	if _, err := svc.UpdateRole(context.Background(), member.ID, "owner", owner.ID); err != nil {
+		t.Fatalf("UpdateRole: %v", err)
+	}
+	if _, err := svc.Verify(memberToken); err == nil {
+		t.Fatal("expected token issued with old role to be revoked")
+	}
+
+	_, freshToken, err := svc.Login(context.Background(), "member@test.com", "password123")
+	if err != nil {
+		t.Fatalf("Login after role change: %v", err)
+	}
+	claims, err := svc.Verify(freshToken)
+	if err != nil {
+		t.Fatalf("expected fresh token to verify, got %v", err)
+	}
+	if claims.Role != "owner" {
+		t.Fatalf("expected refreshed role owner, got %q", claims.Role)
+	}
+}
+
 func TestAuthSameTokenErrorInstance(t *testing.T) {
 	if !errors.Is(ErrInvalidCredentials, apperr.ErrInvalidCredentials) {
 		t.Fatal("ErrInvalidCredentials should be the same instance as apperr.ErrInvalidCredentials")
@@ -252,5 +308,3 @@ func TestAuthSameTokenErrorInstance(t *testing.T) {
 		t.Fatal("ErrNotFound should be defined in service package")
 	}
 }
-
-

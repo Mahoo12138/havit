@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -23,8 +24,8 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port       int
-	BaseURL    string `mapstructure:"base_url"`
+	Port        int
+	BaseURL     string `mapstructure:"base_url"`
 	CORSOrigins string `mapstructure:"cors_origins"`
 }
 
@@ -111,6 +112,7 @@ func LoadFrom(configPaths []string) *Config {
 	v.SetEnvPrefix("HAVIT")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
+	_ = v.BindEnv("auth.jwt_secret", "HAVIT_AUTH_JWT_SECRET")
 	if os.Getenv("HAVIT_MODE") == "" {
 		_ = v.BindEnv("mode", "HAVIT_RUN_MODE")
 	}
@@ -118,14 +120,54 @@ func LoadFrom(configPaths []string) *Config {
 	var cfg Config
 	_ = v.Unmarshal(&cfg)
 
+	// The generated secret is written to <data_dir>/config.yaml, which is not
+	// one of the default search paths. Read it back explicitly so a restart
+	// keeps the same JWT signing key and field-encryption key.
+	if cfg.Auth.JWTSecret == "" {
+		if secret := persistedSecret(cfg.Data.Dir); secret != "" {
+			cfg.Auth.JWTSecret = secret
+			v.Set("auth.jwt_secret", secret)
+		}
+	}
+
 	if cfg.Auth.JWTSecret == "" {
 		cfg.Auth.JWTSecret = generateSecret()
 		v.Set("auth.jwt_secret", cfg.Auth.JWTSecret)
-		_ = os.MkdirAll(cfg.Data.Dir, 0o755)
-		_ = v.WriteConfigAs(filepath.Join(cfg.Data.Dir, "config.yaml"))
+		if err := os.MkdirAll(cfg.Data.Dir, 0o755); err != nil {
+			slog.Error("create data dir for generated secret", "dir", cfg.Data.Dir, "err", err)
+		}
+		path := filepath.Join(cfg.Data.Dir, "config.yaml")
+		if used := v.ConfigFileUsed(); used != "" {
+			if err := v.WriteConfig(); err != nil {
+				slog.Error("persist generated secret", "path", used, "err", err)
+			} else if err := os.Chmod(used, 0o600); err != nil {
+				slog.Warn("restrict generated config permissions", "path", used, "err", err)
+			}
+		} else if err := v.WriteConfigAs(path); err != nil {
+			slog.Error("persist generated secret", "path", path, "err", err)
+		} else if err := os.Chmod(path, 0o600); err != nil {
+			slog.Warn("restrict generated config permissions", "path", path, "err", err)
+		}
 	}
 
 	return &cfg
+}
+
+func persistedSecret(dataDir string) string {
+	if dataDir == "" {
+		return ""
+	}
+	path := filepath.Join(dataDir, "config.yaml")
+	if _, err := os.Stat(path); err != nil {
+		return ""
+	}
+	v := viper.New()
+	v.SetConfigFile(path)
+	v.SetConfigType("yaml")
+	if err := v.ReadInConfig(); err != nil {
+		return ""
+	}
+	return strings.TrimSpace(v.GetString("auth.jwt_secret"))
 }
 
 func generateSecret() string {

@@ -99,28 +99,23 @@ async function createSearchFixture(api: APIRequestContext, headers: { Authorizat
 }
 
 /**
- * Runs a search and waits for it to reach a terminal state.
+ * Runs a search and waits until the page reports a terminal phase.
  *
- * The page streams results over SSE: `fts_results` lands almost immediately and
- * flips the status line to "AI refining…", then the server holds the stream open
- * until the optional LLM pass finishes (the demo backend has no real LLM, so that
- * pass can sit for up to `ai.timeout_seconds`, default 10s) before emitting `done`.
- * Only after `done` does the page leave the refining phase and render the empty
- * state, so a bare `fill()` followed by an assertion races against that tail.
- *
- * We wait on the busy indicator rather than a fixed delay: it has to appear first
- * (the input is debounced by 350ms, so asserting its absence straight after fill
- * would pass vacuously) and then disappear, which is the point where results and
- * the empty state are both settled.
+ * Results stream over SSE. The busy indicator ("Searching…" / "AI refining…")
+ * is too short-lived to assert on when the optional AI pass is disabled — the
+ * stream can finish before Playwright observes it. Waiting for the terminal
+ * `done`/`error` phase avoids that race and also covers the empty-result state.
  */
 async function searchFor(page: Page, query: string) {
   await page.goto('/search');
   await page.waitForLoadState('networkidle');
-  await page.getByLabel('Query').fill(query);
 
-  const busy = page.getByText(/AI refining…|Searching…/);
-  await expect(busy).toBeVisible({ timeout: 15_000 });
-  await expect(busy).toBeHidden({ timeout: 30_000 });
+  const searchRoot = page.locator('[data-search-phase]');
+  await expect(searchRoot).toHaveAttribute('data-search-phase', 'idle');
+  await page.getByLabel('Query').fill(query);
+  await expect(searchRoot).toHaveAttribute('data-search-phase', /^(done|error)$/, {
+    timeout: 30_000,
+  });
 }
 
 test.describe('Search & locate loop', () => {

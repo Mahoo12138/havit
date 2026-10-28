@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -58,5 +59,42 @@ func TestAttachmentServiceStoresPhotoAndMetadata(t *testing.T) {
 	}
 	if len(list) != 1 || list[0].ID != photo.ID {
 		t.Fatalf("expected stored attachment in list, got %#v", list)
+	}
+}
+
+func TestAttachmentPrivacyIsolatesPrivateItems(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	seedUser(t, database, "user-alice", "member")
+	locID := createTestLocation(t, ctx, database, "书房")
+	alice := "user-alice"
+	item, err := NewItemService(database).Create(ctxAs(alice), ItemCreateInput{
+		Name: "私密相机", Type: model.ItemTypeDurable, LocationID: &locID,
+		IsPrivate: true, OwnerID: &alice,
+	})
+	if err != nil {
+		t.Fatalf("create private item: %v", err)
+	}
+	svc := NewAttachmentService(database, t.TempDir())
+	photo, err := svc.Store(ctxAs(alice), StoreAttachmentInput{
+		ItemID:      item.ID,
+		Type:        model.AttachmentTypePhoto,
+		Filename:    "private.jpg",
+		ContentType: "image/jpeg",
+		Reader:      bytes.NewReader([]byte("fake-jpeg")),
+	})
+	if err != nil {
+		t.Fatalf("store photo: %v", err)
+	}
+
+	bob := ctxAs("user-bob")
+	if _, err := svc.List(bob, item.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob list attachments: expected ErrNotFound, got %v", err)
+	}
+	if _, _, err := svc.Open(bob, photo.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob open attachment: expected ErrNotFound, got %v", err)
+	}
+	if err := svc.Delete(bob, photo.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob delete attachment: expected ErrNotFound, got %v", err)
 	}
 }

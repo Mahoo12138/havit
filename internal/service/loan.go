@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -55,12 +56,15 @@ func (s *LoanService) Create(ctx context.Context, itemID string, in LoanCreateIn
 	if in.BorrowerName == "" {
 		return nil, errors.New("borrower_name required")
 	}
-	visible, err := s.itemVisible(ctx, itemID)
+	status, err := s.itemStatus(ctx, itemID)
 	if err != nil {
 		return nil, err
 	}
-	if !visible {
-		return nil, ErrNotFound
+	if status == model.StatusBorrowed {
+		return nil, errors.New("item is already borrowed")
+	}
+	if isNonActiveStatus(status) {
+		return nil, fmt.Errorf("item status %s cannot be loaned", status)
 	}
 
 	now := time.Now().Unix()
@@ -75,16 +79,27 @@ func (s *LoanService) Create(ctx context.Context, itemID string, in LoanCreateIn
 	}
 	defer tx.Rollback()
 
+	var activeLoans int
+	if err := tx.QueryRowContext(ctx,
+		`SELECT COUNT(*) FROM loans WHERE item_id = ? AND status IN ('active', 'unreturned')`,
+		itemID,
+	).Scan(&activeLoans); err != nil {
+		return nil, err
+	}
+	if activeLoans > 0 {
+		return nil, errors.New("item already has an outstanding loan")
+	}
+
 	res, err := tx.ExecContext(ctx, `
 		UPDATE items SET status = ?, updated_at = ?
-		WHERE id = ?`,
+		WHERE id = ? AND status IN ('in_stock', 'idle', 'for_sale')`,
 		model.StatusBorrowed, now, itemID,
 	)
 	if err != nil {
 		return nil, err
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
-		return nil, ErrNotFound
+		return nil, errors.New("item is not available for loan")
 	}
 
 	if _, err := tx.ExecContext(ctx, `
@@ -98,6 +113,11 @@ func (s *LoanService) Create(ctx context.Context, itemID string, in LoanCreateIn
 		return nil, err
 	}
 
+	// Replace any stale due reminder from an earlier loan cycle.
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM reminders WHERE item_id = ? AND type = 'loan_due'`, itemID); err != nil {
+		return nil, err
+	}
 	if in.DueAt != nil {
 		reminderID := ulid.Make().String()
 		if _, err := tx.ExecContext(ctx, `
@@ -221,6 +241,9 @@ func (s *LoanService) Return(ctx context.Context, id string, in LoanReturnInput)
 	if !visible {
 		return nil, ErrNotFound
 	}
+	if cur.Status != "active" {
+		return nil, fmt.Errorf("loan is %s and cannot be returned", cur.Status)
+	}
 
 	now := time.Now().Unix()
 	if in.ReturnedAt == 0 {
@@ -233,18 +256,26 @@ func (s *LoanService) Return(ctx context.Context, id string, in LoanReturnInput)
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.ExecContext(ctx, `
+	res, err := tx.ExecContext(ctx, `
 		UPDATE loans SET returned_at = ?, status = 'returned'
-		WHERE id = ?`,
+		WHERE id = ? AND status = 'active'`,
 		in.ReturnedAt, id,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return nil, errors.New("loan is no longer active")
 	}
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE items SET status = ?, updated_at = ?
-		WHERE id = ?`,
-		model.StatusInStock, now, cur.ItemID,
+		WHERE id = ? AND status = ?`,
+		model.StatusInStock, now, cur.ItemID, model.StatusBorrowed,
 	); err != nil {
+		return nil, err
+	}
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM reminders WHERE item_id = ? AND type = 'loan_due'`, cur.ItemID); err != nil {
 		return nil, err
 	}
 
@@ -270,6 +301,9 @@ func (s *LoanService) MarkUnreturned(ctx context.Context, id string, in LoanUnre
 	if !visible {
 		return nil, ErrNotFound
 	}
+	if cur.Status != "active" {
+		return nil, fmt.Errorf("loan is %s and cannot be marked unreturned", cur.Status)
+	}
 
 	now := time.Now().Unix()
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -278,16 +312,20 @@ func (s *LoanService) MarkUnreturned(ctx context.Context, id string, in LoanUnre
 	}
 	defer tx.Rollback()
 
-	if _, err := tx.ExecContext(ctx, `
+	res, err := tx.ExecContext(ctx, `
 		UPDATE loans SET
 			status = 'unreturned',
 			compensation = ?,
 			compensation_currency = ?,
 			notes = ?
-		WHERE id = ?`,
+		WHERE id = ? AND status = 'active'`,
 		in.Compensation, in.CompensationCurrency, in.Notes, id,
-	); err != nil {
+	)
+	if err != nil {
 		return nil, err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return nil, errors.New("loan is no longer active")
 	}
 	if _, err := tx.ExecContext(ctx, `
 		UPDATE items SET status = ?, updated_at = ?
@@ -296,17 +334,21 @@ func (s *LoanService) MarkUnreturned(ctx context.Context, id string, in LoanUnre
 	); err != nil {
 		return nil, err
 	}
-
-	if err := tx.Commit(); err != nil {
+	if _, err := tx.ExecContext(ctx,
+		`DELETE FROM reminders WHERE item_id = ? AND type = 'loan_due'`, cur.ItemID); err != nil {
 		return nil, err
 	}
 
-	// Liability settlement must land in the abnormal module and stay on the
-	// item's permanent lifecycle log (product design 3.7).
+	// The liability settlement must land in the abnormal module in the same
+	// transaction as the loan/item updates.
 	if s.abnormal != nil {
-		if _, err := s.abnormal.UpsertFromLoan(ctx, cur.ItemID, "unreturned", cur.BorrowerName, in.Compensation, in.CompensationCurrency); err != nil {
+		if _, err := s.abnormal.UpsertFromLoanTx(ctx, tx, cur.ItemID, "unreturned", cur.BorrowerName, in.Compensation, in.CompensationCurrency); err != nil {
 			return nil, err
 		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	s.logLoanEvent(ctx, cur.ItemID, "loan_unreturned", jsonPayload(map[string]any{
 		"loan_id":               id,
@@ -338,6 +380,27 @@ func jsonPayload(v any) *string {
 	}
 	s := string(raw)
 	return &s
+}
+
+func (s *LoanService) itemStatus(ctx context.Context, itemID string) (model.ItemStatus, error) {
+	owner := callerID(ctx)
+	where := "id = ?"
+	args := []any{itemID}
+	where, args = itemPrivacy("items", owner, where, args)
+	visible, err := visibleLocationIDs(ctx, s.db, owner)
+	if err != nil {
+		return "", err
+	}
+	where, args = locationClause("items", visible, where, args)
+	var status model.ItemStatus
+	if err := s.db.QueryRowContext(ctx,
+		"SELECT status FROM items WHERE "+where, args...).Scan(&status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrNotFound
+		}
+		return "", err
+	}
+	return status, nil
 }
 
 // itemVisible reports whether the caller may see the item (own privacy +
