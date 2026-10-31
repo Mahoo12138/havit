@@ -5,18 +5,24 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, for example v1.0.0'
+        required: false
 
 permissions:
   contents: read
   packages: write
 
+env:
+  VERSION: ${{ github.event.inputs.version || github.ref_name }}
+
 jobs:
   ghcr:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-
-      - uses: docker/setup-qemu-action@v3
 
       - uses: docker/setup-buildx-action@v3
 
@@ -26,13 +32,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/mahoo12138/havit
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.VERSION }}
+            type=raw,value=latest
+
       - uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           build-args: |
-            VERSION=${{ github.ref_name }}
-          tags: |
-            ghcr.io/mahoo12138/havit:${{ github.ref_name }}
-            ghcr.io/mahoo12138/havit:latest
+            VERSION=${{ env.VERSION }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
