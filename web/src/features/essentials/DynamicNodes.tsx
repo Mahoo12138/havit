@@ -9,7 +9,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
-import { Card } from '../../components/ui/card';
+import { TableCard } from '../../components/ui/table-card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { Stack } from '../../components/ui';
@@ -140,30 +140,27 @@ export function DynamicNodes({ items }: { items: Item[] }) {
   }
 
   return (
-    <Card className={s.ledgerCard} padded={false}>
-      <div className={s.toolbar}>
-        <div className={s.toolbarLeft}>
-          <span className={s.hintText}>{t('essentials.dynamicNodesHint')}</span>
-        </div>
-        <div className={s.toolbarRight}>
-          <Button
-            variant="outline"
-            size="sm"
-            leftSection={<IconPlus size={14} />}
-            onClick={() => {
-              setNodeName('');
-              setDialogMode('create');
-            }}
-          >
-            {t('essentials.newNode')}
-          </Button>
-        </div>
-      </div>
-
+    <TableCard
+      ariaLabel={t('essentials.dynamicNodes')}
+      description={<span className={s.hintText}>{t('essentials.dynamicNodesHint')}</span>}
+      actions={
+        <Button
+          variant="outline"
+          size="sm"
+          leftSection={<IconPlus size={14} />}
+          onClick={() => {
+            setNodeName('');
+            setDialogMode('create');
+          }}
+        >
+          {t('essentials.newNode')}
+        </Button>
+      }
+    >
       {isLoading ? (
         <div className={s.empty}>…</div>
       ) : (
-        <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+        <Table style={{ whiteSpace: 'nowrap' }} aria-label={t('essentials.dynamicNodes')}>
           <TableHeader>
             <TableRow>
               <TableHead>{t('essentials.nodeName')}</TableHead>
@@ -233,7 +230,7 @@ export function DynamicNodes({ items }: { items: Item[] }) {
           </div>
         </Stack>
       </Dialog>
-    </Card>
+    </TableCard>
   );
 }
 

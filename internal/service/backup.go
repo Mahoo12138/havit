@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -19,6 +20,7 @@ type BackupService struct {
 	db       *sql.DB
 	dataDir  string
 	keepDays int
+	runMu    sync.Mutex
 }
 
 func NewBackupService(db *sql.DB, dataDir string, keepDays int) *BackupService {
@@ -32,6 +34,9 @@ type BackupResult struct {
 }
 
 func (s *BackupService) Run(ctx context.Context) (*BackupResult, error) {
+	s.runMu.Lock()
+	defer s.runMu.Unlock()
+
 	backupDir := filepath.Join(s.dataDir, "backups")
 	if err := os.MkdirAll(backupDir, 0o755); err != nil {
 		return nil, err
@@ -40,19 +45,36 @@ func (s *BackupService) Run(ctx context.Context) (*BackupResult, error) {
 	timestamp := time.Now().Format("2006-01-02T150405")
 	tempDB := filepath.Join(backupDir, "temp_backup.db")
 	finalTar := filepath.Join(backupDir, fmt.Sprintf("%s_havit.tar.gz", timestamp))
+	tempTar := finalTar + ".tmp"
 	_ = os.Remove(tempDB)
+	_ = os.Remove(tempTar)
 
 	escaped := strings.ReplaceAll(tempDB, "'", "''")
 	if _, err := s.db.ExecContext(ctx, fmt.Sprintf("VACUUM INTO '%s'", escaped)); err != nil {
 		return nil, fmt.Errorf("vacuum into: %w", err)
 	}
 	defer os.Remove(tempDB)
+	defer os.Remove(tempTar)
 
-	if err := createTarGz(finalTar, []backupEntry{
+	entries := []backupEntry{
 		{path: tempDB, name: "havit.db"},
 		{path: filepath.Join(s.dataDir, "attachments"), name: "attachments"},
-	}); err != nil {
+	}
+	configPath := filepath.Join(s.dataDir, "config.yaml")
+	if _, err := os.Stat(configPath); err == nil {
+		entries = append(entries, backupEntry{path: configPath, name: "config.yaml"})
+	} else if !os.IsNotExist(err) {
+		return nil, fmt.Errorf("stat config for backup: %w", err)
+	}
+
+	if err := createTarGz(tempTar, entries); err != nil {
 		return nil, fmt.Errorf("tar: %w", err)
+	}
+	if err := os.Rename(tempTar, finalTar); err != nil {
+		return nil, fmt.Errorf("finalize backup: %w", err)
+	}
+	if err := os.Chmod(finalTar, 0o600); err != nil {
+		return nil, fmt.Errorf("restrict backup permissions: %w", err)
 	}
 
 	if err := s.pruneOldBackups(); err != nil {
@@ -159,30 +181,46 @@ type backupEntry struct {
 	name string
 }
 
-func createTarGz(output string, entries []backupEntry) error {
+func createTarGz(output string, entries []backupEntry) (err error) {
 	file, err := os.Create(output)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() {
+		if err != nil {
+			_ = os.Remove(output)
+		}
+	}()
 
 	gz := gzip.NewWriter(file)
-	defer gz.Close()
-
 	tw := tar.NewWriter(gz)
-	defer tw.Close()
 
 	for _, entry := range entries {
 		if _, err := os.Stat(entry.path); os.IsNotExist(err) {
 			continue
 		} else if err != nil {
+			_ = tw.Close()
+			_ = gz.Close()
+			_ = file.Close()
 			return err
 		}
 		if err := addPathToTar(tw, entry.path, entry.name); err != nil {
+			_ = tw.Close()
+			_ = gz.Close()
+			_ = file.Close()
 			return err
 		}
 	}
-	return nil
+	if err := tw.Close(); err != nil {
+		_ = gz.Close()
+		_ = file.Close()
+		return err
+	}
+	if err := gz.Close(); err != nil {
+		_ = file.Close()
+		return err
+	}
+	return file.Close()
 }
 
 func addPathToTar(tw *tar.Writer, src, name string) error {

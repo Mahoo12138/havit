@@ -13,19 +13,16 @@ import (
 // configDefaults provides code-level defaults for dynamically managed keys.
 // These are the tier-1 fallback for ConfigService (env > DB > these defaults).
 var configDefaults = map[string]string{
-	"ai.enabled":              "false",
-	"ai.base_url":             "https://api.openai.com/v1",
-	"ai.api_key":              "",
-	"ai.model":                "gpt-4o-mini",
-	"ai.vision_model":         "gpt-4o",
-	"ai.timeout_seconds":      "10",
-	"ai.confidence_strategy":  "strict",
-	"notify.apprise_url":      "",
-	"notify.webhook_url":      "",
-	"notify.ntfy_url":         "",
-	"storage.max_photo_size_mb": "20",
-	"storage.webp_quality":    "80",
-	"auth.allow_registration": "true",
+	"ai.enabled":         "false",
+	"ai.base_url":        "https://api.openai.com/v1",
+	"ai.api_key":         "",
+	"ai.model":           "gpt-4o-mini",
+	"ai.vision_model":    "gpt-4o",
+	"ai.timeout_seconds": "10",
+	"notify.enabled":     "false",
+	"notify.apprise_url": "",
+	"notify.webhook_url": "",
+	"notify.ntfy_url":    "",
 }
 
 // ConfigService implements 4-tier priority config resolution:

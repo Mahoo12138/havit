@@ -12,7 +12,7 @@ import {
   PaginationPrevious,
   usePaginationRange,
 } from '../../components/ui/pagination';
-import { Card } from '../../components/ui/card';
+import { TableCard } from '../../components/ui/table-card';
 import { Spinner } from '../../components/ui/spinner';
 import {
   Table,
@@ -101,29 +101,40 @@ export function ReturnLog() {
   }
 
   return (
-    <Card className={s.ledgerCard} padded={false}>
-      <div className={s.toolbar}>
-        <div className={s.toolbarLeft}>
-          <FilterSelect
-            label={t('essentials.eventType')}
-            options={[
-              { value: 'all', label: t('essentials.allTypes') },
-              { value: 'essentials_returned_home', label: t('events.essentials_returned_home') },
-              { value: 'essentials_status_changed', label: t('events.essentials_status_changed') },
-            ]}
-            value={eventFilter}
-            onChange={(value) => {
-              setEventFilter(value as EventFilter);
-              setOffset(0);
-            }}
-          />
-        </div>
-      </div>
-
+    <TableCard
+      ariaLabel={t('essentials.returnLog')}
+      filters={
+        <FilterSelect
+          label={t('essentials.eventType')}
+          options={[
+            { value: 'all', label: t('essentials.allTypes') },
+            { value: 'essentials_returned_home', label: t('events.essentials_returned_home') },
+            { value: 'essentials_status_changed', label: t('events.essentials_status_changed') },
+          ]}
+          value={eventFilter}
+          onChange={(value) => {
+            setEventFilter(value as EventFilter);
+            setOffset(0);
+          }}
+        />
+      }
+      footer={
+        total > 0 ? (
+          <div className={s.footerBar}>
+            <span>{t('common.recordsCount', { count: total })}</span>
+            <ReturnLogPager
+              offset={offset}
+              total={total}
+              onOffsetChange={setOffset}
+            />
+          </div>
+        ) : undefined
+      }
+    >
       {isLoading ? (
         <Spinner />
       ) : (
-        <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+        <Table style={{ whiteSpace: 'nowrap' }} aria-label={t('essentials.returnLog')}>
           <TableHeader>
             <TableRow>
               <TableHead>{t('essentials.time')}</TableHead>
@@ -166,18 +177,7 @@ export function ReturnLog() {
           </TableBody>
         </Table>
       )}
-
-      {total > 0 && (
-        <div className={s.footerBar}>
-          <span>共 {total} 条</span>
-          <ReturnLogPager
-            offset={offset}
-            total={total}
-            onOffsetChange={setOffset}
-          />
-        </div>
-      )}
-    </Card>
+    </TableCard>
   );
 }
 

@@ -91,9 +91,9 @@ type ImportResult struct {
 }
 
 type ImportError struct {
-	Line    int               `json:"line"`
-	Name    string            `json:"name"`
-	Message string            `json:"message"`
+	Line    int    `json:"line"`
+	Name    string `json:"name"`
+	Message string `json:"message"`
 	// Row carries the parsed values of a failed row so the client can export
 	// the failures as a re-importable file.
 	Row map[string]string `json:"row,omitempty"`
@@ -148,27 +148,27 @@ var importFields = []string{
 // fieldAliases lists the source column names (canonical export names plus
 // common zh/en synonyms) accepted for each import field when auto-detecting.
 var fieldAliases = map[string][]string{
-	"name":               {"name", "名称", "title", "item", "item_name", "物品", "物品名称", "资产名称"},
-	"type":               {"type", "类型", "item_type", "资产类型"},
-	"status":             {"status", "状态", "item_status", "资产状态"},
-	"category":           {"category", "分类", "类目", "品类"},
-	"description":        {"description", "描述", "说明", "备注", "notes", "note"},
-	"location":           {"location", "位置", "location_path", "位置路径", "place", "地点", "存放位置"},
-	"home_base_location": {"home_base_location", "home_base_location_path", "基准位置", "基准地点", "归宿", "home_base"},
-	"current_status_tag": {"current_status_tag", "current_status", "当前状态", "动态状态", "随身状态"},
-	"purchase_price":     {"purchase_price", "price", "价格", "单价", "购买价格", "金额"},
-	"purchase_currency":  {"purchase_currency", "currency", "币种", "货币", "购买币种"},
-	"purchase_date":      {"purchase_date", "购买日期", "购入日期", "日期"},
-	"purchase_platform":  {"purchase_platform", "购买平台", "平台", "platform"},
+	"name":                {"name", "名称", "title", "item", "item_name", "物品", "物品名称", "资产名称"},
+	"type":                {"type", "类型", "item_type", "资产类型"},
+	"status":              {"status", "状态", "item_status", "资产状态"},
+	"category":            {"category", "分类", "类目", "品类"},
+	"description":         {"description", "描述", "说明", "备注", "notes", "note"},
+	"location":            {"location", "位置", "location_path", "位置路径", "place", "地点", "存放位置"},
+	"home_base_location":  {"home_base_location", "home_base_location_path", "基准位置", "基准地点", "归宿", "home_base"},
+	"current_status_tag":  {"current_status_tag", "current_status", "当前状态", "动态状态", "随身状态"},
+	"purchase_price":      {"purchase_price", "price", "价格", "单价", "购买价格", "金额"},
+	"purchase_currency":   {"purchase_currency", "currency", "币种", "货币", "购买币种"},
+	"purchase_date":       {"purchase_date", "购买日期", "购入日期", "日期"},
+	"purchase_platform":   {"purchase_platform", "购买平台", "平台", "platform"},
 	"warranty_expires_at": {"warranty_expires_at", "warranty_expires", "保修到期", "保修期限", "保修截止"},
-	"serial_number":      {"serial_number", "sn", "序列号", "SN", "编号"},
-	"warranty_contact":   {"warranty_contact", "保修联系人", "保修联系"},
-	"current_stock":      {"current_stock", "stock", "库存", "当前库存", "数量"},
+	"serial_number":       {"serial_number", "sn", "序列号", "SN", "编号"},
+	"warranty_contact":    {"warranty_contact", "保修联系人", "保修联系"},
+	"current_stock":       {"current_stock", "stock", "库存", "当前库存", "数量"},
 	"min_stock_threshold": {"min_stock_threshold", "min_stock", "补货阈值", "库存下限", "最低库存"},
-	"lifespan_days":      {"lifespan_days", "寿命", "使用寿命", "寿命天数"},
-	"in_use_since":       {"in_use_since", "装入日期", "启用日期", "使用起始"},
-	"is_private":         {"is_private", "private", "私有", "私密", "是否私有"},
-	"tags":               {"tags", "tag", "标签"},
+	"lifespan_days":       {"lifespan_days", "寿命", "使用寿命", "寿命天数"},
+	"in_use_since":        {"in_use_since", "装入日期", "启用日期", "使用起始"},
+	"is_private":          {"is_private", "private", "私有", "私密", "是否私有"},
+	"tags":                {"tags", "tag", "标签"},
 }
 
 // importItem is the validated, typed form of an ImportRow used by commit.
@@ -214,6 +214,7 @@ func (s *ImportService) Import(ctx context.Context, body io.Reader, ownerID stri
 	}
 	_ = headers
 
+	defaultPrivate := s.defaultPrivate(ctx, ownerID)
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -297,7 +298,7 @@ func (s *ImportService) Import(ctx context.Context, body io.Reader, ownerID stri
 			}
 		}
 
-		if err := s.insertItem(ctx, tx, item, locID, homeBaseID, ownerID, tagCache, now); err != nil {
+		if err := s.insertItem(ctx, tx, item, locID, homeBaseID, ownerID, tagCache, now, defaultPrivate); err != nil {
 			res.Failed++
 			res.Errors = append(res.Errors, ImportError{
 				Line: lineNum, Name: item.Name, Message: err.Error(), Row: rowValues(row),
@@ -512,8 +513,12 @@ func validateImportRow(row ImportRow) (importItem, []string) {
 	return item, verrs
 }
 
-func (s *ImportService) insertItem(ctx context.Context, tx *sql.Tx, item importItem, locID, homeBaseID *string, ownerID string, tagCache map[string]string, now int64) error {
+func (s *ImportService) insertItem(ctx context.Context, tx *sql.Tx, item importItem, locID, homeBaseID *string, ownerID string, tagCache map[string]string, now int64, defaultPrivate bool) error {
 	id := ulid.Make().String()
+	isPrivate := defaultPrivate
+	if item.IsPrivateSet {
+		isPrivate = item.IsPrivate
+	}
 	_, err := tx.ExecContext(ctx, `
 		INSERT INTO items (
 			id, name, description, category, type, status,
@@ -543,7 +548,7 @@ func (s *ImportService) insertItem(ctx context.Context, tx *sql.Tx, item importI
 		item.MinStockThreshold,
 		item.LifespanDays,
 		item.InUseSince,
-		item.IsPrivate,
+		isPrivate,
 		nullableStr(ownerID),
 		now, now,
 	)
@@ -1183,6 +1188,20 @@ func boolInt(v bool) int {
 		return 1
 	}
 	return 0
+}
+
+func (s *ImportService) defaultPrivate(ctx context.Context, userID string) bool {
+	if userID == "" {
+		return false
+	}
+	var visibility string
+	if err := s.db.QueryRowContext(ctx,
+		`SELECT COALESCE((SELECT default_visibility FROM user_preferences WHERE user_id = ?), 'shared')`,
+		userID,
+	).Scan(&visibility); err != nil {
+		return false
+	}
+	return visibility == "private"
 }
 
 // parseTags splits a tags cell on the same separator the export uses.

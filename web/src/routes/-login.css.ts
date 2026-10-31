@@ -3,17 +3,14 @@ import { globalStyle, keyframes, style, styleVariants } from '@vanilla-extract/c
 import { themeVars } from '../styles/theme.css';
 
 /*
- * 登录页动效：纸感台账 · 印章红
+ * 登录页动效：纸感台账 · 靛蓝印记
  *
  * 三条线索贯穿全部动效，保证「有趣」但不越出产品气质（Calm / practical）：
  *   墨 —— 低透明度色块缓慢呼吸、聚焦时墨线描出、按下时墨晕扩散
- *   格 —— 台账纸的横格线与双朱栏在入场时徐徐落定
+ *   格 —— 台账纸的横格线与双栏线在入场时徐徐落定
  *   印 —— 品牌标记像印章一样压到纸面，主行动按钮按下即「盖章」
  * 全部动画均为纯 CSS，且在 prefers-reduced-motion 下整体关闭。
  */
-
-/* 纸纤维：内联 SVG 湍流噪声，不产生额外网络请求 */
-const PAPER_GRAIN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)'/%3E%3C/svg%3E")`;
 
 const EASE_SETTLE = 'cubic-bezier(0.22, 1, 0.36, 1)';
 const EASE_STAMP = 'cubic-bezier(0.34, 1.4, 0.64, 1)';
@@ -34,7 +31,7 @@ const sealPress = keyframes({
   '100%': { opacity: 1, transform: 'scale(1) rotate(-6deg)' },
 });
 
-/** 印泥洇开：一圈朱边向外化开后消失 */
+/** 印泥洇开：一圈靛蓝边向外化开后消失 */
 const inkRing = keyframes({
   '0%': { opacity: 0.5, transform: 'scale(0.65)' },
   '100%': { opacity: 0, transform: 'scale(2.1)' },
@@ -53,7 +50,7 @@ const ruleDraw = keyframes({
   '100%': { opacity: 1, transform: 'scaleX(1)' },
 });
 
-/** 朱栏自上而下立起 */
+/** 栏线自上而下立起 */
 const marginDraw = keyframes({
   '0%': { opacity: 0, transform: 'scaleY(0)' },
   '100%': { opacity: 0.85, transform: 'scaleY(1)' },
@@ -69,12 +66,6 @@ const washBreathe = keyframes({
 const rulesIn = keyframes({
   '0%': { opacity: 0, transform: 'translateY(-14px)' },
   '100%': { opacity: 0.8, transform: 'translateY(0)' },
-});
-
-/** 纸纤维极缓慢游走（近乎无感，只为了让画面不像一张贴图） */
-const grainDrift = keyframes({
-  '0%': { backgroundPosition: '0 0' },
-  '100%': { backgroundPosition: '180px 180px' },
 });
 
 /** 内容逐级浮现 */
@@ -114,8 +105,8 @@ export const backdrop = style({
 });
 
 /*
- * 视差纵深：光标移动时，墨晕 / 纸纤维 / 浮墨按不同深度随动（--px/--py 由 JS 注入，
- * 仅 pointer:fine 且未要求减弱动效时启用）。纸面格线与双朱栏保持不动，
+ * 视差纵深：光标移动时，墨晕 / 浮墨按不同深度随动（--px/--py 由 JS 注入，
+ * 仅 pointer:fine 且未要求减弱动效时启用）。纸面格线与双栏线保持不动，
  * 充当「近纸面」参照系，纵深对比由此而来。
  */
 export const plWash = style({
@@ -126,11 +117,11 @@ export const plWash = style({
   willChange: 'transform',
 });
 
-/** 顶部一团印章红的墨色，缓慢呼吸（挂在视差层 plWash 之下） */
+/** 顶部一团靛蓝墨色，缓慢呼吸（挂在视差层 plWash 之下） */
 export const backdropWash = style({
   position: 'absolute',
   inset: 0,
-  background: `radial-gradient(ellipse 42% 38% at 50% 22%, color-mix(in srgb, ${themeVars.accent} 13%, transparent), transparent 70%)`,
+  background: `radial-gradient(ellipse 42% 38% at 50% 22%, color-mix(in srgb, ${themeVars.accent} 8%, transparent), transparent 70%)`,
   animation: `${washBreathe} 14s ease-in-out infinite`,
 });
 
@@ -144,7 +135,7 @@ export const backdropRules = style({
 });
 
 /**
- * 双朱栏：借传统「朱丝栏」纸的意象——纸面上下贯通两道朱线，把整页框成一页账。
+ * 双栏线：纸面上下贯通两道蓝线，把整页框成一页账。
  * 强度压得很低，只作为结构性的纤线，不参与强调色叙事。
  */
 export const backdropMargin = style({
@@ -155,7 +146,7 @@ export const backdropMargin = style({
   width: '1px',
   opacity: 0.85,
   transformOrigin: 'top center',
-  background: `color-mix(in srgb, ${themeVars.accent} 26%, transparent)`,
+  background: `color-mix(in srgb, ${themeVars.accent} 18%, transparent)`,
   animation: `${marginDraw} 1200ms ${EASE_SETTLE} 180ms both`,
   '@media': {
     '(max-width: 60em)': {
@@ -172,24 +163,6 @@ export const backdropMarginRight = style([
   },
 ]);
 
-/** 纸纤维（兼作一层浅视差） */
-export const backdropGrain = style({
-  position: 'absolute',
-  inset: '-10%',
-  opacity: 0.035,
-  mixBlendMode: 'multiply',
-  backgroundImage: PAPER_GRAIN,
-  backgroundRepeat: 'repeat',
-  animation: `${grainDrift} 90s linear infinite`,
-  transform: 'translate3d(calc(var(--px, 0) * 5px), calc(var(--py, 0) * 4px), 0)',
-  transition: `transform 520ms ${EASE_SETTLE}`,
-});
-
-globalStyle('[data-color-scheme="dark"] ' + backdropGrain, {
-  opacity: 0.05,
-  mixBlendMode: 'screen',
-});
-
 /* ── 卡片（纸张） ───────────────────────────────────────────────────── */
 
 export const card = style({
@@ -199,38 +172,11 @@ export const card = style({
   animation: `${sheetSettle} 620ms ${EASE_SETTLE} both`,
 });
 
-/** 纸页堆叠：卡片底下垫着的两页账页，只露出错开的边缘 */
 export const cardStack = style({
   position: 'relative',
   width: 'min(100%, 440px)',
   isolation: 'isolate',
 });
-
-const stackSettle = keyframes({
-  '0%': { opacity: 0, transform: 'translateY(26px) rotate(var(--rot, 0deg))' },
-  '100%': { opacity: 1, transform: 'translateY(0) rotate(var(--rot, 0deg))' },
-});
-
-export const stackSheet = style({
-  position: 'absolute',
-  inset: 0,
-  zIndex: 0,
-  borderRadius: themeVars.radius3,
-  border: `1px solid ${themeVars.line}`,
-  background: themeVars.bgSoft,
-  boxShadow: themeVars.shadowSoft,
-  transform: 'rotate(var(--rot, 0deg))',
-  transformOrigin: '50% 85%',
-  animation: `${stackSettle} 760ms ${EASE_SETTLE} both`,
-});
-
-export const stackSheetBack = style([stackSheet, {
-  vars: { '--rot': '-1.15deg' },
-}]);
-
-export const stackSheetMid = style([stackSheet, {
-  vars: { '--rot': '0.8deg' },
-}]);
 
 /** 登录被拒：纸面染上一层警戒红边 */
 export const cardError = style({
@@ -266,8 +212,8 @@ export const sealMark = style({
   background: themeVars.accent,
   color: themeVars.onAccent,
   fontFamily: themeVars.fontSerif,
-  fontSize: '1.7rem',
-  lineHeight: 1,
+  fontSize: themeVars.textSize2xl,
+  lineHeight: themeVars.leadingNone,
   // 内圈细边 = 印面的边框，外投影 = 墨迹压在纸上的重量
   boxShadow: `inset 0 0 0 1.5px color-mix(in srgb, ${themeVars.onAccent} 42%, transparent), 0 4px 12px color-mix(in srgb, ${themeVars.accent} 26%, transparent)`,
   transformOrigin: '50% 55%',
@@ -302,18 +248,18 @@ export const folio = style({
   background: `color-mix(in srgb, ${themeVars.panel} 82%, transparent)`,
   color: themeVars.muted,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.64rem',
-  fontWeight: 500,
-  letterSpacing: '0.14em',
+  fontSize: themeVars.textSize2xs,
+  fontWeight: themeVars.weightMedium,
+  letterSpacing: themeVars.trackingWidest,
   whiteSpace: 'nowrap',
 });
 
-/** 编号本身用衬线台账数字、落一点印章红的淡墨 */
+/** 编号本身用衬线台账数字、落一点靛蓝淡墨 */
 export const folioNum = style({
   color: themeVars.accentInk,
   fontFamily: themeVars.fontSerif,
-  fontSize: '0.88rem',
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeBase,
+  letterSpacing: themeVars.trackingWide,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -340,9 +286,9 @@ export const entryRuleLabel = style({
   flex: '0 0 auto',
   color: themeVars.muted,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.64rem',
-  fontWeight: 500,
-  letterSpacing: '0.18em',
+  fontSize: themeVars.textSize2xs,
+  fontWeight: themeVars.weightMedium,
+  letterSpacing: themeVars.trackingWidest,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 });
@@ -381,8 +327,8 @@ export const stampButton = style({
       height: '2.6rem',
       overflow: 'hidden',
       isolation: 'isolate',
-      fontWeight: 600,
-      letterSpacing: '0.02em',
+      fontWeight: themeVars.weightSemibold,
+      letterSpacing: themeVars.trackingWide,
       transition: `transform 140ms ${EASE_STAMP}, background-color 160ms ease, box-shadow 220ms ease, opacity 180ms ease`,
     },
     // 墨晕层：按钮自身的伪元素，状态类只负责给它挂动画
@@ -468,7 +414,7 @@ export const actionRow = style({
   display: 'grid',
 });
 
-/* ── 浮墨：纸面上缓缓上浮的墨点与朱砂点 ─────────────────────────────── */
+/* ── 浮墨：纸面上缓缓上浮的墨点与靛蓝点 ─────────────────────────────── */
 
 const dustRise = keyframes({
   '0%': { opacity: 0, transform: 'translate(0px, 34px)' },

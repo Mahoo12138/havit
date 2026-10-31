@@ -1,5 +1,6 @@
 import { style, styleVariants } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 /* ---------- Metric strip ---------- */
 
@@ -48,19 +49,11 @@ export const metricMeta = style({
 
 export const metricLabel = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightRegular,
 });
 
-export const metricValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '1.5rem',
-  fontWeight: 600,
-  lineHeight: 1.1,
-  letterSpacing: '-0.01em',
-  fontVariantNumeric: 'tabular-nums',
-});
+export const metricValue = textStyles.metric;
 
 /* ---------- Toolbar ---------- */
 
@@ -74,7 +67,7 @@ export const toolbar = style({
 
 export const toolbarCount = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -82,7 +75,7 @@ export const emptyNote = style({
   padding: `${themeVars.space6} ${themeVars.space4}`,
   textAlign: 'center',
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 /* ---------- Record card (warranty / credential) ---------- */
@@ -125,20 +118,18 @@ export const cardHeadMeta = style({
   flex: '1 1 auto',
 });
 
-export const cardTitle = style({
-  margin: 0,
-  fontSize: '0.95rem',
-  fontWeight: 700,
-  color: themeVars.ink,
-  letterSpacing: '-0.01em',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-});
+export const cardTitle = style([
+  textStyles.sectionTitle,
+  {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+]);
 
 export const cardSub = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -151,8 +142,8 @@ const statusChipBase = {
   gap: '4px',
   padding: `2px ${themeVars.space2}`,
   borderRadius: '999px',
-  fontSize: '0.72rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 } as const;
 
 export const statusChip = styleVariants({
@@ -176,10 +167,10 @@ export const daysHero = style({
 
 const daysValueBase = {
   fontFamily: themeVars.fontSerif,
-  fontSize: '1.75rem',
-  fontWeight: 600,
-  lineHeight: 1,
-  letterSpacing: '-0.01em',
+  fontSize: themeVars.textSize2xl,
+  fontWeight: themeVars.weightRegular,
+  lineHeight: themeVars.leadingNone,
+  letterSpacing: themeVars.trackingTight,
   fontVariantNumeric: 'tabular-nums',
 } as const;
 
@@ -191,13 +182,13 @@ export const daysValue = styleVariants({
 
 export const daysLabel = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const daysDate = style({
   marginLeft: 'auto',
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -216,7 +207,7 @@ export const kvRow = style({
   gap: themeVars.space3,
   padding: `${themeVars.space1} 0`,
   borderBottom: `1px solid ${themeVars.lineSoft}`,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   selectors: {
     '&:last-child': {
       borderBottom: 0,
@@ -232,7 +223,7 @@ export const kvLabel = style({
 export const kvValue = style({
   margin: 0,
   color: themeVars.ink,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
   textAlign: 'right',
   minWidth: 0,
   overflow: 'hidden',
@@ -242,8 +233,8 @@ export const kvValue = style({
 
 export const mono = style({
   fontFamily: themeVars.fontMono,
-  fontSize: '0.78rem',
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeSm,
+  letterSpacing: themeVars.trackingWide,
 });
 
 /* ---------- License key box ---------- */
@@ -262,9 +253,9 @@ export const licenseValue = style({
   flex: '1 1 auto',
   minWidth: 0,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.ink,
-  letterSpacing: '0.03em',
+  letterSpacing: themeVars.trackingWide,
   wordBreak: 'break-all',
 });
 

@@ -31,13 +31,10 @@ var knownConfigs = []struct {
 	{Key: "ai.api_key", Type: "sensitive", Description: "AI API key"},
 	{Key: "ai.model", Type: "string", Description: "Text/chat model"},
 	{Key: "ai.vision_model", Type: "string", Description: "Vision model"},
-	{Key: "ai.confidence_strategy", Type: "enum", Options: []string{"strict", "relaxed"}, Description: "Hallucination guard strategy"},
+	{Key: "notify.enabled", Type: "bool", Description: "Enable scheduled notifications (restart required)"},
 	{Key: "notify.apprise_url", Type: "sensitive", Description: "Apprise server URL"},
 	{Key: "notify.webhook_url", Type: "sensitive", Description: "Webhook URL"},
 	{Key: "notify.ntfy_url", Type: "sensitive", Description: "Ntfy topic URL"},
-	{Key: "storage.max_photo_size_mb", Type: "int", Description: "Max photo upload size (MB)"},
-	{Key: "storage.webp_quality", Type: "int", Description: "Thumbnail WebP quality (1–100)"},
-	{Key: "auth.allow_registration", Type: "bool", Description: "Allow new member registration"},
 }
 
 type configEntry struct {

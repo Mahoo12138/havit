@@ -258,12 +258,17 @@ func (s *AbnormalService) List(ctx context.Context, f AbnormalListFilter) ([]*Ab
 
 func (s *AbnormalService) Stats(ctx context.Context) (*AbnormalStats, error) {
 	stats := &AbnormalStats{}
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "ar.processing_status <> 'closed'", nil)
+	if err != nil {
+		return nil, err
+	}
 
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT ar.abnormal_type, COUNT(*)
 		FROM abnormal_records ar
-		WHERE ar.processing_status <> 'closed'
-		GROUP BY ar.abnormal_type`)
+		JOIN items i ON i.id = ar.item_id
+		WHERE `+where+`
+		GROUP BY ar.abnormal_type`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -293,6 +298,10 @@ func (s *AbnormalService) Stats(ctx context.Context) (*AbnormalStats, error) {
 func (s *AbnormalService) Trend(ctx context.Context) ([]AbnormalTrendPoint, error) {
 	now := time.Now()
 	points := make([]AbnormalTrendPoint, 6)
+	where, privacyArgs, err := applyItemPrivacy(ctx, s.db, "i", "1=1", nil)
+	if err != nil {
+		return nil, err
+	}
 	for i := 5; i >= 0; i-- {
 		t := now.AddDate(0, -i, 0)
 		year := t.Year()
@@ -307,10 +316,12 @@ func (s *AbnormalService) Trend(ctx context.Context) ([]AbnormalTrendPoint, erro
 		to := time.Date(year, time.Month(month+1), 1, 0, 0, 0, 0, t.Location()).Unix()
 
 		var count int
+		args := append([]any{from, to}, privacyArgs...)
 		err := s.db.QueryRowContext(ctx, `
-			SELECT COUNT(*) FROM abnormal_records
-			WHERE created_at >= ? AND created_at < ?`,
-			from, to).Scan(&count)
+			SELECT COUNT(*) FROM abnormal_records ar
+			JOIN items i ON i.id = ar.item_id
+			WHERE ar.created_at >= ? AND ar.created_at < ? AND `+where,
+			args...).Scan(&count)
 		if err != nil {
 			return nil, err
 		}
@@ -320,11 +331,17 @@ func (s *AbnormalService) Trend(ctx context.Context) ([]AbnormalTrendPoint, erro
 }
 
 func (s *AbnormalService) ProgressStats(ctx context.Context) ([]ProgressStatsItem, error) {
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "1=1", nil)
+	if err != nil {
+		return nil, err
+	}
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT processing_status, COUNT(*)
-		FROM abnormal_records
-		GROUP BY processing_status
-		ORDER BY COUNT(*) DESC`)
+		SELECT ar.processing_status, COUNT(*)
+		FROM abnormal_records ar
+		JOIN items i ON i.id = ar.item_id
+		WHERE `+where+`
+		GROUP BY ar.processing_status
+		ORDER BY COUNT(*) DESC`, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -368,6 +385,9 @@ func (s *AbnormalService) LossValuation(ctx context.Context) (*LossValuation, er
 }
 
 func (s *AbnormalService) UpdateProgress(ctx context.Context, id string, in UpdateProgressInput) (*model.AbnormalRecord, error) {
+	if _, err := s.GetByID(ctx, id); err != nil {
+		return nil, err
+	}
 	now := time.Now().Unix()
 	sets := []string{}
 	args := []any{}
@@ -413,13 +433,19 @@ func (s *AbnormalService) UpdateProgress(ctx context.Context, id string, in Upda
 
 func (s *AbnormalService) GetByID(ctx context.Context, id string) (*model.AbnormalRecord, error) {
 	var r model.AbnormalRecord
-	err := s.db.QueryRowContext(ctx, `
-		SELECT id, item_id, abnormal_type, processing_status,
-			processing_notes, responsible_person,
-			estimated_loss, estimated_loss_currency,
-			recoverable_amount, recoverable_currency,
-			created_at, updated_at
-		FROM abnormal_records WHERE id = ?`, id).Scan(
+	where, args, err := applyItemPrivacy(ctx, s.db, "i", "ar.id = ?", []any{id})
+	if err != nil {
+		return nil, err
+	}
+	err = s.db.QueryRowContext(ctx, `
+		SELECT ar.id, ar.item_id, ar.abnormal_type, ar.processing_status,
+			ar.processing_notes, ar.responsible_person,
+			ar.estimated_loss, ar.estimated_loss_currency,
+			ar.recoverable_amount, ar.recoverable_currency,
+			ar.created_at, ar.updated_at
+		FROM abnormal_records ar
+		JOIN items i ON i.id = ar.item_id
+		WHERE `+where, args...).Scan(
 		&r.ID, &r.ItemID, &r.AbnormalType, &r.ProcessingStatus,
 		&r.ProcessingNotes, &r.ResponsiblePerson,
 		&r.EstimatedLoss, &r.EstimatedLossCurrency,
@@ -433,8 +459,15 @@ func (s *AbnormalService) GetByID(ctx context.Context, id string) (*model.Abnorm
 }
 
 func (s *AbnormalService) GetByItemID(ctx context.Context, itemID string) (*model.AbnormalRecord, error) {
+	visible, err := itemVisibleForCaller(ctx, s.db, itemID)
+	if err != nil {
+		return nil, err
+	}
+	if !visible {
+		return nil, ErrNotFound
+	}
 	var r model.AbnormalRecord
-	err := s.db.QueryRowContext(ctx, `
+	err = s.db.QueryRowContext(ctx, `
 		SELECT id, item_id, abnormal_type, processing_status,
 			processing_notes, responsible_person,
 			estimated_loss, estimated_loss_currency,

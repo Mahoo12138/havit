@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const overlay = style({
   position: 'fixed',
@@ -26,7 +27,7 @@ export const content = style({
   background: themeVars.panel,
   color: themeVars.text,
   padding: themeVars.space4,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   boxShadow: `${themeVars.shadow}, 0 0 0 1px ${themeVars.line}`,
   outline: 'none',
   transition: 'opacity 100ms ease, transform 100ms ease',
@@ -76,15 +77,10 @@ export const footer = style({
   },
 });
 
-export const title = style({
-  color: themeVars.ink,
-  fontSize: '1rem',
-  fontWeight: 600,
-  lineHeight: 1,
-});
+export const title = textStyles.sectionTitle;
 
 export const description = style({
   color: themeVars.muted,
-  fontSize: '0.875rem',
-  lineHeight: 1.5,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingNormal,
 });

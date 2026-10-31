@@ -28,7 +28,11 @@ func main() {
 	appCtx, stopApp := context.WithCancel(context.Background())
 	defer stopApp()
 
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("load config", "err", err)
+		os.Exit(1)
+	}
 
 	if err := os.MkdirAll(cfg.Data.Dir, 0o755); err != nil {
 		slog.Error("create data dir", "err", err)
@@ -156,7 +160,6 @@ func main() {
 			virtualAssetH.Mount(r)
 			reminderH.Mount(r)
 			notifyH.Mount(r)
-			backupH.Mount(r)
 			abnormalH.Mount(r)
 			searchH.Mount(r)
 			barcodeH.Mount(r)
@@ -172,6 +175,7 @@ func main() {
 			r.Use(chimiddleware.RequestSize(4 * 1024 * 1024))
 			userH.Mount(r)
 			settingsH.Mount(r)
+			backupH.Mount(r)
 		})
 
 		// Routes that set their own per-route body limits (import 16 MB, attachment streams to disk).
@@ -195,7 +199,10 @@ func main() {
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler:           r,
+		ReadTimeout:       120 * time.Second,
 		ReadHeaderTimeout: 5 * time.Second,
+		WriteTimeout:      120 * time.Second,
+		IdleTimeout:       120 * time.Second,
 	}
 
 	go func() {

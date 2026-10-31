@@ -70,8 +70,8 @@ export const text = style({
   background: themeVars.secondaryBg,
   color: themeVars.text,
   padding: `0 ${themeVars.space3}`,
-  fontSize: '0.875rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
 });
 
 globalStyle(`${text} svg`, {

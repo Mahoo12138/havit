@@ -72,8 +72,8 @@ export const dropdowns = style({
   alignItems: 'center',
   justifyContent: 'center',
   gap: '0.375rem',
-  fontSize: '0.875rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const dropdownRoot = style({
@@ -89,8 +89,8 @@ export const dropdown = style({
 });
 
 export const captionLabel = style({
-  fontSize: '0.875rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   userSelect: 'none',
 });
 
@@ -123,8 +123,8 @@ export const weekday = style({
   flex: 1,
   borderRadius: cellRadius,
   color: themeVars.muted,
-  fontSize: '0.8rem',
-  fontWeight: 400,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightRegular,
   userSelect: 'none',
 });
 
@@ -141,7 +141,7 @@ export const weekNumberHeader = style({
 
 export const weekNumber = style({
   color: themeVars.muted,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   userSelect: 'none',
 });
 
@@ -274,8 +274,8 @@ export const dayButton = style({
   border: 0,
   borderRadius: cellRadius,
   padding: 0,
-  fontWeight: 400,
-  lineHeight: 1,
+  fontWeight: themeVars.weightRegular,
+  lineHeight: themeVars.leadingNone,
   selectors: {
     '[data-focused="true"] &': {
       position: 'relative',
@@ -308,6 +308,6 @@ export const dayButton = style({
 });
 
 globalStyle(`${dayButton} > span`, {
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   opacity: 0.7,
 });

@@ -88,7 +88,7 @@ export function AssetsMobile() {
         <div className={s.filterPanel}>
           <FilterSelect
             label={t('assets.status')}
-            options={[{ value: 'all', label: t('assets.allStatuses') }, { value: 'in_use', label: t('assets.inUse') }, { value: 'stored', label: t('assets.stored') }, { value: 'maintenance', label: t('assets.maintenance') }]}
+            options={[{ value: 'all', label: t('assets.allStatuses') }, { value: 'in_stock', label: t('status.in_stock') }, { value: 'in_use', label: t('assets.inUse') }, { value: 'idle', label: t('status.idle') }, { value: 'borrowed', label: t('status.borrowed') }]}
             value={statusFilter}
             onChange={setStatusFilter}
           />

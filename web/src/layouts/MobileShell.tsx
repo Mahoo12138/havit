@@ -12,10 +12,11 @@ import {
   IconLogout,
   IconSearch,
   IconUser,
+  IconUserCircle,
 } from '@tabler/icons-react';
 import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { authApi, clearToken, type SystemStatus } from '../api/client';
+import { authApi, clearPrivateCaches, clearToken, type SystemStatus } from '../api/client';
 import { DemoBanner } from './DemoBanner';
 import { getNavSections } from './nav-data';
 import { ThemeToggle } from '../lib/theme';
@@ -39,14 +40,15 @@ export function MobileShell({ systemStatus }: ShellProps) {
   });
 
   const username = me.data?.username ?? t('common.user');
-  const initials = username.slice(0, 1).toUpperCase();
+  const displayName = me.data?.nickname?.trim() || username;
+  const initials = displayName.slice(0, 1).toUpperCase();
   const navSections = getNavSections(t);
 
   const bottomItems = [
     { to: '/', label: t('nav.dashboard'), icon: IconHome },
     { to: '/assets', label: t('nav.assets'), icon: IconBox },
     { to: '/locations', label: t('nav.locations'), icon: IconMap2 },
-    { to: '/settings', label: t('nav.profile', { defaultValue: '我的' }), icon: IconUser },
+    { to: '/settings', label: t('nav.profile'), icon: IconUser },
   ];
   const pageTitle = getMobileTitle(path, t);
   const showBack = isMobileSubPage(path);
@@ -59,6 +61,7 @@ export function MobileShell({ systemStatus }: ShellProps) {
       /* ignore */
     }
     clearToken();
+    await clearPrivateCaches();
     window.location.href = '/login';
   }
 
@@ -127,7 +130,11 @@ export function MobileShell({ systemStatus }: ShellProps) {
           onClick={() => setDrawerOpen(true)}
           aria-label={t('common.toggleNav')}
         >
-          {initials}
+          {me.data?.avatar ? (
+            <img className={s.avatarImage} src={me.data.avatar} alt="" />
+          ) : (
+            initials
+          )}
         </Button>
       </header>
 
@@ -247,12 +254,30 @@ export function MobileShell({ systemStatus }: ShellProps) {
               ))}
             </ScrollArea>
 
+            <Link
+              to="/settings"
+              search={{ tab: 'account', panel: 'profile' }}
+              className={s.drawerAccountLink}
+              onClick={() => setDrawerOpen(false)}
+            >
+              <span className={s.drawerNavLinkIcon}>
+                <IconUserCircle size={17} />
+              </span>
+              {t('auth.accountSettings')}
+            </Link>
+
             <div className={s.drawerFooter}>
-              <span className={s.drawerUserAvatar}>{initials}</span>
+              <span className={s.drawerUserAvatar}>
+                {me.data?.avatar ? (
+                  <img className={s.avatarImage} src={me.data.avatar} alt="" />
+                ) : (
+                  initials
+                )}
+              </span>
               <div className={s.drawerUserMeta}>
-                <span className={s.drawerUserName}>{username}</span>
+                <span className={s.drawerUserName}>{displayName}</span>
                 <span className={s.drawerUserVersion}>
-                  v{systemStatus.version}
+                  {systemStatus.version}
                 </span>
               </div>
               <Button

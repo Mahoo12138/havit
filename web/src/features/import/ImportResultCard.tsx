@@ -16,6 +16,7 @@ import {
 } from '../../components/ui/table';
 import { IMPORT_FIELDS, type ImportResult } from '../../api/client';
 import { downloadBlob } from './ImportDesktop';
+import { textStyles } from '../../styles/typography.css';
 
 interface ImportResultCardProps {
   result: ImportResult;
@@ -58,7 +59,7 @@ export function ImportResultCard({ result, format, onRestart }: ImportResultCard
   return (
     <Card>
       <Stack className={uiStyles.cardContent}>
-        <h3 className={uiStyles.heading}>{t('import.resultTitle')}</h3>
+        <h3 className={textStyles.cardTitle}>{t('import.resultTitle')}</h3>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <Badge variant="outline">{t('import.total', { count: result.total })}</Badge>

@@ -1,6 +1,7 @@
 import { keyframes, style } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 const fadeIn = keyframes({
   from: { opacity: 0 },
@@ -39,7 +40,7 @@ export const content = style({
   background: themeVars.panel,
   borderColor: themeVars.line,
   color: themeVars.text,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   selectors: {
     '&[data-vaul-drawer-direction="bottom"]': {
       insetInline: 0,
@@ -128,13 +129,9 @@ export const footer = style({
   padding: themeVars.space4,
 });
 
-export const title = style({
-  color: themeVars.ink,
-  fontSize: '1rem',
-  fontWeight: 500,
-});
+export const title = textStyles.sectionTitle;
 
 export const description = style({
   color: themeVars.muted,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
 });

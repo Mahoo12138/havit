@@ -1,6 +1,7 @@
 import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const root = style({
   display: 'flex',
@@ -57,18 +58,13 @@ globalStyle(`${media.icon} svg`, {
   height: '1rem',
 });
 
-export const title = style({
-  color: themeVars.ink,
-  fontSize: '0.875rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-});
+export const title = textStyles.cardTitle;
 
 export const description = style({
   margin: 0,
   color: themeVars.muted,
-  fontSize: '0.875rem',
-  lineHeight: 1.625,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingRelaxed,
 });
 
 export const content = style({
@@ -79,6 +75,6 @@ export const content = style({
   flexDirection: 'column',
   alignItems: 'center',
   gap: themeVars.space3,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   textWrap: 'balance',
 });

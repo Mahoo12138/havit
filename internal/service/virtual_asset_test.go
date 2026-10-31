@@ -337,7 +337,7 @@ func TestVirtualAssetCredentialsRespectPrivacy(t *testing.T) {
 		Name:       "Private License",
 		Type:       model.ItemTypeVirtual,
 		LocationID: &locID,
-		IsPrivate:  true,
+		IsPrivate:  boolPtr(true),
 		OwnerID:    &ownerBID,
 	})
 	if err != nil {

@@ -12,9 +12,9 @@ export const base = style({
   borderRadius: themeVars.radius2,
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.875rem',
-  fontWeight: 500,
-  lineHeight: 1,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
+  lineHeight: themeVars.leadingNone,
   whiteSpace: 'nowrap',
   outline: 'none',
   userSelect: 'none',
@@ -171,8 +171,8 @@ export const variant = styleVariants({
 
 export const size = styleVariants({
   default: { height: '2.25rem', padding: '0 1rem' },
-  xs: { height: '1.75rem', gap: '0.375rem', padding: '0 0.75rem', fontSize: '0.75rem' },
-  sm: { height: '2rem', gap: '0.375rem', padding: '0 0.75rem', fontSize: '0.8125rem' },
+  xs: { height: '1.75rem', gap: '0.375rem', padding: '0 0.75rem', fontSize: themeVars.textSizeXs },
+  sm: { height: '2rem', gap: '0.375rem', padding: '0 0.75rem', fontSize: themeVars.textSizeSm },
   lg: { height: '2.5rem', padding: '0 1.5rem' },
   icon: { width: '2.25rem', height: '2.25rem', padding: 0 },
   'icon-xs': { width: '1.75rem', height: '1.75rem', padding: 0 },

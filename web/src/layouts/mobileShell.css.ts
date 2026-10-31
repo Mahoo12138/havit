@@ -28,10 +28,10 @@ export const topBarTitle = style({
   minWidth: 0,
   margin: 0,
   color: themeVars.ink,
-  fontSize: '1.2rem',
-  fontWeight: 750,
-  lineHeight: 1.15,
-  letterSpacing: '-0.015em',
+  fontSize: themeVars.textSizeXl,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingTight,
+  letterSpacing: themeVars.trackingTighter,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -71,14 +71,22 @@ export const topBarAvatar = style({
   borderRadius: '999px',
   display: 'inline-grid',
   placeItems: 'center',
+  overflow: 'hidden',
   background: themeVars.accent,
   color: themeVars.onAccent,
-  fontSize: '0.8rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightBold,
   flex: '0 0 auto',
   cursor: 'pointer',
   border: 0,
   padding: 0,
+});
+
+export const avatarImage = style({
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
 });
 
 export const content = style({
@@ -118,8 +126,8 @@ export const bottomNavItem = style({
   padding: `${themeVars.space1} 0`,
   color: themeVars.muted,
   textDecoration: 'none',
-  fontSize: '0.72rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightMedium,
   border: 0,
   background: 'transparent',
   cursor: 'pointer',
@@ -127,7 +135,7 @@ export const bottomNavItem = style({
   selectors: {
     '&[data-active="true"]': {
       color: themeVars.accent,
-      fontWeight: 600,
+      fontWeight: themeVars.weightSemibold,
     },
     '&:hover': {
       textDecoration: 'none',
@@ -149,7 +157,7 @@ export const fabBtn = style({
   background: themeVars.accent,
   color: themeVars.onAccent,
   border: 0,
-  boxShadow: '0 8px 20px rgba(28, 26, 21, 0.28)',
+  boxShadow: '0 8px 20px rgba(36, 71, 184, 0.30)',
   cursor: 'pointer',
   transition: 'transform 160ms ease, background-color 160ms ease',
   selectors: {
@@ -167,7 +175,7 @@ export const drawerScrim = style({
   position: 'fixed',
   inset: 0,
   zIndex: 40,
-  background: 'rgba(28, 26, 21, 0.5)',
+  background: 'rgba(17, 24, 39, 0.45)',
   backdropFilter: 'blur(2px)',
 });
 
@@ -176,11 +184,12 @@ export const drawer = style({
   inset: '0 auto 0 0',
   width: '17rem',
   zIndex: 50,
+  borderRight: `1px solid ${themeVars.sidebarLine}`,
   background: themeVars.sidebarBg,
   color: themeVars.sidebarText,
   display: 'flex',
   flexDirection: 'column',
-  boxShadow: '0 18px 48px rgba(0, 0, 0, 0.4)',
+  boxShadow: '0 18px 48px rgba(17, 24, 39, 0.18)',
 });
 
 export const drawerHeader = style({
@@ -199,14 +208,14 @@ export const drawerBrandMark = style({
   borderRadius: themeVars.radius2,
   background: themeVars.accent,
   color: themeVars.onAccent,
-  fontSize: '0.95rem',
-  fontWeight: 800,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
 });
 
 export const drawerBrandText = style({
-  fontSize: '1.05rem',
-  fontWeight: 700,
-  letterSpacing: '-0.01em',
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightBold,
+  letterSpacing: themeVars.trackingTight,
   color: themeVars.sidebarActiveText,
 });
 
@@ -224,7 +233,7 @@ export const drawerCloseBtn = style({
   selectors: {
     '&:hover': {
       background: themeVars.sidebarHover,
-      color: '#fff',
+      color: themeVars.sidebarActiveText,
     },
   },
 });
@@ -248,9 +257,9 @@ export const drawerNavDivider = style({
 
 export const drawerNavSectionLabel = style({
   color: themeVars.sidebarMuted,
-  fontSize: '0.7rem',
-  fontWeight: 600,
-  letterSpacing: '0.08em',
+  fontSize: themeVars.textSize2xs,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingWider,
   textTransform: 'uppercase',
   padding: `${themeVars.space3} ${themeVars.space3} ${themeVars.space2}`,
 });
@@ -262,18 +271,21 @@ export const drawerNavLink = style({
   gap: themeVars.space3,
   color: themeVars.sidebarText,
   padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderRadius: themeVars.radius2,
   textDecoration: 'none',
-  fontSize: '0.88rem',
-  fontWeight: 500,
-  transition: 'color 160ms ease',
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
+  transition: 'color 160ms ease, background-color 160ms ease',
   selectors: {
     '&:hover': {
       color: themeVars.sidebarActiveText,
+      background: themeVars.sidebarHover,
       textDecoration: 'none',
     },
     '&[data-active="true"]': {
       color: themeVars.sidebarActiveText,
-      fontWeight: 600,
+      background: themeVars.sidebarActive,
+      fontWeight: themeVars.weightSemibold,
     },
   },
 });
@@ -283,6 +295,31 @@ export const drawerNavLinkIcon = style({
   display: 'inline-grid',
   placeItems: 'center',
   color: 'currentColor',
+});
+
+export const drawerAccountLink = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  margin: `0 ${themeVars.space3}`,
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderRadius: themeVars.radius2,
+  color: themeVars.sidebarText,
+  textDecoration: 'none',
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
+  transition: 'color 160ms ease, background-color 160ms ease',
+  selectors: {
+    '&:hover': {
+      color: themeVars.sidebarActiveText,
+      background: themeVars.sidebarHover,
+      textDecoration: 'none',
+    },
+    '&:focus-visible': {
+      outline: 'none',
+      boxShadow: `inset 0 0 0 2px ${themeVars.focusRing}`,
+    },
+  },
 });
 
 export const drawerFooter = style({
@@ -299,10 +336,11 @@ export const drawerUserAvatar = style({
   borderRadius: '999px',
   display: 'inline-grid',
   placeItems: 'center',
+  overflow: 'hidden',
   background: themeVars.accent,
   color: themeVars.onAccent,
-  fontSize: '0.85rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightBold,
   flex: '0 0 auto',
 });
 
@@ -313,8 +351,8 @@ export const drawerUserMeta = style({
 });
 
 export const drawerUserName = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.sidebarActiveText,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -322,7 +360,7 @@ export const drawerUserName = style({
 });
 
 export const drawerUserVersion = style({
-  fontSize: '0.74rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.sidebarMuted,
 });
 
@@ -340,8 +378,7 @@ export const drawerLogoutBtn = style({
   transition: 'background-color 160ms ease, color 160ms ease',
   selectors: {
     '&:hover': {
-      // 抽屉两种配色下都是深色书脊，这里需要亮红保证可读
-      color: '#e07856',
+      color: themeVars.danger,
       background: themeVars.sidebarHover,
     },
   },

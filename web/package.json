@@ -1,13 +1,13 @@
 {
   "name": "havit-web",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "packageManager": "pnpm@10.22.0",
   "scripts": {
     "dev": "vite",
     "icons:build": "node scripts/build-asset-icons.mjs",
-    "build": "node scripts/build-asset-icons.mjs && tsc -b && vite build",
+    "build": "node scripts/build-asset-icons.mjs && tsc -b && vite build && node scripts/ensure-dist-placeholder.mjs",
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -20,7 +20,7 @@
     "@headless-tree/react": "^1.7.0",
     "@tabler/icons-react": "^3.17.0",
     "@tanstack/react-query": "^5.59.0",
-    "@tanstack/react-router": "^1.58.0",
+    "@tanstack/react-router": "^1.170.46",
     "@vanilla-extract/css": "^1.20.1",
     "@zxing/browser": "^0.2.0",
     "class-variance-authority": "^0.7.1",
@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
-    "@tanstack/router-vite-plugin": "^1.58.0",
+    "@tanstack/router-vite-plugin": "^1.167.18",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
@@ -48,5 +48,10 @@
     "typescript": "^5.5.4",
     "vite": "^5.4.6",
     "vite-plugin-pwa": "^1.3.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "seroval": "^1.7.5"
+    }
   }
 }

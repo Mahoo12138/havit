@@ -123,8 +123,8 @@ Havit 的配置体系遵循"基础设施与业务逻辑解耦"原则，分为四
 
 | 配置项 | 推荐来源 | 允许 UI 覆盖 | 热重载 | 说明 |
 |---|---|---|---|---|
-| `HAVIT_RUN_MODE` | 仅环境变量 | ❌ | ❌ | 决定启动模式（demo/release），属于运维管控 |
-| `HAVIT_PORT` / `DB_PATH` | 环境变量或文件 | ❌ | ❌ | 容器基础设施层，网络绑定与磁盘挂载 |
+| `HAVIT_MODE` / `HAVIT_RUN_MODE` | 环境变量或文件 | ❌ | ❌ | 决定启动模式（demo/release），属于运维管控 |
+| `HAVIT_SERVER_PORT` / `HAVIT_DATA_DIR` | 环境变量或文件 | ❌ | ❌ | 容器基础设施层，网络绑定与磁盘挂载 |
 | `JWT_SECRET` | 仅环境变量 | ❌ | ❌ | 安全根密钥，坚决不写入 SQLite，防止 DB 泄漏导致全站 Token 被伪造 |
 | `AI_API_KEY` / `AI_URL` | 环境变量 + UI | 🤝 允许重合 | ✅ | 环境变量存在时 UI 只读锁死；否则管理员可在网页端填写存入 DB |
 | `NOTIFY_*` | 仅 UI 数据库 | ✅ | ✅ | 业务通知网关，随用随改，不应污染环境变量 |
@@ -201,7 +201,7 @@ type ConfigMeta struct {
 // {
 //   "mode": "release",
 //   "needs_setup": false,
-//   "version": "v0.1.0",
+//   "version": "v1.0.0",
 //   "configs": {
 //     "ai_api_key":      { "value": "••••••••", "controlled_by": "env",      "can_edit": false },
 //     "notify_bark_url": { "value": "https://…", "controlled_by": "database", "can_edit": true  },
@@ -373,7 +373,7 @@ CREATE TABLE items (
     type            TEXT NOT NULL,
     -- 'durable' | 'consumable_a' | 'consumable_b' | 'edc' | 'virtual'
     status          TEXT NOT NULL DEFAULT 'in_stock',
-    -- in_stock | borrowed | idle | for_sale | sold | given_away
+    -- in_stock | in_use | borrowed | idle | for_sale | sold | given_away
     -- lost | stolen | unreturned | damaged | archived
 
     location_id             TEXT REFERENCES locations(id),
@@ -756,7 +756,7 @@ function SearchBar() {
 
 {
   "keywords": [],
-  "status": null,           // in_stock|borrowed|idle|lost|stolen|archived
+  "status": null,           // in_stock|in_use|borrowed|idle|lost|stolen|archived
   "type": null,             // durable|consumable_a|consumable_b|edc|virtual
   "location_hint": {
     "name": null,           // 位置名称关键词
@@ -1468,7 +1468,7 @@ Go：Viper 静态配置 + ConfigService（四层优先级 + 热重载）+ Chi �
 
 ### 13.1 两种运行模式
 
-通过配置项 `mode` 或环境变量 `HAVIT_RUN_MODE` 控制，分为 `release`（默认）和 `demo` 两种模式。
+通过配置项 `mode` 或环境变量 `HAVIT_MODE` 控制（兼容 `HAVIT_RUN_MODE`），分为 `release`（默认）和 `demo` 两种模式。
 
 | 维度 | release | demo |
 |---|---|---|
@@ -1515,7 +1515,7 @@ GET /api/system/status
 type SystemStatus struct {
     Mode       string `json:"mode"`        // "release" | "demo"
     NeedsSetup bool   `json:"needs_setup"` // true = 重定向 /setup
-    Version    string `json:"version"`     // "v0.1.0"
+    Version    string `json:"version"`     // "v1.0.0"
 }
 
 func (h *SystemHandler) Status(w http.ResponseWriter, r *http.Request) {
@@ -1530,8 +1530,8 @@ func (h *SystemHandler) Status(w http.ResponseWriter, r *http.Request) {
 响应示例：
 
 ```json
-{ "mode": "release", "needs_setup": true,  "version": "v0.1.0" }
-{ "mode": "demo",    "needs_setup": false, "version": "v0.1.0" }
+{ "mode": "release", "needs_setup": true,  "version": "v1.0.0" }
+{ "mode": "demo",    "needs_setup": false, "version": "v1.0.0" }
 ```
 
 ### 13.4 前端路由守卫

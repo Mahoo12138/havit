@@ -21,24 +21,27 @@ func New(code, message string, status int) *AppError {
 
 // Error code constants. These are stable identifiers returned to the client.
 const (
-	CodeNotFound            = "not_found"
-	CodeForbidden           = "forbidden"
-	CodeInvalidItemType     = "invalid_item_type"
-	CodeInvalidItemStatus   = "invalid_item_status"
-	CodeInvalidLocationType = "invalid_location_type"
-	CodeLocationHierarchy   = "location_hierarchy"
-	CodeSetupClosed         = "setup_closed"
-	CodeUserExists          = "user_exists"
-	CodeInvalidCredentials  = "invalid_credentials"
-	CodeSessionExpired      = "session_expired"
-	CodeAISourceProtected   = "ai_source_protected"
-	CodeValidationFailed    = "validation_failed"
-	CodeFileRequired        = "file_required"
-	CodeImageRequired       = "image_required"
-	CodeUnsupportedFormat   = "unsupported_format"
-	CodeTagInUse            = "tag_in_use"
-	CodeTagNameConflict     = "tag_name_conflict"
-	CodeInternal            = "internal_error"
+	CodeNotFound               = "not_found"
+	CodeForbidden              = "forbidden"
+	CodeInvalidItemType        = "invalid_item_type"
+	CodeInvalidItemStatus      = "invalid_item_status"
+	CodeInvalidLocationType    = "invalid_location_type"
+	CodeLocationHierarchy      = "location_hierarchy"
+	CodeSetupClosed            = "setup_closed"
+	CodeUserExists             = "user_exists"
+	CodeInvalidCredentials     = "invalid_credentials"
+	CodeInvalidCurrentPassword = "invalid_current_password"
+	CodeDemoReadOnly           = "demo_readonly"
+	CodeSessionExpired         = "session_expired"
+	CodeRateLimited            = "rate_limited"
+	CodeAISourceProtected      = "ai_source_protected"
+	CodeValidationFailed       = "validation_failed"
+	CodeFileRequired           = "file_required"
+	CodeImageRequired          = "image_required"
+	CodeUnsupportedFormat      = "unsupported_format"
+	CodeTagInUse               = "tag_in_use"
+	CodeTagNameConflict        = "tag_name_conflict"
+	CodeInternal               = "internal_error"
 )
 
 // Sentinel errors for common cases.
@@ -61,7 +64,13 @@ var (
 
 	ErrInvalidCredentials = New(CodeInvalidCredentials, "Invalid username or password", http.StatusUnauthorized)
 
+	ErrInvalidCurrentPassword = New(CodeInvalidCurrentPassword, "Current password is incorrect", http.StatusBadRequest)
+
+	ErrDemoReadOnly = New(CodeDemoReadOnly, "This action is disabled in demo mode", http.StatusForbidden)
+
 	ErrSessionExpired = New(CodeSessionExpired, "Session expired, please log in again", http.StatusUnauthorized)
+
+	ErrRateLimited = New(CodeRateLimited, "Too many attempts, please try again later", http.StatusTooManyRequests)
 
 	ErrAISourceProtected = New(CodeAISourceProtected, "AI source attachment cannot be deleted", http.StatusForbidden)
 

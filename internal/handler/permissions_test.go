@@ -110,6 +110,7 @@ func TestOwnerOnlyRoutesRejectMembers(t *testing.T) {
 		{http.MethodPatch, base + "/users/" + ownerID + "/role", map[string]string{"role": "member"}},
 		{http.MethodGet, base + "/system/configs", nil},
 		{http.MethodPatch, base + "/system/configs/ai.enabled", map[string]string{"value": "true"}},
+		{http.MethodPost, base + "/backups/run", nil},
 	}
 	for _, tc := range memberForbidden {
 		rec := doReq(t, router, tc.method, tc.path, memberToken, tc.body)

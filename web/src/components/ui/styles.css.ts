@@ -3,6 +3,7 @@ import { style, styleVariants, keyframes } from '@vanilla-extract/css';
 import { globalStyle } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const center = style({
   display: 'grid',
@@ -75,6 +76,13 @@ export const pageHeader = style({
   },
 });
 
+export const pageHeadingCopy = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  minWidth: 0,
+});
+
 export const pageActions = style({
   display: 'flex',
   justifyContent: 'flex-end',
@@ -119,19 +127,16 @@ export const cardContent = style({
 
 export const help = style({
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
 });
+
+export const helpParagraph = style([help, { margin: 0 }]);
+
+export const caption = textStyles.caption;
 
 export const errorText = style({
   color: themeVars.danger,
-  fontSize: '0.85rem',
-});
-
-export const heading = style({
-  margin: 0,
-  color: themeVars.ink,
-  fontWeight: 700,
-  letterSpacing: '-0.01em',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const muted = style({
@@ -209,7 +214,7 @@ export const headerSearchInput = style({
   background: themeVars.bgSoft,
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.88rem',
+  fontSize: themeVars.textSizeBase,
   padding: `0 ${themeVars.space3} 0 2.25rem`,
   outline: 'none',
   transition: 'border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease',
@@ -265,23 +270,10 @@ export const headerIconBtn = style({
   },
 });
 
-export const headerAvatar = style({
-  width: '2.25rem',
-  height: '2.25rem',
-  borderRadius: '999px',
-  display: 'inline-grid',
-  placeItems: 'center',
-  background: themeVars.accent,
-  color: themeVars.onAccent,
-  fontSize: '0.85rem',
-  fontWeight: 700,
-  cursor: 'pointer',
-});
-
 export const shellBrandMeta = style({
   color: themeVars.muted,
-  fontSize: '0.75rem',
-  lineHeight: 1.2,
+  fontSize: themeVars.textSizeXs,
+  lineHeight: themeVars.leadingTight,
 });
 
 export const shellHeaderRule = style({
@@ -299,7 +291,7 @@ export const shellHeaderRule = style({
 
 export const shellHeaderDate = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   '@media': {
     '(max-width: 48em)': {
       display: 'none',
@@ -316,6 +308,7 @@ export const shellNav = style({
   top: 0,
   height: '100dvh',
   overflow: 'hidden',
+  borderRight: `1px solid ${themeVars.sidebarLine}`,
   background: themeVars.sidebarBg,
   color: themeVars.sidebarText,
   display: 'flex',
@@ -338,116 +331,19 @@ export const sidebarBrandMark = style({
   borderRadius: themeVars.radius2,
   background: themeVars.accent,
   color: themeVars.onAccent,
-  fontSize: '0.95rem',
-  fontWeight: 800,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
 });
 
 export const sidebarBrandText = style({
-  fontSize: '1.05rem',
-  fontWeight: 700,
-  letterSpacing: '-0.01em',
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightBold,
+  letterSpacing: themeVars.trackingTight,
   color: themeVars.sidebarActiveText,
 });
 
 export const sidebarScroll = style({
   padding: `${themeVars.space3} ${themeVars.space2}`,
-});
-
-export const sidebarFooter = style({
-  borderTop: `1px solid ${themeVars.sidebarLine}`,
-  padding: themeVars.space3,
-});
-
-// 通用 SelectField 按浅色页面配色；放进深色书脊后选中值近黑字压深底不可读，
-// 这里换成侧边栏 token 重新着色。
-globalStyle(`${sidebarFooter} [data-slot='field-label']`, {
-  color: themeVars.sidebarMuted,
-});
-globalStyle(`${sidebarFooter} [data-slot='select-trigger']`, {
-  background: themeVars.sidebarPanel,
-  borderColor: themeVars.sidebarLine,
-  color: themeVars.sidebarActiveText,
-});
-globalStyle(`${sidebarFooter} [data-slot='select-trigger']:hover`, {
-  borderColor: 'rgba(247, 242, 230, 0.18)',
-});
-globalStyle(`${sidebarFooter} [data-slot='select-trigger']:focus-visible`, {
-  borderColor: themeVars.accent,
-});
-globalStyle(`${sidebarFooter} [data-slot='select-trigger'][data-popup-open]`, {
-  borderColor: themeVars.accent,
-});
-globalStyle(`${sidebarFooter} [data-slot='select-trigger'] svg`, {
-  color: themeVars.sidebarMuted,
-});
-
-export const sidebarUser = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  padding: themeVars.space2,
-  borderRadius: themeVars.radius2,
-  color: themeVars.sidebarText,
-  transition: 'background-color 160ms ease',
-  selectors: {
-    '&:hover': {
-      background: themeVars.sidebarHover,
-    },
-  },
-});
-
-export const sidebarUserAvatar = style({
-  width: '2.15rem',
-  height: '2.15rem',
-  borderRadius: '999px',
-  display: 'inline-grid',
-  placeItems: 'center',
-  background: themeVars.accent,
-  color: themeVars.onAccent,
-  fontSize: '0.85rem',
-  fontWeight: 700,
-  flex: '0 0 auto',
-});
-
-export const sidebarUserMeta = style({
-  display: 'flex',
-  flexDirection: 'column',
-  minWidth: 0,
-});
-
-export const sidebarUserName = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
-  color: themeVars.sidebarActiveText,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-});
-
-export const sidebarUserMetaSub = style({
-  fontSize: '0.74rem',
-  color: themeVars.sidebarMuted,
-});
-
-export const sidebarLogout = style({
-  marginLeft: 'auto',
-  display: 'inline-grid',
-  width: '2rem',
-  height: '2rem',
-  placeItems: 'center',
-  border: 0,
-  borderRadius: themeVars.radius1,
-  background: 'transparent',
-  color: themeVars.sidebarMuted,
-  cursor: 'pointer',
-  transition: 'background-color 160ms ease, color 160ms ease',
-  selectors: {
-    '&:hover': {
-      // 侧边栏两种配色下都是深色书脊，这里需要亮红保证可读
-      color: '#e07856',
-      background: themeVars.sidebarHover,
-    },
-  },
 });
 
 export const navGroup = style({
@@ -464,9 +360,9 @@ export const navGroupDivider = style({
 
 export const navSectionLabel = style({
   color: themeVars.sidebarMuted,
-  fontSize: '0.7rem',
-  fontWeight: 600,
-  letterSpacing: '0.08em',
+  fontSize: themeVars.textSize2xs,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingWider,
   textTransform: 'uppercase',
   padding: `${themeVars.space3} ${themeVars.space3} ${themeVars.space2}`,
 });
@@ -502,18 +398,21 @@ export const navLink = style({
   gap: themeVars.space3,
   color: themeVars.sidebarText,
   padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderRadius: themeVars.radius2,
   textDecoration: 'none',
-  fontSize: '0.88rem',
-  fontWeight: 500,
-  transition: 'color 160ms ease',
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
+  transition: 'color 160ms ease, background-color 160ms ease',
   selectors: {
     '&:hover': {
       color: themeVars.sidebarActiveText,
+      background: themeVars.sidebarHover,
       textDecoration: 'none',
     },
     '&[data-active="true"]': {
       color: themeVars.sidebarActiveText,
-      fontWeight: 600,
+      background: themeVars.sidebarActive,
+      fontWeight: themeVars.weightSemibold,
     },
     '&::before': {
       content: '""',
@@ -627,7 +526,7 @@ export const qrMock = style({
     `linear-gradient(${themeVars.ink} 12px, transparent 12px) 0 0 / 26px 26px, ` +
     themeVars.panel,
   color: themeVars.panel,
-  fontWeight: 700,
+  fontWeight: themeVars.weightBold,
   textShadow: `0 1px 2px ${themeVars.ink}`,
 });
 
@@ -672,12 +571,12 @@ export const qrCodeImage = style({
 
 export const qrPrintCode = style({
   fontFamily: themeVars.fontMono,
-  fontSize: '0.55rem',
-  letterSpacing: '0.02em',
-  color: '#1c1a15',
+  fontSize: themeVars.textSize2xs,
+  letterSpacing: themeVars.trackingWide,
+  color: '#111827',
   textAlign: 'center',
   wordBreak: 'break-all',
-  lineHeight: 1.2,
+  lineHeight: themeVars.leadingTight,
   maxWidth: '100%',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -685,14 +584,14 @@ export const qrPrintCode = style({
 });
 
 export const qrPrintNoCode = style({
-  color: '#6f6757',
-  fontSize: '0.75rem',
+  color: '#5b6472',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const qrPrintName = style({
-  fontWeight: 600,
-  fontSize: '0.85rem',
-  color: '#1c1a15',
+  fontWeight: themeVars.weightSemibold,
+  fontSize: themeVars.textSizeBase,
+  color: '#111827',
   textAlign: 'center',
   maxWidth: '100%',
   overflow: 'hidden',
@@ -701,8 +600,8 @@ export const qrPrintName = style({
 });
 
 export const qrPrintPath = style({
-  fontSize: '0.7rem',
-  color: '#6f6757',
+  fontSize: themeVars.textSize2xs,
+  color: '#5b6472',
   textAlign: 'center',
   maxWidth: '100%',
   overflow: 'hidden',
@@ -750,6 +649,13 @@ export const greetingRow = style({
   flexWrap: 'wrap',
 });
 
+export const greetingCopy = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
+  minWidth: 0,
+});
+
 export const kpiStrip = style({
   display: 'grid',
   // One ledger-strip card: 1px gaps over a hairline background read as
@@ -793,22 +699,14 @@ export const kpiMeta = style({
 
 export const kpiLabel = style({
   color: themeVars.muted,
-  fontSize: '0.75rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightMedium,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 });
 
-export const kpiValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '1.4rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  lineHeight: 1.1,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const kpiValue = textStyles.metricSm;
 
 export const dashboardStats = style({
   display: 'grid',
@@ -836,15 +734,7 @@ export const dashboardSummary = style({
   gap: themeVars.space4,
 });
 
-export const statValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '2rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  lineHeight: 1,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const statValue = textStyles.metric;
 
 // Applied as a className on the Card component: section-style cards keep
 // their head/body flush (head supplies the bottom border, body the padding).
@@ -865,20 +755,14 @@ export const sectionHead = style({
   borderBottom: `1px solid ${themeVars.lineSoft}`,
 });
 
-export const sectionTitle = style({
-  fontSize: '1rem',
-  fontWeight: 700,
-  color: themeVars.ink,
-  letterSpacing: '-0.01em',
-  margin: 0,
-});
+export const sectionTitle = textStyles.sectionTitle;
 
 export const sectionLink = style({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '2px',
-  fontSize: '0.82rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.muted,
   cursor: 'pointer',
   background: 'transparent',
@@ -983,9 +867,9 @@ export const categoryThumb = styleVariants({
 });
 
 export const categoryInitial = style({
-  fontSize: '0.95rem',
-  fontWeight: 650,
-  lineHeight: 1,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingNone,
 });
 
 export const categoryMeta = style({
@@ -996,8 +880,8 @@ export const categoryMeta = style({
 });
 
 export const categoryName = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -1005,7 +889,7 @@ export const categoryName = style({
 });
 
 export const categoryCount = style({
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -1049,8 +933,8 @@ export const recentThumb = style({
   display: 'grid',
   placeItems: 'center',
   color: themeVars.text,
-  fontSize: '0.95rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   flex: '0 0 auto',
 });
 
@@ -1062,8 +946,8 @@ export const recentMeta = style({
 });
 
 export const recentName = style({
-  fontSize: '0.92rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -1071,7 +955,7 @@ export const recentName = style({
 });
 
 export const recentSub = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -1087,8 +971,8 @@ export const recentTags = style({
 });
 
 export const recentPrice = style({
-  fontSize: '0.95rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
   '@media': {
@@ -1115,8 +999,8 @@ export const quickAction = style({
   background: 'transparent',
   color: themeVars.text,
   textDecoration: 'none',
-  fontSize: '0.78rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   cursor: 'pointer',
   transition: 'background-color 160ms ease',
   selectors: {
@@ -1170,13 +1054,13 @@ export const reminderDotInfo = style([
 ]);
 
 export const reminderTitle = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
 export const reminderSub = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -1184,7 +1068,7 @@ export const reminderEmpty = style({
   padding: `${themeVars.space5} ${themeVars.space4}`,
   textAlign: 'center',
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const locationTreeWrap = style({
@@ -1202,7 +1086,7 @@ export const locationNode = style({
   padding: `0.4rem ${themeVars.space2}`,
   borderRadius: themeVars.radius1,
   color: themeVars.text,
-  fontSize: '0.86rem',
+  fontSize: themeVars.textSizeBase,
   cursor: 'pointer',
   selectors: {
     '&:hover': {
@@ -1213,7 +1097,7 @@ export const locationNode = style({
 
 export const locationNodeMuted = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   marginLeft: 'auto',
   fontVariantNumeric: 'tabular-nums',
 });
@@ -1260,7 +1144,7 @@ export const photoEmpty = style({
   maxWidth: '22rem',
   padding: themeVars.space6,
   color: themeVars.muted,
-  lineHeight: 1.6,
+  lineHeight: themeVars.leadingNormal,
   textAlign: 'center',
 });
 
@@ -1442,10 +1326,10 @@ export const locationTreeHead = style({
 });
 
 export const locationTreeHeadTitle = style({
-  fontSize: '0.95rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const locationTreeBody = style({
@@ -1488,7 +1372,7 @@ export const breadcrumb = style({
   alignItems: 'center',
   gap: themeVars.space1,
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -1500,7 +1384,7 @@ export const breadcrumbItem = style({
   selectors: {
     '&[data-current="true"]': {
       color: themeVars.ink,
-      fontWeight: 600,
+      fontWeight: themeVars.weightSemibold,
     },
   },
 });
@@ -1615,21 +1499,21 @@ export const locationHeroMeta = style({
 });
 
 export const locationHeroName = style({
-  fontSize: '1.4rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeXl,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
-  letterSpacing: '-0.015em',
-  lineHeight: 1.2,
+  letterSpacing: themeVars.trackingTighter,
+  lineHeight: themeVars.leadingTight,
   '@media': {
     '(max-width: 48em)': {
-      fontSize: '1.25rem',
+      fontSize: themeVars.textSizeXl,
     },
   },
 });
 
 export const locationHeroSub = style({
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const typeBadge = styleVariants({
@@ -1642,8 +1526,8 @@ export const typeBadge = styleVariants({
       borderRadius: '999px',
       background: themeVars.accentSoft,
       color: themeVars.accentInk,
-      fontSize: '0.72rem',
-      fontWeight: 600,
+      fontSize: themeVars.textSizeXs,
+      fontWeight: themeVars.weightSemibold,
     },
   ],
   info: [
@@ -1655,8 +1539,8 @@ export const typeBadge = styleVariants({
       borderRadius: '999px',
       background: themeVars.infoSoft,
       color: themeVars.info,
-      fontSize: '0.72rem',
-      fontWeight: 600,
+      fontSize: themeVars.textSizeXs,
+      fontWeight: themeVars.weightSemibold,
     },
   ],
   warning: [
@@ -1668,8 +1552,8 @@ export const typeBadge = styleVariants({
       borderRadius: '999px',
       background: themeVars.warningSoft,
       color: themeVars.warningText,
-      fontSize: '0.72rem',
-      fontWeight: 600,
+      fontSize: themeVars.textSizeXs,
+      fontWeight: themeVars.weightSemibold,
     },
   ],
   violet: [
@@ -1681,8 +1565,8 @@ export const typeBadge = styleVariants({
       borderRadius: '999px',
       background: themeVars.violetSoft,
       color: themeVars.violet,
-      fontSize: '0.72rem',
-      fontWeight: 600,
+      fontSize: themeVars.textSizeXs,
+      fontWeight: themeVars.weightSemibold,
     },
   ],
   amber: [
@@ -1694,8 +1578,8 @@ export const typeBadge = styleVariants({
       borderRadius: '999px',
       background: themeVars.amberSoft,
       color: themeVars.amber,
-      fontSize: '0.72rem',
-      fontWeight: 600,
+      fontSize: themeVars.textSizeXs,
+      fontWeight: themeVars.weightSemibold,
     },
   ],
 });
@@ -1710,9 +1594,9 @@ export const qrChip = style({
   border: `1px solid ${themeVars.line}`,
   color: themeVars.text,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.78rem',
-  fontWeight: 600,
-  letterSpacing: '0.04em',
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingWide,
 });
 
 export const metaGrid = style({
@@ -1746,28 +1630,25 @@ export const metaChip = style({
 
 export const metaChipLabel = style({
   color: themeVars.muted,
-  fontSize: '0.74rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightMedium,
   '@media': {
     '(max-width: 36em)': {
-      fontSize: '0.68rem',
+      fontSize: themeVars.textSize2xs,
     },
   },
 });
 
-export const metaChipValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '1.4rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  fontVariantNumeric: 'tabular-nums',
-  '@media': {
-    '(max-width: 36em)': {
-      fontSize: '1.15rem',
+export const metaChipValue = style([
+  textStyles.metricSm,
+  {
+    '@media': {
+      '(max-width: 36em)': {
+        fontSize: themeVars.textSizeLg,
+      },
     },
   },
-});
+]);
 
 export const detailBody = style({
   borderTop: `1px solid ${themeVars.lineSoft}`,
@@ -1827,8 +1708,8 @@ export const detailItemRow = style({
 });
 
 export const detailItemPrice = style({
-  fontSize: '0.92rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
   '@media': {
@@ -1854,7 +1735,7 @@ export const childChip = style({
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   color: themeVars.text,
-  fontSize: '0.86rem',
+  fontSize: themeVars.textSizeBase,
   textDecoration: 'none',
   cursor: 'pointer',
   transition: 'border-color 140ms ease, background-color 140ms ease, transform 200ms ease',
@@ -1874,13 +1755,13 @@ export const childChipName = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  fontWeight: 600,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
 export const childChipCount = style({
   color: themeVars.muted,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -1891,13 +1772,7 @@ export const subsection = style({
   justifyContent: 'space-between',
 });
 
-export const subsectionTitle = style({
-  fontSize: '0.78rem',
-  fontWeight: 600,
-  color: themeVars.muted,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-});
+export const subsectionTitle = textStyles.eyebrow;
 
 export const switchRow = style({
   display: 'flex',
@@ -1967,7 +1842,7 @@ export const typeChoiceCard = style({
   cursor: 'pointer',
   textAlign: 'left',
   font: 'inherit',
-  lineHeight: 1.3,
+  lineHeight: themeVars.leadingSnug,
   whiteSpace: 'normal',
   transition: 'border-color 140ms ease, background-color 140ms ease, color 140ms ease, box-shadow 140ms ease',
   selectors: {
@@ -2013,15 +1888,15 @@ export const typeChoiceBody = style({
 });
 
 export const typeChoiceLabel = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
 export const typeChoiceDesc = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
-  lineHeight: 1.4,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const locationParentNote = style({
@@ -2038,8 +1913,8 @@ export const locationParentNote = style({
 export const locationParentNoteText = style({
   minWidth: 0,
   color: themeVars.muted,
-  fontSize: '0.82rem',
-  lineHeight: 1.5,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
 });
 
 /* ---------- Item Detail page ---------- */
@@ -2088,7 +1963,7 @@ export const itemPhotoEmpty = style({
   padding: themeVars.space5,
   color: themeVars.muted,
   textAlign: 'center',
-  lineHeight: 1.5,
+  lineHeight: themeVars.leadingNormal,
 });
 
 export const itemPhotoCount = style({
@@ -2100,10 +1975,10 @@ export const itemPhotoCount = style({
   gap: '4px',
   padding: `${themeVars.space1} ${themeVars.space2}`,
   borderRadius: '999px',
-  background: 'rgba(28, 26, 21, 0.55)',
+  background: 'rgba(17, 24, 39, 0.60)',
   color: '#fff',
-  fontSize: '0.72rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const itemThumbStrip = style({
@@ -2193,13 +2068,13 @@ export const itemSpecType = style({
   borderRadius: '999px',
   background: themeVars.lineSoft,
   color: themeVars.text,
-  fontSize: '0.74rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const itemSpecCategory = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const itemSpecGrid = style({
@@ -2226,33 +2101,33 @@ export const itemSpecCell = style({
 
 export const itemSpecCellLabel = style({
   color: themeVars.muted,
-  fontSize: '0.7rem',
-  fontWeight: 600,
-  letterSpacing: '0.06em',
+  fontSize: themeVars.textSize2xs,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingWider,
   textTransform: 'uppercase',
 });
 
 export const itemSpecCellValue = style({
   color: themeVars.ink,
-  fontSize: '0.95rem',
-  fontWeight: 600,
-  lineHeight: 1.4,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingSnug,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  letterSpacing: '-0.005em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const itemSpecCellMuted = style({
   color: themeVars.muted,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 export const itemNote = style({
   margin: 0,
   color: themeVars.text,
-  fontSize: '0.9rem',
-  lineHeight: 1.55,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingNormal,
 });
 
 export const itemDashboard = style({
@@ -2311,10 +2186,10 @@ export const itemSectionTitle = style({
   display: 'inline-flex',
   alignItems: 'center',
   gap: themeVars.space2,
-  fontSize: '0.92rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
-  letterSpacing: '-0.005em',
+  letterSpacing: themeVars.trackingTight,
   margin: 0,
 });
 
@@ -2330,7 +2205,7 @@ export const itemSectionTitleIcon = style({
 
 export const itemSectionHint = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const itemSectionBody = style({
@@ -2347,7 +2222,7 @@ export const itemSectionBodyTight = style({
 export const itemSectionEmpty = style({
   padding: `${themeVars.space4} ${themeVars.space4} ${themeVars.space5}`,
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   textAlign: 'center',
 });
 
@@ -2363,7 +2238,7 @@ export const itemKvRow = style({
   gap: themeVars.space3,
   padding: `${themeVars.space2} 0`,
   borderBottom: `1px solid ${themeVars.lineSoft}`,
-  fontSize: '0.86rem',
+  fontSize: themeVars.textSizeBase,
   selectors: {
     '&:first-child': {
       paddingTop: 0,
@@ -2382,7 +2257,7 @@ export const itemKvLabel = style({
 
 export const itemKvValue = style({
   color: themeVars.ink,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
   textAlign: 'right',
   minWidth: 0,
   overflow: 'hidden',
@@ -2396,19 +2271,11 @@ export const itemStockHero = style({
   gap: themeVars.space2,
 });
 
-export const itemStockValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '2.2rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  lineHeight: 1,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const itemStockValue = textStyles.metricLg;
 
 export const itemStockUnit = style({
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const itemStockLow = style({
@@ -2419,8 +2286,8 @@ export const itemStockLow = style({
   borderRadius: '999px',
   background: themeVars.warningSoft,
   color: themeVars.warningText,
-  fontSize: '0.72rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const itemTimeline = style({
@@ -2469,13 +2336,13 @@ export const itemTimelineRow = style({
 
 export const itemTimelineTitle = style({
   color: themeVars.ink,
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const itemTimelineMeta = style({
   color: themeVars.muted,
-  fontSize: '0.76rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const itemTimelinePayload = style({
@@ -2485,7 +2352,7 @@ export const itemTimelinePayload = style({
   background: themeVars.bgSoft,
   border: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.text,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   fontFamily: themeVars.fontMono,
   wordBreak: 'break-all',
 });
@@ -2509,13 +2376,13 @@ export const itemLoanHead = style({
 
 export const itemLoanName = style({
   color: themeVars.ink,
-  fontSize: '0.95rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const itemLoanMeta = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const itemRailField = style({
@@ -2526,9 +2393,9 @@ export const itemRailField = style({
 
 export const itemRailFieldLabel = style({
   color: themeVars.muted,
-  fontSize: '0.74rem',
-  fontWeight: 600,
-  letterSpacing: '0.04em',
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingWide,
   textTransform: 'uppercase',
 });
 
@@ -2541,8 +2408,8 @@ export const itemRailLocation = style({
   border: `1px solid ${themeVars.lineSoft}`,
   background: themeVars.bgSoft,
   color: themeVars.text,
-  fontSize: '0.85rem',
-  lineHeight: 1.4,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const itemRailDivider = style({
@@ -2562,13 +2429,13 @@ export const itemCredentialCard = style({
 
 export const itemCredentialTitle = style({
   color: themeVars.ink,
-  fontSize: '0.9rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const itemCredentialMeta = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const itemAddonRow = style({
@@ -2587,14 +2454,14 @@ export const itemAddonRow = style({
 
 export const itemAddonName = style({
   color: themeVars.ink,
-  fontSize: '0.86rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
 });
 
 export const itemAddonPrice = style({
   color: themeVars.accentInk,
-  fontSize: '0.86rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -2604,7 +2471,7 @@ export const itemSectionFoot = style({
   background: themeVars.bgSoft,
   display: 'flex',
   justifyContent: 'flex-end',
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -2636,19 +2503,11 @@ export const loanMetricCard = style({
 
 export const loanMetricLabel = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
 });
 
-export const loanMetricValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '1.6rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  lineHeight: 1.1,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const loanMetricValue = textStyles.metric;
 
 export const loanMetricValueDanger = style([
   loanMetricValue,
@@ -2657,7 +2516,7 @@ export const loanMetricValueDanger = style([
 
 export const loanMetricSub = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const loanFilterBar = style({
@@ -2681,7 +2540,7 @@ export const loanFilterSelect = style({
   background: themeVars.panel,
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   padding: `${themeVars.space1} ${themeVars.space3}`,
   paddingRight: `${themeVars.space6}`,
   outline: 'none',
@@ -2728,9 +2587,9 @@ export const loanStatusBadgeBase = style({
   display: 'inline-flex',
   alignItems: 'center',
   borderRadius: themeVars.radius1,
-  fontSize: '0.72rem',
-  fontWeight: 700,
-  letterSpacing: '0.04em',
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightBold,
+  letterSpacing: themeVars.trackingWide,
   padding: `${themeVars.space1} ${themeVars.space2}`,
 });
 
@@ -2757,7 +2616,7 @@ export const loanItemThumbPlaceholder = style([
     display: 'grid',
     placeItems: 'center',
     color: themeVars.muted,
-    fontSize: '0.9rem',
+    fontSize: themeVars.textSizeBase,
   },
 ]);
 
@@ -2766,9 +2625,9 @@ export const loanItemInfo = style({
 });
 
 export const loanItemName = style({
-  fontWeight: 600,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.ink,
-  fontSize: '0.9rem',
+  fontSize: themeVars.textSizeBase,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -2776,7 +2635,7 @@ export const loanItemName = style({
 
 export const loanItemSn = style({
   color: themeVars.muted,
-  fontSize: '0.76rem',
+  fontSize: themeVars.textSizeXs,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -2787,8 +2646,8 @@ export const loanActionBtn = style({
   border: `1px solid ${themeVars.line}`,
   borderRadius: themeVars.radius2,
   padding: `${themeVars.space1} ${themeVars.space3}`,
-  fontSize: '0.8rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.accent,
   cursor: 'pointer',
   transition: 'background-color 140ms ease, border-color 140ms ease',
@@ -2843,8 +2702,8 @@ export const loanPageHeaderRight = style({
 
 export const loanPageSubtitle = style({
   color: themeVars.muted,
-  fontSize: '0.88rem',
-  marginTop: themeVars.space1,
+  fontSize: themeVars.textSizeBase,
+  margin: 0,
 });
 
 export const loanBottomGrid = style({
@@ -2869,10 +2728,10 @@ export const loanBottomCard = style({
 
 export const loanBottomTitle = style({
   margin: 0,
-  fontSize: '1rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const loanMobileCard = style({
@@ -2900,7 +2759,7 @@ export const loanMobileMeta = style({
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
   gap: `${themeVars.space1} ${themeVars.space4}`,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const loanMobileLabel = style({
@@ -2909,7 +2768,7 @@ export const loanMobileLabel = style({
 
 export const loanMobileValue = style({
   color: themeVars.text,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 /* ---------- Essentials Page ---------- */
@@ -2980,22 +2839,15 @@ export const essentialsStatMeta = style({
 
 export const essentialsStatLabel = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
 });
 
-export const essentialsStatValue = style({
-  color: themeVars.ink,
-  fontSize: '1.75rem',
-  fontWeight: 700,
-  letterSpacing: '-0.02em',
-  lineHeight: 1.1,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const essentialsStatValue = textStyles.metric;
 
 export const essentialsStatNote = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   marginTop: '1px',
 });
 
@@ -3053,10 +2905,10 @@ export const essentialsToolbarRight = style({
 
 export const essentialsToolbarTitle = style({
   margin: 0,
-  fontSize: '1rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const essentialsToolbarDivider = style({
@@ -3107,8 +2959,8 @@ export const essentialsItemThumb = style({
 });
 
 export const essentialsItemName = style({
-  fontSize: '0.92rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -3116,7 +2968,7 @@ export const essentialsItemName = style({
 });
 
 export const essentialsItemCategory = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -3129,8 +2981,8 @@ export const essentialsStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.accentSoft,
     color: themeVars.accentInk,
-    fontSize: '0.78rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeSm,
+    fontWeight: themeVars.weightSemibold,
   },
   bag: {
     display: 'inline-flex',
@@ -3140,8 +2992,8 @@ export const essentialsStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.infoSoft,
     color: themeVars.info,
-    fontSize: '0.78rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeSm,
+    fontWeight: themeVars.weightSemibold,
   },
   home: {
     display: 'inline-flex',
@@ -3151,8 +3003,8 @@ export const essentialsStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.lineSoft,
     color: themeVars.muted,
-    fontSize: '0.78rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeSm,
+    fontWeight: themeVars.weightSemibold,
   },
   away: {
     display: 'inline-flex',
@@ -3162,8 +3014,8 @@ export const essentialsStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.warningSoft,
     color: themeVars.warning,
-    fontSize: '0.78rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeSm,
+    fontWeight: themeVars.weightSemibold,
   },
 });
 
@@ -3208,13 +3060,13 @@ export const essentialsQuickActionMeta = style({
 });
 
 export const essentialsQuickActionTitle = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
 export const essentialsQuickActionHint = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -3241,7 +3093,7 @@ export const essentialsDonutLegendItem = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space2,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.text,
 });
 
@@ -3256,7 +3108,7 @@ export const essentialsDonutLegendValue = style({
   marginLeft: 'auto',
   color: themeVars.muted,
   fontVariantNumeric: 'tabular-nums',
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const essentialsReminderItem = style({
@@ -3298,13 +3150,13 @@ export const essentialsReminderMeta = style({
 });
 
 export const essentialsReminderTitle = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
 export const essentialsReminderSub = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -3345,8 +3197,8 @@ export const essentialsChecklistThumb = style({
 });
 
 export const essentialsChecklistName = style({
-  fontSize: '0.82rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -3355,9 +3207,9 @@ export const essentialsChecklistName = style({
 });
 
 export const essentialsChecklistStatus = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.accentInk,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 /* ---------- supplys Page ---------- */
@@ -3407,23 +3259,15 @@ export const supplyKpiMeta = style({
 
 export const supplyKpiLabel = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
 });
 
-export const supplyKpiValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '1.5rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  lineHeight: 1.1,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const supplyKpiValue = textStyles.metric;
 
 export const supplyKpiNote = style({
   color: themeVars.muted,
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const supplyForecastScroll = style({
@@ -3471,27 +3315,27 @@ export const supplyForecastThumb = style({
   display: 'grid',
   placeItems: 'center',
   color: themeVars.text,
-  fontSize: '0.95rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   flex: '0 0 auto',
 });
 
 export const supplyForecastName = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
 export const supplyForecastHint = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
-  lineHeight: 1.4,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const supplyForecastMeta = style({
   display: 'flex',
   justifyContent: 'space-between',
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -3512,14 +3356,9 @@ export const supplyProgressFill = style({
 
 export const supplyTwoCol = style({
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 40rem), 1fr))',
   gap: themeVars.space5,
   alignItems: 'start',
-  '@media': {
-    '(max-width: 72em)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
 });
 
 export const supplyStatusBadge = styleVariants({
@@ -3530,8 +3369,8 @@ export const supplyStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.successSoft,
     color: themeVars.success,
-    fontSize: '0.72rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   sufficient: {
     display: 'inline-flex',
@@ -3540,8 +3379,8 @@ export const supplyStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.accentSoft,
     color: themeVars.accentInk,
-    fontSize: '0.72rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   low: {
     display: 'inline-flex',
@@ -3550,8 +3389,8 @@ export const supplyStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.warningSoft,
     color: themeVars.warning,
-    fontSize: '0.72rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   below: {
     display: 'inline-flex',
@@ -3560,8 +3399,8 @@ export const supplyStatusBadge = styleVariants({
     borderRadius: '999px',
     background: themeVars.dangerSoft,
     color: themeVars.danger,
-    fontSize: '0.72rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
 });
 
@@ -3569,8 +3408,8 @@ export const supplyViewAllLink = style({
   display: 'block',
   textAlign: 'center',
   padding: themeVars.space3,
-  fontSize: '0.82rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.accent,
   textDecoration: 'none',
   cursor: 'pointer',
@@ -3628,19 +3467,15 @@ export const tagsKpiCard = style({
 });
 
 export const tagsKpiLabel = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
-  letterSpacing: '0.02em',
+  letterSpacing: themeVars.trackingWide,
 });
 
-export const tagsKpiValue = style({
-  fontSize: '1.75rem',
-  fontWeight: 600,
-  fontFamily: themeVars.fontSerif,
-  color: themeVars.ink,
-  lineHeight: 1.1,
-  fontFeatureSettings: '"tnum"',
-});
+export const tagsKpiValue = style([
+  textStyles.metric,
+  { fontFeatureSettings: '"tnum"' },
+]);
 
 export const tagsKpiValueAccent = style([
   tagsKpiValue,
@@ -3653,7 +3488,7 @@ export const tagsKpiValueWarn = style([
 ]);
 
 export const tagsKpiHint = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -3709,7 +3544,7 @@ export const tagsSearchInput = style({
   paddingRight: themeVars.space3,
   background: themeVars.bgSoft,
   color: themeVars.text,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   selectors: {
     '&:focus': {
       outline: `2px solid ${themeVars.focusRing}`,
@@ -3746,7 +3581,7 @@ export const tagsColorSwatch = style({
 
 export const tagsName = style({
   color: themeVars.ink,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 export const tagsUsageBadge = style({
@@ -3757,7 +3592,7 @@ export const tagsUsageBadge = style({
   borderRadius: '999px',
   background: themeVars.bgSoft,
   border: `1px solid ${themeVars.lineSoft}`,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   fontFeatureSettings: '"tnum"',
 });
@@ -3781,7 +3616,7 @@ export const tagsEmptyState = style({
   padding: themeVars.space6,
   textAlign: 'center',
   color: themeVars.muted,
-  fontSize: '0.9rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const tagsRail = style({
@@ -3799,11 +3634,11 @@ export const tagsRailCard = style({
 });
 
 export const tagsRailTitle = style({
-  fontSize: '0.72rem',
-  letterSpacing: '0.06em',
+  fontSize: themeVars.textSizeXs,
+  letterSpacing: themeVars.trackingWider,
   textTransform: 'uppercase',
   color: themeVars.muted,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
   marginBottom: themeVars.space3,
 });
 
@@ -3819,13 +3654,13 @@ export const tagsRailItem = style({
 });
 
 export const tagsRailItemName = style({
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   color: themeVars.text,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 export const tagsRailItemMeta = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   marginLeft: 'auto',
   fontFeatureSettings: '"tnum"',
@@ -3844,13 +3679,13 @@ export const tagsMiniKpi = style({
 });
 
 export const tagsMiniKpiLabel = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
 export const tagsMiniKpiValue = style({
-  fontSize: '1.1rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   fontFeatureSettings: '"tnum"',
 });
@@ -3886,7 +3721,7 @@ export const tagsHexInput = style({
   background: themeVars.bgSoft,
   color: themeVars.text,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   selectors: {
     '&:focus': {
       outline: `2px solid ${themeVars.focusRing}`,
@@ -3899,7 +3734,7 @@ export const tagsHexInput = style({
 globalStyle(`${tagsHexInput}[data-slot="input"]`, {
   height: '2rem',
   fontFamily: themeVars.fontMono,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const tagsDialogActions = style({
@@ -3918,7 +3753,7 @@ export const tagsDeleteWarn = style({
   border: `1px solid ${themeVars.warning}`,
   borderRadius: themeVars.radius2,
   color: themeVars.warningText,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const supplyChartMeta = style({
@@ -3928,20 +3763,14 @@ export const supplyChartMeta = style({
   minWidth: '12rem',
 });
 
-export const supplyChartAmount = style({
-  fontSize: '1.75rem',
-  fontWeight: 700,
-  color: themeVars.ink,
-  letterSpacing: '-0.02em',
-  fontVariantNumeric: 'tabular-nums',
-});
+export const supplyChartAmount = textStyles.metric;
 
 export const supplyChartChange = style({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '4px',
-  fontSize: '0.82rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const supplyChartChangeNeg = style([
@@ -3979,10 +3808,10 @@ export const supplyDetailHeroMain = style({
 });
 
 export const supplyDetailHeroTitle = style({
-  fontSize: '1.4rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeXl,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
   margin: 0,
 });
 
@@ -3991,7 +3820,7 @@ export const supplyDetailHeroMeta = style({
   alignItems: 'center',
   gap: themeVars.space2,
   flexWrap: 'wrap',
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -4002,8 +3831,8 @@ export const supplyDetailTypeBadge = styleVariants({
     gap: '4px',
     padding: '3px 10px',
     borderRadius: '999px',
-    fontSize: '0.74rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.infoSoft,
     color: themeVars.info,
   },
@@ -4013,8 +3842,8 @@ export const supplyDetailTypeBadge = styleVariants({
     gap: '4px',
     padding: '3px 10px',
     borderRadius: '999px',
-    fontSize: '0.74rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.accentSoft,
     color: themeVars.accentInk,
   },
@@ -4039,8 +3868,8 @@ export const supplyActionBigBtn = style({
   justifyContent: 'center',
   gap: themeVars.space2,
   padding: `${themeVars.space3} ${themeVars.space4}`,
-  fontSize: '0.92rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   borderRadius: themeVars.radius2,
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
@@ -4105,22 +3934,16 @@ export const supplyStockHero = style({
   padding: `${themeVars.space5} ${themeVars.space4}`,
 });
 
-export const supplyStockHeroValue = style({
-  fontSize: '3.6rem',
-  fontWeight: 700,
-  lineHeight: 1,
-  color: themeVars.ink,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const supplyStockHeroValue = textStyles.metricHero;
 
 export const supplyStockHeroUnit = style({
-  fontSize: '1rem',
+  fontSize: themeVars.textSizeMd,
   color: themeVars.muted,
 });
 
 export const supplyStockHeroSub = style({
   textAlign: 'center',
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   marginTop: `calc(-1 * ${themeVars.space3})`,
   paddingBottom: themeVars.space3,
@@ -4133,8 +3956,8 @@ export const supplyCalibrationPill = styleVariants({
     gap: '4px',
     padding: '3px 10px',
     borderRadius: '999px',
-    fontSize: '0.72rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.dangerSoft,
     color: themeVars.danger,
   },
@@ -4144,8 +3967,8 @@ export const supplyCalibrationPill = styleVariants({
     gap: '4px',
     padding: '3px 10px',
     borderRadius: '999px',
-    fontSize: '0.72rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.successSoft,
     color: themeVars.success,
   },
@@ -4182,7 +4005,7 @@ export const supplyTimelineBody = style({
 });
 
 export const supplyTimelineMeta = style({
-  fontSize: '0.74rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -4203,20 +4026,20 @@ export const supplyStatCard = style({
 });
 
 export const supplyStatLabel = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 export const supplyStatValue = style({
-  fontSize: '1.1rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
 });
 
 export const supplyStatHint = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -4228,16 +4051,10 @@ export const supplyLifeCountdown = style({
   padding: themeVars.space4,
 });
 
-export const supplyLifeCountdownValue = style({
-  fontSize: '2.4rem',
-  fontWeight: 700,
-  color: themeVars.ink,
-  lineHeight: 1,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const supplyLifeCountdownValue = textStyles.metricLg;
 
 export const supplyLifeCountdownLabel = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -4245,14 +4062,14 @@ export const supplyDetailEmpty = style({
   textAlign: 'center',
   padding: `${themeVars.space5} ${themeVars.space4}`,
   color: themeVars.muted,
-  fontSize: '0.86rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const supplyBackLink = style({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '4px',
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   background: 'none',
   border: 'none',
@@ -4302,7 +4119,7 @@ export const abnormalAlertBanner = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space3,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   color: themeVars.danger,
 });
 
@@ -4322,14 +4139,14 @@ export const abnormalPanelHead = style({
 
 export const abnormalPanelTitle = style({
   margin: 0,
-  fontSize: '0.85rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const abnormalPanelMeta = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
@@ -4367,8 +4184,8 @@ export const abnormalQuickBtn = style({
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   cursor: 'pointer',
-  fontSize: '0.8rem',
-  lineHeight: 1.35,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingSnug,
   color: themeVars.ink,
   textAlign: 'left',
   textWrap: 'balance',
@@ -4400,9 +4217,9 @@ export const abnormalTypeBadgeBase = style({
   alignItems: 'center',
   padding: '2px 7px',
   borderRadius: '999px',
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  lineHeight: 1.4,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingSnug,
   whiteSpace: 'nowrap',
 });
 
@@ -4418,15 +4235,15 @@ export const abnormalProgressBadgeBase = style({
   alignItems: 'center',
   padding: '2px 7px',
   borderRadius: '999px',
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  lineHeight: 1.4,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingSnug,
   whiteSpace: 'nowrap',
 });
 
 export const abnormalProgressBadge = styleVariants({
   reporting: [abnormalProgressBadgeBase, { background: themeVars.infoSoft, color: themeVars.info }],
-  searching: [abnormalProgressBadgeBase, { background: 'rgba(56,189,248,0.15)', color: '#0284c7' }],
+  searching: [abnormalProgressBadgeBase, { background: themeVars.infoSoft, color: themeVars.info }],
   pending_compensation: [abnormalProgressBadgeBase, { background: themeVars.warningSoft, color: themeVars.warningText }],
   compensated: [abnormalProgressBadgeBase, { background: themeVars.successSoft, color: themeVars.success }],
   scrapped: [abnormalProgressBadgeBase, { background: themeVars.bgSoft, color: themeVars.muted }],
@@ -4455,8 +4272,8 @@ export const abnormalSidebarIcon = style({
   justifyContent: 'center',
   flexShrink: 0,
   color: themeVars.muted,
-  fontSize: '1rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
 });
 
 export const abnormalSidebarInfo = style({
@@ -4468,8 +4285,8 @@ export const abnormalSidebarInfo = style({
 });
 
 export const abnormalSidebarName = style({
-  fontSize: '0.82rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -4477,7 +4294,7 @@ export const abnormalSidebarName = style({
 });
 
 export const abnormalSidebarMeta = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -4499,7 +4316,7 @@ export const abnormalPageBtn = style({
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   cursor: 'pointer',
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.ink,
   ':hover': { background: themeVars.bgSoft },
   selectors: {
@@ -4524,20 +4341,14 @@ export const abnormalMetricCard = style({
 });
 
 export const abnormalMetricLabel = style({
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
-export const abnormalMetricValue = style({
-  fontSize: '1.6rem',
-  fontWeight: 700,
-  color: themeVars.ink,
-  fontVariantNumeric: 'tabular-nums',
-  lineHeight: 1,
-});
+export const abnormalMetricValue = textStyles.metric;
 
 export const abnormalMetricSub = style({
-  fontSize: '0.7rem',
+  fontSize: themeVars.textSize2xs,
   color: themeVars.muted,
 });
 
@@ -4548,7 +4359,7 @@ export const abnormalChartEmpty = style({
   justifyContent: 'center',
   gap: themeVars.space2,
   padding: themeVars.space4,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -4571,7 +4382,7 @@ export const abnormalLegendItem = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space2,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -4585,7 +4396,7 @@ export const abnormalLegendDot = style({
 export const abnormalLegendCount = style({
   marginLeft: 'auto',
   color: themeVars.ink,
-  fontWeight: 600,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -4619,7 +4430,7 @@ export const abnormalValuationRow = style({
 });
 
 export const abnormalValuationLabel = style({
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   flexShrink: 0,
 });
@@ -4631,16 +4442,10 @@ export const abnormalValuationLeader = style({
   borderBottom: `1px dotted ${themeVars.line}`,
 });
 
-export const abnormalValuationValue = style({
-  fontFamily: themeVars.fontSerif,
-  fontSize: '1.35rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  lineHeight: 1.1,
-  color: themeVars.ink,
-  fontVariantNumeric: 'tabular-nums',
-  whiteSpace: 'nowrap',
-});
+export const abnormalValuationValue = style([
+  textStyles.metricSm,
+  { whiteSpace: 'nowrap' },
+]);
 
 export const abnormalThumb = style({
   width: '32px',
@@ -4660,8 +4465,8 @@ export const abnormalThumbPlaceholder = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  fontWeight: 700,
-  fontSize: '0.8rem',
+  fontWeight: themeVars.weightBold,
+  fontSize: themeVars.textSizeSm,
   flexShrink: 0,
 });
 
@@ -4679,8 +4484,8 @@ export const abnormalItemInfo = style({
 });
 
 export const abnormalItemName = style({
-  fontSize: '0.82rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -4688,7 +4493,7 @@ export const abnormalItemName = style({
 });
 
 export const abnormalItemSn = style({
-  fontSize: '0.7rem',
+  fontSize: themeVars.textSize2xs,
   color: themeVars.muted,
 });
 
@@ -4698,9 +4503,9 @@ export const abnormalActionBtn = style({
   border: `1px solid ${themeVars.line}`,
   background: 'transparent',
   cursor: 'pointer',
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
-  transition: 'all 0.1s',
+  transition: 'background-color 100ms ease, color 100ms ease, border-color 100ms ease',
   ':hover': { background: themeVars.bgSoft, color: themeVars.ink },
 });
 
@@ -4718,7 +4523,7 @@ export const abnormalFilterSelect = style({
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   color: themeVars.ink,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   cursor: 'pointer',
 });
 

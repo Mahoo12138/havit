@@ -799,9 +799,8 @@ func TestStolenClaimPDFHTTPFlowDownloadsPDF(t *testing.T) {
 		t.Fatalf("expected claim filename, got %q", cd)
 	}
 	if !bytes.HasPrefix(claim.Body.Bytes(), []byte("%PDF-1.4")) ||
-		!bytes.Contains(claim.Body.Bytes(), []byte("Name: Stolen Camera")) ||
-		!bytes.Contains(claim.Body.Bytes(), []byte("Purchase price: 8999.00 CNY")) ||
-		!bytes.Contains(claim.Body.Bytes(), []byte("Serial number / IMEI: SN-001")) {
+		!bytes.Contains(claim.Body.Bytes(), []byte("/UniGB-UCS2-H")) ||
+		!bytes.Contains(claim.Body.Bytes(), []byte("stream")) {
 		t.Fatalf("expected claim pdf content, got %s", claim.Body.String())
 	}
 

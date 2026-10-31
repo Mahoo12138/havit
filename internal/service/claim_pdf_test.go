@@ -39,7 +39,7 @@ func TestStolenClaimPDFIncludesAssetLedgerAndAttachments(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("store attachment: %v", err)
 	}
-	notes := "Police report pending"
+	notes := "报警回执待补"
 	if _, err := svc.Exit(ctx, item.ID, ItemExitInput{
 		ExitType:  "stolen",
 		ExitDate:  1780000000,
@@ -64,6 +64,7 @@ func TestStolenClaimPDFIncludesAssetLedgerAndAttachments(t *testing.T) {
 		"Serial number / IMEI: SN-001",
 		"Purchase price: 8999.00 CNY",
 		"Stolen date: 2026-05-29",
+		"Notes: 报警回执待补",
 		"invoice.jpg (image/jpeg)",
 	} {
 		if !pdfBytesContainText(pdf.Content, want) {
@@ -73,11 +74,8 @@ func TestStolenClaimPDFIncludesAssetLedgerAndAttachments(t *testing.T) {
 }
 
 func pdfBytesContainText(content []byte, text string) bool {
-	if bytes.Contains(content, []byte(text)) {
-		return true
-	}
-	escaped := strings.NewReplacer(`\`, `\\`, `(`, `\(`, `)`, `\)`).Replace(text)
-	return bytes.Contains(content, []byte(escaped))
+	encoded := strings.TrimSuffix(strings.TrimPrefix(pdfText(text), "<FEFF"), ">")
+	return bytes.Contains(content, []byte(encoded))
 }
 
 func TestStolenClaimPDFRejectsNonStolenItems(t *testing.T) {

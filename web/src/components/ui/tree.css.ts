@@ -20,9 +20,9 @@ export const groupLabel = style({
   alignItems: 'center',
   gap: themeVars.space2,
   color: themeVars.muted,
-  fontSize: '0.7rem',
-  fontWeight: 600,
-  letterSpacing: '0.08em',
+  fontSize: themeVars.textSize2xs,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingWider,
   textTransform: 'uppercase',
   padding: `${themeVars.space3} ${themeVars.space3} ${themeVars.space2}`,
 });
@@ -39,8 +39,8 @@ export const item = style({
   background: 'transparent',
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.88rem',
-  lineHeight: 1.25,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingSnug,
   paddingBlock: themeVars.space2,
   paddingInlineEnd: themeVars.space2,
   paddingInlineStart: 'calc(var(--tree-item-depth, 0) * var(--tree-indent, 14px) + 0.5rem)',
@@ -61,7 +61,7 @@ export const item = style({
     '&[data-selected="true"]': {
       background: themeVars.accentSoft,
       color: themeVars.accentInk,
-      fontWeight: 600,
+      fontWeight: themeVars.weightSemibold,
     },
     '&[data-disabled="true"]': {
       pointerEvents: 'none',
@@ -131,7 +131,7 @@ export const label = style({
 export const count = style({
   flex: '0 0 auto',
   color: themeVars.muted,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   fontVariantNumeric: 'tabular-nums',
 });
 

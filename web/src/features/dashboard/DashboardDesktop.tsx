@@ -1,3 +1,4 @@
+import { textStyles } from '../../styles/typography.css';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -80,11 +81,11 @@ function Greeting({ username }: { username: string | undefined }) {
   const { t } = useTranslation();
   return (
     <div className={uiStyles.greetingRow}>
-      <div>
-        <h1 className="page-heading">
+      <div className={uiStyles.greetingCopy}>
+        <h1 className={textStyles.pageTitle}>
           {formatGreeting(t)}，{username ?? t('common.friend')}
         </h1>
-        <p className="page-kicker">{t('dashboard.subtitle')}</p>
+        <p className={textStyles.pageSubtitle}>{t('dashboard.subtitle')}</p>
       </div>
     </div>
   );

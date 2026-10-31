@@ -46,7 +46,7 @@ test.describe('Settings page', () => {
 
   test('a preference change auto-saves and persists', async ({ page }) => {
     await loginAsDemo(page);
-    await page.goto('/settings?tab=preferences&panel=behavior');
+    await page.goto('/settings?tab=account&panel=behavior');
     await page.waitForLoadState('networkidle');
 
     const archivedFlag = async () => {
@@ -69,23 +69,23 @@ test.describe('Settings page', () => {
     const configs = await expectJson<{
       configs: Array<{ key: string; value: string }>;
     }>(api.get('system/configs', { headers }));
-    const webp = configs.configs.find((c) => c.key === 'storage.webp_quality');
-    expect(webp).toBeTruthy();
-    const original = webp!.value;
-    const changed = original === '80' ? '75' : '80';
+    const model = configs.configs.find((c) => c.key === 'ai.model');
+    expect(model).toBeTruthy();
+    const original = model!.value;
+    const changed = original === 'gpt-4o-mini' ? 'gpt-4o' : 'gpt-4o-mini';
 
     await loginAsDemo(page);
-    await page.goto('/settings?tab=system&panel=infra');
+    await page.goto('/settings?tab=system&panel=ai');
     await page.waitForLoadState('networkidle');
 
-    const field = page.getByLabel('WebP quality (1–100)');
+    const field = page.getByLabel('Text model');
     await field.fill(changed);
     await expect(page.getByText('Saved')).toBeVisible();
 
     const after = await expectJson<{ configs: Array<{ key: string; value: string }> }>(
       api.get('system/configs', { headers }),
     );
-    expect(after.configs.find((c) => c.key === 'storage.webp_quality')?.value).toBe(changed);
+    expect(after.configs.find((c) => c.key === 'ai.model')?.value).toBe(changed);
 
     // Restore the original value.
     await field.fill(original);
@@ -93,7 +93,7 @@ test.describe('Settings page', () => {
     const restored = await expectJson<{ configs: Array<{ key: string; value: string }> }>(
       api.get('system/configs', { headers }),
     );
-    expect(restored.configs.find((c) => c.key === 'storage.webp_quality')?.value).toBe(original);
+    expect(restored.configs.find((c) => c.key === 'ai.model')?.value).toBe(original);
   });
 
   test('owner adds and removes a member from the UI', async ({ page }) => {

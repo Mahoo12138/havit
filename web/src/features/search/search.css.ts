@@ -21,7 +21,7 @@ export const searchInput = style({
   height: '2.75rem',
   paddingLeft: '2.75rem',
   paddingRight: '2.75rem',
-  fontSize: '0.95rem',
+  fontSize: themeVars.textSizeMd,
   selectors: {
     '&::-webkit-search-cancel-button': {
       display: 'none',
@@ -66,7 +66,7 @@ export const statusLine = style({
   flexWrap: 'wrap',
   gap: themeVars.space3,
   minHeight: '1.5rem',
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -79,9 +79,9 @@ export const sourceChip = styleVariants({
     background: themeVars.secondaryBg,
     color: themeVars.secondaryText,
     fontFamily: themeVars.fontMono,
-    fontSize: '0.72rem',
-    letterSpacing: '0.02em',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    letterSpacing: themeVars.trackingWide,
+    fontWeight: themeVars.weightSemibold,
   },
   llm: {
     display: 'inline-flex',
@@ -91,13 +91,13 @@ export const sourceChip = styleVariants({
     borderRadius: '999px',
     background: themeVars.accentSoft,
     color: themeVars.accentInk,
-    fontSize: '0.72rem',
-    fontWeight: 600,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
 });
 
 export const errorText = style({
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.danger,
 });
 
@@ -163,10 +163,10 @@ export const resultMain = style({
 
 export const resultName = style({
   margin: 0,
-  fontSize: '0.92rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -177,7 +177,7 @@ export const resultMeta = style({
   alignItems: 'center',
   gap: themeVars.space2,
   minWidth: 0,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -189,7 +189,7 @@ export const resultPath = style({
 
 export const resultHint = style({
   margin: 0,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -204,7 +204,7 @@ export const resultSide = style({
 });
 
 export const resultType = style({
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   whiteSpace: 'nowrap',
 });
@@ -226,7 +226,7 @@ export const exampleChip = style({
   borderRadius: '999px',
   background: themeVars.bgSoft,
   color: themeVars.secondaryText,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   cursor: 'pointer',
   transition: 'border-color 160ms ease, background-color 160ms ease',
   selectors: {

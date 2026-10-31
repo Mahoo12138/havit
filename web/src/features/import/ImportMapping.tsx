@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { SelectField } from '../../components/ui/select-field';
 import { IMPORT_FIELDS } from '../../api/client';
+import { textStyles } from '../../styles/typography.css';
 
 interface ImportMappingProps {
   headers: string[];
@@ -33,7 +34,7 @@ export function ImportMapping({ headers, initial, busy, onConfirm, onBack }: Imp
   return (
     <Card>
       <Stack className={uiStyles.cardContent}>
-        <h3 className={uiStyles.heading}>{t('import.mappingTitle')}</h3>
+        <h3 className={textStyles.cardTitle}>{t('import.mappingTitle')}</h3>
         <p className={uiStyles.muted}>{t('import.mappingDescription')}</p>
 
         <div style={{ display: 'grid', gap: '0.75rem' }}>

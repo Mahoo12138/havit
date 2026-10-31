@@ -5,6 +5,10 @@ CREATE TABLE users (
     id              TEXT PRIMARY KEY,
     username        TEXT NOT NULL UNIQUE,
     password        TEXT NOT NULL,
+    nickname        TEXT NOT NULL DEFAULT '',
+    email           TEXT NOT NULL DEFAULT '',
+    bio             TEXT NOT NULL DEFAULT '',
+    avatar          TEXT NOT NULL DEFAULT '',
     role            TEXT NOT NULL DEFAULT 'member',
     token_version   INTEGER NOT NULL DEFAULT 0,
     created_at      INTEGER NOT NULL

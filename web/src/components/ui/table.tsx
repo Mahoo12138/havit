@@ -15,7 +15,7 @@ function Table({
   ...props
 }: HTMLAttributes<HTMLTableElement>) {
   return (
-    <div data-slot="table-container" className={s.root}>
+    <div data-slot="table-container" className={s.root} tabIndex={0}>
       <table
         data-slot="table"
         className={cx(s.table, className)}
@@ -84,6 +84,7 @@ function TableHead({
   return (
     <th
       data-slot="table-head"
+      scope="col"
       className={cx(s.head, className)}
       {...props}
     />

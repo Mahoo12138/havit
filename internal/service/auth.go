@@ -5,7 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/mail"
+	"strings"
+	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/oklog/ulid/v2"
@@ -26,6 +31,7 @@ type AuthService struct {
 	sessionExpire  time.Duration
 	demoMode       bool
 	onOwnerCreated func()
+	setupMu        sync.Mutex
 }
 
 func NewAuthService(db *sql.DB, jwtSecret string, expireHours int, demoMode bool, onOwnerCreated func()) *AuthService {
@@ -44,8 +50,21 @@ func NewAuthService(db *sql.DB, jwtSecret string, expireHours int, demoMode bool
 type User struct {
 	ID        string `json:"id"`
 	Username  string `json:"username"`
+	Nickname  string `json:"nickname"`
+	Email     string `json:"email"`
+	Bio       string `json:"bio"`
+	Avatar    string `json:"avatar"`
 	Role      string `json:"role"`
 	CreatedAt int64  `json:"created_at"`
+}
+
+// ProfileInput carries the self-service editable user fields. The login
+// username is deliberately not editable.
+type ProfileInput struct {
+	Nickname string `json:"nickname"`
+	Email    string `json:"email"`
+	Bio      string `json:"bio"`
+	Avatar   string `json:"avatar"`
 }
 
 type Claims struct {
@@ -56,11 +75,15 @@ type Claims struct {
 }
 
 func (s *AuthService) Setup(ctx context.Context, username, password string) (*User, string, error) {
+	s.setupMu.Lock()
+	defer s.setupMu.Unlock()
+
 	if s.demoMode {
 		return nil, "", ErrSetupClosed
 	}
-	if username == "" || password == "" {
-		return nil, "", errors.New("username and password required")
+	username = strings.TrimSpace(username)
+	if err := validateCredentials(username, password); err != nil {
+		return nil, "", err
 	}
 
 	var count int
@@ -97,12 +120,12 @@ func (s *AuthService) Setup(ctx context.Context, username, password string) (*Us
 }
 
 func (s *AuthService) Login(ctx context.Context, username, password string) (*User, string, error) {
-	var id, hash, role string
+	var id, hash, role, nickname, email, bio, avatar string
 	var createdAt int64
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, password, role, created_at FROM users WHERE username = ?`,
+		`SELECT id, password, role, created_at, nickname, email, bio, avatar FROM users WHERE username = ?`,
 		username,
-	).Scan(&id, &hash, &role, &createdAt)
+	).Scan(&id, &hash, &role, &createdAt, &nickname, &email, &bio, &avatar)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, "", ErrInvalidCredentials
@@ -112,7 +135,16 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*Us
 	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
 		return nil, "", ErrInvalidCredentials
 	}
-	u := &User{ID: id, Username: username, Role: role, CreatedAt: createdAt}
+	u := &User{
+		ID:        id,
+		Username:  username,
+		Nickname:  nickname,
+		Email:     email,
+		Bio:       bio,
+		Avatar:    avatar,
+		Role:      role,
+		CreatedAt: createdAt,
+	}
 	token, err := s.issueToken(u)
 	if err != nil {
 		return nil, "", err
@@ -123,8 +155,8 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*Us
 func (s *AuthService) GetUser(ctx context.Context, id string) (*User, error) {
 	var u User
 	err := s.db.QueryRowContext(ctx,
-		`SELECT id, username, role, created_at FROM users WHERE id = ?`, id,
-	).Scan(&u.ID, &u.Username, &u.Role, &u.CreatedAt)
+		`SELECT id, username, nickname, email, bio, avatar, role, created_at FROM users WHERE id = ?`, id,
+	).Scan(&u.ID, &u.Username, &u.Nickname, &u.Email, &u.Bio, &u.Avatar, &u.Role, &u.CreatedAt)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNotFound
@@ -136,7 +168,7 @@ func (s *AuthService) GetUser(ctx context.Context, id string) (*User, error) {
 
 func (s *AuthService) ListUsers(ctx context.Context) ([]*User, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, username, role, created_at FROM users ORDER BY created_at ASC`)
+		`SELECT id, username, nickname, email, bio, avatar, role, created_at FROM users ORDER BY created_at ASC`)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +176,7 @@ func (s *AuthService) ListUsers(ctx context.Context) ([]*User, error) {
 	var users []*User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Username, &u.Role, &u.CreatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Username, &u.Nickname, &u.Email, &u.Bio, &u.Avatar, &u.Role, &u.CreatedAt); err != nil {
 			return nil, err
 		}
 		users = append(users, &u)
@@ -153,8 +185,9 @@ func (s *AuthService) ListUsers(ctx context.Context) ([]*User, error) {
 }
 
 func (s *AuthService) CreateMember(ctx context.Context, username, password string) (*User, error) {
-	if username == "" || password == "" {
-		return nil, errors.New("username and password required")
+	username = strings.TrimSpace(username)
+	if err := validateCredentials(username, password); err != nil {
+		return nil, err
 	}
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -235,6 +268,139 @@ func (s *AuthService) UpdateRole(ctx context.Context, id, role, callerID string)
 		return nil, ErrNotFound
 	}
 	return s.GetUser(ctx, id)
+}
+
+const maxAvatarDataURLLength = 400_000 // ~300 KB decoded
+
+var avatarDataURLPrefixes = []string{
+	"data:image/png;base64,",
+	"data:image/jpeg;base64,",
+	"data:image/webp;base64,",
+}
+
+// UpdateProfile updates the self-service profile fields of the current user.
+// Empty nickname/bio clear them; the UI falls back to the username for the
+// display name. The avatar is stored inline as a downscaled image data URL.
+func (s *AuthService) UpdateProfile(ctx context.Context, userID string, in ProfileInput) (*User, error) {
+	nickname := strings.TrimSpace(in.Nickname)
+	if utf8.RuneCountInString(nickname) > 40 {
+		return nil, apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest,
+			"nickname must be at most 40 characters")
+	}
+
+	email := strings.TrimSpace(in.Email)
+	if email != "" {
+		addr, err := mail.ParseAddress(email)
+		if err != nil || addr.Address != email || len(email) > 254 {
+			return nil, apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest,
+				"invalid email address")
+		}
+	}
+
+	bio := strings.TrimSpace(in.Bio)
+	if utf8.RuneCountInString(bio) > 200 {
+		return nil, apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest,
+			"bio must be at most 200 characters")
+	}
+
+	avatar := strings.TrimSpace(in.Avatar)
+	if avatar != "" && !isAvatarDataURL(avatar) {
+		return nil, apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest,
+			"invalid avatar image")
+	}
+
+	res, err := s.db.ExecContext(ctx,
+		`UPDATE users SET nickname = ?, email = ?, bio = ?, avatar = ? WHERE id = ?`,
+		nickname, email, bio, avatar, userID)
+	if err != nil {
+		return nil, err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return nil, ErrNotFound
+	}
+	return s.GetUser(ctx, userID)
+}
+
+func isAvatarDataURL(value string) bool {
+	if len(value) > maxAvatarDataURLLength {
+		return false
+	}
+	for _, prefix := range avatarDataURLPrefixes {
+		if strings.HasPrefix(value, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+// ChangePassword verifies the current password, rotates it and bumps
+// token_version so every other device's credentials stop working. The
+// returned token keeps the calling device signed in.
+func (s *AuthService) ChangePassword(ctx context.Context, userID, currentPassword, newPassword string) (string, error) {
+	if s.demoMode {
+		return "", apperr.ErrDemoReadOnly
+	}
+	if err := validatePassword(newPassword); err != nil {
+		return "", err
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+
+	var hash, role string
+	if err := tx.QueryRowContext(ctx,
+		`SELECT password, role FROM users WHERE id = ?`, userID,
+	).Scan(&hash, &role); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", ErrNotFound
+		}
+		return "", err
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(currentPassword)); err != nil {
+		return "", apperr.ErrInvalidCurrentPassword
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(newPassword)); err == nil {
+		return "", apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest,
+			"new password must differ from the current password")
+	}
+
+	newHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("hash: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx,
+		`UPDATE users SET password = ?, token_version = token_version + 1 WHERE id = ?`,
+		string(newHash), userID); err != nil {
+		return "", err
+	}
+	if err := tx.Commit(); err != nil {
+		return "", err
+	}
+	return s.issueToken(&User{ID: userID, Role: role})
+}
+
+func validateCredentials(username, password string) error {
+	if username == "" {
+		return apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest, "username is required")
+	}
+	return validatePassword(password)
+}
+
+func validatePassword(password string) error {
+	if utf8.RuneCountInString(password) < 6 {
+		return apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest,
+			"password must be at least 6 characters")
+	}
+	// bcrypt silently truncates beyond 72 bytes; reject instead.
+	if len(password) > 72 {
+		return apperr.Wrapf(apperr.CodeValidationFailed, http.StatusBadRequest,
+			"password must be at most 72 bytes")
+	}
+	return nil
 }
 
 func (s *AuthService) issueToken(u *User) (string, error) {

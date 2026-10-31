@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle,
@@ -18,7 +18,6 @@ import {
 } from '@tabler/icons-react';
 import {
   Stack,
-  StackTight,
   uiStyles,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
@@ -37,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from '../../components/ui/table';
+import { TableCard } from '../../components/ui/table-card';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextareaField } from '../../components/ui/textarea-field';
 import { TextField } from '../../components/ui/text-field';
@@ -52,6 +52,8 @@ import {
 } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import * as localStyles from './SuppliesDesktop.css';
+import { textStyles } from '../../styles/typography.css';
+import { themeVars } from '../../styles/theme.css';
 
 type SupplyTab = 'overview' | 'typeA' | 'typeB' | 'restock';
 type SupplyKind = 'predictive_supplies' | 'tracked_spares';
@@ -353,10 +355,10 @@ export function SuppliesDesktop() {
   return (
     <Stack>
       <div className={uiStyles.pageHeader}>
-        <StackTight>
-          <h2 className="page-heading">{t('supplies.title')}</h2>
-          <p className="page-kicker">{t('supplies.description')}</p>
-        </StackTight>
+        <div className={uiStyles.pageHeadingCopy}>
+          <h2 className={textStyles.pageTitle}>{t('supplies.title')}</h2>
+          <p className={textStyles.pageSubtitle}>{t('supplies.description')}</p>
+        </div>
         <div className={uiStyles.pageActions}>
           <Button
             variant="primary"
@@ -596,15 +598,12 @@ export function SuppliesDesktop() {
 
           <div className={uiStyles.supplyTwoCol}>
             {showRestockChecklist && (
-              <Card padded={false}>
-                <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>
-                    {t('supplies.restockChecklist', {
-                      count: warningItems.length,
-                    })}
-                  </h3>
-                </div>
-                <Table>
+              <TableCard
+                title={t('supplies.restockChecklistTitle')}
+                count={warningItems.length}
+                ariaLabel={t('supplies.restockChecklistTitle')}
+              >
+                <Table aria-label={t('supplies.restockChecklistTitle')}>
                   <TableHeader>
                     <TableRow>
                       <TableHead>
@@ -644,11 +643,7 @@ export function SuppliesDesktop() {
                           : '—';
                       const badgeStatus = isTypeA ? 'low' : stockStatus;
                       return (
-                        <TableRow
-                          key={item.id}
-                          onClick={() => goToDetail(item.id)}
-                          style={{ cursor: 'pointer' }}
-                        >
+                        <TableRow key={item.id}>
                           <TableCell>
                             <div
                               style={{
@@ -661,9 +656,13 @@ export function SuppliesDesktop() {
                                 size={16}
                                 style={{ color: 'var(--havit-muted)' }}
                               />
-                              <span style={{ fontWeight: 500 }}>
+                              <Link
+                                to="/items/$itemId"
+                                params={{ itemId: item.id }}
+                                className={localStyles.itemLink}
+                              >
                                 {item.name}
-                              </span>
+                              </Link>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -672,8 +671,8 @@ export function SuppliesDesktop() {
                                 display: 'inline-flex',
                                 padding: '2px 6px',
                                 borderRadius: '999px',
-                                fontSize: '0.68rem',
-                                fontWeight: 600,
+                                fontSize: themeVars.textSize2xs,
+                                fontWeight: themeVars.weightSemibold,
                                 background: isTypeA
                                   ? 'var(--havit-info-soft)'
                                   : 'var(--havit-accent-soft)',
@@ -699,14 +698,12 @@ export function SuppliesDesktop() {
                           <TableCell
                             style={{
                               color: 'var(--havit-muted)',
-                              fontSize: '0.82rem',
+                              fontSize: themeVars.textSizeSm,
                             }}
                           >
                             {restockLabel}
                           </TableCell>
-                          <TableCell
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <TableCell>
                             {isTypeA ? (
                               <Button
                                 variant="quiet"
@@ -753,17 +750,16 @@ export function SuppliesDesktop() {
                     )}
                   </TableBody>
                 </Table>
-              </Card>
+              </TableCard>
             )}
 
             {showInventoryCount && (
-              <Card padded={false}>
-                <div className={uiStyles.sectionHead}>
-                  <h3 className={uiStyles.sectionTitle}>
-                    {t('supplies.inventoryCount', { count: typeBItems.length })}
-                  </h3>
-                </div>
-                <Table>
+              <TableCard
+                title={t('supplies.inventoryCount')}
+                count={typeBItems.length}
+                ariaLabel={t('supplies.inventoryCount')}
+              >
+                <Table aria-label={t('supplies.inventoryCount')}>
                   <TableHeader>
                     <TableRow>
                       <TableHead>
@@ -788,11 +784,7 @@ export function SuppliesDesktop() {
                       const stockStatus = getStockStatus(item);
                       const stock = item.current_stock ?? 0;
                       return (
-                        <TableRow
-                          key={item.id}
-                          onClick={() => goToDetail(item.id)}
-                          style={{ cursor: 'pointer' }}
-                        >
+                        <TableRow key={item.id}>
                           <TableCell>
                             <div
                               style={{
@@ -805,9 +797,13 @@ export function SuppliesDesktop() {
                                 size={16}
                                 style={{ color: 'var(--havit-muted)' }}
                               />
-                              <span style={{ fontWeight: 500 }}>
+                              <Link
+                                to="/items/$itemId"
+                                params={{ itemId: item.id }}
+                                className={localStyles.itemLink}
+                              >
                                 {item.name}
-                              </span>
+                              </Link>
                             </div>
                           </TableCell>
                           <TableCell
@@ -829,9 +825,7 @@ export function SuppliesDesktop() {
                               {getStockStatusLabel(t, stockStatus)}
                             </span>
                           </TableCell>
-                          <TableCell
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          <TableCell>
                             <Button
                               variant="quiet"
                               leftSection={<IconMinus size={12} />}
@@ -865,7 +859,7 @@ export function SuppliesDesktop() {
                     )}
                   </TableBody>
                 </Table>
-              </Card>
+              </TableCard>
             )}
           </div>
 
@@ -878,9 +872,7 @@ export function SuppliesDesktop() {
                 <h3 className={uiStyles.sectionTitle}>
                   {t('supplies.consumptionTrend')}
                 </h3>
-                <span
-                  style={{ color: 'var(--havit-muted)', fontSize: '0.78rem' }}
-                >
+                <span className={uiStyles.caption}>
                   {t('supplies.last6Months')}
                 </span>
               </div>
@@ -897,7 +889,6 @@ export function SuppliesDesktop() {
                       gap: '0.375rem',
                       color: 'var(--havit-muted)',
                       background: 'var(--havit-bg-soft)',
-                      fontSize: '0.85rem',
                     }}
                   >
                     {t('supplies.noPurchaseData')}
@@ -945,7 +936,7 @@ export function SuppliesDesktop() {
                           />
                           <span
                             style={{
-                              fontSize: '0.66rem',
+                              fontSize: themeVars.textSize2xs,
                               color: 'var(--havit-muted)',
                             }}
                           >

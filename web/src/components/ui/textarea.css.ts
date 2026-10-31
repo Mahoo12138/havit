@@ -13,7 +13,7 @@ export const root = style({
   background: 'transparent',
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '1rem',
+  fontSize: themeVars.textSizeMd,
   padding: `${themeVars.space2} ${themeVars.space3}`,
   outline: 'none',
   resize: 'vertical',
@@ -38,7 +38,7 @@ export const root = style({
   },
   '@media': {
     '(min-width: 48em)': {
-      fontSize: '0.875rem',
+      fontSize: themeVars.textSizeBase,
     },
   },
 });

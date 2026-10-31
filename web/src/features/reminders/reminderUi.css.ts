@@ -40,8 +40,8 @@ export const rowMain = style({
 });
 
 export const rowTitle = style({
-  fontSize: '0.85rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.text,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -49,7 +49,7 @@ export const rowTitle = style({
 });
 
 export const rowMeta = style({
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -72,25 +72,29 @@ export const done = style({
 });
 
 export const bellWrap = style({
-  position: 'relative',
+  // Anchor the badge to the 36px header button, not the 18px glyph, so the
+  // count sits in the button corner instead of covering the bell.
+  position: 'static',
   display: 'inline-flex',
 });
 
 export const bellDot = style({
   position: 'absolute',
-  top: 2,
-  right: 2,
-  minWidth: 15,
-  height: 15,
+  top: 0,
+  right: 0,
+  minWidth: 16,
+  height: 16,
   padding: '0 4px',
   borderRadius: 999,
   background: themeVars.danger,
   color: '#fff',
   fontSize: 10,
-  fontWeight: 700,
-  lineHeight: '15px',
+  fontWeight: themeVars.weightBold,
+  lineHeight: themeVars.leadingTight,
   textAlign: 'center',
+  boxShadow: `0 0 0 2px ${themeVars.panel}`,
   pointerEvents: 'none',
+  zIndex: 1,
 });
 
 // The popover surface is deliberately tight: rows run edge-to-edge inside the
@@ -112,16 +116,16 @@ export const panelHead = style({
 });
 
 export const panelTitle = style({
-  fontSize: '0.8rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const panelLink = style({
   flex: '0 0 auto',
-  fontSize: '0.78rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.muted,
   selectors: {
     '&:hover': {
@@ -145,8 +149,8 @@ export const panelFoot = style({
   margin: `0 ${themeVars.space4}`,
   padding: `${themeVars.space2} 0`,
   borderTop: `1px solid ${themeVars.lineSoft}`,
-  fontSize: '0.78rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.accent,
 });
 
@@ -160,15 +164,15 @@ export const panelEmpty = style({
   padding: `${themeVars.space5} ${themeVars.space4}`,
   textAlign: 'center',
   color: themeVars.muted,
-  fontSize: '0.85rem',
-  lineHeight: 1.6,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingNormal,
 });
 
 export const empty = style({
   padding: themeVars.space3,
   textAlign: 'center',
   color: themeVars.muted,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 // Applied as a className on the Card component; reminders rows sit flush

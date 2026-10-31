@@ -9,9 +9,9 @@ export const base = style({
   width: 'fit-content',
   borderRadius: themeVars.radius1,
   padding: '0.15rem 0.45rem',
-  fontSize: '0.74rem',
-  fontWeight: 600,
-  lineHeight: 1.4,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingSnug,
   whiteSpace: 'nowrap',
 });
 

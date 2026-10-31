@@ -1,5 +1,6 @@
 import { style, styleVariants } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const page = style({
   display: 'flex',
@@ -10,21 +11,24 @@ export const page = style({
 
 /* Greeting */
 export const greeting = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
   padding: `${themeVars.space2} 0`,
 });
 
 export const greetingTitle = style({
-  fontSize: '1.25rem',
-  fontWeight: 700,
-  letterSpacing: '-0.01em',
+  fontSize: themeVars.textSizeXl,
+  fontWeight: themeVars.weightBold,
+  letterSpacing: themeVars.trackingTight,
   margin: 0,
   color: themeVars.ink,
 });
 
 export const greetingSub = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
-  margin: `${themeVars.space1} 0 0`,
+  fontSize: themeVars.textSizeSm,
+  margin: 0,
 });
 
 /* KPI horizontal scroll strip */
@@ -52,18 +56,18 @@ export const kpiIconSm = style({
 
 
 export const kpiLabel = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 export const kpiValue = style({
-  fontSize: '1.15rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightRegular,
   fontFamily: themeVars.fontSerif,
   fontVariantNumeric: 'tabular-nums',
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 /* Section card (mobile) — applied as a className on the Card component;
@@ -86,15 +90,15 @@ export const sectionHead = style({
 });
 
 export const sectionTitle = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   margin: 0,
   color: themeVars.ink,
 });
 
 export const sectionLink = style({
-  fontSize: '0.78rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.accent,
   display: 'inline-flex',
   alignItems: 'center',
@@ -125,8 +129,8 @@ const qaBase = {
   background: themeVars.bgSoft,
   textDecoration: 'none',
   color: themeVars.text,
-  fontSize: '0.72rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightMedium,
   textAlign: 'center' as const,
   transition: 'background-color 160ms ease',
 };
@@ -170,8 +174,8 @@ export const recentThumb = style({
   background: themeVars.bgSoft,
   border: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.text,
-  fontSize: '0.85rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const recentMeta = style({
@@ -183,8 +187,8 @@ export const recentMeta = style({
 });
 
 export const recentName = style({
-  fontSize: '0.85rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -192,7 +196,7 @@ export const recentName = style({
 });
 
 export const recentSub = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -205,8 +209,8 @@ export const recentRight = style({
 });
 
 export const recentPrice = style({
-  fontSize: '0.78rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
@@ -216,12 +220,12 @@ export const reminderRow = style({
   alignItems: 'center',
   justifyContent: 'space-between',
   padding: `${themeVars.space2} ${themeVars.space1}`,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const reminderEmpty = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   textAlign: 'center',
   padding: `${themeVars.space4} 0`,
 });
@@ -232,13 +236,13 @@ export const locationNode = style({
   alignItems: 'center',
   gap: themeVars.space2,
   padding: `${themeVars.space2} ${themeVars.space1}`,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   color: themeVars.text,
 });
 
 export const locationCount = style({
   marginLeft: 'auto',
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -270,9 +274,9 @@ export const catThumb = styleVariants({
 });
 
 export const catInitial = style({
-  fontSize: '0.95rem',
-  fontWeight: 650,
-  lineHeight: 1,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingNone,
 });
 
 export const catTile = style({
@@ -288,8 +292,8 @@ export const catTile = style({
 });
 
 export const catName = style({
-  fontSize: '0.75rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightMedium,
   color: themeVars.text,
   textAlign: 'center',
   overflow: 'hidden',
@@ -299,7 +303,7 @@ export const catName = style({
 });
 
 export const catCount = style({
-  fontSize: '0.68rem',
+  fontSize: themeVars.textSize2xs,
   color: themeVars.muted,
 });
 
@@ -315,3 +319,5 @@ export const emptyState = style({
 export const emptyIcon = style({
   color: themeVars.muted,
 });
+
+export const emptySub = textStyles.caption;

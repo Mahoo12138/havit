@@ -8,7 +8,7 @@ import {
 import {
   Row, Stack, StackTight, uiStyles,
 } from '../../components/ui';
-import { Button } from '../../components/ui/button';
+import { Button, buttonVariants } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { FieldLabel } from '../../components/ui/field';
@@ -35,6 +35,7 @@ import {
   useLocationsData, breadcrumbOf, locationTypeLabel, locationTypeDesc, formatPrice,
   type LocationIndex,
 } from './useLocationsData';
+import { textStyles } from '../../styles/typography.css';
 
 interface CreateDialogState { open: boolean; parent: Location | null }
 interface EditDialogState { open: boolean; location: Location | null }
@@ -79,10 +80,10 @@ export function LocationsDesktop() {
   return (
     <Stack>
       <div className={`${uiStyles.pageHeader} ${uiStyles.mobileHidden}`}>
-        <StackTight>
-          <h2 className="page-heading">{t('locations.title')}</h2>
-          <p className="page-kicker">{t('locations.description')}</p>
-        </StackTight>
+        <div className={uiStyles.pageHeadingCopy}>
+          <h2 className={textStyles.pageTitle}>{t('locations.title')}</h2>
+          <p className={textStyles.pageSubtitle}>{t('locations.description')}</p>
+        </div>
         <div className={uiStyles.pageActions}>
           <Button variant="primary" leftSection={<IconPlus size={15} />} onClick={() => setCreateDialog({ open: true, parent: null })} disabled={!isOnline} title={!isOnline ? t('locations.offlineDisabled') : undefined}>
             {t('locations.addRoot')}
@@ -94,7 +95,7 @@ export function LocationsDesktop() {
         <Card className={uiStyles.locationTreePane} padded={false}>
           <div className={uiStyles.locationTreeHead}>
             <span className={uiStyles.locationTreeHeadTitle}>{t('locations.tree')}</span>
-            <span className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>{t('locations.nodeCount', { count: index.byId.size })}</span>
+            <span className={uiStyles.caption}>{t('locations.nodeCount', { count: index.byId.size })}</span>
           </div>
           <ScrollArea className={uiStyles.locationTreeBody}>
             {tree.isPending ? <div className={uiStyles.reminderEmpty}>{t('locations.loading')}</div>
@@ -245,7 +246,7 @@ function LocationDetail({ location, breadcrumb, children, directItems, childrenT
       <div className={uiStyles.detailBody}>
         <div className={uiStyles.subsection}>
           <span className={uiStyles.subsectionTitle}>{t('locations.directItems')}</span>
-          {childrenTotalItems > 0 && <span className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>{t('locations.childrenHaveItems', { count: childrenTotalItems })}</span>}
+          {childrenTotalItems > 0 && <span className={uiStyles.caption}>{t('locations.childrenHaveItems', { count: childrenTotalItems })}</span>}
         </div>
         {directItems.length === 0 ? (
           <div className={uiStyles.detailEmpty} style={{ paddingTop: 'var(--havit-space-3)' }}><span className={uiStyles.detailEmptyIcon}><IconPackage size={20} /></span><span>{t('locations.noItems')}</span></div>
@@ -379,7 +380,7 @@ function ConfirmDeleteDialog({ target, onCancel, onConfirm, pending }: { target:
   return (
     <Dialog open={!!target} onClose={onCancel} title={target ? t('locations.confirmDeleteTitle', { name: target.name }) : t('locations.deleteLocation')}>
       <Stack>
-        <p style={{ margin: 0, lineHeight: 1.55 }}>{t('locations.deleteWarning')}</p>
+        <p style={{ margin: 0 }}>{t('locations.deleteWarning')}</p>
         <div className={uiStyles.formActions}>
           <Button variant="quiet" onClick={onCancel}>{t('locations.cancel')}</Button>
           <Button variant="destructive" disabled={!target || pending} onClick={() => target && onConfirm(target.id)}>{pending ? t('locations.deleting') : t('locations.delete')}</Button>
@@ -400,7 +401,10 @@ function LocationQrDialog({ location, onClose }: { location: Location | null; on
           <p className={uiStyles.muted} style={{ margin: 0, textAlign: 'center' }}>{t('locations.qrDialogHint')}</p>
           <div className={uiStyles.formActions}>
             <Button variant="quiet" onClick={onClose}>{t('locations.close')}</Button>
-            <Link to="/qr-print"><Button variant="quiet" leftSection={<IconPrinter size={15} />}>{t('locations.printLabel')}</Button></Link>
+            <Link to="/qr-print" className={buttonVariants({ variant: 'quiet' })}>
+              <IconPrinter size={15} />
+              {t('locations.printLabel')}
+            </Link>
           </div>
         </Stack>
       )}

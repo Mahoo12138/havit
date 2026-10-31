@@ -5,9 +5,11 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -113,7 +115,6 @@ func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookUR
 			NewVirtualAssetHandler(virtualAssetSvc).Mount(r)
 			NewReminderHandler(reminderSvc).Mount(r)
 			NewNotifyHandler(notifySvc).Mount(r)
-			NewBackupHandler(backupSvc).Mount(r)
 			NewSearchHandler(searchSvc, prefsSvc, nil).Mount(r)
 			NewBarcodeHandler(barcodeSvc).Mount(r)
 			NewAIHandler(aiRecognitionSvc, 20).Mount(r)
@@ -127,6 +128,7 @@ func newAuthTestRouterWithExternalURLs(t *testing.T, barcodeURL, notifyWebhookUR
 			r.Use(authmw.RequireOwner)
 			NewUserHandler(authSvc).Mount(r)
 			NewSettingsHandler(configSvc).Mount(r)
+			NewBackupHandler(backupSvc).Mount(r)
 		})
 	})
 	return r
@@ -159,6 +161,37 @@ func tokenFromResponse(t *testing.T, rec *httptest.ResponseRecorder) string {
 		t.Fatal("expected token in response")
 	}
 	return body.Token
+}
+
+func TestLoginIsRateLimitedAfterRepeatedFailures(t *testing.T) {
+	router := newAuthTestRouter(t)
+	setup := postJSON(t, router, "/api/v1/auth/setup", map[string]string{
+		"username": "owner@example.com",
+		"password": "secret123",
+	})
+	if setup.Code != http.StatusCreated {
+		t.Fatalf("expected setup 201, got %d: %s", setup.Code, setup.Body.String())
+	}
+
+	for i := 0; i < 10; i++ {
+		rec := postJSON(t, router, "/api/v1/auth/login", map[string]string{
+			"username": "owner@example.com",
+			"password": "wrong-password",
+		})
+		if rec.Code != http.StatusUnauthorized {
+			t.Fatalf("attempt %d: expected 401, got %d", i+1, rec.Code)
+		}
+	}
+	blocked := postJSON(t, router, "/api/v1/auth/login", map[string]string{
+		"username": "owner@example.com",
+		"password": "secret123",
+	})
+	if blocked.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected 429 after repeated failures, got %d: %s", blocked.Code, blocked.Body.String())
+	}
+	if blocked.Header().Get("Retry-After") == "" {
+		t.Fatal("expected Retry-After header")
+	}
 }
 
 func TestSetupCreatesOwnerAndClosesSetup(t *testing.T) {
@@ -240,6 +273,198 @@ func TestProtectedItemsRejectMissingToken(t *testing.T) {
 
 	if rec.Code != http.StatusUnauthorized {
 		t.Fatalf("expected missing token 401, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func requestJSON(t *testing.T, router http.Handler, method, path string, body any, token string) *httptest.ResponseRecorder {
+	t.Helper()
+
+	var reader io.Reader
+	if body != nil {
+		raw, err := json.Marshal(body)
+		if err != nil {
+			t.Fatalf("marshal body: %v", err)
+		}
+		reader = bytes.NewReader(raw)
+	}
+	req := httptest.NewRequest(method, path, reader)
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+	return rec
+}
+
+func errorCodeFrom(rec *httptest.ResponseRecorder) string {
+	var body struct {
+		Error string `json:"error"`
+	}
+	_ = json.Unmarshal(rec.Body.Bytes(), &body)
+	return body.Error
+}
+
+func TestAccountProfileEndpoints(t *testing.T) {
+	router := newAuthTestRouter(t)
+
+	setup := postJSON(t, router, "/api/v1/auth/setup", map[string]string{
+		"username": "owner@example.com",
+		"password": "secret123",
+	})
+	if setup.Code != http.StatusCreated {
+		t.Fatalf("expected setup 201, got %d: %s", setup.Code, setup.Body.String())
+	}
+	token := tokenFromResponse(t, setup)
+
+	rec := requestJSON(t, router, http.MethodPatch, "/api/v1/auth/me", map[string]string{
+		"nickname": "  小明  ",
+		"email":    "ming@example.com",
+		"bio":      "管账的人",
+		"avatar":   "data:image/png;base64,AAAA",
+	}, token)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected update profile 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+	var updated struct {
+		Username string `json:"username"`
+		Nickname string `json:"nickname"`
+		Email    string `json:"email"`
+		Bio      string `json:"bio"`
+		Avatar   string `json:"avatar"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &updated); err != nil {
+		t.Fatalf("decode profile: %v", err)
+	}
+	if updated.Nickname != "小明" || updated.Email != "ming@example.com" || updated.Bio != "管账的人" {
+		t.Fatalf("expected persisted profile, got %+v", updated)
+	}
+	if updated.Avatar == "" {
+		t.Fatal("expected avatar in response")
+	}
+
+	me := requestJSON(t, router, http.MethodGet, "/api/v1/auth/me", nil, token)
+	if me.Code != http.StatusOK {
+		t.Fatalf("expected me 200, got %d: %s", me.Code, me.Body.String())
+	}
+	if !bytes.Contains(me.Body.Bytes(), []byte(`"nickname":"小明"`)) {
+		t.Fatalf("expected nickname in me response, got %s", me.Body.String())
+	}
+	if !bytes.Contains(me.Body.Bytes(), []byte(`"email":"ming@example.com"`)) {
+		t.Fatalf("expected email in me response, got %s", me.Body.String())
+	}
+
+	tooLong := requestJSON(t, router, http.MethodPatch, "/api/v1/auth/me",
+		map[string]string{"nickname": strings.Repeat("字", 41)}, token)
+	if tooLong.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for long nickname, got %d", tooLong.Code)
+	}
+	if code := errorCodeFrom(tooLong); code != "validation_failed" {
+		t.Fatalf("expected validation_failed, got %q", code)
+	}
+
+	badEmail := requestJSON(t, router, http.MethodPatch, "/api/v1/auth/me",
+		map[string]string{"email": "not-an-email"}, token)
+	if badEmail.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for invalid email, got %d", badEmail.Code)
+	}
+}
+
+func TestChangePasswordEndpoint(t *testing.T) {
+	router := newAuthTestRouter(t)
+
+	setup := postJSON(t, router, "/api/v1/auth/setup", map[string]string{
+		"username": "owner@example.com",
+		"password": "secret123",
+	})
+	if setup.Code != http.StatusCreated {
+		t.Fatalf("expected setup 201, got %d: %s", setup.Code, setup.Body.String())
+	}
+	oldToken := tokenFromResponse(t, setup)
+
+	wrong := requestJSON(t, router, http.MethodPost, "/api/v1/auth/me/password", map[string]string{
+		"current_password": "not-the-password",
+		"new_password":     "new-secret",
+	}, oldToken)
+	if wrong.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 for wrong current password, got %d: %s", wrong.Code, wrong.Body.String())
+	}
+	if code := errorCodeFrom(wrong); code != "invalid_current_password" {
+		t.Fatalf("expected invalid_current_password, got %q", code)
+	}
+
+	ok := requestJSON(t, router, http.MethodPost, "/api/v1/auth/me/password", map[string]string{
+		"current_password": "secret123",
+		"new_password":     "new-secret",
+	}, oldToken)
+	if ok.Code != http.StatusOK {
+		t.Fatalf("expected change password 200, got %d: %s", ok.Code, ok.Body.String())
+	}
+	newToken := tokenFromResponse(t, ok)
+
+	var cookie *http.Cookie
+	for _, c := range ok.Result().Cookies() {
+		if c.Name == "havit_token" {
+			cookie = c
+		}
+	}
+	if cookie == nil || cookie.Value != newToken {
+		t.Fatalf("expected havit_token cookie to carry the fresh token")
+	}
+
+	if rec := requestJSON(t, router, http.MethodGet, "/api/v1/auth/me", nil, oldToken); rec.Code != http.StatusUnauthorized {
+		t.Fatalf("expected old token to be rejected, got %d", rec.Code)
+	}
+	if rec := requestJSON(t, router, http.MethodGet, "/api/v1/auth/me", nil, newToken); rec.Code != http.StatusOK {
+		t.Fatalf("expected new token to work, got %d: %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestAccountEndpointsInDemoMode(t *testing.T) {
+	database := newAuthTestDB(t)
+	state := system.NewState("demo", database)
+	authSvc := service.NewAuthService(database, "test-secret", 720, true, state.MarkInitialized)
+	authH := NewAuthHandler(authSvc, state)
+
+	if _, err := authSvc.CreateMember(context.Background(), "demo@example.com", "secret123"); err != nil {
+		t.Fatalf("create demo user: %v", err)
+	}
+
+	r := chi.NewRouter()
+	r.Route("/api/v1", func(r chi.Router) {
+		authH.MountPublic(r)
+		r.Group(func(r chi.Router) {
+			r.Use(authmw.Auth(authSvc))
+			authH.MountProtected(r)
+		})
+	})
+
+	login := postJSON(t, r, "/api/v1/auth/login", map[string]string{
+		"username": "demo@example.com",
+		"password": "secret123",
+	})
+	if login.Code != http.StatusOK {
+		t.Fatalf("expected login 200, got %d: %s", login.Code, login.Body.String())
+	}
+	token := tokenFromResponse(t, login)
+
+	profile := requestJSON(t, r, http.MethodPatch, "/api/v1/auth/me",
+		map[string]string{"nickname": "访客"}, token)
+	if profile.Code != http.StatusOK {
+		t.Fatalf("expected nickname update to work in demo, got %d: %s", profile.Code, profile.Body.String())
+	}
+
+	password := requestJSON(t, r, http.MethodPost, "/api/v1/auth/me/password", map[string]string{
+		"current_password": "secret123",
+		"new_password":     "new-secret",
+	}, token)
+	if password.Code != http.StatusForbidden {
+		t.Fatalf("expected demo password change 403, got %d: %s", password.Code, password.Body.String())
+	}
+	if code := errorCodeFrom(password); code != "demo_readonly" {
+		t.Fatalf("expected demo_readonly, got %q", code)
 	}
 }
 

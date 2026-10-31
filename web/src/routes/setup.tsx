@@ -14,6 +14,7 @@ import { Card } from '../components/ui/card';
 import { TextField } from '../components/ui/text-field';
 import { useToast } from '../components/ui/use-toast';
 import { authApi } from '../api/client';
+import { textStyles } from '../styles/typography.css';
 
 export const Route = createFileRoute('/setup')({
   component: SetupPage,
@@ -47,7 +48,7 @@ function SetupPage() {
       <Card className="auth-card" padded>
         <Stack>
           <StackTight className={uiStyles.textCenter}>
-            <h1 className={`${uiStyles.heading} page-heading`}>{t('auth.setupTitle')}</h1>
+            <h1 className={textStyles.pageTitle}>{t('auth.setupTitle')}</h1>
             <p className={uiStyles.muted}>
               {t('auth.setupWelcome')}
             </p>

@@ -91,16 +91,16 @@ export const statIconTone = {
 } as const;
 
 export const statValue = style({
-  fontSize: '1.08rem',
-  lineHeight: 1.1,
-  fontWeight: 760,
+  fontSize: themeVars.textSizeLg,
+  lineHeight: themeVars.leadingTight,
+  fontWeight: themeVars.weightRegular,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
   fontFamily: themeVars.fontSerif,
 });
 
 export const statLabel = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
@@ -118,8 +118,8 @@ export const alertBanner = style({
   background: themeVars.dangerSoft,
   border: `1px solid color-mix(in srgb, ${themeVars.danger} 32%, transparent)`,
   color: themeVars.danger,
-  fontSize: '0.78rem',
-  lineHeight: 1.5,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
   minWidth: 0,
 });
 
@@ -137,8 +137,8 @@ export const alertLink = style({
   border: 0,
   padding: 0,
   color: themeVars.danger,
-  fontSize: '0.78rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   whiteSpace: 'nowrap',
   cursor: 'pointer',
   textDecoration: 'underline',
@@ -178,7 +178,7 @@ export const searchInput = style({
   background: themeVars.bgSoft,
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   padding: `0 ${themeVars.space3} 0 2.25rem`,
   outline: 'none',
   selectors: {
@@ -261,14 +261,14 @@ export const quickCount = style({
   borderRadius: '999px',
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   whiteSpace: 'nowrap',
 });
 
 globalStyle(`${quickCount} strong`, {
   color: themeVars.ink,
-  fontWeight: 650,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -282,9 +282,9 @@ export const listHead = style({
 });
 
 export const listCount = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -293,7 +293,7 @@ export const listCount = style({
 
 globalStyle(`${listCount} strong`, {
   color: themeVars.ink,
-  fontWeight: 650,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -351,8 +351,8 @@ export const cardThumbPlaceholder = style({
   color: themeVars.accentInk,
   display: 'grid',
   placeItems: 'center',
-  fontWeight: 700,
-  fontSize: '0.9rem',
+  fontWeight: themeVars.weightBold,
+  fontSize: themeVars.textSizeBase,
   flexShrink: 0,
 });
 
@@ -372,8 +372,8 @@ export const cardNameRow = style({
 });
 
 export const cardName = style({
-  fontSize: '0.9rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -382,7 +382,7 @@ export const cardName = style({
 });
 
 export const cardSub = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -407,13 +407,13 @@ export const fact = style({
 });
 
 export const factLabel = style({
-  fontSize: '0.66rem',
+  fontSize: themeVars.textSize2xs,
   color: themeVars.muted,
-  letterSpacing: '0.02em',
+  letterSpacing: themeVars.trackingWide,
 });
 
 export const factValue = style({
-  fontSize: '0.76rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -438,14 +438,14 @@ export const cardLoss = style({
 });
 
 export const cardLossLabel = style({
-  fontSize: '0.66rem',
+  fontSize: themeVars.textSize2xs,
   color: themeVars.muted,
 });
 
 export const cardLossValue = style({
   fontFamily: themeVars.fontSerif,
-  fontSize: '0.95rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightRegular,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
@@ -482,7 +482,7 @@ export const emptyState = style({
   textAlign: 'center',
   color: themeVars.muted,
   padding: `${themeVars.space6} 0`,
-  fontSize: '0.88rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const centered = style({
@@ -522,14 +522,14 @@ export const insightHead = style({
 
 export const insightTitle = style({
   margin: 0,
-  fontSize: '0.85rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const insightMeta = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
@@ -551,8 +551,8 @@ export const quickBtn = style({
   border: `1px solid ${themeVars.line}`,
   background: themeVars.panel,
   cursor: 'pointer',
-  fontSize: '0.8rem',
-  lineHeight: 1.35,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingSnug,
   color: themeVars.ink,
   textAlign: 'left',
   textWrap: 'balance',
@@ -580,7 +580,7 @@ export const chartEmpty = style({
   alignItems: 'center',
   justifyContent: 'center',
   padding: themeVars.space4,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -602,7 +602,7 @@ export const legendItem = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space2,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -616,7 +616,7 @@ export const legendDot = style({
 export const legendCount = style({
   marginLeft: 'auto',
   color: themeVars.ink,
-  fontWeight: 600,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -647,7 +647,7 @@ export const valuationRow = style({
 });
 
 export const valuationLabel = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   flexShrink: 0,
 });
@@ -660,10 +660,10 @@ export const valuationLeader = style({
 
 export const valuationValue = style({
   fontFamily: themeVars.fontSerif,
-  fontSize: '1.15rem',
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  lineHeight: 1.1,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightRegular,
+  letterSpacing: themeVars.trackingTight,
+  lineHeight: themeVars.leadingTight,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
@@ -691,15 +691,15 @@ globalStyle(`${sheetActions} > *`, {
 
 export const sheetHint = style({
   margin: 0,
-  fontSize: '0.78rem',
-  lineHeight: 1.55,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
   color: themeVars.muted,
 });
 
 export const sheetSectionTitle = style({
   margin: '0 0 4px',
-  fontSize: '0.82rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
@@ -718,5 +718,5 @@ export const flowStage = style({
 
 export const flowArrow = style({
   color: themeVars.muted,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
 });

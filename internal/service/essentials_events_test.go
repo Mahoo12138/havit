@@ -234,7 +234,7 @@ func TestEssentialsBulkActionsRespectPrivacy(t *testing.T) {
 		Type:               model.ItemTypeEssentials,
 		LocationID:         &homeID,
 		HomeBaseLocationID: &homeID,
-		IsPrivate:          true,
+		IsPrivate:          boolPtr(true),
 		OwnerID:            &ownerBID,
 	})
 	if err != nil {

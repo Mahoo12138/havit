@@ -35,10 +35,10 @@ export const qrName = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  fontSize: '0.85rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
 });
 
 export const qrCode = style({
@@ -47,8 +47,8 @@ export const qrCode = style({
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
   fontFamily: themeVars.fontMono,
-  fontSize: '0.72rem',
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeXs,
+  letterSpacing: themeVars.trackingWide,
   color: themeVars.muted,
 });
 
@@ -93,10 +93,10 @@ export const reminderMeta = style({
 
 export const reminderType = style({
   margin: 0,
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -104,8 +104,8 @@ export const reminderType = style({
 
 export const reminderItem = style({
   fontFamily: themeVars.fontMono,
-  fontSize: '0.72rem',
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeXs,
+  letterSpacing: themeVars.trackingWide,
   color: themeVars.muted,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -120,7 +120,7 @@ export const reminderSide = style({
 });
 
 export const reminderTime = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
@@ -132,8 +132,8 @@ const statusChipBase = {
   alignItems: 'center',
   padding: `2px ${themeVars.space2}`,
   borderRadius: '999px',
-  fontSize: '0.72rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
   whiteSpace: 'nowrap',
 } as const;
 
@@ -147,14 +147,14 @@ export const statusChip = styleVariants({
 
 export const backupPath = style({
   fontFamily: themeVars.fontMono,
-  fontSize: '0.75rem',
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeXs,
+  letterSpacing: themeVars.trackingWide,
   color: themeVars.success,
   wordBreak: 'break-all',
 });
 
 export const backupError = style({
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.danger,
   wordBreak: 'break-all',
 });
@@ -178,14 +178,14 @@ export const exportRow = style({
 });
 
 export const exportHint = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
 /* ---------- DataCard meta ---------- */
 
 export const cardMeta = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',

@@ -78,9 +78,9 @@ export const trigger = style({
   color: themeVars.muted,
   padding: '0.25rem 0.75rem',
   font: 'inherit',
-  fontSize: '0.875rem',
-  fontWeight: 500,
-  lineHeight: 1.25,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
+  lineHeight: themeVars.leadingSnug,
   whiteSpace: 'nowrap',
   outline: 'none',
   cursor: 'pointer',
@@ -102,7 +102,7 @@ export const trigger = style({
     '&[data-selected], &[data-active]': {
       background: themeVars.panel,
       color: themeVars.ink,
-      fontWeight: 600,
+      fontWeight: themeVars.weightSemibold,
       boxShadow: themeVars.shadowSoft,
     },
     '[data-orientation="vertical"] &': {
@@ -149,6 +149,6 @@ globalStyle(`${trigger} svg`, {
 
 export const content = style({
   flex: 1,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   outline: 'none',
 });

@@ -152,6 +152,96 @@ func TestItemListSearchesCreatedItemsByKeyword(t *testing.T) {
 	}
 }
 
+func TestItemListWithoutLimitReturnsMoreThanFifty(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewItemService(database)
+	locID := createTestLocation(t, ctx, database, "大仓库")
+
+	for i := 0; i < 60; i++ {
+		if _, err := svc.Create(ctx, ItemCreateInput{
+			Name:       "批量物品",
+			Type:       model.ItemTypeDurable,
+			LocationID: &locID,
+		}); err != nil {
+			t.Fatalf("create item %d: %v", i, err)
+		}
+	}
+	items, err := svc.List(ctx, ItemListFilter{})
+	if err != nil {
+		t.Fatalf("list items: %v", err)
+	}
+	if len(items) != 60 {
+		t.Fatalf("expected all 60 items without an explicit limit, got %d", len(items))
+	}
+}
+
+func TestItemListSearchHandlesFTSCharactersAndShortChinese(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	svc := NewItemService(database)
+	locID := createTestLocation(t, ctx, database, "搜索测试")
+
+	short, err := svc.Create(ctx, ItemCreateInput{
+		Name:       "相机",
+		Type:       model.ItemTypeDurable,
+		LocationID: &locID,
+	})
+	if err != nil {
+		t.Fatalf("create short item: %v", err)
+	}
+	items, err := svc.List(ctx, ItemListFilter{Query: "相机"})
+	if err != nil {
+		t.Fatalf("search short Chinese query: %v", err)
+	}
+	if len(items) != 1 || items[0].ID != short.ID {
+		t.Fatalf("expected short Chinese search to find item, got %#v", items)
+	}
+
+	if _, err := svc.List(ctx, ItemListFilter{Query: `"`}); err != nil {
+		t.Fatalf("FTS punctuation query should not fail: %v", err)
+	}
+	if _, err := svc.List(ctx, ItemListFilter{Query: "("}); err != nil {
+		t.Fatalf("FTS parenthesis query should not fail: %v", err)
+	}
+}
+
+func TestItemCreateHonorsStatusAndDefaultVisibility(t *testing.T) {
+	ctx := context.Background()
+	database := newTestDB(t)
+	seedUser(t, database, "user-alice", "member")
+	if _, err := database.ExecContext(ctx,
+		`INSERT INTO user_preferences (user_id, theme, default_currency, date_format, home_view, scan_behavior, default_visibility, show_archived_in_search, updated_at)
+		 VALUES ('user-alice', 'system', 'CNY', 'relative', 'spaces', 'confirm', 'private', 0, 1)`); err != nil {
+		t.Fatalf("set preferences: %v", err)
+	}
+	locID := createTestLocation(t, ctx, database, "隐私测试")
+	svc := NewItemService(database)
+	owner := "user-alice"
+
+	item, err := svc.Create(ctxAs(owner), ItemCreateInput{
+		Name: "默认私密物品", Type: model.ItemTypeDurable, Status: model.StatusInUse,
+		LocationID: &locID, OwnerID: &owner,
+	})
+	if err != nil {
+		t.Fatalf("create item: %v", err)
+	}
+	if !item.IsPrivate {
+		t.Fatal("expected default_visibility=private to apply")
+	}
+	if item.Status != model.StatusInUse {
+		t.Fatalf("expected in_use status, got %s", item.Status)
+	}
+
+	shared, err := svc.Update(ctxAs(owner), item.ID, ItemUpdateInput{IsPrivate: boolPtr(false)})
+	if err != nil {
+		t.Fatalf("clear private flag: %v", err)
+	}
+	if shared.IsPrivate {
+		t.Fatal("expected item to become shared")
+	}
+}
+
 func TestItemCreateRejectsInvalidType(t *testing.T) {
 	ctx := context.Background()
 	database := newTestDB(t)

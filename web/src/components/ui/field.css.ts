@@ -16,10 +16,10 @@ export const set = style({
 export const legend = style({
   marginBottom: themeVars.space2,
   color: themeVars.ink,
-  fontWeight: 600,
+  fontWeight: themeVars.weightSemibold,
   selectors: {
-    '&[data-variant="label"]': { fontSize: '0.875rem' },
-    '&[data-variant="legend"]': { fontSize: '1rem' },
+    '&[data-variant="label"]': { fontSize: themeVars.textSizeBase },
+    '&[data-variant="legend"]': { fontSize: themeVars.textSizeMd },
   },
 });
 
@@ -61,14 +61,14 @@ export const content = style({
   minWidth: 0,
   flexDirection: 'column',
   gap: '0.125rem',
-  lineHeight: 1.35,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const label = style([
   labelRoot,
   {
     width: 'fit-content',
-    lineHeight: 1.35,
+    lineHeight: themeVars.leadingSnug,
   },
 ]);
 
@@ -78,16 +78,16 @@ export const title = style({
   alignItems: 'center',
   gap: themeVars.space2,
   color: themeVars.text,
-  fontSize: '0.875rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const description = style({
   margin: 0,
   color: themeVars.muted,
-  fontSize: '0.875rem',
-  fontWeight: 400,
-  lineHeight: 1.45,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightRegular,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const separator = style({
@@ -96,7 +96,7 @@ export const separator = style({
   height: '1.25rem',
   alignItems: 'center',
   color: themeVars.muted,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const separatorLine = style({
@@ -117,8 +117,8 @@ export const separatorContent = style({
 
 export const error = style({
   color: themeVars.danger,
-  fontSize: '0.875rem',
-  fontWeight: 400,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightRegular,
 });
 
 export const errorList = style({

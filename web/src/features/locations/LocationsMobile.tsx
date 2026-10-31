@@ -6,6 +6,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
+import { Checkbox } from '../../components/ui/checkbox';
 import { Card } from '../../components/ui/card';
 import { TextField } from '../../components/ui/text-field';
 import type { Location } from '../../api/client';
@@ -236,6 +237,7 @@ function CreateOverlay({ parent, onClose, onSubmit, pending, isOnline }: {
   const allowed = allowedChildTypes(parent?.type ?? null);
   const [name, setName] = useState('');
   const [type, setType] = useState<LocationType>(allowed[0] ?? 'room');
+  const [isPrivate, setIsPrivate] = useState(false);
   const title = parent ? t('locations.addChildTo', { name: parent.name }) : t('locations.addRoot');
 
   return (
@@ -278,9 +280,16 @@ function CreateOverlay({ parent, onClose, onSubmit, pending, isOnline }: {
           </div>
         </div>
         <TextField label={t('locations.name')} required value={name} onChange={(e) => setName(e.currentTarget.value)} placeholder={t('locations.namePlaceholder')} />
+        <label className={s.privateRow}>
+          <Checkbox checked={isPrivate} onCheckedChange={(checked) => setIsPrivate(checked === true)} />
+          <span className={s.privateCopy}>
+            <span className={s.privateTitle}>{t('locations.privatePosition')}</span>
+            <span className={s.privateHint}>{t('locations.privateHint')}</span>
+          </span>
+        </label>
         <div className={s.overlayActions}>
           <Button variant="quiet" onClick={onClose}>{t('locations.cancel')}</Button>
-          <Button disabled={!name.trim() || !isOnline || pending} onClick={() => { if (name.trim()) onSubmit({ name: name.trim(), parent_id: parent?.id, type, is_private: false }); }}>
+          <Button disabled={!name.trim() || !isOnline || pending} onClick={() => { if (name.trim()) onSubmit({ name: name.trim(), parent_id: parent?.id, type, is_private: isPrivate }); }}>
             {pending ? t('locations.saving') : t('locations.save')}
           </Button>
         </div>

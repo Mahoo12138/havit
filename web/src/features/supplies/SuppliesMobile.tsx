@@ -1,3 +1,4 @@
+import { themeVars } from '../../styles/theme.css';
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
@@ -137,7 +138,7 @@ export function SuppliesMobile() {
       <TabsNav value={activeTab} onChange={(v) => setActiveTab(v as SupplyTab)} tabs={tabItems} />
 
       {/* Item count */}
-      <div style={{ fontSize: '0.78rem', color: 'var(--havit-muted)', fontWeight: 500 }}>
+      <div style={{ fontSize: themeVars.textSizeSm, color: 'var(--havit-muted)', fontWeight: themeVars.weightMedium }}>
         {filteredItems.length} {t('common.items')}
       </div>
 
@@ -163,7 +164,7 @@ export function SuppliesMobile() {
                   </div>
                   <span style={{
                     display: 'inline-flex', padding: '2px 8px', borderRadius: '999px',
-                    fontSize: '0.72rem', fontWeight: 600,
+                    fontSize: themeVars.textSizeXs, fontWeight: themeVars.weightSemibold,
                     background: stockStatus === 'low' || stockStatus === 'below'
                       ? 'var(--havit-danger-soft)' : stockStatus === 'sufficient'
                         ? 'var(--havit-success-soft)' : 'var(--havit-line-soft)',

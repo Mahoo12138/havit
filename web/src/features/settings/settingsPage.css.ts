@@ -1,5 +1,6 @@
 import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const page = style({
   display: 'flex',
@@ -32,23 +33,15 @@ export const header = style({
 });
 
 export const headerCopy = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
   minWidth: 0,
 });
 
-export const title = style({
-  margin: 0,
-  color: themeVars.ink,
-  fontSize: '1.35rem',
-  fontWeight: 760,
-  lineHeight: 1.15,
-});
+export const title = textStyles.pageTitle;
 
-export const subtitle = style({
-  margin: `${themeVars.space2} 0 0`,
-  color: themeVars.muted,
-  fontSize: '0.88rem',
-  lineHeight: 1.55,
-});
+export const subtitle = textStyles.pageSubtitle;
 
 export const headerIcons = style({
   display: 'flex',
@@ -194,38 +187,7 @@ export const detailPanel = style({
   gap: themeVars.space4,
 });
 
-export const detailHeader = style({
-  display: 'grid',
-  gridTemplateColumns: '2.5rem minmax(0, 1fr) auto',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  minWidth: 0,
-  padding: `${themeVars.space4} 0`,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  '@media': {
-    '(max-width: 44em)': {
-      gridTemplateColumns: '2.5rem minmax(0, 1fr)',
-      padding: `${themeVars.space2} 0 ${themeVars.space3}`,
-    },
-  },
-});
-
-export const detailTitle = style({
-  margin: 0,
-  color: themeVars.ink,
-  fontSize: '1.05rem',
-  fontWeight: 760,
-  lineHeight: 1.2,
-});
-
-export const detailDescription = style({
-  margin: `${themeVars.space1} 0 0`,
-  color: themeVars.muted,
-  fontSize: '0.82rem',
-  lineHeight: 1.5,
-});
-
-export const detailMeta = style({
+export const detailMetaBar = style({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-end',
@@ -233,7 +195,6 @@ export const detailMeta = style({
   minWidth: 0,
   '@media': {
     '(max-width: 44em)': {
-      gridColumn: '1 / -1',
       justifyContent: 'stretch',
       flexDirection: 'column',
       alignItems: 'stretch',
@@ -333,8 +294,8 @@ export const autoSave = style({
   borderRadius: themeVars.radius2,
   background: themeVars.bgSoft,
   color: themeVars.muted,
-  fontSize: '0.78rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   whiteSpace: 'nowrap',
 });
 
@@ -359,8 +320,8 @@ export const section = style({
 export const sectionTitle = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '0.92rem',
-  fontWeight: 720,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
 });
 
 // Applied as a className on the Card component; content carries the padding.
@@ -442,15 +403,15 @@ export const rowText = style({
 
 export const rowTitle = style({
   color: themeVars.ink,
-  fontSize: '0.9rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightBold,
   overflowWrap: 'anywhere',
 });
 
 export const rowDescription = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
-  lineHeight: 1.45,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const rowControl = style({
@@ -536,7 +497,7 @@ export const list = style({
 export const empty = style({
   padding: themeVars.space5,
   color: themeVars.muted,
-  fontSize: '0.88rem',
+  fontSize: themeVars.textSizeBase,
   textAlign: 'center',
 });
 
@@ -547,7 +508,7 @@ export const tokenSecret = style({
   border: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.ink,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   wordBreak: 'break-all',
   userSelect: 'all',
 });
@@ -560,8 +521,8 @@ export const memberAvatar = style({
   borderRadius: themeVars.radius2,
   background: themeVars.bgSoft,
   color: themeVars.muted,
-  fontSize: '0.86rem',
-  fontWeight: 760,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightBold,
 });
 
 export const memberAvatarCurrent = style([
@@ -577,7 +538,7 @@ export const inlineMeta = style({
   alignItems: 'center',
   gap: themeVars.space2,
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   whiteSpace: 'nowrap',
 });
 
@@ -594,4 +555,165 @@ globalStyle(`${dialogActions} > *`, {
       flex: '1 1 8rem',
     },
   },
+});
+
+export const formStack = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space3,
+  minWidth: 0,
+});
+
+export const formHint = style({
+  color: themeVars.muted,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
+});
+
+export const formNotice = style({
+  padding: `${themeVars.space2} ${themeVars.space3}`,
+  borderRadius: themeVars.radius2,
+  background: themeVars.bgSoft,
+  border: `1px solid ${themeVars.lineSoft}`,
+  color: themeVars.muted,
+  fontSize: themeVars.textSizeSm,
+});
+
+export const formError = style({
+  color: themeVars.danger,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
+});
+
+export const accountCard = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space4,
+  flexWrap: 'wrap',
+});
+
+export const accountIdentity = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+  flex: '1 1 14rem',
+  minWidth: 0,
+});
+
+export const accountAvatar = style({
+  flex: '0 0 auto',
+  width: '3.25rem',
+  height: '3.25rem',
+  display: 'grid',
+  placeItems: 'center',
+  overflow: 'hidden',
+  borderRadius: '999px',
+  background: themeVars.accent,
+  color: themeVars.onAccent,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightBold,
+});
+
+export const accountAvatarImage = style({
+  display: 'block',
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+});
+
+export const accountInfo = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space1,
+  minWidth: 0,
+});
+
+export const accountNameRow = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space2,
+  flexWrap: 'wrap',
+});
+
+export const accountName = style({
+  color: themeVars.ink,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
+  lineHeight: themeVars.leadingTight,
+});
+
+export const accountHandle = style({
+  color: themeVars.muted,
+  fontFamily: themeVars.fontMono,
+  fontSize: themeVars.textSizeSm,
+});
+
+export const accountBio = style({
+  color: themeVars.text,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
+  overflowWrap: 'anywhere',
+});
+
+export const accountActions = style({
+  display: 'flex',
+  gap: themeVars.space2,
+  flexWrap: 'wrap',
+  '@media': {
+    '(max-width: 44em)': {
+      width: '100%',
+    },
+  },
+});
+
+globalStyle(`${accountActions} > *`, {
+  '@media': {
+    '(max-width: 44em)': {
+      flex: '1 1 8rem',
+    },
+  },
+});
+
+export const avatarEditor = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: themeVars.space3,
+});
+
+export const avatarPreview = style({
+  flex: '0 0 auto',
+  width: '3.5rem',
+  height: '3.5rem',
+  display: 'grid',
+  placeItems: 'center',
+  overflow: 'hidden',
+  borderRadius: '999px',
+  background: themeVars.accent,
+  color: themeVars.onAccent,
+  fontSize: themeVars.textSizeXl,
+  fontWeight: themeVars.weightBold,
+});
+
+export const avatarActions = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-start',
+  gap: themeVars.space1,
+  minWidth: 0,
+});
+
+export const avatarButtons = style({
+  display: 'flex',
+  gap: themeVars.space1,
+  flexWrap: 'wrap',
+});
+
+export const avatarHint = style({
+  color: themeVars.muted,
+  fontSize: themeVars.textSizeXs,
+  lineHeight: themeVars.leadingNormal,
+});
+
+export const hiddenInput = style({
+  display: 'none',
 });

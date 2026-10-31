@@ -16,7 +16,7 @@ import {
   IconShoppingCart,
   IconUser,
 } from '@tabler/icons-react';
-import { Button } from '../../components/ui/button';
+import { Button, buttonVariants } from '../../components/ui/button';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Input } from '../../components/ui/input';
@@ -60,7 +60,7 @@ import * as s from './abnormalMobile.css';
 const PAGE_SIZE = 10;
 
 // 可登记异常的物品状态（已退出台账的物品不能再新增异常）
-const ACTIVE_ITEM_STATUSES = new Set(['in_stock', 'borrowed', 'idle', 'for_sale']);
+const ACTIVE_ITEM_STATUSES = new Set(['in_stock', 'in_use', 'borrowed', 'idle', 'for_sale']);
 
 const PROCESSING_STATUS_OPTIONS = [
   { key: 'reporting', labelKey: 'abnormal.progressReporting' },
@@ -81,11 +81,11 @@ const TYPE_OPTIONS = [
 // 处理进度图表配色：跟随主题变量以同时适配明暗两套面板
 const PROGRESS_COLORS: Record<string, string> = {
   reporting: 'var(--havit-info)',
-  searching: '#3f8ba6',
+  searching: 'var(--havit-info)',
   pending_compensation: 'var(--havit-amber)',
   compensated: 'var(--havit-success)',
   scrapped: 'var(--havit-muted)',
-  closed: '#5c8148',
+  closed: 'var(--havit-success)',
 };
 
 const FLOW_STAGE_ORDER = ['reporting', 'searching', 'pending_compensation', 'compensated', 'scrapped', 'closed'];
@@ -596,10 +596,14 @@ export function AbnormalMobile() {
                           {progressLabel(item.processing_status)}
                         </span>
                       </button>
-                      <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                        <Button variant="subtle" size="icon-xs" title={t('abnormal.viewItem')}>
-                          <IconEye size={13} />
-                        </Button>
+                      <Link
+                        to="/items/$itemId"
+                        params={{ itemId: item.item_id }}
+                        className={buttonVariants({ variant: 'subtle', size: 'icon-xs' })}
+                        title={t('abnormal.viewItem')}
+                        aria-label={t('abnormal.viewItem')}
+                      >
+                        <IconEye size={13} />
                       </Link>
                     </div>
                   </div>

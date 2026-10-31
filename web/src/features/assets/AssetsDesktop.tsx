@@ -21,6 +21,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { ButtonGroup } from '../../components/ui/button-group';
 import { Card } from '../../components/ui/card';
+import { TableCard } from '../../components/ui/table-card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
@@ -179,14 +180,16 @@ export function AssetsDesktop() {
           </section>
 
           <section className={s.bodyGrid}>
-            <Card className={s.ledgerCard} padded={false}>
-              <div className={s.toolbar}>
+            <TableCard
+              ariaLabel={t('assets.title')}
+              filters={
                 <div className={s.toolbarLeft}>
                   <span className={s.searchWrap}>
                     <IconSearch size={16} className={s.searchIcon} />
                     <Input
                       className={s.searchInput}
                       placeholder={t('search.placeholder')}
+                      aria-label={t('search.query')}
                       value={searchQuery}
                       onChange={(event) => setSearchQuery(event.currentTarget.value)}
                     />
@@ -210,7 +213,9 @@ export function AssetsDesktop() {
                     onChange={(value) => { setLocationFilter(value); setPage(1); }}
                   />
                 </div>
-                <div className={s.toolbarRight}>
+              }
+              actions={
+                <>
                   <ButtonGroup aria-label={t('assets.cardView')}>
                     <Button
                       variant="outline"
@@ -240,9 +245,9 @@ export function AssetsDesktop() {
                   >
                     {t('assets.export')}
                   </Button>
-                </div>
-              </div>
-
+                </>
+              }
+            >
               {viewMode === 'list' ? (
                 <AssetTable
                   items={paginatedItems}
@@ -259,11 +264,11 @@ export function AssetsDesktop() {
 
               {filteredItems.length > 0 && (
                 <div className={s.footerBar}>
-                  <span>共 {filteredItems.length} 项</span>
+                  <span>{t('common.itemsCount', { count: filteredItems.length })}</span>
                   <AssetPager page={safePage} totalPages={totalPages} onChange={setPage} />
                 </div>
               )}
-            </Card>
+            </TableCard>
 
             <aside className={s.sideColumn}>
               <Card className={s.sideCard}>
@@ -366,7 +371,7 @@ function AssetTable({ items, locOptions, t, isOnline, updateStatus, archive, onV
   onViewDetails: (itemId: string) => void;
 }) {
   return (
-    <Table style={{ minWidth: '56rem', whiteSpace: 'nowrap' }}>
+    <Table style={{ whiteSpace: 'nowrap' }} aria-label={t('assets.title')}>
       <TableHeader>
         <TableRow>
           <TableHead>{t('assets.itemName')}</TableHead>

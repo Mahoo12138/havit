@@ -1,4 +1,16 @@
 data/
+data_dev/
+tmp/
+.pnpm-store/
+.go-build-cache/
+.impeccable/
+.remember/
+.workbuddy/
+.zcode/
+.playwright-mcp/
+web/test-results/
+web/playwright-report/
+web/playwright/.cache/
 *.log
 *.db
 *.db-wal

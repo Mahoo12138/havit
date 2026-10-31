@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { IconShieldCheck } from '@tabler/icons-react';
-import { Stack } from '../../components/ui';
+import { Stack, uiStyles } from '../../components/ui';
 import { Spinner } from '../../components/ui/spinner';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { itemsApi, suppliesExtendedApi } from '../../api/client';
@@ -58,7 +58,7 @@ export function CredentialsDesktop() {
             <div style={{ display: 'grid', justifyItems: 'center', gap: '0.75rem', padding: '2rem 0' }}>
               <IconShieldCheck size={28} />
               <p style={{ color: 'var(--havit-muted)', margin: 0 }}>{t('credentials.noWarranty')}</p>
-              <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+              <p className={uiStyles.helpParagraph}>
                 {t('credentials.noWarrantyHint')}
               </p>
             </div>

@@ -2,6 +2,18 @@ import { style } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
 
+export const itemLink = style({
+  color: themeVars.ink,
+  fontWeight: themeVars.weightMedium,
+  textDecoration: 'none',
+  selectors: {
+    '&:hover': {
+      color: themeVars.accent,
+      textDecoration: 'underline',
+    },
+  },
+});
+
 export const typeOptionGroup = style({
   display: 'grid',
   gap: themeVars.space2,
@@ -37,11 +49,11 @@ export const typeOptionRadio = style({
 
 export const typeOptionLabel = style({
   color: themeVars.text,
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const typeOptionHint = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });

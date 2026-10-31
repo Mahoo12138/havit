@@ -30,27 +30,28 @@ func NewItemService(db *sql.DB) *ItemService {
 }
 
 type ItemCreateInput struct {
-	Name               string          `json:"name"`
-	Description        *string         `json:"description,omitempty"`
-	Category           *string         `json:"category,omitempty"`
-	Type               model.ItemType  `json:"type"`
-	LocationID         *string         `json:"location_id,omitempty"`
-	HomeBaseLocationID *string         `json:"home_base_location_id,omitempty"`
-	CurrentStatusTag   *string         `json:"current_status_tag,omitempty"`
-	PurchasePrice      *float64        `json:"purchase_price,omitempty"`
-	PurchaseCurrency   *string         `json:"purchase_currency,omitempty"`
-	PurchaseDate       *int64          `json:"purchase_date,omitempty"`
-	PurchasePlatform   *string         `json:"purchase_platform,omitempty"`
-	SerialNumber       *string         `json:"serial_number,omitempty"`
-	WarrantyExpiresAt  *int64          `json:"warranty_expires_at,omitempty"`
-	WarrantyContact    *string         `json:"warranty_contact,omitempty"`
-	CurrentStock       *int            `json:"current_stock,omitempty"`
-	MinStockThreshold  *int            `json:"min_stock_threshold,omitempty"`
-	LifespanDays       *int            `json:"lifespan_days,omitempty"`
-	InUseSince         *int64          `json:"in_use_since,omitempty"`
-	IsPrivate          bool            `json:"is_private,omitempty"`
-	OwnerID            *string         `json:"owner_id,omitempty"`
-	Metadata           json.RawMessage `json:"metadata,omitempty"`
+	Name               string           `json:"name"`
+	Description        *string          `json:"description,omitempty"`
+	Category           *string          `json:"category,omitempty"`
+	Type               model.ItemType   `json:"type"`
+	Status             model.ItemStatus `json:"status,omitempty"`
+	LocationID         *string          `json:"location_id,omitempty"`
+	HomeBaseLocationID *string          `json:"home_base_location_id,omitempty"`
+	CurrentStatusTag   *string          `json:"current_status_tag,omitempty"`
+	PurchasePrice      *float64         `json:"purchase_price,omitempty"`
+	PurchaseCurrency   *string          `json:"purchase_currency,omitempty"`
+	PurchaseDate       *int64           `json:"purchase_date,omitempty"`
+	PurchasePlatform   *string          `json:"purchase_platform,omitempty"`
+	SerialNumber       *string          `json:"serial_number,omitempty"`
+	WarrantyExpiresAt  *int64           `json:"warranty_expires_at,omitempty"`
+	WarrantyContact    *string          `json:"warranty_contact,omitempty"`
+	CurrentStock       *int             `json:"current_stock,omitempty"`
+	MinStockThreshold  *int             `json:"min_stock_threshold,omitempty"`
+	LifespanDays       *int             `json:"lifespan_days,omitempty"`
+	InUseSince         *int64           `json:"in_use_since,omitempty"`
+	IsPrivate          *bool            `json:"is_private,omitempty"`
+	OwnerID            *string          `json:"owner_id,omitempty"`
+	Metadata           json.RawMessage  `json:"metadata,omitempty"`
 }
 
 type ItemUpdateInput struct {
@@ -73,6 +74,7 @@ type ItemUpdateInput struct {
 	MinStockThreshold  *int              `json:"min_stock_threshold,omitempty"`
 	LifespanDays       *int              `json:"lifespan_days,omitempty"`
 	InUseSince         *int64            `json:"in_use_since,omitempty"`
+	IsPrivate          *bool             `json:"is_private,omitempty"`
 	Metadata           json.RawMessage   `json:"metadata,omitempty"`
 }
 
@@ -127,6 +129,26 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 	if !validItemType(string(in.Type)) {
 		return nil, fmt.Errorf("invalid type: %s", in.Type)
 	}
+	status := in.Status
+	if status == "" {
+		status = model.StatusInStock
+	}
+	if !validItemStatus(status) || isNonActiveStatus(status) || status == model.StatusBorrowed {
+		return nil, fmt.Errorf("invalid initial status: %s", status)
+	}
+	isPrivate := false
+	if in.IsPrivate != nil {
+		isPrivate = *in.IsPrivate
+	} else if owner := callerID(ctx); owner != "" {
+		var visibility string
+		if err := s.db.QueryRowContext(ctx,
+			`SELECT COALESCE((SELECT default_visibility FROM user_preferences WHERE user_id = ?), 'shared')`,
+			owner,
+		).Scan(&visibility); err != nil {
+			return nil, err
+		}
+		isPrivate = visibility == "private"
+	}
 	// Virtual items may have no physical location. Essentials use their home
 	// base as the initial location so a new item starts "at home" instead of
 	// being inferred as away.
@@ -161,13 +183,13 @@ func (s *ItemService) Create(ctx context.Context, in ItemCreateInput) (*model.It
 			purchase_platform, serial_number, warranty_expires_at, warranty_contact,
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
 			is_private, owner_id, metadata, created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, 'in_stock', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-		id, in.Name, in.Description, in.Category, in.Type,
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, in.Name, in.Description, in.Category, in.Type, status,
 		in.LocationID, in.HomeBaseLocationID, in.CurrentStatusTag,
 		in.PurchasePrice, in.PurchaseCurrency, in.PurchaseDate,
 		in.PurchasePlatform, in.SerialNumber, in.WarrantyExpiresAt, in.WarrantyContact,
 		in.CurrentStock, in.MinStockThreshold, in.LifespanDays, in.InUseSince,
-		in.IsPrivate, in.OwnerID,
+		isPrivate, in.OwnerID,
 		string(metadata),
 		now, now,
 	)
@@ -249,16 +271,27 @@ type ItemListFilter struct {
 }
 
 func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item, error) {
-	if f.Limit <= 0 || f.Limit > 200 {
-		f.Limit = 50
+	if f.Limit > 200 {
+		f.Limit = 200
+	}
+	offset := f.Offset
+	if offset < 0 {
+		offset = 0
 	}
 
 	args := []any{}
 	where := "1 = 1"
 
-	if f.Query != "" {
-		where += ` AND items.id IN (SELECT item_id FROM items_fts WHERE items_fts MATCH ?)`
-		args = append(args, f.Query)
+	if query := strings.TrimSpace(f.Query); query != "" {
+		like := "%" + strings.ReplaceAll(query, `"`, "") + "%"
+		where += ` AND (
+			items.id IN (SELECT item_id FROM items_fts WHERE items_fts MATCH ?)
+			OR items.name LIKE ?
+			OR COALESCE(items.description, '') LIKE ?
+			OR COALESCE(items.category, '') LIKE ?
+			OR COALESCE(items.serial_number, '') LIKE ?
+		)`
+		args = append(args, matchExpression(query), like, like, like, like)
 	}
 	if f.Status != "" {
 		where += ` AND status = ?`
@@ -296,8 +329,6 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 		return nil, err
 	}
 
-	args = append(args, f.Limit, f.Offset)
-
 	q := fmt.Sprintf(`
 		SELECT id, name, description, category, type, status,
 			location_id, home_base_location_id, current_status_tag,
@@ -307,8 +338,14 @@ func (s *ItemService) List(ctx context.Context, f ItemListFilter) ([]*model.Item
 			current_stock, min_stock_threshold, lifespan_days, in_use_since,
 			metadata, is_private, owner_id, created_at, updated_at
 		FROM items WHERE %s
-		ORDER BY updated_at DESC
-		LIMIT ? OFFSET ?`, where)
+		ORDER BY updated_at DESC`, where)
+	if f.Limit > 0 {
+		q += " LIMIT ? OFFSET ?"
+		args = append(args, f.Limit, offset)
+	} else if offset > 0 {
+		q += " LIMIT -1 OFFSET ?"
+		args = append(args, offset)
+	}
 
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {
@@ -619,6 +656,9 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 	if len(in.Metadata) > 0 {
 		cur.Metadata = in.Metadata
 	}
+	if in.IsPrivate != nil {
+		cur.IsPrivate = *in.IsPrivate
+	}
 
 	now := time.Now().Unix()
 	metadataStr := string(cur.Metadata)
@@ -633,7 +673,7 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 			serial_number = ?, warranty_expires_at = ?, warranty_contact = ?,
 			exit_type = ?, exit_date = ?, exit_price = ?, exit_currency = ?, exit_notes = ?,
 			current_stock = ?, min_stock_threshold = ?, lifespan_days = ?, in_use_since = ?,
-			metadata = ?, updated_at = ?
+			metadata = ?, is_private = ?, updated_at = ?
 		WHERE id = ?`,
 		cur.Name, cur.Description, cur.Category, cur.Type, cur.Status,
 		cur.LocationID, cur.HomeBaseLocationID, cur.CurrentStatusTag,
@@ -641,7 +681,7 @@ func (s *ItemService) Update(ctx context.Context, id string, in ItemUpdateInput)
 		cur.SerialNumber, cur.WarrantyExpiresAt, cur.WarrantyContact,
 		cur.ExitType, cur.ExitDate, cur.ExitPrice, cur.ExitCurrency, cur.ExitNotes,
 		cur.CurrentStock, cur.MinStockThreshold, cur.LifespanDays, cur.InUseSince,
-		metadataStr, now, id,
+		metadataStr, cur.IsPrivate, now, id,
 	)
 	if err != nil {
 		return nil, err
@@ -1037,8 +1077,14 @@ func (s *ItemService) PutIntoContainer(ctx context.Context, itemID, containerID 
 	if itemID == containerID {
 		return errors.New("an item cannot contain itself")
 	}
+	if _, err := s.Get(ctx, itemID); err != nil {
+		return err
+	}
 	container, err := s.Get(ctx, containerID)
 	if err != nil {
+		return err
+	}
+	if err := s.ensureContainerPath(ctx, itemID, containerID); err != nil {
 		return err
 	}
 	now := time.Now().Unix()
@@ -1055,6 +1101,9 @@ func (s *ItemService) PutIntoContainer(ctx context.Context, itemID, containerID 
 }
 
 func (s *ItemService) RemoveFromContainer(ctx context.Context, itemID string) error {
+	if _, err := s.Get(ctx, itemID); err != nil {
+		return err
+	}
 	now := time.Now().Unix()
 	res, err := s.db.ExecContext(ctx, `
 		UPDATE items SET parent_item_id = NULL, updated_at = ?
@@ -1070,7 +1119,37 @@ func (s *ItemService) RemoveFromContainer(ctx context.Context, itemID string) er
 	return nil
 }
 
+// ensureContainerPath rejects cycles before moving itemID under containerID.
+func (s *ItemService) ensureContainerPath(ctx context.Context, itemID, containerID string) error {
+	current := containerID
+	for depth := 0; current != ""; depth++ {
+		if depth > 1000 {
+			return errors.New("container hierarchy too deep")
+		}
+		if current == itemID {
+			return errors.New("container hierarchy cycle")
+		}
+		var parent sql.NullString
+		err := s.db.QueryRowContext(ctx,
+			`SELECT parent_item_id FROM items WHERE id = ?`, current).Scan(&parent)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return ErrNotFound
+			}
+			return err
+		}
+		if !parent.Valid || parent.String == "" {
+			return nil
+		}
+		current = parent.String
+	}
+	return nil
+}
+
 func (s *ItemService) Exit(ctx context.Context, id string, in ItemExitInput) (*model.Item, error) {
+	if _, err := s.Get(ctx, id); err != nil {
+		return nil, err
+	}
 	if in.ExitType == "" {
 		return nil, errors.New("exit_type required")
 	}
@@ -1575,7 +1654,7 @@ func (s *ItemService) ListEvents(ctx context.Context, itemID string) ([]*model.I
 
 func validItemStatus(s model.ItemStatus) bool {
 	switch s {
-	case model.StatusInStock, model.StatusBorrowed, model.StatusIdle, model.StatusForSale,
+	case model.StatusInStock, model.StatusInUse, model.StatusBorrowed, model.StatusIdle, model.StatusForSale,
 		model.StatusSold, model.StatusGivenAway, model.StatusLost, model.StatusStolen,
 		model.StatusUnreturned, model.StatusDamaged, model.StatusArchived:
 		return true

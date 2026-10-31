@@ -22,7 +22,6 @@ import {
 } from '@tabler/icons-react';
 import {
   Stack,
-  StackTight,
   uiStyles,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
@@ -52,6 +51,8 @@ import {
   type PurchaseEvent,
 } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
+import { textStyles } from '../../styles/typography.css';
+import { themeVars } from '../../styles/theme.css';
 
 const DAY = 24 * 60 * 60;
 
@@ -317,8 +318,8 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
       </Button>
 
       <div className={uiStyles.pageHeader}>
-        <StackTight>
-          <h2 className="page-heading">{it.name}</h2>
+        <div className={uiStyles.pageHeadingCopy}>
+          <h2 className={textStyles.pageTitle}>{it.name}</h2>
           <div className={uiStyles.itemSpecBadges}>
             <span className={uiStyles.supplyDetailTypeBadge[typeBadgeKey]}>
               {typeLabel}
@@ -327,7 +328,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
               <span className={uiStyles.itemSpecCategory}>{it.category}</span>
             )}
           </div>
-        </StackTight>
+        </div>
         <div className={uiStyles.pageActions}>
           <Button
             leftSection={<IconArchive size={16} />}
@@ -353,7 +354,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                 style={{
                   margin: 0,
                   color: 'var(--havit-muted)',
-                  fontSize: '0.86rem',
+                  fontSize: themeVars.textSizeBase,
                 }}
               >
                 {it.description}
@@ -476,7 +477,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                               <TableCell
                                 style={{
                                   color: 'var(--havit-muted)',
-                                  fontSize: '0.82rem',
+                                  fontSize: themeVars.textSizeSm,
                                 }}
                               >
                                 {ev.notes ?? '—'}
@@ -674,7 +675,7 @@ export function SupplyDetailDesktop({ itemId }: { itemId: string }) {
                           >
                             <span className={uiStyles.supplyTimelineDot} />
                             <div className={uiStyles.supplyTimelineBody}>
-                              <span style={{ fontSize: '0.84rem' }}>
+                              <span style={{ fontSize: themeVars.textSizeSm }}>
                                 {ev.event_type}
                               </span>
                               <span className={uiStyles.supplyTimelineMeta}>

@@ -29,6 +29,7 @@ import {
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '../../components/ui/badge';
+import { uiStyles } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Dialog } from '../../components/ui/dialog-compat';
@@ -75,6 +76,7 @@ export function ItemDetailDesktop({ itemId }: { itemId: string }) {
     removeTag,
     archive,
     updateStatus,
+    updatePrivacy,
     uploadPhoto,
     replaceTags,
     createTag,
@@ -119,6 +121,15 @@ export function ItemDetailDesktop({ itemId }: { itemId: string }) {
           </Button>
           <Button variant="outline" size="sm" leftSection={<IconFileExport size={14} />} onClick={() => window.print()}>
             {t('itemDetail.exportPdf')}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            leftSection={<IconShieldCheck size={14} />}
+            onClick={() => updatePrivacy.mutate(!it.is_private)}
+            disabled={!isOnline || updatePrivacy.isPending}
+          >
+            {it.is_private ? t('itemDetail.makeShared') : t('itemDetail.makePrivate')}
           </Button>
           {it.status === 'stolen' && (
             <Button
@@ -611,7 +622,7 @@ function VirtualSection({ itemId }: { itemId: string }) {
       {formOpen && <CredentialFormDialog open itemId={itemId} onClose={() => setFormOpen(false)} />}
       {deleting && (
         <Dialog open title={t('credentials.deleteCredential')} onClose={() => setDeleting(null)}>
-          <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+          <p className={uiStyles.helpParagraph}>
             {t('credentials.deleteCredentialConfirmSimple')}
           </p>
           <Button variant="destructive" onClick={() => deleteMutation.mutate(deleting)} disabled={deleteMutation.isPending}>

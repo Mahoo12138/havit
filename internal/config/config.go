@@ -3,6 +3,8 @@ package config
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -71,11 +73,11 @@ type BarcodeConfig struct {
 	LookupAPIKey  string `mapstructure:"lookup_api_key"`
 }
 
-func Load() *Config {
+func Load() (*Config, error) {
 	return LoadFrom([]string{"/data", "."})
 }
 
-func LoadFrom(configPaths []string) *Config {
+func LoadFrom(configPaths []string) (*Config, error) {
 	v := viper.New()
 
 	v.SetDefault("mode", "release")
@@ -107,7 +109,12 @@ func LoadFrom(configPaths []string) *Config {
 	for _, p := range configPaths {
 		v.AddConfigPath(p)
 	}
-	_ = v.ReadInConfig()
+	if err := v.ReadInConfig(); err != nil {
+		var notFound viper.ConfigFileNotFoundError
+		if !errors.As(err, &notFound) {
+			return nil, fmt.Errorf("read config: %w", err)
+		}
+	}
 
 	v.SetEnvPrefix("HAVIT")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
@@ -124,54 +131,66 @@ func LoadFrom(configPaths []string) *Config {
 	// one of the default search paths. Read it back explicitly so a restart
 	// keeps the same JWT signing key and field-encryption key.
 	if cfg.Auth.JWTSecret == "" {
-		if secret := persistedSecret(cfg.Data.Dir); secret != "" {
+		if secret, err := persistedSecret(cfg.Data.Dir); err != nil {
+			return nil, err
+		} else if secret != "" {
 			cfg.Auth.JWTSecret = secret
 			v.Set("auth.jwt_secret", secret)
 		}
 	}
 
 	if cfg.Auth.JWTSecret == "" {
-		cfg.Auth.JWTSecret = generateSecret()
+		generated, err := generateSecret()
+		if err != nil {
+			return nil, err
+		}
+		cfg.Auth.JWTSecret = generated
 		v.Set("auth.jwt_secret", cfg.Auth.JWTSecret)
 		if err := os.MkdirAll(cfg.Data.Dir, 0o755); err != nil {
-			slog.Error("create data dir for generated secret", "dir", cfg.Data.Dir, "err", err)
+			return nil, fmt.Errorf("create data dir for generated secret: %w", err)
 		}
 		path := filepath.Join(cfg.Data.Dir, "config.yaml")
 		if used := v.ConfigFileUsed(); used != "" {
 			if err := v.WriteConfig(); err != nil {
-				slog.Error("persist generated secret", "path", used, "err", err)
-			} else if err := os.Chmod(used, 0o600); err != nil {
+				return nil, fmt.Errorf("persist generated secret to %s: %w", used, err)
+			}
+			if err := os.Chmod(used, 0o600); err != nil {
 				slog.Warn("restrict generated config permissions", "path", used, "err", err)
 			}
 		} else if err := v.WriteConfigAs(path); err != nil {
-			slog.Error("persist generated secret", "path", path, "err", err)
+			return nil, fmt.Errorf("persist generated secret to %s: %w", path, err)
 		} else if err := os.Chmod(path, 0o600); err != nil {
 			slog.Warn("restrict generated config permissions", "path", path, "err", err)
 		}
 	}
 
-	return &cfg
+	return &cfg, nil
 }
 
-func persistedSecret(dataDir string) string {
+func persistedSecret(dataDir string) (string, error) {
 	if dataDir == "" {
-		return ""
+		return "", nil
 	}
 	path := filepath.Join(dataDir, "config.yaml")
 	if _, err := os.Stat(path); err != nil {
-		return ""
+		if errors.Is(err, os.ErrNotExist) {
+			return "", nil
+		}
+		return "", fmt.Errorf("stat persisted config %s: %w", path, err)
 	}
 	v := viper.New()
 	v.SetConfigFile(path)
 	v.SetConfigType("yaml")
 	if err := v.ReadInConfig(); err != nil {
-		return ""
+		return "", fmt.Errorf("read persisted config %s: %w", path, err)
 	}
-	return strings.TrimSpace(v.GetString("auth.jwt_secret"))
+	return strings.TrimSpace(v.GetString("auth.jwt_secret")), nil
 }
 
-func generateSecret() string {
+func generateSecret() (string, error) {
 	b := make([]byte, 32)
-	_, _ = rand.Read(b)
-	return hex.EncodeToString(b)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("generate secret: %w", err)
+	}
+	return hex.EncodeToString(b), nil
 }

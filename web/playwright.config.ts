@@ -35,7 +35,8 @@ export default defineConfig({
 
   webServer: [
     {
-      command: `cmd /c "cd /d ${projectRoot} && go run ./cmd/havit"`,
+      command: 'go run ./cmd/havit',
+      cwd: projectRoot,
       port: BACKEND_PORT,
       reuseExistingServer: false,
       env: {

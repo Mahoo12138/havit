@@ -8,14 +8,18 @@ const base = style({
   width: 'fit-content',
   borderRadius: themeVars.radius1,
   padding: '0.125rem 0.5rem',
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  lineHeight: 1.35,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingSnug,
   whiteSpace: 'nowrap',
 });
 
 export const variant = styleVariants({
   in_stock: [
+    base,
+    { background: themeVars.successSoft, color: themeVars.success },
+  ],
+  in_use: [
     base,
     { background: themeVars.successSoft, color: themeVars.success },
   ],

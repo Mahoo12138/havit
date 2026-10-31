@@ -85,7 +85,7 @@ export function WarrantyEditDialog({ item, onClose }: { item: Item; onClose: () 
   return (
     <Dialog open title={t('credentials.editWarranty')} onClose={onClose}>
       <Stack>
-        <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>{item.name}</p>
+        <p className={uiStyles.helpParagraph}>{item.name}</p>
         <DatePickerField
           label={t('credentials.warrantyExpiry')}
           value={expiresAt}

@@ -31,6 +31,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { ButtonGroup } from '../../components/ui/button-group';
 import { Card } from '../../components/ui/card';
+import { TableCard } from '../../components/ui/table-card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
 import {
@@ -219,14 +220,16 @@ export function VirtualAssetsDesktop() {
             <KpiTile icon={IconBrandApple} tone="orange" label={t('virtualAssets.pendingActivation')} value={stats.pendingCount} note={t('virtualAssets.pendingActivationHint')} />
           </section>
 
-          <Card className={s.ledgerCard} padded={false}>
-            <div className={s.toolbar}>
+          <TableCard
+            ariaLabel={t('virtualAssets.title')}
+            filters={
               <div className={s.toolbarLeft}>
                 <span className={s.searchWrap}>
                   <IconSearch size={16} className={s.searchIcon} />
                   <Input
                     className={s.searchInput}
                     placeholder={t('search.placeholder')}
+                    aria-label={t('search.query')}
                     value={searchQuery}
                     onChange={(event) => { setSearchQuery(event.currentTarget.value); setPage(1); }}
                   />
@@ -249,7 +252,9 @@ export function VirtualAssetsDesktop() {
                   onChange={setActiveTab}
                 />
               </div>
-              <div className={s.toolbarRight}>
+            }
+            actions={
+              <>
                 <ButtonGroup className={s.viewToggle} aria-label={t('virtualAssets.calendarView')}>
                   <Button
                     variant="outline"
@@ -271,9 +276,9 @@ export function VirtualAssetsDesktop() {
                   </Button>
                 </ButtonGroup>
                 <Button variant="outline" size="sm" leftSection={<IconDownload size={14} />}>{t('virtualAssets.export')}</Button>
-              </div>
-            </div>
-
+              </>
+            }
+          >
             {effectiveViewMode === 'list' ? (
               <VirtualAssetTable items={paginatedItems} t={t} />
             ) : (
@@ -283,11 +288,11 @@ export function VirtualAssetsDesktop() {
 
             {filteredItems.length > 0 && (
               <div className={s.footerBar}>
-                <span>共 {filteredItems.length} 项</span>
+                <span>{t('common.itemsCount', { count: filteredItems.length })}</span>
                 <VirtualAssetsPager page={safePage} totalPages={totalPages} onChange={setPage} />
               </div>
             )}
-          </Card>
+          </TableCard>
 
           <section className={s.insightsGrid}>
             <Card className={s.insightCard}>
@@ -370,7 +375,7 @@ function KpiTile({ icon: Icon, tone, label, value, note }: {
 function VirtualAssetTable({ items, t }: { items: VaItem[]; t: (key: string, params?: any) => string }) {
   return (
     <div className={s.tableScroll}>
-      <Table style={{ whiteSpace: 'nowrap' }}>
+      <Table style={{ whiteSpace: 'nowrap' }} aria-label={t('virtualAssets.title')}>
         <TableHeader>
           <TableRow>
             <TableHead>{t('virtualAssets.itemName')}</TableHead>

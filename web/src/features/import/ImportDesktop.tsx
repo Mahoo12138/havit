@@ -5,7 +5,6 @@ import { useRef, useState } from 'react';
 import {
   Row,
   Stack,
-  StackTight,
   uiStyles,
 } from '../../components/ui';
 import { Alert } from '../../components/ui/alert';
@@ -24,6 +23,7 @@ import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { ImportMapping } from './ImportMapping';
 import { ImportPreviewCard } from './ImportPreviewCard';
 import { ImportResultCard } from './ImportResultCard';
+import { textStyles } from '../../styles/typography.css';
 
 type Step = 'prepare' | 'mapping' | 'preview' | 'result';
 
@@ -152,10 +152,10 @@ export function ImportDesktop() {
   return (
     <Stack>
       <div className={uiStyles.pageHeader}>
-        <StackTight>
-          <h2 className="page-heading">{t('import.title')}</h2>
-          <p className="page-kicker">{t('import.description')}</p>
-        </StackTight>
+        <div className={uiStyles.pageHeadingCopy}>
+          <h2 className={textStyles.pageTitle}>{t('import.title')}</h2>
+          <p className={textStyles.pageSubtitle}>{t('import.description')}</p>
+        </div>
         <div className={uiStyles.pageActions}>
           <Badge variant="outline">
             {t('import.step', { current: stepIndex + 1, total: 4 })}
@@ -188,7 +188,7 @@ export function ImportDesktop() {
           <p className={uiStyles.help}>{t('import.templateNote')}</p>
           <div
             style={{
-              border: '1px dashed var(--havit-line, #ddd5c4)',
+              border: '1px dashed var(--havit-line, #e1e5eb)',
               borderRadius: 8,
               padding: '1.25rem',
               textAlign: 'center',

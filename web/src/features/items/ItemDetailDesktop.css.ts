@@ -1,5 +1,6 @@
 import { globalStyle, style } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const page = style({
   display: 'flex',
@@ -32,7 +33,7 @@ export const breadcrumb = style({
   gap: themeVars.space1,
   minWidth: 0,
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -49,7 +50,7 @@ globalStyle(`${breadcrumb} a:hover`, {
 
 globalStyle(`${breadcrumb} [data-current]`, {
   color: themeVars.ink,
-  fontWeight: 650,
+  fontWeight: themeVars.weightSemibold,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
 });
@@ -121,12 +122,12 @@ export const photoEmpty = style({
   padding: themeVars.space5,
   color: themeVars.muted,
   textAlign: 'center',
-  fontSize: '0.84rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 globalStyle(`${photoEmpty} strong`, {
   color: themeVars.ink,
-  fontSize: '0.95rem',
+  fontSize: themeVars.textSizeMd,
 });
 
 export const photoCount = style({
@@ -135,10 +136,10 @@ export const photoCount = style({
   bottom: themeVars.space3,
   padding: '0.15rem 0.45rem',
   borderRadius: '999px',
-  background: 'rgba(28, 26, 21, 0.72)',
+  background: 'rgba(17, 24, 39, 0.72)',
   color: '#fff',
-  fontSize: '0.72rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightBold,
 });
 
 export const thumbStrip = style({
@@ -205,15 +206,7 @@ export const titleRow = style({
   gap: themeVars.space3,
 });
 
-export const title = style({
-  margin: 0,
-  color: themeVars.ink,
-  fontSize: '1.45rem',
-  lineHeight: 1.2,
-  fontWeight: 760,
-  letterSpacing: 0,
-  textWrap: 'balance',
-});
+export const title = textStyles.pageTitle;
 
 export const badgeRow = style({
   display: 'flex',
@@ -231,8 +224,8 @@ export const typeBadge = style({
   borderRadius: themeVars.radius1,
   background: themeVars.secondaryBg,
   color: themeVars.secondaryText,
-  fontSize: '0.72rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const categoryBadge = style({
@@ -243,8 +236,8 @@ export const categoryBadge = style({
   borderRadius: themeVars.radius1,
   background: themeVars.infoSoft,
   color: themeVars.info,
-  fontSize: '0.72rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const iconBadge = style({
@@ -287,7 +280,7 @@ export const tagRemove = style({
 
 export const mutedText = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const specGrid = style({
@@ -316,14 +309,14 @@ export const specCell = style({
 
 export const specLabel = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   whiteSpace: 'nowrap',
 });
 
 export const specValue = style({
   color: themeVars.text,
-  fontSize: '0.84rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   minWidth: 0,
   overflowWrap: 'anywhere',
 });
@@ -337,8 +330,8 @@ export const inlineCode = style({
   background: themeVars.infoSoft,
   color: themeVars.info,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.75rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightBold,
 });
 
 export const copyButton = style({
@@ -377,8 +370,8 @@ export const cardTitleRow = style({
 export const cardTitle = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '0.95rem',
-  fontWeight: 720,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const routeList = style({
@@ -396,12 +389,12 @@ export const routeItem = style({
   padding: `0 ${themeVars.space2}`,
   borderRadius: themeVars.radius1,
   color: themeVars.text,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   selectors: {
     '&[data-current]': {
       background: themeVars.infoSoft,
       color: themeVars.info,
-      fontWeight: 650,
+      fontWeight: themeVars.weightSemibold,
     },
   },
 });
@@ -415,8 +408,8 @@ export const routeIcon = style({
 export const routeCode = style({
   color: themeVars.info,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.72rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightBold,
 });
 
 export const blockLink = style({
@@ -429,8 +422,8 @@ export const blockLink = style({
   borderRadius: themeVars.radius1,
   color: themeVars.info,
   textDecoration: 'none',
-  fontSize: '0.82rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   selectors: {
     '&:hover': {
       background: themeVars.bgSoft,
@@ -501,8 +494,8 @@ export const sectionTitle = style({
   gap: themeVars.space2,
   margin: 0,
   color: themeVars.ink,
-  fontSize: '0.94rem',
-  fontWeight: 720,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const sectionIcon = style({
@@ -541,7 +534,7 @@ export const documentThumb = style({
   background: themeVars.bgSoft,
   border: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   cursor: 'default',
   selectors: {
     '&[data-card]': {
@@ -555,13 +548,13 @@ export const documentThumb = style({
 });
 
 export const documentThumbTitle = style({
-  fontWeight: 650,
-  fontSize: '0.8rem',
+  fontWeight: themeVars.weightSemibold,
+  fontSize: themeVars.textSizeSm,
   color: 'inherit',
 });
 
 export const documentThumbSub = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   wordBreak: 'break-all',
 });
@@ -577,7 +570,7 @@ export const documentAdd = style({
   border: `1px dashed ${themeVars.line}`,
   background: themeVars.panel,
   color: themeVars.info,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
   cursor: 'pointer',
 });
 
@@ -602,13 +595,13 @@ export const kvRow = style({
 
 export const kvLabel = style({
   color: themeVars.muted,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const kvValue = style({
   color: themeVars.text,
-  fontSize: '0.83rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   textAlign: 'right',
   overflowWrap: 'anywhere',
 });
@@ -618,8 +611,8 @@ export const kvValueButton = style({
   background: 'transparent',
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.83rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   textAlign: 'right',
   cursor: 'pointer',
 });
@@ -639,7 +632,7 @@ export const iconOnly = style({
 export const taskEmpty = style({
   padding: themeVars.space2 + ' 0',
   color: themeVars.muted,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const taskList = style({
@@ -693,18 +686,18 @@ export const taskMeta = style({
 
 export const taskTitle = style({
   color: themeVars.ink,
-  fontSize: '0.84rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const taskSub = style({
   color: themeVars.muted,
-  fontSize: '0.76rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const taskState = style({
   color: themeVars.muted,
-  fontSize: '0.8rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const blockLinkButton = style({
@@ -716,8 +709,8 @@ export const blockLinkButton = style({
   borderRadius: themeVars.radius1,
   background: themeVars.panel,
   color: themeVars.info,
-  fontSize: '0.82rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   cursor: 'pointer',
 });
 
@@ -755,8 +748,8 @@ export const relatedMeta = style({
 
 export const relatedName = style({
   color: themeVars.ink,
-  fontSize: '0.84rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -764,12 +757,12 @@ export const relatedName = style({
 
 export const relatedSub = style({
   color: themeVars.muted,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const emptyState = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   padding: themeVars.space3,
   textAlign: 'center',
   background: themeVars.bgSoft,
@@ -783,20 +776,15 @@ export const stockHero = style({
   color: themeVars.muted,
 });
 
-export const stockValue = style({
-  color: themeVars.ink,
-  fontSize: '2rem',
-  fontWeight: 760,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const stockValue = textStyles.metricLg;
 
 export const warningText = style({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '0.2rem',
   color: themeVars.warningText,
-  fontSize: '0.76rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const compactCard = style({
@@ -810,13 +798,13 @@ export const compactCard = style({
 
 export const compactTitle = style({
   color: themeVars.ink,
-  fontSize: '0.86rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const compactSub = style({
   color: themeVars.muted,
-  fontSize: '0.76rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const loanRow = style({
@@ -834,8 +822,8 @@ export const avatar = style({
   borderRadius: '999px',
   background: themeVars.accentSoft,
   color: themeVars.accentInk,
-  fontSize: '0.8rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightBold,
 });
 
 export const loanMeta = style({
@@ -881,7 +869,7 @@ export const payload = style({
   background: themeVars.bgSoft,
   color: themeVars.muted,
   fontFamily: themeVars.fontMono,
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   whiteSpace: 'pre-wrap',
 });
 

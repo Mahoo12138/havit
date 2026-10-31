@@ -270,7 +270,7 @@ function EmptyState({ icon, title, sub }: { icon: React.ReactNode; title: string
     <div className={s.emptyState}>
       <span className={s.emptyIcon}>{icon}</span>
       <strong>{title}</strong>
-      <span style={{ color: 'var(--havit-muted, #6f6757)', fontSize: '0.82rem' }}>{sub}</span>
+      <span className={s.emptySub}>{sub}</span>
     </div>
   );
 }

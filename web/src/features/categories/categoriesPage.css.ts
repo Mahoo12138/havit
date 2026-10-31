@@ -1,5 +1,6 @@
 import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const page = style({
   display: 'flex',
@@ -21,23 +22,15 @@ export const desktopHeader = style({
 });
 
 export const headerCopy = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: themeVars.space2,
   minWidth: 0,
 });
 
-export const title = style({
-  margin: 0,
-  color: themeVars.ink,
-  fontSize: '1.35rem',
-  lineHeight: 1.15,
-  fontWeight: 760,
-});
+export const title = textStyles.pageTitle;
 
-export const description = style({
-  margin: `${themeVars.space2} 0 0`,
-  color: themeVars.muted,
-  fontSize: '0.88rem',
-  lineHeight: 1.6,
-});
+export const description = textStyles.pageSubtitle;
 
 export const searchWrap = style({
   position: 'relative',
@@ -62,7 +55,7 @@ export const searchInput = style({
   paddingRight: themeVars.space3,
   background: themeVars.panel,
   color: themeVars.text,
-  fontSize: '0.88rem',
+  fontSize: themeVars.textSizeBase,
   boxShadow: themeVars.shadowSoft,
   selectors: {
     '&:focus': {
@@ -124,23 +117,17 @@ export const kpiMeta = style({
 
 export const kpiLabel = style({
   color: themeVars.muted,
-  fontSize: '0.76rem',
+  fontSize: themeVars.textSizeXs,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 });
 
-export const kpiValue = style({
-  color: themeVars.ink,
-  fontSize: '1.35rem',
-  lineHeight: 1.1,
-  fontWeight: 760,
-  fontVariantNumeric: 'tabular-nums',
-});
+export const kpiValue = textStyles.metricSm;
 
 export const kpiHint = style({
   color: themeVars.muted,
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -205,8 +192,8 @@ export const toolbar = style({
 
 export const resultMeta = style({
   color: themeVars.muted,
-  fontSize: '0.82rem',
-  fontWeight: 520,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightMedium,
 });
 
 export const nameCell = style({
@@ -225,7 +212,7 @@ export const nameMeta = style({
 
 export const name = style({
   color: themeVars.ink,
-  fontWeight: 680,
+  fontWeight: themeVars.weightBold,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -233,7 +220,7 @@ export const name = style({
 
 export const sub = style({
   color: themeVars.muted,
-  fontSize: '0.74rem',
+  fontSize: themeVars.textSizeXs,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -248,8 +235,8 @@ export const usage = style({
   borderRadius: themeVars.radius1,
   background: themeVars.bgSoft,
   color: themeVars.ink,
-  fontSize: '0.8rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -262,7 +249,7 @@ export const actions = style({
 export const empty = style({
   padding: themeVars.space7,
   color: themeVars.muted,
-  fontSize: '0.9rem',
+  fontSize: themeVars.textSizeBase,
   textAlign: 'center',
 });
 
@@ -302,7 +289,7 @@ export const mobileRow = style({
 
 export const mobileCount = style({
   color: themeVars.ink,
-  fontWeight: 720,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -335,8 +322,8 @@ export const overlayHeader = style({
 export const overlayTitle = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '1.05rem',
-  fontWeight: 750,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const overlayBody = style({

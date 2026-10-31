@@ -54,6 +54,7 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
     handlePhotoPick,
     archive,
     updateStatus,
+    updatePrivacy,
     uploadPhoto,
   } = d;
   const isOnline = useNetworkStatus();
@@ -131,6 +132,14 @@ export function ItemDetailMobile({ itemId }: { itemId: string }) {
           {statusOptions.some((option) => option.value === data.status) && (
             <SelectField label={t('items.switchStatus')} options={statusOptions} value={data.status} disabled={!isOnline || updateStatus.isPending} onChange={(event) => updateStatus.mutate(event.currentTarget.value)} />
           )}
+          <Button
+            variant="quiet"
+            leftSection={<IconShieldCheck size={15} />}
+            onClick={() => updatePrivacy.mutate(!data.is_private)}
+            disabled={!isOnline || updatePrivacy.isPending}
+          >
+            {data.is_private ? t('itemDetail.makeShared') : t('itemDetail.makePrivate')}
+          </Button>
         </div>
       </Card>
 

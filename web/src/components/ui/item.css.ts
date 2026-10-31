@@ -28,7 +28,7 @@ const itemBase = style({
   alignItems: 'center',
   border: '1px solid transparent',
   borderRadius: themeVars.radius2,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   outline: 'none',
   transition:
     'background-color 100ms ease, border-color 100ms ease, color 100ms ease, box-shadow 100ms ease',
@@ -168,9 +168,9 @@ export const title = style({
   alignItems: 'center',
   gap: themeVars.space2,
   overflow: 'hidden',
-  fontSize: '0.875rem',
-  fontWeight: 500,
-  lineHeight: 1.375,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
+  lineHeight: themeVars.leadingSnug,
   textDecorationThickness: 'from-font',
   textUnderlineOffset: 4,
 });
@@ -179,16 +179,16 @@ export const description = style({
   display: '-webkit-box',
   overflow: 'hidden',
   color: themeVars.muted,
-  fontSize: '0.875rem',
-  fontWeight: 400,
-  lineHeight: 1.5,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightRegular,
+  lineHeight: themeVars.leadingNormal,
   textAlign: 'left',
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: 2,
 });
 
 globalStyle(`${itemSize.xs} ${description}`, {
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 globalStyle(`${description} > a`, {

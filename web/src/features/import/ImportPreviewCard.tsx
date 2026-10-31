@@ -13,6 +13,7 @@ import {
   TableRow,
 } from '../../components/ui/table';
 import type { ImportPreview, OnDuplicate } from '../../api/client';
+import { textStyles } from '../../styles/typography.css';
 
 interface ImportPreviewCardProps {
   preview: ImportPreview | null;
@@ -59,7 +60,7 @@ export function ImportPreviewCard({
   return (
     <Card>
       <Stack className={uiStyles.cardContent}>
-        <h3 className={uiStyles.heading}>{t('import.previewTitle')}</h3>
+        <h3 className={textStyles.cardTitle}>{t('import.previewTitle')}</h3>
         <p className={uiStyles.muted}>{t('import.previewDescription')}</p>
 
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>

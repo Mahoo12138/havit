@@ -29,7 +29,7 @@ export const trigger = style({
   background: 'transparent',
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   whiteSpace: 'nowrap',
   padding: '0 0.5rem 0 0.625rem',
   outline: 'none',
@@ -55,7 +55,7 @@ export const triggerSize = styleVariants({
   default: {},
   sm: {
     height: '2rem',
-    fontSize: '0.8125rem',
+    fontSize: themeVars.textSizeSm,
   },
 });
 
@@ -109,7 +109,7 @@ export const popup = style({
 export const label = style({
   padding: '0.25rem 0.375rem',
   color: themeVars.muted,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const item = style({
@@ -119,7 +119,7 @@ export const item = style({
   gap: '0.375rem',
   borderRadius: themeVars.radius1,
   padding: '0.25rem 2rem 0.25rem 0.375rem',
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   outline: 'none',
   userSelect: 'none',
   cursor: 'default',

@@ -24,8 +24,8 @@ export default defineConfig({
         name: 'Havit',
         short_name: 'Havit',
         description: '个人与家庭的全资产台账',
-        theme_color: '#ad3a25',
-        background_color: '#f4f1e9',
+        theme_color: '#f6f7f9',
+        background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
         scope: '/',
@@ -47,22 +47,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
-        runtimeCaching: [
-          {
-            urlPattern: ({ url }) =>
-              url.pathname.startsWith('/api/v1/items') ||
-              url.pathname.startsWith('/api/v1/locations'),
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'havit-api-read-cache',
-              networkTimeoutSeconds: 3,
-              expiration: {
-                maxAgeSeconds: 60 * 60,
-                maxEntries: 80,
-              },
-            },
-          },
-        ],
+        cleanupOutdatedCaches: true,
+        // Authenticated API responses must never be shared between accounts.
+        navigateFallbackDenylist: [/^\/api\//],
       },
     }),
   ],
@@ -73,6 +60,7 @@ export default defineConfig({
   },
   build: {
     outDir: '../internal/static/dist',
+    // The build script restores .gitkeep after Vite clears this directory.
     emptyOutDir: true,
   },
   server: {

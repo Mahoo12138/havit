@@ -9,7 +9,6 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Stack,
-  StackTight,
   uiStyles,
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
@@ -29,21 +28,22 @@ import { TextField } from '../../components/ui/text-field';
 import { useToast } from '../../components/ui/use-toast';
 import { tagsApi, type Tag } from '../../api/client';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
+import { textStyles } from '../../styles/typography.css';
 
 const COLOR_PRESETS = [
-  '#ad3a25',
-  '#3f5e8c',
-  '#4e6b41',
-  '#92600e',
-  '#7c4a5d',
-  '#31708c',
-  '#6f6757',
-  '#6b4a2f',
-  '#8c2f4b',
-  '#5d6b75',
+  '#2447b8',
+  '#0f766e',
+  '#2f7d4e',
+  '#b45309',
+  '#6d4a9e',
+  '#0e7490',
+  '#64748b',
+  '#be185d',
+  '#4338ca',
+  '#78716c',
 ];
 
-const DEFAULT_SWATCH = '#6f6757';
+const DEFAULT_SWATCH = '#64748b';
 
 async function extractApiError(err: unknown, fallback: string): Promise<string> {
   const anyErr = err as { response?: Response; message?: string };
@@ -167,10 +167,10 @@ export function TagsDesktop() {
   return (
     <Stack>
       <div className={uiStyles.pageHeader}>
-        <StackTight>
-          <h2 className="page-heading">{t('tags.title')}</h2>
-          <p className="page-kicker">{t('tags.description')}</p>
-        </StackTight>
+        <div className={uiStyles.pageHeadingCopy}>
+          <h2 className={textStyles.pageTitle}>{t('tags.title')}</h2>
+          <p className={textStyles.pageSubtitle}>{t('tags.description')}</p>
+        </div>
         <div className={uiStyles.pageActions}>
           <Button
             variant="primary"
@@ -327,7 +327,7 @@ export function TagsDesktop() {
           <Card className={uiStyles.tagsRailCard}>
             <h3 className={uiStyles.tagsRailTitle}>{t('tags.railRecent')}</h3>
             {recent.length === 0 ? (
-              <div className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>
+              <div className={uiStyles.caption}>
                 {t('tags.railRecentEmpty')}
               </div>
             ) : (
@@ -350,7 +350,7 @@ export function TagsDesktop() {
           <Card className={uiStyles.tagsRailCard}>
             <h3 className={uiStyles.tagsRailTitle}>{t('tags.railMostUsed')}</h3>
             {mostUsed.length === 0 ? (
-              <div className={uiStyles.muted} style={{ fontSize: '0.78rem' }}>
+              <div className={uiStyles.caption}>
                 {t('tags.railMostUsedEmpty')}
               </div>
             ) : (

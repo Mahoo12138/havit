@@ -124,7 +124,7 @@ func (h *ItemHandler) create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err)
 		return
 	}
-	if claims, ok := authmw.ClaimsFrom(r.Context()); ok && in.OwnerID == nil {
+	if claims, ok := authmw.ClaimsFrom(r.Context()); ok {
 		in.OwnerID = &claims.UserID
 	}
 	item, err := h.svc.Create(r.Context(), in)

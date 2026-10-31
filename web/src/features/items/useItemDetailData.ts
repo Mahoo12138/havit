@@ -67,6 +67,12 @@ export function useItemDetailData(itemId: string) {
     onError: (e: Error) => toast.show(t('items.statusUpdateFailed', { error: e.message })),
   });
 
+  const updatePrivacy = useMutation({
+    mutationFn: (isPrivate: boolean) => itemsApi.update(itemId, { is_private: isPrivate }),
+    onSuccess: (next) => { toast.show(t('items.updated')); qc.setQueryData(['item', itemId], next); qc.invalidateQueries({ queryKey: ['items'] }); },
+    onError: (e: Error) => toast.show(t('items.statusUpdateFailed', { error: e.message })),
+  });
+
   const uploadPhoto = useMutation({
     mutationFn: (file: File) => itemsApi.uploadPhoto(itemId, file),
     onSuccess: () => { toast.show(t('items.photoUploaded')); qc.invalidateQueries({ queryKey: ['item', itemId, 'attachments'] }); },
@@ -115,6 +121,7 @@ export function useItemDetailData(itemId: string) {
   // recovery); the generic switcher only exposes safe in-place changes.
   const statusOptions = [
     { value: 'in_stock', label: t('status.in_stock') },
+    { value: 'in_use', label: t('status.in_use') },
     { value: 'idle', label: t('status.idle') },
     { value: 'for_sale', label: t('status.for_sale') },
   ];
@@ -124,6 +131,6 @@ export function useItemDetailData(itemId: string) {
     photos, photoIdx, currentPhoto, setSelectedPhotoIdx,
     currentTags, currentTagIDs, availableTags, tagOptions,
     statusOptions, fileInputRef, handlePhotoPick, addTag, removeTag,
-    archive, updateStatus, uploadPhoto, replaceTags, createTag,
+    archive, updateStatus, updatePrivacy, uploadPhoto, replaceTags, createTag,
   };
 }

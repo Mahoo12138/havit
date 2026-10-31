@@ -1,3 +1,4 @@
+import { textStyles } from '../../styles/typography.css';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -250,7 +251,7 @@ export function QrPrintDesktop() {
         <section className={s.sheetSection}>
           <div className={`no-print ${s.sheetHead}`}>
             <div className={s.sheetTitle}>
-              <h3 className={uiStyles.heading}>{t('qrPrint.previewTitle')}</h3>
+              <h3 className={textStyles.cardTitle}>{t('qrPrint.previewTitle')}</h3>
               <span className={s.cardMeta}>
                 {t('qrPrint.previewMeta', { count: printable.length })}
               </span>

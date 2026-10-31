@@ -71,8 +71,8 @@ export const pathTooltip = style({
   background: themeVars.ink,
   color: themeVars.bg,
   padding: '0.375rem 0.75rem',
-  fontSize: '0.75rem',
-  lineHeight: 1.25,
+  fontSize: themeVars.textSizeXs,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const trigger = style({
@@ -89,7 +89,7 @@ export const trigger = style({
   color: 'inherit',
   padding: `0 ${themeVars.space3} 0 2.25rem`,
   font: 'inherit',
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   textAlign: 'left',
   outline: 'none',
   cursor: 'pointer',
@@ -105,7 +105,7 @@ export const value = style({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-  lineHeight: 1.2,
+  lineHeight: themeVars.leadingTight,
 });
 
 export const placeholder = style([
@@ -143,8 +143,8 @@ export const panelHeader = style({
 
 globalStyle(`${panelHeader} [data-slot="popover-title"]`, {
   margin: 0,
-  fontSize: '1rem',
-  lineHeight: 1.25,
+  fontSize: themeVars.textSizeMd,
+  lineHeight: themeVars.leadingSnug,
 });
 
 globalStyle(`${panelHeader} [data-slot="popover-description"]`, {
@@ -153,8 +153,8 @@ globalStyle(`${panelHeader} [data-slot="popover-description"]`, {
 
 export const panelPath = style({
   minWidth: 0,
-  fontSize: '0.76rem',
-  lineHeight: 1.2,
+  fontSize: themeVars.textSizeXs,
+  lineHeight: themeVars.leadingTight,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -199,6 +199,6 @@ globalStyle(`${treeInner} [data-slot="tree-item-label"]`, {
 export const empty = style({
   padding: themeVars.space4,
   color: themeVars.muted,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   textAlign: 'center',
 });

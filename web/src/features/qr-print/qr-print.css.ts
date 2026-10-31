@@ -12,7 +12,7 @@ export const page = style({
 /* ---------- Selection card ---------- */
 
 export const cardMeta = style({
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   fontVariantNumeric: 'tabular-nums',
   whiteSpace: 'nowrap',
@@ -84,10 +84,10 @@ export const rowMeta = style({
 
 export const rowName = style({
   margin: 0,
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
-  letterSpacing: '-0.01em',
+  letterSpacing: themeVars.trackingTight,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -95,8 +95,8 @@ export const rowName = style({
 
 export const rowPath = style({
   fontFamily: themeVars.fontMono,
-  fontSize: '0.72rem',
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeXs,
+  letterSpacing: themeVars.trackingWide,
   color: themeVars.muted,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -106,8 +106,8 @@ export const rowPath = style({
 export const rowCode = style({
   flex: '0 1 auto',
   fontFamily: themeVars.fontMono,
-  fontSize: '0.72rem',
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeXs,
+  letterSpacing: themeVars.trackingWide,
   color: themeVars.muted,
   overflow: 'hidden',
   textOverflow: 'ellipsis',

@@ -1,6 +1,7 @@
 import { style, styleVariants } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const page = style({
   display: 'flex',
@@ -102,24 +103,24 @@ export const panelHeader = style({
 export const panelTitle = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '1.05rem',
-  fontWeight: 750,
-  letterSpacing: 0,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingNormal,
 });
 
 export const panelSub = style({
   margin: '0.25rem 0 0',
   color: themeVars.muted,
-  fontSize: '0.88rem',
-  lineHeight: 1.5,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingNormal,
 });
 
 export const sectionTitle = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '0.9rem',
-  fontWeight: 750,
-  letterSpacing: 0,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingNormal,
 });
 
 export const iconBadge = style({
@@ -167,7 +168,7 @@ export const uploadCopy = style({
 
 export const uploadHeading = style({
   color: themeVars.ink,
-  fontSize: '1.12rem',
+  fontSize: themeVars.textSizeLg,
 });
 
 export const uploadActions = style({
@@ -204,8 +205,8 @@ export const exampleCard = style({
   borderRadius: themeVars.radius2,
   color: themeVars.text,
   background: themeVars.paper,
-  fontSize: '0.83rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
 });
 
 const exampleMediaBase = style({
@@ -252,8 +253,8 @@ export const capabilityChip = style({
   borderRadius: themeVars.radius2,
   color: themeVars.text,
   background: themeVars.bgSoft,
-  fontSize: '0.82rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const confidenceRow = style({
@@ -267,10 +268,10 @@ export const confidenceRow = style({
   background: themeVars.bgSoft,
 });
 
-export const confidenceValue = style({
-  color: themeVars.accentInk,
-  fontSize: '1.35rem',
-});
+export const confidenceValue = style([
+  textStyles.metricSm,
+  { color: themeVars.accentInk },
+]);
 
 export const resultForm = style({
   display: 'grid',
@@ -292,7 +293,7 @@ export const metaRow = style({
 
 export const metaValue = style({
   color: themeVars.text,
-  fontSize: '0.9rem',
+  fontSize: themeVars.textSizeBase,
   textAlign: 'right',
 });
 
@@ -357,7 +358,7 @@ export const fileName = style({
 
 export const fileSub = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const emptyText = style({
@@ -372,8 +373,8 @@ export const emptyText = style({
 export const inlineHint = style({
   margin: 0,
   color: themeVars.muted,
-  fontSize: '0.84rem',
-  lineHeight: 1.5,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
 });
 
 export const inlineIssue = style({
@@ -385,5 +386,5 @@ export const inlineIssue = style({
   borderRadius: themeVars.radius2,
   color: themeVars.danger,
   background: themeVars.dangerSoft,
-  fontSize: '0.84rem',
+  fontSize: themeVars.textSizeSm,
 });

@@ -1,6 +1,7 @@
 import { style } from '@vanilla-extract/css';
 
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const root = style({
   vars: {
@@ -16,7 +17,7 @@ export const root = style({
   color: themeVars.text,
   boxShadow: themeVars.shadowSoft,
   padding: 'var(--card-spacing) 0',
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   transition: 'border-color 200ms ease, box-shadow 200ms ease',
   selectors: {
     '&:hover': {
@@ -33,6 +34,13 @@ export const root = style({
 
 export const padded = style({
   padding: themeVars.space5,
+});
+
+// Table-first cards manage their own internal spacing. `flush` removes the
+// card's vertical padding and child gap so headers/toolbars sit edge-to-edge.
+export const flush = style({
+  padding: 0,
+  gap: 0,
 });
 
 export const sizeSm = style({
@@ -54,21 +62,40 @@ export const header = style({
   },
 });
 
-export const title = style({
-  color: themeVars.ink,
-  fontSize: '0.875rem',
-  fontWeight: 600,
-  lineHeight: 1.375,
-  selectors: {
-    '[data-size="sm"] &': {
-      fontSize: '0.8125rem',
+export const toolbar = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: themeVars.space3,
+  minHeight: '3.5rem',
+  padding: `0 ${themeVars.space4}`,
+  borderBottom: `1px solid ${themeVars.lineSoft}`,
+  flexWrap: 'nowrap',
+  '@media': {
+    '(max-width: 48em)': {
+      minHeight: 0,
+      padding: `${themeVars.space3} ${themeVars.space4}`,
+      alignItems: 'stretch',
+      flexDirection: 'column',
+      gap: themeVars.space2,
     },
   },
 });
 
+export const title = style([
+  textStyles.cardTitle,
+  {
+    selectors: {
+      '[data-size="sm"] &': {
+        fontSize: themeVars.textSizeSm,
+      },
+    },
+  },
+]);
+
 export const description = style({
   color: themeVars.muted,
-  fontSize: '0.8125rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const action = style({

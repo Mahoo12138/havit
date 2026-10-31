@@ -51,13 +51,23 @@
 | Owner-only 路由 | 用户管理、实例配置仅 Owner 可访问，成员 403 | `internal/handler/permissions_test.go` |
 | 删除用户 | 名下仍有资产时拒绝并提示；自删/自改角色被拒；审计署名置空保留 | 同上 + `DeleteUser` |
 
-## 7. 传输与部署建议（自部署）
+## 7. 备份与前端缓存
 
-- 生产建议启用 HTTPS（反向代理 / Docker 暴露前加 TLS）。
-- `auth.jwt_secret` 与 AI/通知密钥通过环境变量注入，避免写进镜像。
+| 检查项 | 现状 | 验证 |
+|---|---|---|
+| 备份密钥 | 自动生成的 `config.yaml` 进入备份；恢复测试校验配置、数据库和附件 | `TestBackupRestoresIntoFreshDataDir` |
+| 密钥持久化 | `config.yaml` 读取/写入失败会阻止启动，避免静默换密钥 | `TestLoadRejectsMalformed*` |
+| PWA 数据缓存 | 不再运行时缓存鉴权 API；登录/退出清理旧 `havit-api-read-cache` | `web/vite.config.ts`、`clearPrivateCaches` |
+| 登录暴力尝试 | 同 IP + 用户名 15 分钟内失败 10 次后返回 429 | `loginLimiter` |
+
+## 8. 传输与部署建议（自部署）
+
+- 生产必须通过 HTTPS 反向代理访问；摄像头扫码和 PWA 安装也要求安全上下文。
+- `auth.jwt_secret` 与 AI/通知密钥建议通过环境变量注入；使用自动生成密钥时，备份必须包含 `config.yaml`。
 - 备份文件含全量数据（含加密字段密文），备份包本身应妥善保管。
+- Linux Docker bind mount 需确保 UID 10001 对数据目录有写权限。
 
 ## 已知待收尾
 
-- 分类使用计数等聚合路径的隐私口径（私有物品数量对他人不可见）——S3 隐私剩余项。
-- 真机验证移动端主链路；通知渠道实机（Apprise 自建实例）。
+- 真实摄像头、条码设备和外部 AI/通知端点仍需在部署环境做人工验收。
+- 理赔 PDF 使用非嵌入 CJK CMap，复杂排版依赖阅读器字体回退。

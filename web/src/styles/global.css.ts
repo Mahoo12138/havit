@@ -56,7 +56,7 @@ globalStyle('body', {
   background: themeVars.bg,
   color: themeVars.text,
   fontFamily: themeVars.fontSans,
-  letterSpacing: '0',
+  letterSpacing: themeVars.trackingNormal,
   WebkitFontSmoothing: 'antialiased',
   MozOsxFontSmoothing: 'grayscale',
 });
@@ -64,6 +64,11 @@ globalStyle('body', {
 globalStyle('a', {
   color: themeVars.accent,
   textDecoration: 'none',
+});
+
+// 表单控件默认不继承字体：统一到正文，避免混入 UA 的 Arial。
+globalStyle('button, input, select, textarea', {
+  fontFamily: 'inherit',
 });
 
 globalStyle('a:hover', {
@@ -74,7 +79,7 @@ globalStyle('.auth-screen', {
   minHeight: '100dvh',
   padding: 'clamp(1rem, 4vw, 3rem)',
   background:
-    `radial-gradient(ellipse 70% 50% at 50% 0%, rgba(173, 58, 37, 0.07), transparent 60%), ${themeVars.bg}`,
+    `radial-gradient(ellipse 70% 50% at 50% 0%, color-mix(in srgb, ${themeVars.accent} 6%, transparent), transparent 60%), ${themeVars.bg}`,
 });
 
 globalStyle('.auth-card', {
@@ -88,10 +93,10 @@ globalStyle('.auth-card', {
 globalStyle('.brand-lockup', {
   color: themeVars.ink,
   fontFamily: themeVars.fontSans,
-  fontSize: '1.05rem',
-  fontWeight: 700,
-  letterSpacing: '-0.01em',
-  lineHeight: 1,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightBold,
+  letterSpacing: themeVars.trackingTight,
+  lineHeight: themeVars.leadingNone,
   margin: 0,
 });
 
@@ -103,8 +108,8 @@ globalStyle('.brand-mark', {
   borderRadius: themeVars.radius2,
   background: themeVars.accent,
   color: themeVars.onAccent,
-  fontWeight: 700,
-  boxShadow: '0 2px 6px rgba(28, 26, 21, 0.18)',
+  fontWeight: themeVars.weightBold,
+  boxShadow: '0 2px 6px rgba(17, 24, 39, 0.16)',
 });
 
 globalStyle('.shell-header', {
@@ -122,26 +127,6 @@ globalStyle('.page-shell', {
   paddingBlock: `clamp(${themeVars.space4}, 2vw, ${themeVars.space5}) clamp(${themeVars.space6}, 4vw, ${themeVars.space7})`,
 });
 
-globalStyle('.page-heading', {
-  fontFamily: themeVars.fontSans,
-  fontSize: 'clamp(1.5rem, 2.2vw, 1.875rem)',
-  fontWeight: 700,
-  letterSpacing: '-0.018em',
-  lineHeight: 1.15,
-  color: themeVars.ink,
-  margin: 0,
-  textWrap: 'balance',
-});
-
-globalStyle('.page-kicker', {
-  maxWidth: '60ch',
-  color: themeVars.muted,
-  fontSize: '0.95rem',
-  lineHeight: 1.55,
-  margin: 0,
-  textWrap: 'pretty',
-});
-
 globalStyle('.stat-card', {
   position: 'relative',
 });
@@ -150,7 +135,7 @@ globalStyle('.empty-state', {
   padding: `clamp(${themeVars.space6}, 8vw, ${themeVars.space8})`,
   textAlign: 'center',
   color: themeVars.muted,
-  lineHeight: 1.65,
+  lineHeight: themeVars.leadingRelaxed,
 });
 
 globalStyle('.tree-row', {
@@ -171,7 +156,7 @@ globalStyle('.nav-link', {
 globalStyle(".nav-link[data-active='true']", {
   background: themeVars.accentSoft,
   color: themeVars.accentInk,
-  fontWeight: 600,
+  fontWeight: themeVars.weightSemibold,
 });
 
 globalStyle('.detail-grid', {
@@ -203,9 +188,9 @@ globalStyle('.status-pill', {
   borderRadius: '999px',
   background: themeVars.lineSoft,
   color: themeVars.text,
-  fontSize: '0.72rem',
-  fontWeight: 600,
-  letterSpacing: '0.005em',
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingNormal,
   padding: '0.18rem 0.55rem',
 });
 
@@ -222,8 +207,8 @@ globalStyle('.status-pill-danger', {
 globalStyle('.stat-unit', {
   marginLeft: '0.3rem',
   color: themeVars.muted,
-  fontSize: '0.85rem',
-  fontWeight: 500,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
 });
 
 globalStyle('.export-row', {
@@ -234,10 +219,16 @@ globalStyle('.export-row', {
   background: themeVars.panel,
 });
 
-globalStyle('h1, h2, h3, h4', {
+globalStyle('h1', {
   color: themeVars.ink,
-  fontWeight: 700,
-  letterSpacing: '-0.01em',
+  fontWeight: themeVars.weightBold,
+  letterSpacing: themeVars.trackingTighter,
+});
+
+globalStyle('h2, h3, h4', {
+  color: themeVars.ink,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingTight,
 });
 
 globalStyle('::selection', {

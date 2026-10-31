@@ -29,8 +29,8 @@ export const content = style({
   background: themeVars.ink,
   color: themeVars.bg,
   padding: '0.375rem 0.75rem',
-  fontSize: '0.75rem',
-  lineHeight: 1.25,
+  fontSize: themeVars.textSizeXs,
+  lineHeight: themeVars.leadingSnug,
   animation: `${enter} 150ms ease-out`,
   selectors: {
     '&[data-ending-style]': {

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { IconHome, IconLogout, IconMenu2, IconSearch } from '@tabler/icons-react';
+import { IconHome, IconMenu2, IconSearch } from '@tabler/icons-react';
 import {
   uiStyles,
 } from '../components/ui';
@@ -10,19 +10,19 @@ import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { SelectField } from '../components/ui/select-field';
-import { authApi, clearToken, type SystemStatus } from '../api/client';
+import { authApi, type SystemStatus } from '../api/client';
 import { DemoBanner } from './DemoBanner';
 import { getNavSections, formatToday } from './nav-data';
 import { ThemeToggle } from '../lib/theme';
 import { NotificationBell } from '../features/reminders/NotificationBell';
+import { UserMenu } from './UserMenu';
 
 interface ShellProps {
   systemStatus: SystemStatus;
 }
 
 export function DesktopShell({ systemStatus }: ShellProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [navCollapsed, setNavCollapsed] = useState(false);
@@ -36,7 +36,6 @@ export function DesktopShell({ systemStatus }: ShellProps) {
 
   const navSections = getNavSections(t);
   const username = me.data?.username ?? t('common.user');
-  const initials = username.slice(0, 1).toUpperCase();
 
   async function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -44,16 +43,6 @@ export function DesktopShell({ systemStatus }: ShellProps) {
     const q = String(data.get('q') ?? '').trim();
     if (!q) return;
     navigate({ to: '/search', search: { q } as never });
-  }
-
-  async function handleLogout() {
-    try {
-      await authApi.logout();
-    } catch {
-      /* ignore */
-    }
-    clearToken();
-    window.location.href = '/login';
   }
 
   return (
@@ -103,37 +92,6 @@ export function DesktopShell({ systemStatus }: ShellProps) {
             </div>
           ))}
         </ScrollArea>
-
-        <div className={uiStyles.sidebarFooter}>
-          <div style={{ padding: '0.5rem 0.75rem' }}>
-            <SelectField
-              label={t('settings.language')}
-              options={[
-                { value: 'en', label: 'English' },
-                { value: 'zh-CN', label: '简体中文' },
-              ]}
-              value={i18n.language}
-              onChange={(e) => i18n.changeLanguage(e.currentTarget.value)}
-            />
-          </div>
-          <div className={uiStyles.sidebarUser}>
-            <span className={uiStyles.sidebarUserAvatar}>{initials}</span>
-            <div className={uiStyles.sidebarUserMeta}>
-              <span className={uiStyles.sidebarUserName}>{username}</span>
-              <span className={uiStyles.sidebarUserMetaSub}>
-                v{systemStatus.version}
-              </span>
-            </div>
-            <Button
-              variant="subtle"
-              className={uiStyles.sidebarLogout}
-              aria-label={t('auth.logout')}
-              onClick={handleLogout}
-            >
-              <IconLogout size={16} />
-            </Button>
-          </div>
-        </div>
       </nav>
 
       <div className={uiStyles.shellMainArea}>
@@ -166,9 +124,12 @@ export function DesktopShell({ systemStatus }: ShellProps) {
             <span className={uiStyles.shellHeaderDate}>{formatToday(t)}</span>
             <ThemeToggle iconClassName={uiStyles.headerIconBtn} />
             <NotificationBell iconClassName={uiStyles.headerIconBtn} />
-            <span className={uiStyles.headerAvatar} aria-label={username}>
-              {initials}
-            </span>
+            <UserMenu
+              username={username}
+              nickname={me.data?.nickname}
+              avatar={me.data?.avatar}
+              version={systemStatus.version}
+            />
           </div>
         </header>
 

@@ -67,7 +67,7 @@ func privacyFixture(t *testing.T) (*ItemService, *LocationService, *SearchServic
 		t.Helper()
 		item, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 			Name: name, Type: model.ItemTypeDurable, LocationID: &locID,
-			IsPrivate: private, OwnerID: &alice,
+			IsPrivate: boolPtr(private), OwnerID: &alice,
 		})
 		if err != nil {
 			t.Fatalf("create item %s: %v", name, err)
@@ -266,13 +266,13 @@ func TestPrivacyExport(t *testing.T) {
 	}
 	if _, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 		Name: "共享物品", Type: model.ItemTypeDurable, LocationID: &loc.ID,
-		IsPrivate: false, OwnerID: &alice,
+		IsPrivate: boolPtr(false), OwnerID: &alice,
 	}); err != nil {
 		t.Fatalf("create shared item: %v", err)
 	}
 	priv, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 		Name: "私密物品", Type: model.ItemTypeDurable, LocationID: &loc.ID,
-		IsPrivate: true, OwnerID: &alice,
+		IsPrivate: boolPtr(true), OwnerID: &alice,
 	})
 	if err != nil {
 		t.Fatalf("create private item: %v", err)
@@ -334,14 +334,14 @@ func TestPrivacyAbnormalList(t *testing.T) {
 	}
 	sharedItem, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 		Name: "共享损坏物", Type: model.ItemTypeDurable, LocationID: &loc.ID,
-		IsPrivate: false, OwnerID: &alice,
+		IsPrivate: boolPtr(false), OwnerID: &alice,
 	})
 	if err != nil {
 		t.Fatalf("create shared item: %v", err)
 	}
 	privateItem, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 		Name: "私密丢失物", Type: model.ItemTypeDurable, LocationID: &loc.ID,
-		IsPrivate: true, OwnerID: &alice,
+		IsPrivate: boolPtr(true), OwnerID: &alice,
 	})
 	if err != nil {
 		t.Fatalf("create private item: %v", err)
@@ -377,7 +377,7 @@ func TestPrivacyLoanGuardsPrivateItems(t *testing.T) {
 	}
 	priv, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 		Name: "私密物品", Type: model.ItemTypeDurable, LocationID: &loc.ID,
-		IsPrivate: true, OwnerID: &alice,
+		IsPrivate: boolPtr(true), OwnerID: &alice,
 	})
 	if err != nil {
 		t.Fatalf("create private item: %v", err)
@@ -413,7 +413,7 @@ func TestPrivacyCategoryUsageCountsExcludePrivateItems(t *testing.T) {
 		category := "摄影器材"
 		if _, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 			Name: name, Type: model.ItemTypeDurable, LocationID: &loc.ID,
-			Category: &category, IsPrivate: private, OwnerID: &alice,
+			Category: &category, IsPrivate: boolPtr(private), OwnerID: &alice,
 		}); err != nil {
 			t.Fatalf("create item %s: %v", name, err)
 		}
@@ -440,5 +440,158 @@ func TestPrivacyCategoryUsageCountsExcludePrivateItems(t *testing.T) {
 		if c.ID == cat.ID && c.UsageCount != 2 {
 			t.Fatalf("alice sees usage count %d for 2 items, want 2", c.UsageCount)
 		}
+	}
+}
+
+func TestPrivacyBlocksCrossUserMutationsAndAbnormalReads(t *testing.T) {
+	db := newTestDB(t)
+	seedUser(t, db, "user-alice", "member")
+	seedUser(t, db, "user-bob", "member")
+	itemSvc := NewItemService(db)
+	locSvc := NewLocationService(db)
+	abnormalSvc := NewAbnormalService(db)
+	alice, bob := "user-alice", "user-bob"
+
+	sharedLoc, err := locSvc.Create(ctxAs(alice), LocationCreateInput{Name: "公共柜", Type: "furniture"})
+	if err != nil {
+		t.Fatalf("create shared location: %v", err)
+	}
+	privateItem, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
+		Name: "私密物品", Type: model.ItemTypeDurable, LocationID: &sharedLoc.ID,
+		IsPrivate: boolPtr(true), OwnerID: &alice,
+	})
+	if err != nil {
+		t.Fatalf("create private item: %v", err)
+	}
+	sharedItem, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
+		Name: "共享物品", Type: model.ItemTypeDurable, LocationID: &sharedLoc.ID,
+		IsPrivate: boolPtr(false), OwnerID: &alice,
+	})
+	if err != nil {
+		t.Fatalf("create shared item: %v", err)
+	}
+	bobLoc, err := locSvc.Create(ctxAs(bob), LocationCreateInput{Name: "Bob 柜", Type: "furniture"})
+	if err != nil {
+		t.Fatalf("create bob location: %v", err)
+	}
+	bobContainer, err := itemSvc.Create(ctxAs(bob), ItemCreateInput{
+		Name: "Bob 容器", Type: model.ItemTypeDurable, LocationID: &bobLoc.ID, OwnerID: &bob,
+	})
+	if err != nil {
+		t.Fatalf("create bob container: %v", err)
+	}
+
+	if _, err := itemSvc.Exit(ctxAs(bob), privateItem.ID, ItemExitInput{ExitType: "lost"}); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob exit on alice's private item: expected ErrNotFound, got %v", err)
+	}
+	unchanged, err := itemSvc.Get(ctxAs(alice), privateItem.ID)
+	if err != nil {
+		t.Fatalf("read private item as alice: %v", err)
+	}
+	if unchanged.Status != model.StatusInStock {
+		t.Fatalf("private item status changed after blocked exit: %s", unchanged.Status)
+	}
+
+	if err := itemSvc.PutIntoContainer(ctxAs(bob), privateItem.ID, bobContainer.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob put alice's private item into container: expected ErrNotFound, got %v", err)
+	}
+	aliceContainer, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
+		Name: "Alice 容器", Type: model.ItemTypeDurable, LocationID: &sharedLoc.ID, OwnerID: &alice,
+	})
+	if err != nil {
+		t.Fatalf("create alice container: %v", err)
+	}
+	if err := itemSvc.PutIntoContainer(ctxAs(alice), privateItem.ID, aliceContainer.ID); err != nil {
+		t.Fatalf("alice put private item into her container: %v", err)
+	}
+	if err := itemSvc.RemoveFromContainer(ctxAs(bob), privateItem.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob remove alice's private item from container: expected ErrNotFound, got %v", err)
+	}
+	afterRemoveAttempt, err := itemSvc.Get(ctxAs(alice), privateItem.ID)
+	if err != nil {
+		t.Fatalf("read private item after blocked remove: %v", err)
+	}
+	if afterRemoveAttempt.ParentItemID == nil || *afterRemoveAttempt.ParentItemID != aliceContainer.ID {
+		t.Fatalf("private item parent changed after blocked remove: %#v", afterRemoveAttempt.ParentItemID)
+	}
+	if err := itemSvc.PutIntoContainer(ctxAs(alice), aliceContainer.ID, privateItem.ID); err == nil {
+		t.Fatal("expected container cycle to be rejected")
+	}
+
+	privateLoc, err := locSvc.Create(ctxAs(alice), LocationCreateInput{
+		Name: "Alice 私人空位", Type: "room", IsPrivate: true, OwnerID: &alice,
+	})
+	if err != nil {
+		t.Fatalf("create private location: %v", err)
+	}
+	if err := locSvc.Delete(ctxAs(bob), privateLoc.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob delete alice's private location: expected ErrNotFound, got %v", err)
+	}
+	if _, err := locSvc.Get(ctxAs(alice), privateLoc.ID); err != nil {
+		t.Fatalf("private location should still exist: %v", err)
+	}
+
+	privateAbnormal, err := abnormalSvc.Create(context.Background(), privateItem.ID, "lost", "Alice", nil, nil)
+	if err != nil {
+		t.Fatalf("create private abnormal record: %v", err)
+	}
+	sharedAbnormal, err := abnormalSvc.Create(context.Background(), sharedItem.ID, "lost", "Alice", nil, nil)
+	if err != nil {
+		t.Fatalf("create shared abnormal record: %v", err)
+	}
+	if _, err := abnormalSvc.GetByID(ctxAs(bob), privateAbnormal.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob read private abnormal: expected ErrNotFound, got %v", err)
+	}
+	if _, err := abnormalSvc.GetByItemID(ctxAs(bob), privateItem.ID); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob read private abnormal by item: expected ErrNotFound, got %v", err)
+	}
+	if _, err := abnormalSvc.GetByID(ctxAs(bob), sharedAbnormal.ID); err != nil {
+		t.Fatalf("bob should read shared abnormal: %v", err)
+	}
+	if _, err := abnormalSvc.UpdateProgress(ctxAs(bob), privateAbnormal.ID, UpdateProgressInput{
+		ProcessingStatus: strPtr("closed"),
+	}); !errors.Is(err, ErrNotFound) {
+		t.Fatalf("bob update private abnormal: expected ErrNotFound, got %v", err)
+	}
+	if _, err := abnormalSvc.UpdateProgress(ctxAs(bob), sharedAbnormal.ID, UpdateProgressInput{
+		ProcessingNotes: strPtr("updated by bob"),
+	}); err != nil {
+		t.Fatalf("bob update shared abnormal: %v", err)
+	}
+
+	bobStats, err := abnormalSvc.Stats(ctxAs(bob))
+	if err != nil {
+		t.Fatalf("bob abnormal stats: %v", err)
+	}
+	if bobStats.Total != 1 {
+		t.Fatalf("bob should only see 1 abnormal record, got %d", bobStats.Total)
+	}
+	aliceStats, err := abnormalSvc.Stats(ctxAs(alice))
+	if err != nil {
+		t.Fatalf("alice abnormal stats: %v", err)
+	}
+	if aliceStats.Total != 2 {
+		t.Fatalf("alice should see 2 abnormal records, got %d", aliceStats.Total)
+	}
+	bobProgress, err := abnormalSvc.ProgressStats(ctxAs(bob))
+	if err != nil {
+		t.Fatalf("bob progress stats: %v", err)
+	}
+	bobProgressTotal := 0
+	for _, point := range bobProgress {
+		bobProgressTotal += point.Count
+	}
+	if bobProgressTotal != 1 {
+		t.Fatalf("bob should only see 1 abnormal progress record, got %d", bobProgressTotal)
+	}
+	bobTrend, err := abnormalSvc.Trend(ctxAs(bob))
+	if err != nil {
+		t.Fatalf("bob abnormal trend: %v", err)
+	}
+	if len(bobTrend) != 6 {
+		t.Fatalf("expected 6 trend points, got %d", len(bobTrend))
+	}
+	if bobTrend[len(bobTrend)-1].Count != 1 {
+		t.Fatalf("bob should only see 1 abnormal record in current month, got %d", bobTrend[len(bobTrend)-1].Count)
 	}
 }

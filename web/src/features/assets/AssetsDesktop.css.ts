@@ -1,5 +1,6 @@
 import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const page = style({
   display: 'flex',
@@ -18,23 +19,12 @@ export const header = style({
 export const titleBlock = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.25rem',
+  gap: themeVars.space2,
 });
 
-export const title = style({
-  margin: 0,
-  fontSize: '1.55rem',
-  lineHeight: 1.1,
-  fontWeight: 760,
-  color: themeVars.ink,
-  letterSpacing: 0,
-});
+export const title = textStyles.pageTitle;
 
-export const subtitle = style({
-  margin: 0,
-  color: themeVars.muted,
-  fontSize: '0.9rem',
-});
+export const subtitle = textStyles.pageSubtitle;
 
 export const actions = style({
   display: 'flex',
@@ -74,23 +64,15 @@ export const statMeta = style({
 
 export const statLabel = style({
   color: themeVars.muted,
-  fontSize: '0.78rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightRegular,
 });
 
-export const statValue = style({
-  color: themeVars.ink,
-  fontFamily: themeVars.fontSerif,
-  fontSize: '1.55rem',
-  lineHeight: 1.1,
-  fontWeight: 600,
-  letterSpacing: '-0.01em',
-  fontVariantNumeric: 'tabular-nums',
-});
+export const statValue = textStyles.metric;
 
 export const statNote = style({
   color: themeVars.muted,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -117,26 +99,6 @@ export const bodyGrid = style({
   },
 });
 
-export const ledgerCard = style({
-  overflow: 'hidden',
-});
-
-export const toolbar = style({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: themeVars.space3,
-  padding: themeVars.space3,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  flexWrap: 'nowrap',
-  '@media': {
-    '(max-width: 40em)': {
-      alignItems: 'stretch',
-      flexDirection: 'column',
-    },
-  },
-});
-
 export const toolbarLeft = style({
   flex: '1 1 auto',
   minWidth: 0,
@@ -158,18 +120,6 @@ globalStyle(`${toolbarLeft} > [data-slot="field"]`, {
     '(max-width: 47.99em)': {
       flex: 'unset',
       width: 'auto',
-    },
-  },
-});
-
-export const toolbarRight = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space2,
-  flex: '0 0 auto',
-  '@media': {
-    '(max-width: 40em)': {
-      justifyContent: 'flex-end',
     },
   },
 });
@@ -215,8 +165,8 @@ export const itemThumb = style({
   borderRadius: themeVars.radius2,
   background: themeVars.bgSoft,
   color: themeVars.text,
-  fontSize: '0.95rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
   border: `1px solid ${themeVars.lineSoft}`,
 });
 
@@ -229,8 +179,8 @@ export const itemMeta = style({
 
 export const itemName = style({
   color: themeVars.ink,
-  fontSize: '0.9rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
   textDecoration: 'none',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -242,7 +192,7 @@ export const itemName = style({
 
 export const itemSub = style({
   color: themeVars.muted,
-  fontSize: '0.74rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const muted = style({
@@ -255,7 +205,7 @@ export const mono = style({
 
 export const price = style({
   color: themeVars.ink,
-  fontWeight: 650,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -306,7 +256,7 @@ export const actionItem = style({
   color: themeVars.text,
   padding: `0 ${themeVars.space2}`,
   font: 'inherit',
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   textAlign: 'left',
   cursor: 'pointer',
   selectors: {
@@ -375,8 +325,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.successSoft,
     color: themeVars.success,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   warning: {
     display: 'inline-flex',
@@ -387,8 +337,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.warningSoft,
     color: themeVars.warningText,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   danger: {
     display: 'inline-flex',
@@ -399,8 +349,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.dangerSoft,
     color: themeVars.danger,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   neutral: {
     display: 'inline-flex',
@@ -411,8 +361,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.lineSoft,
     color: themeVars.muted,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
 });
 
@@ -424,7 +374,7 @@ export const footerBar = style({
   padding: `${themeVars.space3} ${themeVars.space4}`,
   borderTop: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const pagination = style({
@@ -475,8 +425,8 @@ export const sideCardWide = style({
 export const sideTitle = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '0.92rem',
-  fontWeight: 720,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const sideHeader = style({
@@ -491,8 +441,8 @@ export const sideLink = style({
   alignItems: 'center',
   gap: '0.15rem',
   color: themeVars.accentInk,
-  fontSize: '0.78rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   textDecoration: 'none',
   whiteSpace: 'nowrap',
   selectors: {
@@ -543,13 +493,13 @@ export const quickMeta = style({
 
 export const quickTitle = style({
   color: themeVars.ink,
-  fontSize: '0.82rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const quickHint = style({
   color: themeVars.muted,
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -576,8 +526,8 @@ export const compactMeta = style({
 
 export const compactTitle = style({
   color: themeVars.text,
-  fontSize: '0.8rem',
-  fontWeight: 620,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -585,14 +535,14 @@ export const compactTitle = style({
 
 export const compactSub = style({
   color: themeVars.muted,
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const empty = style({
   padding: themeVars.space6,
   textAlign: 'center',
   color: themeVars.muted,
-  fontSize: '0.88rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const formActions = style({

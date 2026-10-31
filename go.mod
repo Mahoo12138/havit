@@ -2,9 +2,11 @@ module github.com/mahoo12138/havit
 
 go 1.25.7
 
+toolchain go1.26.10
+
 require (
-	github.com/go-chi/chi/v5 v5.1.0
-	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/go-chi/chi/v5 v5.5.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/pressly/goose/v3 v3.27.1
 	github.com/spf13/viper v1.19.0

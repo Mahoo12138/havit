@@ -2,6 +2,7 @@ import { Row, RowBetween, Stack, StackTight, uiStyles } from '../../components/u
 import { Badge } from '../../components/ui/badge';
 import { Card } from '../../components/ui/card';
 import type { ReactNode } from 'react';
+import { textStyles } from '../../styles/typography.css';
 
 export function FeatureHeader({
   title,
@@ -14,10 +15,10 @@ export function FeatureHeader({
 }) {
   return (
     <div className={uiStyles.pageHeader}>
-      <StackTight>
-        <h2 className="page-heading">{title}</h2>
-        <p className="page-kicker">{description}</p>
-      </StackTight>
+      <div className={uiStyles.pageHeadingCopy}>
+        <h2 className={textStyles.pageTitle}>{title}</h2>
+        <p className={textStyles.pageSubtitle}>{description}</p>
+      </div>
       {meta && (
         <div className={uiStyles.pageActions}>
           <Badge>{meta}</Badge>
@@ -60,7 +61,7 @@ export function DataCard({
     <Card>
       <Stack className={uiStyles.cardContent}>
         <RowBetween>
-          <h3 className={uiStyles.heading}>{title}</h3>
+          <h3 className={textStyles.cardTitle}>{title}</h3>
           {meta}
         </RowBetween>
         {children}

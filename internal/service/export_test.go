@@ -57,22 +57,22 @@ func TestExportItemsJSON(t *testing.T) {
 func TestExportItemsCSV(t *testing.T) {
 	items := []ExportItem{
 		{
-			Name:   "Test Item",
-			Type:   "durable",
-			Status: "idle",
+			Name:      "Test Item",
+			Type:      "durable",
+			Status:    "idle",
 			CreatedAt: 1000,
 			UpdatedAt: 2000,
 			IsPrivate: false,
 		},
 		{
-			Name:   "Private Item",
-			Type:   "virtual",
-			Status: "active",
-			Category: strPtr("software"),
+			Name:         "Private Item",
+			Type:         "virtual",
+			Status:       "active",
+			Category:     strPtr("software"),
 			SerialNumber: strPtr("SN-001"),
-			CreatedAt: 3000,
-			UpdatedAt: 4000,
-			IsPrivate: true,
+			CreatedAt:    3000,
+			UpdatedAt:    4000,
+			IsPrivate:    true,
 		},
 	}
 

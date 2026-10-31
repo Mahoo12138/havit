@@ -28,7 +28,7 @@ export const footer = style({});
 globalStyle(`${footer} th, ${footer} td`, {
   borderTop: `1px solid ${themeVars.line}`,
   background: themeVars.bgSoft,
-  fontWeight: 600,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const row = style({
@@ -46,9 +46,9 @@ export const head = style({
   borderBottom: `1px solid ${themeVars.line}`,
   background: themeVars.bgSoft,
   color: themeVars.muted,
-  fontSize: '0.76rem',
-  fontWeight: 600,
-  letterSpacing: '0.02em',
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  letterSpacing: themeVars.trackingWide,
   textTransform: 'uppercase',
   whiteSpace: 'nowrap',
 });
@@ -57,7 +57,7 @@ export const cell = style({
   padding: `${themeVars.space3} ${themeVars.space4}`,
   borderBottom: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.text,
-  fontSize: '0.92rem',
+  fontSize: themeVars.textSizeMd,
   verticalAlign: 'middle',
   textAlign: 'left',
 });
@@ -65,6 +65,6 @@ export const cell = style({
 export const caption = style({
   marginTop: themeVars.space3,
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   textAlign: 'left',
 });

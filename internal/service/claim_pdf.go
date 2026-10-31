@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf16"
 
 	"github.com/mahoo12138/havit/internal/model"
 
@@ -103,10 +104,10 @@ func (s *ItemService) claimAttachments(ctx context.Context, itemID string) ([]st
 func buildSimplePDF(lines []string) []byte {
 	var content bytes.Buffer
 	content.WriteString("BT\n/F1 18 Tf\n50 790 Td\n")
-	content.WriteString("(" + escapePDFText("Havit Insurance Claim Evidence") + ") Tj\n")
+	content.WriteString(pdfText(lines[0]) + " Tj\n")
 	content.WriteString("0 -28 Td\n/F1 11 Tf\n")
 	for _, line := range lines[1:] {
-		content.WriteString("(" + escapePDFText(line) + ") Tj\n")
+		content.WriteString(pdfText(line) + " Tj\n")
 		content.WriteString("0 -15 Td\n")
 	}
 	content.WriteString("ET\n")
@@ -114,8 +115,10 @@ func buildSimplePDF(lines []string) []byte {
 	objects := []string{
 		"<< /Type /Catalog /Pages 2 0 R >>",
 		"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
-		"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+		"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 7 0 R >>",
+		"<< /Type /Font /Subtype /Type0 /BaseFont /STSong-Light /Encoding /UniGB-UCS2-H /DescendantFonts [5 0 R] >>",
+		"<< /Type /Font /Subtype /CIDFontType0 /BaseFont /STSong-Light /CIDSystemInfo << /Registry (Adobe) /Ordering (GB1) /Supplement 4 >> /FontDescriptor 6 0 R /DW 1000 >>",
+		"<< /Type /FontDescriptor /FontName /STSong-Light /Flags 6 /FontBBox [-25 -254 1000 880] /ItalicAngle 0 /Ascent 880 /Descent -120 /CapHeight 880 /StemV 93 >>",
 		fmt.Sprintf("<< /Length %d >>\nstream\n%sendstream", content.Len(), content.String()),
 	}
 
@@ -140,25 +143,37 @@ func buildSimplePDF(lines []string) []byte {
 func wrapPDFLines(lines []string, limit int) []string {
 	out := []string{}
 	for _, line := range lines {
-		encoded := asciiSafe(line)
-		if limit <= 0 || len(encoded) <= limit {
-			out = append(out, encoded)
+		line = strings.ReplaceAll(strings.ReplaceAll(line, "\r", " "), "\n", " ")
+		runes := []rune(line)
+		if limit <= 0 || len(runes) <= limit {
+			out = append(out, line)
 			continue
 		}
-		for len(encoded) > limit {
-			out = append(out, encoded[:limit])
-			encoded = encoded[limit:]
+		for len(runes) > limit {
+			out = append(out, string(runes[:limit]))
+			runes = runes[limit:]
 		}
-		if encoded != "" {
-			out = append(out, encoded)
+		if len(runes) > 0 {
+			out = append(out, string(runes))
 		}
 	}
 	return out
 }
 
-func escapePDFText(s string) string {
-	replacer := strings.NewReplacer(`\`, `\\`, `(`, `\(`, `)`, `\)`)
-	return replacer.Replace(asciiSafe(s))
+// pdfText encodes text as UTF-16BE for the standard UniGB-UCS2-H CMap.
+func pdfText(s string) string {
+	var b strings.Builder
+	b.WriteString("<FEFF")
+	for _, r := range s {
+		if r > 0xFFFF {
+			high, low := utf16.EncodeRune(r)
+			fmt.Fprintf(&b, "%04X%04X", high, low)
+			continue
+		}
+		fmt.Fprintf(&b, "%04X", r)
+	}
+	b.WriteString(">")
+	return b.String()
 }
 
 func asciiSafe(s string) string {

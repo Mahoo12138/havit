@@ -46,7 +46,7 @@ func (h *LocationHandler) create(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, err)
 		return
 	}
-	if claims, ok := authmw.ClaimsFrom(r.Context()); ok && in.OwnerID == nil {
+	if claims, ok := authmw.ClaimsFrom(r.Context()); ok {
 		in.OwnerID = &claims.UserID
 	}
 	loc, err := h.svc.Create(r.Context(), in)

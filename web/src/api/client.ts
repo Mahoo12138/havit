@@ -14,6 +14,13 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+const PRIVATE_CACHE_NAMES = ['havit-api-read-cache'];
+
+export async function clearPrivateCaches() {
+  if (typeof caches === 'undefined') return;
+  await Promise.all(PRIVATE_CACHE_NAMES.map((name) => caches.delete(name)));
+}
+
 export interface AppError {
   error: string;
   message: string;
@@ -52,8 +59,19 @@ export interface SystemStatus {
 export interface CurrentUser {
   id: string;
   username: string;
+  nickname: string;
+  email: string;
+  bio: string;
+  avatar: string;
   role: string;
   created_at: number;
+}
+
+export interface UpdateProfileInput {
+  nickname: string;
+  email: string;
+  bio: string;
+  avatar: string;
 }
 
 export interface AuthResponse {
@@ -71,6 +89,10 @@ export const authApi = {
   login: (body: { username: string; password: string }) =>
     api.post('auth/login', { json: body }).json<AuthResponse>(),
   me: () => api.get('auth/me').json<CurrentUser>(),
+  updateProfile: (body: UpdateProfileInput) =>
+    api.patch('auth/me', { json: body }).json<CurrentUser>(),
+  changePassword: (body: { current_password: string; new_password: string }) =>
+    api.post('auth/me/password', { json: body }).json<{ token: string }>(),
   logout: () => api.post('auth/logout'),
 };
 
@@ -653,6 +675,10 @@ export const exportApi = {
 export interface User {
   id: string;
   username: string;
+  nickname: string;
+  email: string;
+  bio: string;
+  avatar: string;
   role: string;
   created_at: number;
 }

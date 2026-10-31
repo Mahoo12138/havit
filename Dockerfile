@@ -17,8 +17,10 @@ RUN mkdir -p /app/internal/static \
 # ============================================================
 # Stage 2: build backend
 # ============================================================
-FROM golang:1.25-alpine AS backend
+FROM golang:1.26.10-alpine AS backend
 WORKDIR /app
+
+ARG VERSION=v1.0.0
 
 RUN apk add --no-cache git
 
@@ -31,13 +33,13 @@ COPY --from=frontend /app/internal/static/dist ./internal/static/dist
 
 # modernc/sqlite is pure Go, so CGO is disabled.
 RUN CGO_ENABLED=0 GOOS=linux go build \
-    -ldflags="-s -w" \
+    -ldflags="-s -w -X github.com/mahoo12138/havit/internal/system.Version=${VERSION}" \
     -o /out/havit ./cmd/havit
 
 # ============================================================
 # Stage 3: runtime image
 # ============================================================
-FROM alpine:3.20
+FROM alpine:3.22
 
 RUN apk add --no-cache ca-certificates tzdata \
  && adduser -D -u 10001 havit \
@@ -46,6 +48,7 @@ RUN apk add --no-cache ca-certificates tzdata \
 
 WORKDIR /app
 COPY --from=backend /out/havit /app/havit
+COPY LICENSE /app/LICENSE
 
 ENV HAVIT_DATA_DIR=/data
 ENV HAVIT_SERVER_PORT=3000

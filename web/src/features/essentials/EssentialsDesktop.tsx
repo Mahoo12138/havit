@@ -32,6 +32,7 @@ import {
 import { Button } from '../../components/ui/button';
 import { ButtonGroup } from '../../components/ui/button-group';
 import { Card } from '../../components/ui/card';
+import { TableCard } from '../../components/ui/table-card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
@@ -321,14 +322,16 @@ export function EssentialsDesktop() {
           </section>
 
           <section className={s.bodyGrid}>
-            <Card className={s.ledgerCard} padded={false}>
-              <div className={s.toolbar}>
-                <div className={s.toolbarLeft}>
+            <TableCard
+              ariaLabel={t('essentials.title')}
+              filters={
+                <>
                   <span className={s.searchWrap}>
                     <IconSearch size={16} className={s.searchIcon} />
                     <Input
                       className={s.searchInput}
                       placeholder={t('essentials.searchPlaceholder')}
+                      aria-label={t('search.query')}
                       value={searchQuery}
                       onChange={(event) => { setSearchQuery(event.currentTarget.value); setPage(1); }}
                     />
@@ -345,31 +348,39 @@ export function EssentialsDesktop() {
                     value={statusFilter}
                     onChange={(value) => { setStatusFilter(value); setPage(1); }}
                   />
-                </div>
-                <div className={s.toolbarRight}>
-                  <ButtonGroup aria-label={t('essentials.cardView')}>
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      data-active={effectiveViewMode === 'list' || undefined}
-                      onClick={() => setViewMode('list')}
-                      aria-label={t('essentials.listView')}
-                    >
-                      <IconList size={14} />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      data-active={effectiveViewMode === 'cards' || undefined}
-                      onClick={() => setViewMode('cards')}
-                      aria-label={t('essentials.cardView')}
-                    >
-                      <IconLayoutGrid size={14} />
-                    </Button>
-                  </ButtonGroup>
-                </div>
-              </div>
-
+                </>
+              }
+              actions={
+                <ButtonGroup aria-label={t('essentials.cardView')}>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    data-active={effectiveViewMode === 'list' || undefined}
+                    onClick={() => setViewMode('list')}
+                    aria-label={t('essentials.listView')}
+                  >
+                    <IconList size={14} />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    data-active={effectiveViewMode === 'cards' || undefined}
+                    onClick={() => setViewMode('cards')}
+                    aria-label={t('essentials.cardView')}
+                  >
+                    <IconLayoutGrid size={14} />
+                  </Button>
+                </ButtonGroup>
+              }
+              footer={
+                filteredItems.length > 0 ? (
+                  <div className={s.footerBar}>
+                    <span>{t('common.itemsCount', { count: filteredItems.length })}</span>
+                    <EssentialsPager page={safePage} totalPages={totalPages} onChange={setPage} />
+                  </div>
+                ) : undefined
+              }
+            >
               {effectiveViewMode === 'list' ? (
                 <EssentialsTable
                   items={paginatedItems}
@@ -382,14 +393,7 @@ export function EssentialsDesktop() {
               ) : (
                 <EssentialsCards items={paginatedItems} locOptions={locOptions} t={t} />
               )}
-
-              {filteredItems.length > 0 && (
-                <div className={s.footerBar}>
-                  <span>共 {filteredItems.length} 项</span>
-                  <EssentialsPager page={safePage} totalPages={totalPages} onChange={setPage} />
-                </div>
-              )}
-            </Card>
+            </TableCard>
 
             <aside className={s.sideColumn}>
               <Card className={s.sideCard}>
@@ -564,7 +568,7 @@ function EssentialsTable({ items, locOptions, t, returnHome, setStatus, onViewDe
   onViewDetails: (itemId: string) => void;
 }) {
   return (
-    <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+    <Table style={{ whiteSpace: 'nowrap' }} aria-label={t('essentials.title')}>
       <TableHeader>
         <TableRow>
           <TableHead>{t('essentials.item')}</TableHead>

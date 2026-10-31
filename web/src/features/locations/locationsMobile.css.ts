@@ -13,7 +13,7 @@ export const breadcrumb = style({
   display: 'flex',
   alignItems: 'center',
   gap: themeVars.space1,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
   overflow: 'auto',
   whiteSpace: 'nowrap',
@@ -28,14 +28,14 @@ export const breadcrumbItem = style({
   transition: 'background 120ms ease',
   selectors: {
     '&:hover': { background: themeVars.lineSoft },
-    '&[data-current="true"]': { color: themeVars.ink, fontWeight: 600, cursor: 'default' },
+    '&[data-current="true"]': { color: themeVars.ink, fontWeight: themeVars.weightSemibold, cursor: 'default' },
     '&[data-current="true"]:hover': { background: 'transparent' },
   },
 });
 
 export const breadcrumbSep = style({
   color: themeVars.line,
-  fontSize: '0.7rem',
+  fontSize: themeVars.textSize2xs,
 });
 
 /* Location card (current node info) */
@@ -73,20 +73,20 @@ export const locCardMeta = style({
 });
 
 export const locCardName = style({
-  fontSize: '1rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
 });
 
 export const locCardSub = style({
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
 export const locCardStats = style({
   display: 'flex',
   gap: themeVars.space4,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
 });
 
@@ -97,13 +97,13 @@ export const locCardStat = style({
 });
 
 export const locCardStatValue = style({
-  fontSize: '1rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
 });
 
 export const locCardStatLabel = style({
-  fontSize: '0.68rem',
+  fontSize: themeVars.textSize2xs,
   color: themeVars.muted,
 });
 
@@ -115,8 +115,8 @@ export const locCardActions = style({
 
 /* Children list */
 export const sectionTitle = style({
-  fontSize: '0.82rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   margin: 0,
 });
@@ -158,13 +158,13 @@ export const childMeta = style({
 });
 
 export const childName = style({
-  fontSize: '0.88rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
 export const childSub = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
@@ -198,8 +198,8 @@ export const itemThumb = style({
   background: themeVars.bgSoft,
   border: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.text,
-  fontSize: '0.8rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const itemMeta = style({
@@ -211,8 +211,8 @@ export const itemMeta = style({
 });
 
 export const itemName = style({
-  fontSize: '0.85rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -220,14 +220,14 @@ export const itemName = style({
 });
 
 export const itemSub = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
 });
 
 export const itemPrice = style({
   flex: '0 0 auto',
-  fontSize: '0.78rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
 });
 
@@ -235,7 +235,7 @@ export const emptyState = style({
   textAlign: 'center',
   color: themeVars.muted,
   padding: `${themeVars.space5} 0`,
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
@@ -279,8 +279,8 @@ export const overlayHeader = style({
 });
 
 export const overlayTitle = style({
-  fontSize: '1.05rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightBold,
   margin: 0,
   color: themeVars.ink,
 });
@@ -313,16 +313,16 @@ export const parentNote = style({
   borderRadius: themeVars.radius2,
   background: themeVars.bgSoft,
   color: themeVars.muted,
-  fontSize: '0.78rem',
-  lineHeight: 1.5,
+  fontSize: themeVars.textSizeSm,
+  lineHeight: themeVars.leadingNormal,
 });
 
 export const typeLabel = style({
   display: 'block',
   marginBottom: themeVars.space2,
   color: themeVars.ink,
-  fontSize: '0.82rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const typeChoiceGrid = style({
@@ -346,7 +346,7 @@ export const typeChoiceCard = style({
   color: themeVars.text,
   textAlign: 'left',
   whiteSpace: 'normal',
-  lineHeight: 1.3,
+  lineHeight: themeVars.leadingSnug,
   selectors: {
     '&[data-active="true"]': {
       borderColor: themeVars.accent,
@@ -381,14 +381,14 @@ export const typeChoiceBody = style({
 
 export const typeChoiceName = style({
   color: themeVars.ink,
-  fontSize: '0.88rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const typeChoiceDesc = style({
   color: themeVars.muted,
-  fontSize: '0.72rem',
-  lineHeight: 1.4,
+  fontSize: themeVars.textSizeXs,
+  lineHeight: themeVars.leadingSnug,
 });
 
 export const overlayActions = style({
@@ -397,4 +397,32 @@ export const overlayActions = style({
   gap: themeVars.space3,
   paddingTop: themeVars.space4,
   borderTop: `1px solid ${themeVars.line}`,
+});
+
+export const privateRow = style({
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: themeVars.space3,
+  padding: themeVars.space3,
+  border: `1px solid ${themeVars.line}`,
+  borderRadius: themeVars.radius2,
+  cursor: 'pointer',
+});
+
+export const privateCopy = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+});
+
+export const privateTitle = style({
+  color: themeVars.ink,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
+});
+
+export const privateHint = style({
+  color: themeVars.muted,
+  fontSize: themeVars.textSizeXs,
+  lineHeight: themeVars.leadingSnug,
 });

@@ -1,5 +1,6 @@
 import { globalStyle, style, styleVariants } from '@vanilla-extract/css';
 import { themeVars } from '../../styles/theme.css';
+import { textStyles } from '../../styles/typography.css';
 
 export const page = style({
   display: 'flex',
@@ -20,23 +21,12 @@ export const desktopHeader = style({
 export const titleBlock = style({
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.25rem',
+  gap: themeVars.space2,
 });
 
-export const title = style({
-  margin: 0,
-  color: themeVars.ink,
-  fontSize: '1.55rem',
-  lineHeight: 1.1,
-  fontWeight: 760,
-  letterSpacing: 0,
-});
+export const title = textStyles.pageTitle;
 
-export const subtitle = style({
-  margin: 0,
-  color: themeVars.muted,
-  fontSize: '0.9rem',
-});
+export const subtitle = textStyles.pageSubtitle;
 
 export const headerActions = style({
   display: 'flex',
@@ -83,24 +73,22 @@ export const kpiMeta = style({
 
 export const kpiLabel = style({
   color: themeVars.muted,
-  fontSize: '0.76rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
 });
 
-export const kpiValue = style({
-  color: themeVars.ink,
-  fontSize: '1.55rem',
-  lineHeight: 1.1,
-  fontWeight: 760,
-  fontVariantNumeric: 'tabular-nums',
-  '@media': {
-    '(max-width: 47.99em)': { fontSize: '1.25rem' },
+export const kpiValue = style([
+  textStyles.metric,
+  {
+    '@media': {
+      '(max-width: 47.99em)': { fontSize: themeVars.textSizeXl },
+    },
   },
-});
+]);
 
 export const kpiNote = style({
   color: themeVars.muted,
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -149,28 +137,6 @@ export const kpiIcon = styleVariants({
   },
 });
 
-export const ledgerCard = style({
-  overflow: 'hidden',
-});
-
-export const toolbar = style({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: themeVars.space3,
-  flexWrap: 'nowrap',
-  padding: themeVars.space3,
-  borderBottom: `1px solid ${themeVars.lineSoft}`,
-  '@media': {
-    '(max-width: 40em)': {
-      alignItems: 'stretch',
-      flexDirection: 'column',
-      padding: `${themeVars.space2} 0`,
-      borderBottom: 0,
-    },
-  },
-});
-
 export const toolbarLeft = style({
   flex: '1 1 auto',
   minWidth: 0,
@@ -199,16 +165,7 @@ globalStyle(`${toolbarLeft} > [data-slot="field"]`, {
 });
 
 globalStyle(`${toolbarLeft} > [data-slot="field"] [data-slot="label"]`, {
-  fontSize: '0.72rem',
-});
-
-export const toolbarRight = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space2,
-  '@media': {
-    '(max-width: 40em)': { justifyContent: 'space-between' },
-  },
+  fontSize: themeVars.textSizeXs,
 });
 
 export const searchWrap = style({
@@ -288,8 +245,8 @@ export const itemMeta = style({
 
 export const itemName = style({
   color: themeVars.ink,
-  fontSize: '0.9rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightMedium,
   textDecoration: 'none',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -301,7 +258,7 @@ export const itemName = style({
 
 export const itemSub = style({
   color: themeVars.muted,
-  fontSize: '0.74rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const muted = style({
@@ -310,7 +267,7 @@ export const muted = style({
 
 export const price = style({
   color: themeVars.ink,
-  fontWeight: 650,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -389,8 +346,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.lineSoft,
     color: themeVars.text,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   blue: {
     display: 'inline-flex',
@@ -400,8 +357,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.infoSoft,
     color: themeVars.info,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   amber: {
     display: 'inline-flex',
@@ -411,8 +368,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.warningSoft,
     color: themeVars.warningText,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
   green: {
     display: 'inline-flex',
@@ -422,8 +379,8 @@ export const badge = styleVariants({
     borderRadius: themeVars.radius1,
     background: themeVars.successSoft,
     color: themeVars.success,
-    fontSize: '0.72rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSizeXs,
+    fontWeight: themeVars.weightSemibold,
   },
 });
 
@@ -435,7 +392,7 @@ export const footerBar = style({
   padding: `${themeVars.space3} ${themeVars.space4}`,
   borderTop: `1px solid ${themeVars.lineSoft}`,
   color: themeVars.muted,
-  fontSize: '0.82rem',
+  fontSize: themeVars.textSizeSm,
   '@media': {
     '(max-width: 47.99em)': {
       display: 'none',
@@ -466,14 +423,14 @@ export const insightCard = style({
 export const insightTitle = style({
   margin: 0,
   color: themeVars.ink,
-  fontSize: '0.92rem',
-  fontWeight: 720,
+  fontSize: themeVars.textSizeMd,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const insightSub = style({
   marginTop: '0.2rem',
   color: themeVars.muted,
-  fontSize: '0.76rem',
+  fontSize: themeVars.textSizeXs,
 });
 
 export const miniList = style({
@@ -527,7 +484,7 @@ export const legend = style({
   flexDirection: 'column',
   gap: '0.35rem',
   color: themeVars.text,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
 });
 
 export const legendItem = style({
@@ -547,7 +504,7 @@ export const empty = style({
   padding: themeVars.space6,
   textAlign: 'center',
   color: themeVars.muted,
-  fontSize: '0.88rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const formActions = style({

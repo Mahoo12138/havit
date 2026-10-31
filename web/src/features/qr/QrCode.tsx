@@ -26,7 +26,7 @@ export function QrCode({ value, size = 128, alt = 'QR', className }: QrCodeProps
       width: resolution,
       margin: 1,
       errorCorrectionLevel: 'M',
-      color: { dark: '#1A1917', light: '#FFFFFF' },
+      color: { dark: '#111827', light: '#FFFFFF' },
     })
       .then((url) => {
         if (!cancelled) setDataUrl(url);

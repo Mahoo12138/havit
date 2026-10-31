@@ -7,9 +7,9 @@ export const root = style({
   alignItems: 'center',
   gap: themeVars.space2,
   color: themeVars.text,
-  fontSize: '0.875rem',
-  fontWeight: 600,
-  lineHeight: 1,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingNone,
   userSelect: 'none',
   selectors: {
     '&[data-disabled="true"]': {

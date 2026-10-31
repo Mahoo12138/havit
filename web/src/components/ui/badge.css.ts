@@ -14,9 +14,9 @@ export const base = style({
   border: '1px solid transparent',
   borderRadius: '999px',
   padding: '0.125rem 0.5rem',
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  lineHeight: 1.2,
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  lineHeight: themeVars.leadingTight,
   whiteSpace: 'nowrap',
   transition: 'background-color 160ms ease, border-color 160ms ease, color 160ms ease',
   selectors: {

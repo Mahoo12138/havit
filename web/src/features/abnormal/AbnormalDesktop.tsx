@@ -1,3 +1,4 @@
+import { textStyles } from '../../styles/typography.css';
 import { useState, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,7 +28,7 @@ import {
   usePaginationRange,
 } from '../../components/ui/pagination';
 import { themeVars } from '../../styles/theme.css';
-import { Button } from '../../components/ui/button';
+import { Button, buttonVariants } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import {
@@ -64,7 +65,7 @@ import {
 const PAGE_SIZE = 10;
 
 // 可登记异常的物品状态（已退出台账的物品不能再新增异常）
-const ACTIVE_ITEM_STATUSES = new Set(['in_stock', 'borrowed', 'idle', 'for_sale']);
+const ACTIVE_ITEM_STATUSES = new Set(['in_stock', 'in_use', 'borrowed', 'idle', 'for_sale']);
 
 const PROCESSING_STATUS_OPTIONS = [
   { key: 'reporting', labelKey: 'abnormal.progressReporting' },
@@ -118,11 +119,11 @@ function InlineSelect({
 // 处理进度图表配色：跟随主题变量以同时适配明暗两套面板
 const PROGRESS_COLORS: Record<string, string> = {
   reporting: 'var(--havit-info)',
-  searching: '#3f8ba6',
+  searching: 'var(--havit-info)',
   pending_compensation: 'var(--havit-amber)',
   compensated: 'var(--havit-success)',
   scrapped: 'var(--havit-muted)',
-  closed: '#5c8148',
+  closed: 'var(--havit-success)',
 };
 
 const FLOW_STAGE_ORDER = ['reporting', 'searching', 'pending_compensation', 'compensated', 'scrapped', 'closed'];
@@ -420,12 +421,12 @@ export function AbnormalDesktop() {
   return (
     <Stack>
       <div className={uiStyles.abnormalPageHeader}>
-        <div>
-          <h2 className="page-heading" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {/* <IconAlertTriangle size={20} style={{ color: 'var(--havit-danger, #9c2f1d)' }} /> */}
+        <div className={uiStyles.pageHeadingCopy}>
+          <h2 className={`${textStyles.pageTitle} ${uiStyles.row}`}>
+            {/* <IconAlertTriangle size={20} style={{ color: 'var(--havit-danger, #c0362c)' }} /> */}
             {t('abnormal.title')}
           </h2>
-          <p className="page-kicker" style={{ marginTop: '4px' }}>{t('abnormal.description')}</p>
+          <p className={textStyles.pageSubtitle}>{t('abnormal.description')}</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button variant="quiet" leftSection={<IconSearch size={15} />} onClick={focusGlobalSearch}>
@@ -458,7 +459,7 @@ export function AbnormalDesktop() {
           style={{
             marginLeft: 'auto',
             color: 'var(--havit-danger)',
-            fontSize: '0.78rem',
+            fontSize: themeVars.textSizeSm,
             whiteSpace: 'nowrap',
             background: 'transparent',
             border: 'none',
@@ -496,7 +497,7 @@ export function AbnormalDesktop() {
                 options={PROCESSING_STATUS_OPTIONS.map((opt) => ({ value: opt.key, label: t(opt.labelKey) }))}
                 onChange={(nextValue) => { setStatusFilter(nextValue); setPage(1); }}
               />
-              <span style={{ fontSize: '0.75rem', color: 'var(--havit-muted)' }}>
+              <span className={uiStyles.caption}>
                 {t('abnormal.totalItems', { count: total })}
               </span>
               <div style={{ marginLeft: 'auto', display: 'flex', gap: '6px' }}>
@@ -589,10 +590,14 @@ export function AbnormalDesktop() {
                       </TableCell>
                       <TableCell>{formatDate(item.updated_at)}</TableCell>
                       <TableCell>
-                        <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                          <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.viewItem')}>
-                            <IconEye size={13} />
-                          </Button>
+                        <Link
+                          to="/items/$itemId"
+                          params={{ itemId: item.item_id }}
+                          className={buttonVariants({ variant: 'subtle', className: uiStyles.abnormalActionBtn })}
+                          title={t('abnormal.viewItem')}
+                          aria-label={t('abnormal.viewItem')}
+                        >
+                          <IconEye size={13} />
                         </Link>
                       </TableCell>
                     </TableRow>
@@ -610,10 +615,10 @@ export function AbnormalDesktop() {
           {/* Right sidebar: compact card list */}
           <Card padded={false}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--havit-line-soft)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--havit-ink)' }}>
+              <span className={textStyles.cardTitle}>
                 {t('abnormal.sidebarTitle')}
               </span>
-              <span style={{ fontSize: '0.72rem', color: 'var(--havit-muted)' }}>
+              <span className={uiStyles.caption}>
                 {total} {t('abnormal.items')}
               </span>
             </div>
@@ -636,10 +641,14 @@ export function AbnormalDesktop() {
                     <span className={uiStyles.abnormalSidebarMeta}>{item.responsible_person}</span>
                   )}
                 </div>
-                <Link to="/items/$itemId" params={{ itemId: item.item_id }}>
-                  <Button variant="subtle" className={uiStyles.abnormalActionBtn} title={t('abnormal.viewItem')}>
-                    <IconEye size={12} />
-                  </Button>
+                <Link
+                  to="/items/$itemId"
+                  params={{ itemId: item.item_id }}
+                  className={buttonVariants({ variant: 'subtle', className: uiStyles.abnormalActionBtn })}
+                  title={t('abnormal.viewItem')}
+                  aria-label={t('abnormal.viewItem')}
+                >
+                  <IconEye size={12} />
                 </Link>
               </div>
             ))}
@@ -849,13 +858,13 @@ export function AbnormalDesktop() {
       <Dialog open={dialog === 'flow'} onClose={closeDialog} title={t('abnormal.flowDialogTitle')}>
         <Stack style={{ gap: themeVars.space4 }}>
           <div>
-            <h4 className={uiStyles.heading} style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+            <h4 className={textStyles.cardTitle} style={{ margin: '0 0 4px' }}>
               {t('abnormal.flowCreateTitle')}
             </h4>
             <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.flowCreateBody')}</p>
           </div>
           <div>
-            <h4 className={uiStyles.heading} style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+            <h4 className={textStyles.cardTitle} style={{ margin: '0 0 4px' }}>
               {t('abnormal.flowStagesTitle')}
             </h4>
             <p className={uiStyles.help} style={{ margin: '0 0 8px' }}>{t('abnormal.flowStagesBody')}</p>
@@ -869,7 +878,7 @@ export function AbnormalDesktop() {
             </div>
           </div>
           <div>
-            <h4 className={uiStyles.heading} style={{ margin: '0 0 4px', fontSize: '0.85rem' }}>
+            <h4 className={textStyles.cardTitle} style={{ margin: '0 0 4px' }}>
               {t('abnormal.flowClaimTitle')}
             </h4>
             <p className={uiStyles.help} style={{ margin: 0 }}>{t('abnormal.flowClaimBody')}</p>

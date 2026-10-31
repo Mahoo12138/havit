@@ -13,8 +13,8 @@ export const root = style({
   color: themeVars.text,
   padding: '0 0.75rem',
   font: 'inherit',
-  fontSize: '0.875rem',
-  lineHeight: 1,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingNone,
   outline: 'none',
   transition: 'border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease',
   selectors: {
@@ -42,8 +42,8 @@ export const root = style({
       background: 'transparent',
       color: themeVars.text,
       font: 'inherit',
-      fontSize: '0.875rem',
-      fontWeight: 600,
+      fontSize: themeVars.textSizeBase,
+      fontWeight: themeVars.weightSemibold,
     },
   },
 });

@@ -72,15 +72,15 @@ export const statIconTone = styleVariants({
 });
 
 export const statValue = style({
-  fontSize: '1.08rem',
-  lineHeight: 1.1,
-  fontWeight: 760,
+  fontSize: themeVars.textSizeLg,
+  lineHeight: themeVars.leadingTight,
+  fontWeight: themeVars.weightBold,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
 });
 
 export const statLabel = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   whiteSpace: 'nowrap',
   overflow: 'hidden',
@@ -120,7 +120,7 @@ export const searchInput = style({
   background: themeVars.bgSoft,
   color: themeVars.text,
   font: 'inherit',
-  fontSize: '0.85rem',
+  fontSize: themeVars.textSizeBase,
   padding: `0 ${themeVars.space3} 0 2.25rem`,
   outline: 'none',
   selectors: {
@@ -175,14 +175,14 @@ export const itemCount = style({
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: themeVars.space3,
-  fontSize: '0.78rem',
+  fontSize: themeVars.textSizeSm,
   color: themeVars.muted,
-  fontWeight: 500,
+  fontWeight: themeVars.weightMedium,
 });
 
 globalStyle(`${itemCount} strong`, {
   color: themeVars.ink,
-  fontWeight: 650,
+  fontWeight: themeVars.weightSemibold,
   fontVariantNumeric: 'tabular-nums',
 });
 
@@ -246,8 +246,8 @@ export const cardMeta = style({
 });
 
 export const cardName = style({
-  fontSize: '0.9rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -255,7 +255,7 @@ export const cardName = style({
 });
 
 export const cardSub = style({
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -263,8 +263,8 @@ export const cardSub = style({
 });
 
 export const cardPrice = style({
-  fontSize: '0.82rem',
-  fontWeight: 600,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   color: themeVars.ink,
   fontVariantNumeric: 'tabular-nums',
   maxWidth: '6.5rem',
@@ -275,7 +275,7 @@ export const cardPrice = style({
   '@media': {
     '(max-width: 22em)': {
       maxWidth: '5.25rem',
-      fontSize: '0.76rem',
+      fontSize: themeVars.textSizeXs,
     },
   },
 });
@@ -295,7 +295,7 @@ export const cardLocation = style({
   display: 'inline-flex',
   alignItems: 'center',
   gap: '4px',
-  fontSize: '0.72rem',
+  fontSize: themeVars.textSizeXs,
   color: themeVars.muted,
   minWidth: 0,
   flex: '1 1 8rem',
@@ -308,7 +308,7 @@ export const emptyState = style({
   textAlign: 'center',
   color: themeVars.muted,
   padding: `${themeVars.space6} 0`,
-  fontSize: '0.88rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const warrantyBadge = styleVariants({
@@ -318,8 +318,8 @@ export const warrantyBadge = styleVariants({
     gap: '3px',
     padding: '1px 6px',
     borderRadius: '999px',
-    fontSize: '0.68rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSize2xs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.successSoft,
     color: themeVars.success,
   },
@@ -329,8 +329,8 @@ export const warrantyBadge = styleVariants({
     gap: '3px',
     padding: '1px 6px',
     borderRadius: '999px',
-    fontSize: '0.68rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSize2xs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.warningSoft,
     color: themeVars.warning,
   },
@@ -340,8 +340,8 @@ export const warrantyBadge = styleVariants({
     gap: '3px',
     padding: '1px 6px',
     borderRadius: '999px',
-    fontSize: '0.68rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSize2xs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.dangerSoft,
     color: themeVars.danger,
   },
@@ -351,8 +351,8 @@ export const warrantyBadge = styleVariants({
     gap: '3px',
     padding: '1px 6px',
     borderRadius: '999px',
-    fontSize: '0.68rem',
-    fontWeight: 650,
+    fontSize: themeVars.textSize2xs,
+    fontWeight: themeVars.weightSemibold,
     background: themeVars.lineSoft,
     color: themeVars.muted,
   },
@@ -371,7 +371,7 @@ export const fab = style({
   background: themeVars.accent,
   color: themeVars.onAccent,
   border: 0,
-  boxShadow: '0 4px 16px rgba(28, 26, 21, 0.25)',
+  boxShadow: '0 4px 16px rgba(17, 24, 39, 0.22)',
   cursor: 'pointer',
   zIndex: 15,
   transition: 'transform 160ms ease',
@@ -402,8 +402,8 @@ export const overlayHeader = style({
 });
 
 export const overlayTitle = style({
-  fontSize: '1.05rem',
-  fontWeight: 700,
+  fontSize: themeVars.textSizeLg,
+  fontWeight: themeVars.weightBold,
   margin: 0,
   color: themeVars.ink,
 });

@@ -36,6 +36,9 @@ func TestBackupRunCreatesConsistentSnapshotArchiveAndRemovesTempDB(t *testing.T)
 	if err := os.WriteFile(filepath.Join(attachmentDir, "photo.jpg"), []byte("photo"), 0o644); err != nil {
 		t.Fatalf("write attachment: %v", err)
 	}
+	if err := os.WriteFile(filepath.Join(dataDir, "config.yaml"), []byte("auth:\n  jwt_secret: backup-secret\n"), 0o600); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	result, err := NewBackupService(database, dataDir, 30).Run(ctx)
 	if err != nil {
@@ -54,6 +57,9 @@ func TestBackupRunCreatesConsistentSnapshotArchiveAndRemovesTempDB(t *testing.T)
 	}
 	if !names["attachments/item-1/photo.jpg"] {
 		t.Fatalf("expected attachment in archive, got %#v", names)
+	}
+	if !names["config.yaml"] {
+		t.Fatalf("expected config.yaml in archive, got %#v", names)
 	}
 }
 
@@ -117,6 +123,10 @@ func TestBackupRestoresIntoFreshDataDir(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(attachmentDir, "photo.jpg"), photo, 0o644); err != nil {
 		t.Fatalf("write attachment: %v", err)
 	}
+	configBytes := []byte("auth:\n  jwt_secret: restore-secret\n")
+	if err := os.WriteFile(filepath.Join(srcDir, "config.yaml"), configBytes, 0o600); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
 
 	result, err := NewBackupService(database, srcDir, 30).Run(ctx)
 	if err != nil {
@@ -159,6 +169,13 @@ func TestBackupRestoresIntoFreshDataDir(t *testing.T) {
 	}
 	if string(restoredPhoto) != string(photo) {
 		t.Fatalf("restored attachment bytes differ: got %q want %q", restoredPhoto, photo)
+	}
+	restoredConfig, err := os.ReadFile(filepath.Join(restoreDir, "config.yaml"))
+	if err != nil {
+		t.Fatalf("read restored config: %v", err)
+	}
+	if string(restoredConfig) != string(configBytes) {
+		t.Fatalf("restored config differs: got %q want %q", restoredConfig, configBytes)
 	}
 }
 

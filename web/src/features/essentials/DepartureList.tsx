@@ -4,7 +4,7 @@ import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { IconBriefcase, IconPackage, IconRun } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
-import { Card } from '../../components/ui/card';
+import { TableCard } from '../../components/ui/table-card';
 import { Checkbox } from '../../components/ui/checkbox';
 import {
   Table,
@@ -84,17 +84,40 @@ export function DepartureList({ items }: { items: Item[] }) {
   }
 
   return (
-    <Card className={s.ledgerCard} padded={false}>
-      <div className={s.toolbar}>
-        <div className={s.toolbarLeft}>
+    <TableCard
+      ariaLabel={t('essentials.departureList')}
+      description={
+        <>
           <span className={s.hintText}>{t('essentials.departureChecklistHint')}</span>
           <span className={s.badge.info}>
             {t('essentials.departureProgress', { count: withYou, total: items.length })}
           </span>
-        </div>
-      </div>
-
-      <Table style={{ minWidth: '48rem', whiteSpace: 'nowrap' }}>
+        </>
+      }
+      footer={
+        sortedItems.length > 0 ? (
+          <div className={s.checklistBar}>
+            <span className={s.muted}>
+              {t('essentials.selectedCount', { count: selected.size })}
+            </span>
+            <div className={s.actionGroup}>
+              <Button variant="outline" size="sm" disabled={busy || selected.size === 0} onClick={() => markSelected('travel_bag')}>
+                {t('essentials.markAs', { status: t('essentials.travelBag') })}
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={busy || selected.size === 0}
+                onClick={() => markSelected('carry')}
+              >
+                {t('essentials.markAs', { status: t('essentials.carry') })}
+              </Button>
+            </div>
+          </div>
+        ) : undefined
+      }
+    >
+      <Table style={{ whiteSpace: 'nowrap' }} aria-label={t('essentials.departureList')}>
         <TableHeader>
           <TableRow>
             <TableHead className={s.checkCol}>
@@ -167,27 +190,6 @@ export function DepartureList({ items }: { items: Item[] }) {
           )}
         </TableBody>
       </Table>
-
-      {sortedItems.length > 0 && (
-        <div className={s.checklistBar}>
-          <span className={s.muted}>
-            {t('essentials.selectedCount', { count: selected.size })}
-          </span>
-          <div className={s.actionGroup}>
-            <Button variant="outline" size="sm" disabled={busy || selected.size === 0} onClick={() => markSelected('travel_bag')}>
-              {t('essentials.markAs', { status: t('essentials.travelBag') })}
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={busy || selected.size === 0}
-              onClick={() => markSelected('carry')}
-            >
-              {t('essentials.markAs', { status: t('essentials.carry') })}
-            </Button>
-          </div>
-        </div>
-      )}
-    </Card>
+    </TableCard>
   );
 }

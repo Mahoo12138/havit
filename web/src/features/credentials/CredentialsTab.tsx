@@ -184,7 +184,7 @@ export function CredentialsTab({ virtualItems }: { virtualItems: Item[] }) {
       {deleting && (
         <Dialog open title={t('credentials.deleteCredential')} onClose={() => setDeleting(null)}>
           <Stack>
-            <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+            <p className={uiStyles.helpParagraph}>
               {t('credentials.deleteCredentialConfirm', { platform: deleting.platform, item: deleting.item_name })}
             </p>
             <Button
@@ -307,7 +307,7 @@ function EmptyCredentials({
           <IconPlus size={14} /> {t('credentials.addCredential')}
         </Button>
       ) : (
-        <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+        <p className={uiStyles.helpParagraph}>
           {t('credentials.needVirtualItemFirst')}
         </p>
       )}

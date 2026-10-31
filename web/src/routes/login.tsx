@@ -14,7 +14,8 @@ import { Card } from '../components/ui/card';
 import { TextField } from '../components/ui/text-field';
 import { useToast } from '../components/ui/use-toast';
 import { formatToday } from '../layouts/nav-data';
-import { authApi, setToken } from '../api/client';
+import { textStyles } from '../styles/typography.css';
+import { authApi, clearPrivateCaches, setToken } from '../api/client';
 import * as s from './-login.css';
 
 export const Route = createFileRoute('/login')({
@@ -164,6 +165,7 @@ function LoginPage() {
   const login = useMutation({
     mutationFn: () => authApi.login({ username, password }),
     onSuccess: async (data) => {
+      await clearPrivateCaches();
       setToken(data.token);
       // 留一瞬给「盖章」：先压印、印泥飞溅，再进入台账。
       if (!prefersReducedMotion()) {
@@ -202,8 +204,7 @@ function LoginPage() {
         <span className={s.backdropRules} />
         <span className={s.backdropMargin} />
         <span className={s.backdropMarginRight} />
-        <span className={s.backdropGrain} />
-        {/* 浮墨：纸上缓缓上浮的墨点与朱砂点 */}
+        {/* 浮墨：纸上缓缓上浮的墨点与靛蓝点 */}
         <svg
           className={s.dustField}
           viewBox="0 0 1000 700"
@@ -226,10 +227,6 @@ function LoginPage() {
       </div>
 
       <div className={s.cardStack}>
-        {/* 垫在底下的两页账页，只露出错开的边缘 */}
-        <span className={s.stackSheetBack} aria-hidden />
-        <span className={s.stackSheetMid} aria-hidden />
-
         <Card
           className={`auth-card ${s.card}${rejected ? ` ${s.cardError}` : ''}`}
           padded
@@ -245,10 +242,10 @@ function LoginPage() {
             <span className={`${s.sealMark} ${s.rise.r1}`} aria-hidden>
               H
             </span>
-            <h1 className={`${uiStyles.heading} page-heading ${s.rise.r2}`}>
+            <h1 className={`${textStyles.pageTitle} ${s.rise.r2}`}>
               {t('auth.login')} Havit
             </h1>
-            <p className={`${uiStyles.muted} page-kicker ${s.rise.r3}`}>
+            <p className={`${textStyles.pageSubtitle} ${s.rise.r3}`}>
               {t('auth.loginSubtitle')}
             </p>
             <span className={`${s.entryRule} ${s.rise.r4}`} aria-hidden>

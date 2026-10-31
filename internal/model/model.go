@@ -7,15 +7,16 @@ type ItemStatus string
 type AttachmentType string
 
 const (
-	ItemTypeDurable          ItemType = "durable"
+	ItemTypeDurable            ItemType = "durable"
 	ItemTypePredictiveSupplies ItemType = "predictive_supplies"
-	ItemTypeTrackedSpares     ItemType = "tracked_spares"
-	ItemTypeEssentials        ItemType = "essentials"
-	ItemTypeVirtual           ItemType = "virtual"
+	ItemTypeTrackedSpares      ItemType = "tracked_spares"
+	ItemTypeEssentials         ItemType = "essentials"
+	ItemTypeVirtual            ItemType = "virtual"
 )
 
 const (
 	StatusInStock    ItemStatus = "in_stock"
+	StatusInUse      ItemStatus = "in_use"
 	StatusBorrowed   ItemStatus = "borrowed"
 	StatusIdle       ItemStatus = "idle"
 	StatusForSale    ItemStatus = "for_sale"

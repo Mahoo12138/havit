@@ -10,8 +10,13 @@ function Card({
   className,
   size = "default",
   padded,
+  flush,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { size?: "default" | "sm"; padded?: boolean }) {
+}: HTMLAttributes<HTMLDivElement> & {
+  size?: "default" | "sm";
+  padded?: boolean;
+  flush?: boolean;
+}) {
   return (
     <div
       data-slot="card"
@@ -20,6 +25,7 @@ function Card({
         s.root,
         size === "sm" ? s.sizeSm : undefined,
         padded ? s.padded : undefined,
+        flush ? s.flush : undefined,
         className,
       )}
       {...props}
@@ -35,6 +41,22 @@ function CardHeader({
     <div
       data-slot="card-header"
       className={cx(s.header, className)}
+      {...props}
+    />
+  )
+}
+
+// Shared top bar for table-first cards. The fixed min-height keeps tabs and
+// sibling cards visually aligned regardless of whether they hold text,
+// filters or buttons.
+function CardToolbar({
+  className,
+  ...props
+}: HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      data-slot="card-toolbar"
+      className={cx(s.toolbar, className)}
       {...props}
     />
   )
@@ -108,6 +130,7 @@ function CardFooter({
 export {
   Card,
   CardHeader,
+  CardToolbar,
   CardFooter,
   CardTitle,
   CardAction,

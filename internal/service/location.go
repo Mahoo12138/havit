@@ -262,6 +262,9 @@ func checkLocationHierarchy(parentType, childType string) error {
 }
 
 func (s *LocationService) Delete(ctx context.Context, id string) error {
+	if _, err := s.Get(ctx, id); err != nil {
+		return err
+	}
 	var childCount, itemCount int
 	if err := s.db.QueryRowContext(ctx,
 		`SELECT COUNT(*) FROM locations WHERE parent_id = ?`, id,

@@ -18,7 +18,7 @@ func TestReminderPrivacyIsolatesPrivateItems(t *testing.T) {
 	alice := "user-alice"
 	item, err := itemSvc.Create(ctxAs(alice), ItemCreateInput{
 		Name: "私密耳机", Type: model.ItemTypeDurable, LocationID: &locID,
-		IsPrivate: true, OwnerID: &alice,
+		IsPrivate: boolPtr(true), OwnerID: &alice,
 	})
 	if err != nil {
 		t.Fatalf("create private item: %v", err)

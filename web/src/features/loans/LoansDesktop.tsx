@@ -1,10 +1,11 @@
+import { textStyles } from '../../styles/typography.css';
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { IconPlus, IconSettings, IconAlertTriangle, IconEye } from '@tabler/icons-react';
 import { Stack, uiStyles } from '../../components/ui';
-import { Button } from '../../components/ui/button';
+import { Button, buttonVariants } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
@@ -25,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '../../components/ui/table';
+import { TableCard } from '../../components/ui/table-card';
 import { TabsNav } from '../../components/ui/tabs-nav';
 import { TextField } from '../../components/ui/text-field';
 import { itemsApi, loansApi, type LoanWithItem } from '../../api/client';
@@ -266,8 +268,11 @@ export function LoansDesktop() {
 
   function formatDate(ts?: number): string {
     if (!ts) return '-';
-    const d = new Date(ts * 1000);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date(ts * 1000));
   }
 
   function formatDueInfo(loan: LoanWithItem): { text: string; isOverdue: boolean } {
@@ -295,10 +300,14 @@ export function LoansDesktop() {
     const lendable = status !== 'returned';
     return (
       <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-        <Link to="/items/$itemId" params={{ itemId: loan.item_id }}>
-          <Button variant="subtle" className={uiStyles.loanActionBtn} title={t('loans.viewDetail')}>
-            <IconEye size={13} />
-          </Button>
+        <Link
+          to="/items/$itemId"
+          params={{ itemId: loan.item_id }}
+          className={buttonVariants({ variant: 'subtle', className: uiStyles.loanActionBtn })}
+          title={t('loans.viewDetail')}
+          aria-label={t('loans.viewDetail')}
+        >
+          <IconEye size={13} />
         </Link>
         {lendable && (
           <Button
@@ -326,8 +335,8 @@ export function LoansDesktop() {
   return (
     <Stack>
       <div className={uiStyles.loanPageHeader}>
-        <div>
-          <h2 className="page-heading" style={{ margin: 0 }}>{t('loans.title')}</h2>
+        <div className={uiStyles.pageHeadingCopy}>
+          <h2 className={textStyles.pageTitle}>{t('loans.title')}</h2>
           <p className={uiStyles.loanPageSubtitle}>{t('loans.description')}</p>
         </div>
         <div className={uiStyles.loanPageHeaderRight}>
@@ -377,36 +386,38 @@ export function LoansDesktop() {
             </Card>
           </div>
 
-          <div className={uiStyles.loanFilterBar}>
-            <InlineSelect
-              value={filterCategory}
-              placeholder={t('loans.filterAllCategories')}
-              options={categories.map((cat) => ({ value: cat, label: cat }))}
-              onChange={setFilterCategory}
-            />
-            <InlineSelect
-              value={filterBorrower}
-              placeholder={t('loans.filterBorrower')}
-              options={borrowers.map((b) => ({ value: b, label: b }))}
-              onChange={setFilterBorrower}
-            />
-            {(filterCategory || filterBorrower) && (
-              <Button
-                variant="subtle"
-                className={uiStyles.loanActionBtn}
-                onClick={() => { setFilterCategory(''); setFilterBorrower(''); }}
-              >
-                {t('loans.clearFilters')}
-              </Button>
-            )}
-            <span style={{ marginLeft: 'auto', fontSize: '0.78rem', color: 'var(--havit-muted)' }}>
-              {t('loans.totalItems', { count: filteredData.length })}
-            </span>
-          </div>
-
-          {/* Desktop table */}
-          <Card className="loan-table-wrap" padded={false}>
-            <Table>
+          {/* Desktop table. The mobile list lives in LoansMobile, so this card is
+              rendered as-is on every width it is asked to serve. */}
+          <TableCard
+            ariaLabel={t('loans.title')}
+            filters={
+              <>
+                <InlineSelect
+                  value={filterCategory}
+                  placeholder={t('loans.filterAllCategories')}
+                  options={categories.map((cat) => ({ value: cat, label: cat }))}
+                  onChange={setFilterCategory}
+                />
+                <InlineSelect
+                  value={filterBorrower}
+                  placeholder={t('loans.filterBorrower')}
+                  options={borrowers.map((b) => ({ value: b, label: b }))}
+                  onChange={setFilterBorrower}
+                />
+                {(filterCategory || filterBorrower) && (
+                  <Button
+                    variant="subtle"
+                    className={uiStyles.loanActionBtn}
+                    onClick={() => { setFilterCategory(''); setFilterBorrower(''); }}
+                  >
+                    {t('loans.clearFilters')}
+                  </Button>
+                )}
+              </>
+            }
+            meta={t('loans.totalItems', { count: filteredData.length })}
+          >
+            <Table aria-label={t('loans.title')}>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('loans.colItem')}</TableHead>
@@ -454,7 +465,7 @@ export function LoansDesktop() {
                         <TableCell>
                           <div>{formatDate(loan.due_at)}</div>
                           {dueInfo.text !== '-' && (
-                            <div style={{ color: dueInfo.isOverdue ? 'var(--havit-danger)' : 'var(--havit-muted)', fontSize: '0.78rem' }}>
+                            <div className={uiStyles.caption} style={{ color: dueInfo.isOverdue ? 'var(--havit-danger)' : 'var(--havit-muted)' }}>
                               {dueInfo.text}
                             </div>
                           )}
@@ -476,59 +487,7 @@ export function LoansDesktop() {
                 )}
               </TableBody>
             </Table>
-          </Card>
-
-          {/* Mobile card list */}
-          <div className="loan-mobile-list" style={{ display: 'none' }}>
-            {filteredData.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--havit-muted)' }}>
-                {t('loans.noLoans')}
-              </div>
-            ) : (
-              filteredData.map((loan) => {
-                const status = getLoanStatus(loan);
-                const dueInfo = formatDueInfo(loan);
-                return (
-                  <Card className={uiStyles.loanMobileCard} key={loan.id}>
-                    <div className={uiStyles.loanMobileItemRow}>
-                      <div className={uiStyles.loanItemThumbPlaceholder}>
-                        {loan.item_name.charAt(0)}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className={uiStyles.loanItemName}>{loan.item_name}</div>
-                        {loan.item_serial_number && (
-                          <div className={uiStyles.loanItemSn}>{t('common.sn', { number: loan.item_serial_number })}</div>
-                        )}
-                      </div>
-                      <span className={`${uiStyles.loanStatusBadgeBase} ${uiStyles.loanStatusBadge[status]}`}>
-                        {getStatusLabel(status)}
-                      </span>
-                    </div>
-                    <div className={uiStyles.loanMobileMeta}>
-                      <span className={uiStyles.loanMobileLabel}>{t('loans.colBorrower')}</span>
-                      <span className={uiStyles.loanMobileValue}>{loan.borrower_name}</span>
-                      <span className={uiStyles.loanMobileLabel}>{t('loans.colLoanDate')}</span>
-                      <span className={uiStyles.loanMobileValue}>{formatDate(loan.loaned_at)}</span>
-                      <span className={uiStyles.loanMobileLabel}>{t('loans.colDueDate')}</span>
-                      <span className={uiStyles.loanMobileValue}>
-                        {formatDate(loan.due_at)}
-                        {dueInfo.text !== '-' && (
-                          <span style={{ display: 'block', fontSize: '0.76rem', color: dueInfo.isOverdue ? 'var(--havit-danger)' : 'var(--havit-muted)' }}>
-                            {dueInfo.text}
-                          </span>
-                        )}
-                      </span>
-                      <span className={uiStyles.loanMobileLabel}>{t('loans.colValue')}</span>
-                      <span className={uiStyles.loanMobileValue}>
-                        {formatMoney(loan.item_purchase_price, loan.item_purchase_currency)}
-                      </span>
-                    </div>
-                    {renderActions(loan, status)}
-                  </Card>
-                );
-              })
-            )}
-          </div>
+          </TableCard>
 
           {metrics.overdueCount > 0 && (
             <Card className={uiStyles.loanBottomCard}>
@@ -537,7 +496,7 @@ export function LoansDesktop() {
                   <IconAlertTriangle size={16} color="var(--havit-danger)" />
                   <h3 className={uiStyles.loanBottomTitle}>{t('loans.overdueReminder')}</h3>
                 </div>
-                <Button variant="subtle" style={{ fontWeight: 500 }} onClick={goToOverdue}>
+                <Button variant="subtle" onClick={goToOverdue}>
                   {t('loans.viewAllOverdue')}
                 </Button>
               </div>
@@ -553,7 +512,6 @@ export function LoansDesktop() {
                         gap: '0.75rem',
                         padding: '0.5rem 0',
                         borderTop: '1px solid var(--havit-line-soft)',
-                        fontSize: '0.85rem',
                       }}
                     >
                       <Link
@@ -623,7 +581,7 @@ export function LoansDesktop() {
       {unreturnLoanId && (
         <Dialog open title={t('loans.markUnreturned')} onClose={() => setUnreturnLoanId(null)}>
           <Stack>
-            <p style={{ color: 'var(--havit-muted)', fontSize: '0.85rem', margin: 0 }}>
+            <p className={uiStyles.helpParagraph}>
               {t('loans.unreturnedHint')}
             </p>
             <TextField
@@ -652,12 +610,6 @@ export function LoansDesktop() {
         </Dialog>
       )}
 
-      <style>{`
-        @media (max-width: 64em) {
-          .loan-table-wrap { display: none; }
-          .loan-mobile-list { display: flex !important; flex-direction: column; gap: 0.75rem; }
-        }
-      `}</style>
     </Stack>
   );
 }

@@ -16,7 +16,6 @@ import {
   IconChevronRight,
   IconCircleCheck,
   IconCopy,
-  IconDatabase,
   IconEye,
   IconEyeOff,
   IconHomeCog,
@@ -56,17 +55,17 @@ import {
   type User,
   type UserPreferences,
 } from '../../api/client';
+import { AccountPanel } from './AccountPanels';
 import * as s from './settingsPage.css';
 
-type SettingsTab = 'preferences' | 'api-tokens' | 'system' | 'members';
+type SettingsTab = 'account' | 'api-tokens' | 'system' | 'members';
 type SettingsPanel =
+  | 'profile'
   | 'display'
   | 'behavior'
-  | 'notifications'
   | 'tokens'
   | 'ai'
   | 'notify'
-  | 'infra'
   | 'members';
 type Tone = keyof typeof s.rowTone;
 type SettingIcon = typeof IconBell;
@@ -100,8 +99,17 @@ type PanelDefinition = {
 
 const PANEL_DEFS: PanelDefinition[] = [
   {
+    key: 'profile',
+    tab: 'account',
+    section: 'personal',
+    titleKey: 'settings.account.profile',
+    descriptionKey: 'settings.account.profileSummary',
+    icon: IconUser,
+    tone: 'blue',
+  },
+  {
     key: 'display',
-    tab: 'preferences',
+    tab: 'account',
     section: 'personal',
     titleKey: 'settings.prefs.display',
     descriptionKey: 'settings.summaries.display',
@@ -110,21 +118,12 @@ const PANEL_DEFS: PanelDefinition[] = [
   },
   {
     key: 'behavior',
-    tab: 'preferences',
+    tab: 'account',
     section: 'personal',
     titleKey: 'settings.prefs.behavior',
     descriptionKey: 'settings.summaries.behavior',
     icon: IconHomeCog,
     tone: 'green',
-  },
-  {
-    key: 'notifications',
-    tab: 'preferences',
-    section: 'personal',
-    titleKey: 'settings.prefs.notifications',
-    descriptionKey: 'settings.summaries.notifications',
-    icon: IconWebhook,
-    tone: 'violet',
   },
   {
     key: 'tokens',
@@ -156,16 +155,6 @@ const PANEL_DEFS: PanelDefinition[] = [
     ownerOnly: true,
   },
   {
-    key: 'infra',
-    tab: 'system',
-    section: 'system',
-    titleKey: 'settings.system.infraSection',
-    descriptionKey: 'settings.summaries.systemInfra',
-    icon: IconDatabase,
-    tone: 'blue',
-    ownerOnly: true,
-  },
-  {
     key: 'members',
     tab: 'members',
     section: 'members',
@@ -177,7 +166,7 @@ const PANEL_DEFS: PanelDefinition[] = [
   },
 ];
 
-const TAB_ORDER: SettingsTab[] = ['preferences', 'api-tokens', 'system', 'members'];
+const TAB_ORDER: SettingsTab[] = ['account', 'api-tokens', 'system', 'members'];
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -193,7 +182,12 @@ function hasKeys(value: Record<string, unknown>) {
 }
 
 function isSettingsTab(value?: string): value is SettingsTab {
-  return value === 'preferences' || value === 'api-tokens' || value === 'system' || value === 'members';
+  return (
+    value === 'account' ||
+    value === 'api-tokens' ||
+    value === 'system' ||
+    value === 'members'
+  );
 }
 
 function getPanels(isOwner: boolean) {
@@ -210,7 +204,7 @@ function resolveSettingsState(search: SettingsSearch, isOwner: boolean) {
   const requestedTab = isSettingsTab(search.tab) ? search.tab : undefined;
   const tabFromSearch =
     requestedTab && panels.some((panel) => panel.tab === requestedTab) ? requestedTab : undefined;
-  const activeTab = requestedPanel?.tab ?? tabFromSearch ?? 'preferences';
+  const activeTab = requestedPanel?.tab ?? tabFromSearch ?? 'account';
   const activePanel = requestedPanel ?? firstPanelForTab(panels, activeTab) ?? panels[0];
 
   return { panels, activeTab, activePanel };
@@ -386,34 +380,24 @@ function AutoSaveIndicator({ status }: { status?: AutoSaveStatus }) {
 }
 
 function DetailShell({
-  panel,
   status,
   children,
   actions,
 }: {
-  panel: PanelDefinition;
   status?: AutoSaveStatus;
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const { t } = useTranslation();
-  const Icon = panel.icon;
+  const showMeta = (status !== undefined && status !== 'idle') || Boolean(actions);
 
   return (
     <section className={s.detailPanel}>
-      <div className={s.detailHeader}>
-        <span className={cx(s.rowIcon, s.rowTone[panel.tone])} aria-hidden>
-          <Icon size={18} />
-        </span>
-        <div className={s.headerCopy}>
-          <h2 className={s.detailTitle}>{t(panel.titleKey)}</h2>
-          <p className={s.detailDescription}>{t(panel.descriptionKey)}</p>
-        </div>
-        <div className={s.detailMeta}>
+      {showMeta && (
+        <div className={s.detailMetaBar}>
           <AutoSaveIndicator status={status} />
           {actions}
         </div>
-      </div>
+      )}
       <div className={s.detailBody}>{children}</div>
     </section>
   );
@@ -550,27 +534,29 @@ function PanelDetail({
   currentUserId: string;
 }) {
   switch (panel.key) {
+    case 'profile':
+      return (
+        <DetailShell>
+          <AccountPanel />
+        </DetailShell>
+      );
     case 'display':
     case 'behavior':
-    case 'notifications':
       return <PreferencesPanel panel={panel} />;
     case 'tokens':
-      return <APITokensPanel panel={panel} />;
+      return <APITokensPanel />;
     case 'ai':
     case 'notify':
-    case 'infra':
       return <SystemConfigPanel panel={panel} />;
     case 'members':
-      return <MembersPanel panel={panel} currentUserId={currentUserId} />;
+      return <MembersPanel currentUserId={currentUserId} />;
   }
 }
 
 function preferencePanelKeys(panel: SettingsPanel): Array<keyof UserPreferences> {
-  if (panel === 'display') return ['theme', 'date_format', 'default_currency'];
-  if (panel === 'behavior') {
-    return ['home_view', 'scan_behavior', 'default_visibility', 'show_archived_in_search'];
-  }
-  return ['personal_bark_key', 'personal_ntfy_topic'];
+  if (panel === 'display') return ['theme', 'default_currency'];
+  if (panel === 'behavior') return ['default_visibility', 'show_archived_in_search'];
+  return [];
 }
 
 function PreferencesPanel({ panel }: { panel: PanelDefinition }) {
@@ -635,14 +621,14 @@ function PreferencesPanel({ panel }: { panel: PanelDefinition }) {
 
   if (isLoading || !prefs || !merged) {
     return (
-      <DetailShell panel={panel}>
+      <DetailShell>
         <Spinner />
       </DetailShell>
     );
   }
 
   return (
-    <DetailShell panel={panel} status={status}>
+    <DetailShell status={status}>
       <div className={s.detailCard}>
         {panel.key === 'display' && (
           <div className={s.formGrid}>
@@ -655,37 +641,12 @@ function PreferencesPanel({ panel }: { panel: PanelDefinition }) {
               ]}
               {...field('theme')}
             />
-            <SelectField
-              label={t('settings.prefs.dateFormat')}
-              options={[
-                { value: 'relative', label: t('settings.prefs.dateRelative') },
-                { value: 'absolute', label: t('settings.prefs.dateAbsolute') },
-              ]}
-              {...field('date_format')}
-            />
             <TextField label={t('settings.prefs.currency')} {...field('default_currency')} />
           </div>
         )}
 
         {panel.key === 'behavior' && (
           <div className={s.formGrid}>
-            <SelectField
-              label={t('settings.prefs.homeView')}
-              options={[
-                { value: 'spaces', label: t('settings.prefs.homeSpaces') },
-                { value: 'essentials', label: t('settings.prefs.homeEssentials') },
-                { value: 'restock', label: t('settings.prefs.homeRestock') },
-              ]}
-              {...field('home_view')}
-            />
-            <SelectField
-              label={t('settings.prefs.scanBehavior')}
-              options={[
-                { value: 'confirm', label: t('settings.prefs.scanConfirm') },
-                { value: 'silent', label: t('settings.prefs.scanSilent') },
-              ]}
-              {...field('scan_behavior')}
-            />
             <SelectField
               label={t('settings.prefs.defaultVisibility')}
               options={[
@@ -710,27 +671,12 @@ function PreferencesPanel({ panel }: { panel: PanelDefinition }) {
             />
           </div>
         )}
-
-        {panel.key === 'notifications' && (
-          <div className={s.formGrid}>
-            <TextField
-              label={t('settings.prefs.barkKey')}
-              placeholder={t('settings.prefs.barkKeyHint')}
-              {...field('personal_bark_key')}
-            />
-            <TextField
-              label={t('settings.prefs.ntfyTopic')}
-              placeholder={t('settings.prefs.ntfyTopicHint')}
-              {...field('personal_ntfy_topic')}
-            />
-          </div>
-        )}
       </div>
     </DetailShell>
   );
 }
 
-function APITokensPanel({ panel }: { panel: PanelDefinition }) {
+function APITokensPanel() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -796,7 +742,6 @@ function APITokensPanel({ panel }: { panel: PanelDefinition }) {
 
   return (
     <DetailShell
-      panel={panel}
       actions={
         <div className={s.actionRow}>
           <Button
@@ -913,8 +858,7 @@ function APITokensPanel({ panel }: { panel: PanelDefinition }) {
 
 function configPanelFilter(panel: SettingsPanel, configs: SystemConfig[]) {
   if (panel === 'ai') return configs.filter((config) => config.key.startsWith('ai.'));
-  if (panel === 'notify') return configs.filter((config) => config.key.startsWith('notify.'));
-  return configs.filter((config) => config.key.startsWith('storage.') || config.key.startsWith('auth.'));
+  return configs.filter((config) => config.key.startsWith('notify.'));
 }
 
 function SystemConfigPanel({ panel }: { panel: PanelDefinition }) {
@@ -977,14 +921,14 @@ function SystemConfigPanel({ panel }: { panel: PanelDefinition }) {
 
   if (isLoading || !data) {
     return (
-      <DetailShell panel={panel}>
+      <DetailShell>
         <Spinner />
       </DetailShell>
     );
   }
 
   return (
-    <DetailShell panel={panel} status={status}>
+    <DetailShell status={status}>
       <div className={s.detailCard}>
         <div className={s.configList}>
           {configs.map((config) => {
@@ -1113,13 +1057,7 @@ function MemberRow({
   );
 }
 
-function MembersPanel({
-  panel,
-  currentUserId,
-}: {
-  panel: PanelDefinition;
-  currentUserId: string;
-}) {
+function MembersPanel({ currentUserId }: { currentUserId: string }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -1167,7 +1105,6 @@ function MembersPanel({
 
   return (
     <DetailShell
-      panel={panel}
       actions={
         <Button
           variant="subtle"

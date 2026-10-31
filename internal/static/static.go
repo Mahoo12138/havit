@@ -34,6 +34,10 @@ func Mount(r chi.Router) {
 			return
 		}
 		if _, err := fs.Stat(staticFS, path); errors.Is(err, fs.ErrNotExist) {
+			if strings.Contains(path, ".") {
+				http.NotFound(w, req)
+				return
+			}
 			req.URL.Path = "/"
 			servePath = "index.html"
 		}

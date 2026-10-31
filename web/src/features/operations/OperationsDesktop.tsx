@@ -6,7 +6,7 @@ import { Stack, uiStyles } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Spinner } from '../../components/ui/spinner';
 import { DataCard, FeatureHeader, MetricStrip } from '../m2/components';
-import { backupApi, exportApi, remindersApi, locationsApi } from '../../api/client';
+import { backupApi, authApi, exportApi, remindersApi, locationsApi } from '../../api/client';
 import { LocationQrCode } from '../qr/QrCode';
 import { flattenLocationTree } from '../qr/locationQr';
 import { formatDateTime } from '../essentials/shared';
@@ -17,6 +17,10 @@ const REMINDER_PREVIEW_LIMIT = 10;
 
 export function OperationsDesktop() {
   const { t } = useTranslation();
+  const { data: me } = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: () => authApi.me(),
+  });
   const { data: locationsData, isLoading: locationsLoading } = useQuery({
     queryKey: ['locations'],
     queryFn: () => locationsApi.tree(),
@@ -130,18 +134,24 @@ export function OperationsDesktop() {
 
         <DataCard title={t('operations.backupExport')}>
           <Stack>
-            <Button
-              leftSection={<IconRefresh size={15} />}
-              onClick={() => backupMutation.mutate()}
-              disabled={backupMutation.isPending}
-            >
-              {backupMutation.isPending ? t('operations.backingUp') : t('operations.manualBackup')}
-            </Button>
-            {backupMutation.data?.path && (
-              <span className={s.backupPath}>{t('operations.backupComplete', { path: backupMutation.data.path })}</span>
-            )}
-            {backupMutation.isError && (
-              <span className={s.backupError}>{t('operations.backupFailed', { error: errorText(backupMutation.error) })}</span>
+            {me?.role === 'owner' ? (
+              <>
+                <Button
+                  leftSection={<IconRefresh size={15} />}
+                  onClick={() => backupMutation.mutate()}
+                  disabled={backupMutation.isPending}
+                >
+                  {backupMutation.isPending ? t('operations.backingUp') : t('operations.manualBackup')}
+                </Button>
+                {backupMutation.data?.path && (
+                  <span className={s.backupPath}>{t('operations.backupComplete', { path: backupMutation.data.path })}</span>
+                )}
+                {backupMutation.isError && (
+                  <span className={s.backupError}>{t('operations.backupFailed', { error: errorText(backupMutation.error) })}</span>
+                )}
+              </>
+            ) : (
+              <span className={s.exportHint}>{t('operations.ownerOnly')}</span>
             )}
 
             <hr className={s.divider} />

@@ -39,8 +39,8 @@ export const previewText = style({
 export const previewLabel = style({
   overflow: 'hidden',
   color: themeVars.ink,
-  fontSize: '0.875rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeBase,
+  fontWeight: themeVars.weightSemibold,
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 });
@@ -48,7 +48,7 @@ export const previewLabel = style({
 export const previewMeta = style({
   overflow: 'hidden',
   color: themeVars.muted,
-  fontSize: '0.75rem',
+  fontSize: themeVars.textSizeXs,
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
 });
@@ -80,8 +80,8 @@ export const groupButton = style({
   color: themeVars.muted,
   padding: `0 ${themeVars.space3}`,
   font: 'inherit',
-  fontSize: '0.78rem',
-  fontWeight: 650,
+  fontSize: themeVars.textSizeSm,
+  fontWeight: themeVars.weightSemibold,
   cursor: 'pointer',
   selectors: {
     '&[aria-pressed="true"]': {
@@ -148,8 +148,8 @@ export const iconName = style({
   width: '100%',
   overflow: 'hidden',
   color: 'currentColor',
-  fontSize: '0.68rem',
-  lineHeight: 1.2,
+  fontSize: themeVars.textSize2xs,
+  lineHeight: themeVars.leadingTight,
   textAlign: 'center',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
@@ -158,6 +158,6 @@ export const iconName = style({
 export const empty = style({
   padding: themeVars.space5,
   color: themeVars.muted,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   textAlign: 'center',
 });

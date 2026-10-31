@@ -28,8 +28,8 @@ export const tab = style({
   color: themeVars.muted,
   cursor: 'pointer',
   font: 'inherit',
-  fontSize: '0.875rem',
-  lineHeight: 1.25,
+  fontSize: themeVars.textSizeBase,
+  lineHeight: themeVars.leadingSnug,
   padding: '0.25rem 0.75rem',
   flex: '0 0 auto',
   minWidth: 0,
@@ -46,7 +46,7 @@ export const tab = style({
     '&[data-selected]': {
       background: themeVars.panel,
       color: themeVars.ink,
-      fontWeight: 600,
+      fontWeight: themeVars.weightSemibold,
       boxShadow: themeVars.shadowSoft,
     },
     '&[data-pinned]': {
@@ -99,7 +99,7 @@ export const overflowItem = style({
   color: 'inherit',
   cursor: 'pointer',
   font: 'inherit',
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   padding: `${themeVars.space2} ${themeVars.space3}`,
   textAlign: 'left',
   transition: 'background-color 140ms ease, color 140ms ease',
@@ -109,7 +109,7 @@ export const overflowItem = style({
       color: themeVars.ink,
     },
     '&[data-selected]': {
-      fontWeight: 600,
+      fontWeight: themeVars.weightSemibold,
     },
     '&:focus-visible': {
       outline: 'none',

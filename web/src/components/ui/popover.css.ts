@@ -22,7 +22,7 @@ export const content = style({
   color: themeVars.text,
   boxShadow: `${themeVars.shadow}, 0 0 0 1px ${themeVars.line}`,
   padding: themeVars.space3,
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
   outline: 'none',
 });
 
@@ -30,12 +30,12 @@ export const header = style({
   display: 'flex',
   flexDirection: 'column',
   gap: '0.125rem',
-  fontSize: '0.875rem',
+  fontSize: themeVars.textSizeBase,
 });
 
 export const title = style({
   color: themeVars.ink,
-  fontWeight: 600,
+  fontWeight: themeVars.weightSemibold,
 });
 
 export const description = style({
