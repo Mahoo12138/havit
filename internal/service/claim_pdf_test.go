@@ -5,6 +5,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mahoo12138/havit/internal/model"
 )
@@ -63,7 +64,7 @@ func TestStolenClaimPDFIncludesAssetLedgerAndAttachments(t *testing.T) {
 		"Name: Stolen Camera",
 		"Serial number / IMEI: SN-001",
 		"Purchase price: 8999.00 CNY",
-		"Stolen date: 2026-05-29",
+		"Stolen date: " + time.Unix(1780000000, 0).Format("2006-01-02"),
 		"Notes: 报警回执待补",
 		"invoice.jpg (image/jpeg)",
 	} {
