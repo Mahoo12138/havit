@@ -3475,38 +3475,10 @@ export const tagsKpiHint = style({
   color: themeVars.muted,
 });
 
-export const tagsLayout = style({
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) 22rem',
-  gap: themeVars.space4,
-  alignItems: 'start',
-  '@media': {
-    '(max-width: 64em)': { gridTemplateColumns: '1fr' },
-  },
-});
-
-export const tagsListCard = style({
-  selectors: {
-    '&[data-slot="card"]': {
-      padding: themeVars.space4,
-      minWidth: 0,
-    },
-  },
-});
-
-export const tagsListToolbar = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space3,
-  marginBottom: themeVars.space4,
-  '@media': {
-    '(max-width: 40em)': { flexDirection: 'column', alignItems: 'stretch' },
-  },
-});
-
 export const tagsSearchWrap = style({
   position: 'relative',
-  flex: 1,
+  flex: '1 1 16rem',
+  maxWidth: '24rem',
 });
 
 export const tagsSearchIcon = style({
@@ -3540,11 +3512,6 @@ export const tagsSearchInput = style({
 globalStyle(`${tagsSearchWrap} [data-slot="input"]`, {
   background: themeVars.bgSoft,
   paddingLeft: '2.25rem',
-});
-
-export const tagsTableWrap = style({
-  overflowX: 'auto',
-  margin: `0 -${themeVars.space4}`,
 });
 
 export const tagsTableNameCell = style({
@@ -3600,77 +3567,6 @@ export const tagsEmptyState = style({
   textAlign: 'center',
   color: themeVars.muted,
   fontSize: themeVars.textSizeBase,
-});
-
-export const tagsRail = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space4,
-});
-
-export const tagsRailCard = style({
-  selectors: {
-    '&[data-slot="card"]': {
-      padding: themeVars.space4,
-    },
-  },
-});
-
-export const tagsRailTitle = style({
-  fontSize: themeVars.textSizeXs,
-  letterSpacing: themeVars.trackingWider,
-  textTransform: 'uppercase',
-  color: themeVars.muted,
-  fontWeight: themeVars.weightMedium,
-  marginBottom: themeVars.space3,
-});
-
-export const tagsRailItem = style({
-  display: 'flex',
-  alignItems: 'center',
-  gap: themeVars.space2,
-  padding: `${themeVars.space2} 0`,
-  borderBottom: `1px dashed ${themeVars.lineSoft}`,
-  selectors: {
-    '&:last-child': { borderBottom: 'none' },
-  },
-});
-
-export const tagsRailItemName = style({
-  fontSize: themeVars.textSizeBase,
-  color: themeVars.text,
-  fontWeight: themeVars.weightMedium,
-});
-
-export const tagsRailItemMeta = style({
-  fontSize: themeVars.textSizeXs,
-  color: themeVars.muted,
-  marginLeft: 'auto',
-  fontFeatureSettings: '"tnum"',
-});
-
-export const tagsMiniKpi = style({
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'baseline',
-  padding: `${themeVars.space2} 0`,
-  selectors: {
-    '&:not(:last-child)': {
-      borderBottom: `1px solid ${themeVars.lineSoft}`,
-    },
-  },
-});
-
-export const tagsMiniKpiLabel = style({
-  fontSize: themeVars.textSizeSm,
-  color: themeVars.muted,
-});
-
-export const tagsMiniKpiValue = style({
-  fontSize: themeVars.textSizeLg,
-  fontWeight: themeVars.weightSemibold,
-  color: themeVars.ink,
-  fontFeatureSettings: '"tnum"',
 });
 
 export const tagsColorPalette = style({

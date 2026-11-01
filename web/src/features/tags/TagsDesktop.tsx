@@ -13,6 +13,7 @@ import {
 } from '../../components/ui';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
+import { TableCard } from '../../components/ui/table-card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { FieldLabel } from '../../components/ui/field';
 import { Input } from '../../components/ui/input';
@@ -110,20 +111,6 @@ export function TagsDesktop() {
     return { total, inUse, unused, rate };
   }, [tags]);
 
-  const recent = useMemo(() => {
-    return [...tags]
-      .filter((tg) => tg.created_at)
-      .sort((a, b) => (b.created_at ?? 0) - (a.created_at ?? 0))
-      .slice(0, 5);
-  }, [tags]);
-
-  const mostUsed = useMemo(() => {
-    return [...tags]
-      .filter((tg) => (tg.usage_count ?? 0) > 0)
-      .sort((a, b) => (b.usage_count ?? 0) - (a.usage_count ?? 0))
-      .slice(0, 3);
-  }, [tags]);
-
   const createMutation = useMutation({
     mutationFn: (body: { name: string; color?: string }) => tagsApi.create(body),
     onSuccess: () => {
@@ -209,168 +196,101 @@ export function TagsDesktop() {
         />
       </div>
 
-      <div className={uiStyles.tagsLayout}>
-        <Card className={uiStyles.tagsListCard}>
-          <div className={uiStyles.tagsListToolbar}>
-            <div className={uiStyles.tagsSearchWrap}>
-              <span className={uiStyles.tagsSearchIcon} aria-hidden>
-                <IconSearch size={15} />
-              </span>
-              <Input
-                className={uiStyles.tagsSearchInput}
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('tags.searchPlaceholder')}
-                aria-label={t('tags.searchAria')}
-              />
-            </div>
+      <TableCard
+        ariaLabel={t('tags.title')}
+        filters={
+          <div className={uiStyles.tagsSearchWrap}>
+            <span className={uiStyles.tagsSearchIcon} aria-hidden>
+              <IconSearch size={15} />
+            </span>
+            <Input
+              className={uiStyles.tagsSearchInput}
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('tags.searchPlaceholder')}
+              aria-label={t('tags.searchAria')}
+            />
           </div>
-
-          <div className={uiStyles.tagsTableWrap}>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('tags.colName')}</TableHead>
-                  <TableHead>{t('tags.colUsage')}</TableHead>
-                  <TableHead>{t('tags.colCreated')}</TableHead>
-                  <TableHead style={{ textAlign: 'right' }}>
-                    {t('tags.colActions')}
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tagsQuery.isPending ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className={uiStyles.tagsEmptyState}>
-                      {t('tags.loading')}
-                    </TableCell>
-                  </TableRow>
-                ) : filtered.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className={uiStyles.tagsEmptyState}>
-                      {tags.length === 0 ? t('tags.emptyAll') : t('tags.emptyFiltered')}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filtered.map((tg) => (
-                    <TableRow key={tg.id}>
-                      <TableCell>
-                        <div className={uiStyles.tagsTableNameCell}>
-                          <span
-                            className={uiStyles.tagsColorSwatch}
-                            style={{ background: tg.color ?? DEFAULT_SWATCH }}
-                            aria-hidden
-                          />
-                          <span className={uiStyles.tagsName}>{tg.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={
-                            (tg.usage_count ?? 0) > 0
-                              ? uiStyles.tagsUsageBadgeActive
-                              : uiStyles.tagsUsageBadge
-                          }
-                        >
-                          {t('tags.usageBadge', { count: tg.usage_count ?? 0 })}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {formatRelative(tg.created_at, t)}
-                      </TableCell>
-                      <TableCell>
-                        <div className={uiStyles.tagsRowActions}>
-                          <Button
-                            variant="subtle"
-                            leftSection={<IconEdit size={14} />}
-                            onClick={() => setEditTag(tg)}
-                            disabled={!isOnline}
-                          >
-                            {t('common.edit')}
-                          </Button>
-                          <Button
-                            variant="subtle"
-                            leftSection={<IconTrash size={14} />}
-                            onClick={() => setPendingDelete(tg)}
-                            disabled={!isOnline}
-                          >
-                            {t('common.delete')}
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </Card>
-
-        <aside className={uiStyles.tagsRail}>
-          <Card className={uiStyles.tagsRailCard}>
-            <h3 className={uiStyles.tagsRailTitle}>{t('tags.railSummary')}</h3>
-            <div className={uiStyles.tagsMiniKpi}>
-              <span className={uiStyles.tagsMiniKpiLabel}>{t('tags.kpiInUse')}</span>
-              <span className={uiStyles.tagsMiniKpiValue}>{stats.inUse}</span>
-            </div>
-            <div className={uiStyles.tagsMiniKpi}>
-              <span className={uiStyles.tagsMiniKpiLabel}>{t('tags.kpiUnused')}</span>
-              <span className={uiStyles.tagsMiniKpiValue}>{stats.unused}</span>
-            </div>
-            <div className={uiStyles.tagsMiniKpi}>
-              <span className={uiStyles.tagsMiniKpiLabel}>{t('tags.kpiUsageRate')}</span>
-              <span className={uiStyles.tagsMiniKpiValue}>{stats.rate}%</span>
-            </div>
-          </Card>
-
-          <Card className={uiStyles.tagsRailCard}>
-            <h3 className={uiStyles.tagsRailTitle}>{t('tags.railRecent')}</h3>
-            {recent.length === 0 ? (
-              <div className={uiStyles.caption}>
-                {t('tags.railRecentEmpty')}
-              </div>
+        }
+      >
+        <Table aria-label={t('tags.title')}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('tags.colName')}</TableHead>
+              <TableHead>{t('tags.colUsage')}</TableHead>
+              <TableHead>{t('tags.colCreated')}</TableHead>
+              <TableHead style={{ textAlign: 'right' }}>
+                {t('tags.colActions')}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tagsQuery.isPending ? (
+              <TableRow>
+                <TableCell colSpan={4} className={uiStyles.tagsEmptyState}>
+                  {t('tags.loading')}
+                </TableCell>
+              </TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className={uiStyles.tagsEmptyState}>
+                  {tags.length === 0 ? t('tags.emptyAll') : t('tags.emptyFiltered')}
+                </TableCell>
+              </TableRow>
             ) : (
-              recent.map((tg) => (
-                <div key={tg.id} className={uiStyles.tagsRailItem}>
-                  <span
-                    className={uiStyles.tagsColorSwatch}
-                    style={{ background: tg.color ?? DEFAULT_SWATCH }}
-                    aria-hidden
-                  />
-                  <span className={uiStyles.tagsRailItemName}>{tg.name}</span>
-                  <span className={uiStyles.tagsRailItemMeta}>
+              filtered.map((tg) => (
+                <TableRow key={tg.id}>
+                  <TableCell>
+                    <div className={uiStyles.tagsTableNameCell}>
+                      <span
+                        className={uiStyles.tagsColorSwatch}
+                        style={{ background: tg.color ?? DEFAULT_SWATCH }}
+                        aria-hidden
+                      />
+                      <span className={uiStyles.tagsName}>{tg.name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={
+                        (tg.usage_count ?? 0) > 0
+                          ? uiStyles.tagsUsageBadgeActive
+                          : uiStyles.tagsUsageBadge
+                      }
+                    >
+                      {t('tags.usageBadge', { count: tg.usage_count ?? 0 })}
+                    </span>
+                  </TableCell>
+                  <TableCell>
                     {formatRelative(tg.created_at, t)}
-                  </span>
-                </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className={uiStyles.tagsRowActions}>
+                      <Button
+                        variant="subtle"
+                        leftSection={<IconEdit size={14} />}
+                        onClick={() => setEditTag(tg)}
+                        disabled={!isOnline}
+                      >
+                        {t('common.edit')}
+                      </Button>
+                      <Button
+                        variant="subtle"
+                        leftSection={<IconTrash size={14} />}
+                        onClick={() => setPendingDelete(tg)}
+                        disabled={!isOnline}
+                      >
+                        {t('common.delete')}
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </Card>
-
-          <Card className={uiStyles.tagsRailCard}>
-            <h3 className={uiStyles.tagsRailTitle}>{t('tags.railMostUsed')}</h3>
-            {mostUsed.length === 0 ? (
-              <div className={uiStyles.caption}>
-                {t('tags.railMostUsedEmpty')}
-              </div>
-            ) : (
-              mostUsed.map((tg) => (
-                <div key={tg.id} className={uiStyles.tagsRailItem}>
-                  <span
-                    className={uiStyles.tagsColorSwatch}
-                    style={{ background: tg.color ?? DEFAULT_SWATCH }}
-                    aria-hidden
-                  />
-                  <span className={uiStyles.tagsRailItemName}>{tg.name}</span>
-                  <span className={uiStyles.tagsRailItemMeta}>
-                    {t('tags.usageBadge', { count: tg.usage_count ?? 0 })}
-                  </span>
-                </div>
-              ))
-            )}
-          </Card>
-        </aside>
-      </div>
+          </TableBody>
+        </Table>
+      </TableCard>
 
       <TagFormDialog
         open={createOpen}
