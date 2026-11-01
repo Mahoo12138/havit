@@ -3,11 +3,11 @@
 > 本文档由开发过程持续维护，记录当前进行中的工作、最近完成的内容与下一步计划。
 > 完整的里程碑规划与功能分区进度见 `PROJECT.md`，产品需求见 `docs/havit-product-design.md`。
 
-更新时间：2026-11-01
+更新时间：2026-11-02
 
 ## 当前阶段
 
-**1.0.0-rc.1 发布候选（RC，GitHub Release 标记为 prerelease）**
+**1.0.0-rc.2 发布候选（RC，GitHub Release 标记为 prerelease）**
 
 - 主要发布阻断项已修复，见下方 2026-10-31 记录。
 - 全量 E2E：71/71 通过（16.3 分钟）；Go vet/test、前端构建、govulncheck 通过，pnpm audit 仅剩 1 个无修复版本的低危告警。
@@ -31,6 +31,16 @@
 | E2E | `pnpm test:e2e` | 61 条全部通过（新增凭证保修 3 条） |
 
 ## 最近完成
+
+- 2026-11-02：**RC 界面缺陷修正（rc.2）**。位置：新增子位置弹窗的类型徽标被长文案挤成
+  竖排圆形，给 `typeBadge` 补 `flex-shrink:0` + `white-space:nowrap`；编辑位置此前只能改名
+  和改类型，现新增父位置选择器（候选树排除自身子树、支持「作为根位置」、换父级时收敛类型
+  可选项），`PATCH /locations/{id}` 的 `parent_id` 与环路校验此前已在服务端具备；位置选择
+  弹框只剩单一分组时不再渲染「物理位置」标题。资产与标签：实体资产/随身常备移除右侧信息栏
+  改为单栏全宽（「全部打包」原仅存于快捷操作卡，改到页头），标签列表改用标准 `TableCard`
+  并移除概览/最近创建/高频使用侧栏。验证：`tsc -b` 与 `vite build` 通过，locations /
+  add-item / essentials 三个 Playwright 文件 26 条通过，改动页面在浏览器实测无控制台报错；
+  **未跑全量 E2E 与 Go 测试**。
 
 - 2026-11-01：**改为 1.0 RC 发布**。原本按 `v1.0.0` 正式版发出的 GitHub Release 与 tag 已撤回，
   版本号统一改为 `1.0.0-rc.1`（`system.Version`、`CHANGELOG`、README、compose/Dockerfile 构建参数、

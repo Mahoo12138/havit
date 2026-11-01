@@ -3,8 +3,8 @@ services:
     build:
       context: .
       args:
-        VERSION: v1.0.0-rc.1
-    image: havit:1.0.0-rc.1
+        VERSION: v1.0.0-rc.2
+    image: havit:1.0.0-rc.2
     container_name: havit
     ports:
       - "3000:3000"

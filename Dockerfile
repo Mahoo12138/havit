@@ -20,7 +20,7 @@ RUN mkdir -p /app/internal/static \
 FROM golang:1.26.10-alpine AS backend
 WORKDIR /app
 
-ARG VERSION=v1.0.0-rc.1
+ARG VERSION=v1.0.0-rc.2
 
 RUN apk add --no-cache git
 
