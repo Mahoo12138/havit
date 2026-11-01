@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version, for example v1.0.0'
+        description: 'Release version, for example v1.0.0 or v1.0.0-rc.1'
         required: false
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
           images: ghcr.io/mahoo12138/havit
           tags: |
             type=semver,pattern={{version}},value=${{ env.VERSION }}
-            type=raw,value=latest
+            type=raw,value=latest,enable=${{ !contains(env.VERSION, '-') }}
 
       - uses: docker/build-push-action@v6
         with:

@@ -201,7 +201,7 @@ type ConfigMeta struct {
 // {
 //   "mode": "release",
 //   "needs_setup": false,
-//   "version": "v1.0.0",
+//   "version": "v1.0.0-rc.1",
 //   "configs": {
 //     "ai_api_key":      { "value": "••••••••", "controlled_by": "env",      "can_edit": false },
 //     "notify_bark_url": { "value": "https://…", "controlled_by": "database", "can_edit": true  },
@@ -1515,7 +1515,7 @@ GET /api/system/status
 type SystemStatus struct {
     Mode       string `json:"mode"`        // "release" | "demo"
     NeedsSetup bool   `json:"needs_setup"` // true = 重定向 /setup
-    Version    string `json:"version"`     // "v1.0.0"
+    Version    string `json:"version"`     // "v1.0.0-rc.1"
 }
 
 func (h *SystemHandler) Status(w http.ResponseWriter, r *http.Request) {
@@ -1530,8 +1530,8 @@ func (h *SystemHandler) Status(w http.ResponseWriter, r *http.Request) {
 响应示例：
 
 ```json
-{ "mode": "release", "needs_setup": true,  "version": "v1.0.0" }
-{ "mode": "demo",    "needs_setup": false, "version": "v1.0.0" }
+{ "mode": "release", "needs_setup": true,  "version": "v1.0.0-rc.1" }
+{ "mode": "demo",    "needs_setup": false, "version": "v1.0.0-rc.1" }
 ```
 
 ### 13.4 前端路由守卫
