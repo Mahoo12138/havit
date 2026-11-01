@@ -1,4 +1,4 @@
-import { useEffect, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import {
@@ -33,8 +33,9 @@ import { useNetworkStatus } from '../../utils/useNetworkStatus';
 import { LocationQrCode } from '../../features/qr/QrCode';
 import {
   useLocationsData, breadcrumbOf, locationTypeLabel, locationTypeDesc, formatPrice,
-  type LocationIndex,
+  treeWithoutSubtree, type LocationIndex,
 } from './useLocationsData';
+import { LocationPickerField } from './LocationPickerField';
 import { textStyles } from '../../styles/typography.css';
 
 interface CreateDialogState { open: boolean; parent: Location | null }
@@ -126,7 +127,7 @@ export function LocationsDesktop() {
       </div>
 
       <CreateLocationDialog state={createDialog} onClose={() => setCreateDialog({ open: false, parent: null })} onSubmit={(p) => { createMutation.mutate(p, { onSuccess: (created) => { if (created.parent_id) setExpanded((prev) => new Set(prev).add(created.parent_id!)); setSelectedId(created.id); setCreateDialog({ open: false, parent: null }); } }); }} pending={createMutation.isPending} isOnline={isOnline} />
-      <EditLocationDialog state={editDialog} index={index} onClose={() => setEditDialog({ open: false, location: null })} onSubmit={(p) => editMutation.mutate(p, { onSuccess: () => setEditDialog({ open: false, location: null }) })} pending={editMutation.isPending} isOnline={isOnline} />
+      <EditLocationDialog state={editDialog} tree={tree.data?.tree ?? []} index={index} onClose={() => setEditDialog({ open: false, location: null })} onSubmit={(p) => editMutation.mutate(p, { onSuccess: () => { if (p.parent_id) setExpanded((prev) => new Set(prev).add(p.parent_id)); setEditDialog({ open: false, location: null }); } })} pending={editMutation.isPending} isOnline={isOnline} />
       <LocationQrDialog location={qrViewLocation} onClose={() => setQrViewLocation(null)} />
       <ConfirmDeleteDialog target={pendingDelete} onCancel={() => setPendingDelete(null)} onConfirm={(id) => { deleteMutation.mutate(id, { onSuccess: () => { if (selectedId === id) { const pid = index.parentMap.get(id); setSelectedId(pid ?? null); } setPendingDelete(null); } }); }} pending={deleteMutation.isPending} />
     </Stack>
@@ -326,22 +327,32 @@ function LocationParentNote({ parent }: { parent: Location | null }) {
   );
 }
 
-function EditLocationDialog({ state, index, onClose, onSubmit, pending, isOnline }: { state: EditDialogState; index: LocationIndex; onClose: () => void; onSubmit: (p: { id: string; name: string; type: LocationType }) => void; pending: boolean; isOnline: boolean }) {
+function EditLocationDialog({ state, tree, index, onClose, onSubmit, pending, isOnline }: { state: EditDialogState; tree: Location[]; index: LocationIndex; onClose: () => void; onSubmit: (p: { id: string; name: string; type: LocationType; parent_id: string }) => void; pending: boolean; isOnline: boolean }) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [type, setType] = useState<LocationType>('room');
-  useEffect(() => { if (state.open && state.location) { setName(state.location.name); setType((state.location.type as LocationType) ?? 'room'); } }, [state.open, state.location]);
+  const [parentId, setParentId] = useState('');
+  useEffect(() => { if (state.open && state.location) { setName(state.location.name); setType((state.location.type as LocationType) ?? 'room'); setParentId(state.location.parent_id ?? ''); } }, [state.open, state.location]);
+  const movedId = state.location?.id ?? null;
+  const parentCandidates = useMemo(() => (movedId ? treeWithoutSubtree(tree, movedId) : []), [tree, movedId]);
   if (!state.location) return null;
-  const parentId = index.parentMap.get(state.location.id);
   const parentType = parentId ? index.byId.get(parentId)?.type ?? null : null;
+
+  function handleParentChange(next: string) {
+    setParentId(next);
+    const allowed = allowedChildTypes(next ? index.byId.get(next)?.type ?? null : null);
+    if (!allowed.includes(type)) setType(allowed[0] ?? 'room');
+  }
+
   return (
     <Dialog open={state.open} onClose={onClose} title={t('locations.editTitle', { name: state.location.name })}>
       <Stack>
+        <LocationPickerField label={t('locations.parentPosition')} tree={parentCandidates} value={parentId} onChange={handleParentChange} placeholder={t('locations.noParentPosition')} allowRoot />
         <TypeChoiceGrid value={type} onChange={setType} parentType={parentType} />
         <TextField label={t('locations.name')} required value={name} onChange={(e) => setName(e.currentTarget.value)} />
         <div className={uiStyles.formActions}>
           <Button variant="quiet" onClick={onClose}>{t('locations.cancel')}</Button>
-          <Button disabled={!name.trim() || !isOnline || pending} onClick={() => { if (state.location && name.trim()) onSubmit({ id: state.location.id, name: name.trim(), type }); }}>{pending ? t('locations.saving') : t('locations.save')}</Button>
+          <Button disabled={!name.trim() || !isOnline || pending} onClick={() => { if (state.location && name.trim()) onSubmit({ id: state.location.id, name: name.trim(), type, parent_id: parentId }); }}>{pending ? t('locations.saving') : t('locations.save')}</Button>
         </div>
       </Stack>
     </Dialog>

@@ -53,6 +53,17 @@ function collectSubtreeIds(index: LocationIndex, id: string): string[] {
   return out;
 }
 
+/** Copy of `tree` with the subtree rooted at `rootId` removed — valid parents only. */
+export function treeWithoutSubtree(tree: Location[], rootId: string): Location[] {
+  const out: Location[] = [];
+  for (const node of tree) {
+    if (node.id === rootId) continue;
+    const kids = treeWithoutSubtree(node.children ?? [], rootId);
+    out.push(kids.length === (node.children?.length ?? 0) ? node : { ...node, children: kids });
+  }
+  return out;
+}
+
 /* ── Helpers ── */
 
 export function locationTypeLabel(type: string, t: (key: string) => string): string {
@@ -135,8 +146,8 @@ export function useLocationsData() {
   });
 
   const editMutation = useMutation({
-    mutationFn: (body: { id: string; name: string; type: LocationType }) =>
-      locationsApi.update(body.id, { name: body.name, type: body.type }),
+    mutationFn: (body: { id: string; name: string; type: LocationType; parent_id: string }) =>
+      locationsApi.update(body.id, { name: body.name, type: body.type, parent_id: body.parent_id }),
     onSuccess: () => {
       toast.show(t('locations.updated'));
       qc.invalidateQueries({ queryKey: ['locations'] });

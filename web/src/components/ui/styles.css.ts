@@ -1516,70 +1516,53 @@ export const locationHeroSub = style({
   fontSize: themeVars.textSizeBase,
 });
 
+const typeBadgeBase = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '4px',
+  padding: '2px 8px',
+  borderRadius: '999px',
+  fontSize: themeVars.textSizeXs,
+  fontWeight: themeVars.weightSemibold,
+  // Without these, a pill next to wrapping copy shrinks to one CJK char per line.
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+} as const;
+
 export const typeBadge = styleVariants({
   teal: [
     {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      padding: '2px 8px',
-      borderRadius: '999px',
+      ...typeBadgeBase,
       background: themeVars.accentSoft,
       color: themeVars.accentInk,
-      fontSize: themeVars.textSizeXs,
-      fontWeight: themeVars.weightSemibold,
     },
   ],
   info: [
     {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      padding: '2px 8px',
-      borderRadius: '999px',
+      ...typeBadgeBase,
       background: themeVars.infoSoft,
       color: themeVars.info,
-      fontSize: themeVars.textSizeXs,
-      fontWeight: themeVars.weightSemibold,
     },
   ],
   warning: [
     {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      padding: '2px 8px',
-      borderRadius: '999px',
+      ...typeBadgeBase,
       background: themeVars.warningSoft,
       color: themeVars.warningText,
-      fontSize: themeVars.textSizeXs,
-      fontWeight: themeVars.weightSemibold,
     },
   ],
   violet: [
     {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      padding: '2px 8px',
-      borderRadius: '999px',
+      ...typeBadgeBase,
       background: themeVars.violetSoft,
       color: themeVars.violet,
-      fontSize: themeVars.textSizeXs,
-      fontWeight: themeVars.weightSemibold,
     },
   ],
   amber: [
     {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      padding: '2px 8px',
-      borderRadius: '999px',
+      ...typeBadgeBase,
       background: themeVars.amberSoft,
       color: themeVars.amber,
-      fontSize: themeVars.textSizeXs,
-      fontWeight: themeVars.weightSemibold,
     },
   ],
 });

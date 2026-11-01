@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { IconChevronDown, IconMapPin } from '@tabler/icons-react';
+import { IconArrowBarToUp, IconChevronDown, IconMapPin } from '@tabler/icons-react';
 
 import type { Location } from '../../api/client';
 import { Field, FieldError, FieldLabel } from '../../components/ui/field';
@@ -51,6 +51,7 @@ function LocationPickerField({
   id,
   error,
   includeVirtualLocations = true,
+  allowRoot = false,
 }: {
   label: string;
   tree?: Location[];
@@ -62,6 +63,7 @@ function LocationPickerField({
   id?: string;
   error?: string | null;
   includeVirtualLocations?: boolean;
+  allowRoot?: boolean;
 }) {
   const { t } = useTranslation();
   const inputId = id ?? label;
@@ -79,6 +81,7 @@ function LocationPickerField({
   const SelectedIcon = selected ? selectedMeta.icon : IconMapPin;
   const physicalRoots = index.roots.filter((root) => root.type !== 'virtual');
   const virtualRoots = includeVirtualLocations ? index.roots.filter((root) => root.type === 'virtual') : [];
+  const showGroupLabels = physicalRoots.length > 0 && virtualRoots.length > 0;
   const [open, setOpen] = useState(false);
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const [expanded, setExpanded] = useState(() => expandedFor(index, selected?.id ?? null));
@@ -158,17 +161,25 @@ function LocationPickerField({
               </PopoverDescription>
             )}
           </PopoverHeader>
-          {index.roots.length === 0 ? (
+          {index.roots.length === 0 && !allowRoot ? (
             <div className={s.empty}>
               {includeVirtualLocations ? t('locations.noLocationsHint') : t('assets.locationPickerNoPhysicalLocations')}
             </div>
           ) : (
             <ScrollArea className={s.treeBody}>
               <div className={s.treeInner}>
+                {allowRoot && (
+                  <TreeItem depth={0} selected={!selected} onClick={() => handleSelect('')}>
+                    <TreeItemIcon>
+                      <IconArrowBarToUp size={15} />
+                    </TreeItemIcon>
+                    <TreeItemLabel>{t('locations.asRoot')}</TreeItemLabel>
+                  </TreeItem>
+                )}
                 <Tree aria-label={t('locations.tree')} indent={14}>
                   {physicalRoots.length > 0 && (
                     <LocationTreeSection
-                      label={t('locations.physicalPositions')}
+                      label={showGroupLabels ? t('locations.physicalPositions') : null}
                       nodes={physicalRoots}
                       index={index}
                       expanded={expanded}
@@ -179,7 +190,7 @@ function LocationPickerField({
                   )}
                   {virtualRoots.length > 0 && (
                     <LocationTreeSection
-                      label={t('locations.virtualPositions')}
+                      label={showGroupLabels ? t('locations.virtualPositions') : null}
                       nodes={virtualRoots}
                       index={index}
                       expanded={expanded}
@@ -208,7 +219,7 @@ function LocationTreeSection({
   onSelect,
   onToggle,
 }: {
-  label: string;
+  label: string | null;
   nodes: Location[];
   index: LocationIndex;
   expanded: Set<string>;
@@ -218,7 +229,7 @@ function LocationTreeSection({
 }) {
   return (
     <TreeGroup>
-      <TreeGroupLabel>{label}</TreeGroupLabel>
+      {label && <TreeGroupLabel>{label}</TreeGroupLabel>}
       {nodes.map((node) => (
         <LocationTreeNode
           key={node.id}
