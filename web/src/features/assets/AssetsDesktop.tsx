@@ -3,7 +3,6 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import {
   IconArchive,
   IconAlertTriangle,
-  IconChevronRight,
   IconDots,
   IconDownload,
   IconEye,
@@ -13,14 +12,12 @@ import {
   IconPackage,
   IconPlus,
   IconPrinter,
-  IconQrcode,
   IconSearch,
   IconShieldCheck,
   type TablerIcon,
 } from '@tabler/icons-react';
 import { Button } from '../../components/ui/button';
 import { ButtonGroup } from '../../components/ui/button-group';
-import { Card } from '../../components/ui/card';
 import { TableCard } from '../../components/ui/table-card';
 import { DatePickerField } from '../../components/ui/date-picker-field';
 import { Dialog } from '../../components/ui/dialog-compat';
@@ -60,7 +57,7 @@ import { TextField } from '../../components/ui/text-field';
 import { CategoryTabs } from '../../features/categories/CategoryTabs';
 import { LocationPickerField } from '../../features/locations/LocationPickerField';
 import { useNetworkStatus } from '../../utils/useNetworkStatus';
-import { formatDate, formatPrice, getWarrantyStatus, useAssetsData } from './useAssetsData';
+import { formatPrice, getWarrantyStatus, useAssetsData } from './useAssetsData';
 import * as s from './AssetsDesktop.css';
 
 type AssetTab = string;
@@ -78,8 +75,6 @@ export function AssetsDesktop() {
     categoryOptions,
     defaultCurrency,
     stats,
-    warrantyAlerts,
-    locationBreakdown,
     searchQuery,
     setSearchQuery,
     form,
@@ -179,151 +174,95 @@ export function AssetsDesktop() {
             <StatCard icon={IconAlertTriangle} label={t('assets.needsAttention')} value={stats.warrantyExpiring} note={t('assets.needsAttentionHint')} />
           </section>
 
-          <section className={s.bodyGrid}>
-            <TableCard
-              ariaLabel={t('assets.title')}
-              filters={
-                <div className={s.toolbarLeft}>
-                  <span className={s.searchWrap}>
-                    <IconSearch size={16} className={s.searchIcon} />
-                    <Input
-                      className={s.searchInput}
-                      placeholder={t('search.placeholder')}
-                      aria-label={t('search.query')}
-                      value={searchQuery}
-                      onChange={(event) => setSearchQuery(event.currentTarget.value)}
-                    />
-                  </span>
-                  <FilterSelect
-                    label={t('assets.status')}
-                    options={[
-                      { value: 'all', label: t('assets.allStatuses') },
-                      { value: 'in_stock', label: t('status.in_stock') },
-                      { value: 'in_use', label: t('assets.inUse') },
-                      { value: 'idle', label: t('status.idle') },
-                      { value: 'borrowed', label: t('status.borrowed') },
-                    ]}
-                    value={statusFilter}
-                    onChange={(value) => { setStatusFilter(value); setPage(1); }}
+          <TableCard
+            ariaLabel={t('assets.title')}
+            filters={
+              <div className={s.toolbarLeft}>
+                <span className={s.searchWrap}>
+                  <IconSearch size={16} className={s.searchIcon} />
+                  <Input
+                    className={s.searchInput}
+                    placeholder={t('search.placeholder')}
+                    aria-label={t('search.query')}
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.currentTarget.value)}
                   />
-                  <FilterSelect
-                    label={t('assets.location')}
-                    options={[{ value: 'all', label: t('assets.allLocations') }, ...locOptions]}
-                    value={locationFilter}
-                    onChange={(value) => { setLocationFilter(value); setPage(1); }}
-                  />
-                </div>
-              }
-              actions={
-                <>
-                  <ButtonGroup aria-label={t('assets.cardView')}>
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      data-active={viewMode === 'list' || undefined}
-                      onClick={() => setViewMode('list')}
-                      aria-label={t('assets.listView')}
-                    >
-                      <IconList size={14} />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      data-active={viewMode === 'cards' || undefined}
-                      onClick={() => setViewMode('cards')}
-                      aria-label={t('assets.cardView')}
-                    >
-                      <IconLayoutGrid size={14} />
-                    </Button>
-                  </ButtonGroup>
+                </span>
+                <FilterSelect
+                  label={t('assets.status')}
+                  options={[
+                    { value: 'all', label: t('assets.allStatuses') },
+                    { value: 'in_stock', label: t('status.in_stock') },
+                    { value: 'in_use', label: t('assets.inUse') },
+                    { value: 'idle', label: t('status.idle') },
+                    { value: 'borrowed', label: t('status.borrowed') },
+                  ]}
+                  value={statusFilter}
+                  onChange={(value) => { setStatusFilter(value); setPage(1); }}
+                />
+                <FilterSelect
+                  label={t('assets.location')}
+                  options={[{ value: 'all', label: t('assets.allLocations') }, ...locOptions]}
+                  value={locationFilter}
+                  onChange={(value) => { setLocationFilter(value); setPage(1); }}
+                />
+              </div>
+            }
+            actions={
+              <>
+                <ButtonGroup aria-label={t('assets.cardView')}>
                   <Button
                     variant="outline"
-                    size="sm"
-                    leftSection={<IconDownload size={14} />}
-                    onClick={handleExport}
-                    disabled={filteredItems.length === 0}
+                    size="icon-sm"
+                    data-active={viewMode === 'list' || undefined}
+                    onClick={() => setViewMode('list')}
+                    aria-label={t('assets.listView')}
                   >
-                    {t('assets.export')}
+                    <IconList size={14} />
                   </Button>
-                </>
-              }
-            >
-              {viewMode === 'list' ? (
-                <AssetTable
-                  items={paginatedItems}
-                  locOptions={locOptions}
-                  t={t}
-                  isOnline={isOnline}
-                  updateStatus={updateStatus}
-                  archive={archive}
-                  onViewDetails={(itemId) => navigate({ to: '/items/$itemId', params: { itemId } })}
-                />
-              ) : (
-                <AssetCards items={paginatedItems} locOptions={locOptions} t={t} />
-              )}
+                  <Button
+                    variant="outline"
+                    size="icon-sm"
+                    data-active={viewMode === 'cards' || undefined}
+                    onClick={() => setViewMode('cards')}
+                    aria-label={t('assets.cardView')}
+                  >
+                    <IconLayoutGrid size={14} />
+                  </Button>
+                </ButtonGroup>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  leftSection={<IconDownload size={14} />}
+                  onClick={handleExport}
+                  disabled={filteredItems.length === 0}
+                >
+                  {t('assets.export')}
+                </Button>
+              </>
+            }
+          >
+            {viewMode === 'list' ? (
+              <AssetTable
+                items={paginatedItems}
+                locOptions={locOptions}
+                t={t}
+                isOnline={isOnline}
+                updateStatus={updateStatus}
+                archive={archive}
+                onViewDetails={(itemId) => navigate({ to: '/items/$itemId', params: { itemId } })}
+              />
+            ) : (
+              <AssetCards items={paginatedItems} locOptions={locOptions} t={t} />
+            )}
 
-              {filteredItems.length > 0 && (
-                <div className={s.footerBar}>
-                  <span>{t('common.itemsCount', { count: filteredItems.length })}</span>
-                  <AssetPager page={safePage} totalPages={totalPages} onChange={setPage} />
-                </div>
-              )}
-            </TableCard>
-
-            <aside className={s.sideColumn}>
-              <Card className={s.sideCard}>
-                <h3 className={s.sideTitle}>{t('assets.quickActions')}</h3>
-                <div className={s.sideList}>
-                  <QuickAction icon={IconPlus} title={t('assets.addAsset')} hint={t('assets.addAssetHint')} onClick={() => setOpened(true)} />
-                  <QuickAction icon={IconPrinter} title={t('assets.printQR')} hint={t('assets.printQRHint')} onClick={() => navigate({ to: '/qr-print' })} />
-                  <QuickAction icon={IconQrcode} title={t('assets.locationScan')} hint={t('assets.locationScanHint')} onClick={() => navigate({ to: '/location-scan' })} />
-                </div>
-              </Card>
-
-              <Card className={s.sideCard}>
-                <h3 className={s.sideTitle}>{t('assets.warrantyAlerts')}</h3>
-                <div className={s.sideList}>
-                  {warrantyAlerts.length === 0 ? (
-                    <div className={s.empty}>{t('assets.noWarrantyInfo')}</div>
-                  ) : warrantyAlerts.map((item) => {
-                    const ws = getWarrantyStatus(item);
-                    return (
-                      <div className={s.compactRow} key={item.id}>
-                        <div className={s.compactMeta}>
-                          <span className={s.compactTitle}>{item.name}</span>
-                          <span className={s.compactSub}>
-                            {ws === 'expired' ? t('assets.warrantyExpired') : t('assets.warrantyExpiringSoon')}
-                            {item.warranty_expires_at ? ` · ${formatDate(item.warranty_expires_at)}` : ''}
-                          </span>
-                        </div>
-                        <WarrantyBadge ws={ws} t={t} />
-                      </div>
-                    );
-                  })}
-                </div>
-              </Card>
-
-              <Card className={`${s.sideCard} ${s.sideCardWide}`}>
-                <div className={s.sideHeader}>
-                  <h3 className={s.sideTitle}>{t('assets.locationBreakdown')}</h3>
-                  <Link to="/locations" className={s.sideLink}>
-                    {t('assets.viewLocations')}
-                    <IconChevronRight size={14} />
-                  </Link>
-                </div>
-                <div className={s.sideList}>
-                  {locationBreakdown.length === 0 ? (
-                    <div className={s.empty}>—</div>
-                  ) : locationBreakdown.map((location, index) => (
-                    <div className={s.compactRow} key={`${location.name}-${index}`}>
-                      <span className={s.compactTitle}>{location.name}</span>
-                      <span className={s.price}>{location.count}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </aside>
-          </section>
+            {filteredItems.length > 0 && (
+              <div className={s.footerBar}>
+                <span>{t('common.itemsCount', { count: filteredItems.length })}</span>
+                <AssetPager page={safePage} totalPages={totalPages} onChange={setPage} />
+              </div>
+            )}
+          </TableCard>
         </>
       )}
 
@@ -539,24 +478,6 @@ function StatCard({ icon: Icon, label, value, note }: {
       </div>
       <span className={s.statIcon}><Icon size={18} /></span>
     </article>
-  );
-}
-
-function QuickAction({ icon: Icon, title, hint, onClick }: {
-  icon: TablerIcon;
-  title: string;
-  hint: string;
-  onClick?: () => void;
-}) {
-  return (
-    <Button type="button" variant="ghost" className={s.quickAction} onClick={onClick}>
-      <span className={s.quickIcon}><Icon size={15} /></span>
-      <span className={s.quickMeta}>
-        <span className={s.quickTitle}>{title}</span>
-        <span className={s.quickHint}>{hint}</span>
-      </span>
-      <IconChevronRight size={15} className={s.muted} />
-    </Button>
   );
 }
 

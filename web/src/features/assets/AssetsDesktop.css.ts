@@ -89,16 +89,6 @@ export const statIcon = style({
   flex: '0 0 auto',
 });
 
-export const bodyGrid = style({
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr) 19rem',
-  gap: themeVars.space4,
-  alignItems: 'start',
-  '@media': {
-    '(max-width: 76em)': { gridTemplateColumns: '1fr' },
-  },
-});
-
 export const toolbarLeft = style({
   flex: '1 1 auto',
   minWidth: 0,
@@ -383,128 +373,6 @@ export const pagination = style({
   gap: themeVars.space1,
 });
 
-export const sideColumn = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space3,
-  '@media': {
-    '(min-width: 76.01em)': {
-      position: 'sticky',
-      top: `calc(${themeVars.shellHeaderH} + ${themeVars.space4})`,
-    },
-    '(max-width: 76em)': {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-      alignItems: 'stretch',
-    },
-    '(max-width: 58em)': {
-      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    },
-    '(max-width: 44em)': {
-      display: 'flex',
-      flexDirection: 'column',
-    },
-  },
-});
-
-export const sideCard = style({
-  padding: themeVars.space4,
-});
-
-export const sideCardWide = style({
-  '@media': {
-    '(max-width: 76em)': {
-      gridColumn: 'auto',
-    },
-    '(max-width: 58em)': {
-      gridColumn: '1 / -1',
-    },
-  },
-});
-
-export const sideTitle = style({
-  margin: 0,
-  color: themeVars.ink,
-  fontSize: themeVars.textSizeMd,
-  fontWeight: themeVars.weightSemibold,
-});
-
-export const sideHeader = style({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  gap: themeVars.space3,
-});
-
-export const sideLink = style({
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '0.15rem',
-  color: themeVars.accentInk,
-  fontSize: themeVars.textSizeSm,
-  fontWeight: themeVars.weightSemibold,
-  textDecoration: 'none',
-  whiteSpace: 'nowrap',
-  selectors: {
-    '&:hover': { color: themeVars.accent },
-  },
-});
-
-export const sideList = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: themeVars.space2,
-  marginTop: themeVars.space3,
-});
-
-export const quickAction = style({
-  display: 'grid',
-  gridTemplateColumns: '2rem minmax(0, 1fr) auto',
-  alignItems: 'center',
-  justifyContent: 'stretch',
-  gap: themeVars.space2,
-  width: '100%',
-  height: 'auto',
-  padding: themeVars.space2,
-  borderRadius: themeVars.radius2,
-  color: 'inherit',
-  textDecoration: 'none',
-  selectors: {
-    '&:hover': { background: themeVars.bgSoft },
-  },
-});
-
-export const quickIcon = style({
-  width: '2rem',
-  height: '2rem',
-  display: 'grid',
-  placeItems: 'center',
-  borderRadius: themeVars.radius2,
-  background: themeVars.accentSoft,
-  color: themeVars.accentInk,
-});
-
-export const quickMeta = style({
-  minWidth: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.1rem',
-});
-
-export const quickTitle = style({
-  color: themeVars.ink,
-  fontSize: themeVars.textSizeSm,
-  fontWeight: themeVars.weightSemibold,
-});
-
-export const quickHint = style({
-  color: themeVars.muted,
-  fontSize: themeVars.textSizeXs,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-});
-
 export const compactRow = style({
   display: 'flex',
   alignItems: 'center',
@@ -515,22 +383,6 @@ export const compactRow = style({
   selectors: {
     '&:last-child': { borderBottom: 0 },
   },
-});
-
-export const compactMeta = style({
-  minWidth: 0,
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.12rem',
-});
-
-export const compactTitle = style({
-  color: themeVars.text,
-  fontSize: themeVars.textSizeSm,
-  fontWeight: themeVars.weightSemibold,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
 });
 
 export const compactSub = style({

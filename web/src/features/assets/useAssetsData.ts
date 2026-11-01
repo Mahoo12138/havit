@@ -159,24 +159,8 @@ export function useAssetsData() {
       return ws === 'expiring' || ws === 'expired';
     }).length;
     const totalValue = allItems.reduce((sum, i) => sum + (i.purchase_price ?? 0), 0);
-    const locations = new Map<string, number>();
-    allItems.forEach((i) => {
-      if (i.location_id) locations.set(i.location_id, (locations.get(i.location_id) ?? 0) + 1);
-    });
-    return { total, inUse, warrantyActive, warrantyExpiring, totalValue, locations };
+    return { total, inUse, warrantyActive, warrantyExpiring, totalValue };
   }, [allItems]);
-
-  const warrantyAlerts = allItems
-    .filter((i) => { const ws = getWarrantyStatus(i); return ws === 'expiring' || ws === 'expired'; })
-    .slice(0, 5);
-
-  const locationBreakdown = Array.from(stats.locations.entries())
-    .map(([locId, count]) => ({
-      name: locOptions.find((o) => o.value === locId)?.label ?? locId,
-      count,
-    }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5);
 
   return {
     t,
@@ -187,8 +171,6 @@ export function useAssetsData() {
     categoryOptions,
     defaultCurrency,
     stats,
-    warrantyAlerts,
-    locationBreakdown,
     searchQuery,
     setSearchQuery,
     form,

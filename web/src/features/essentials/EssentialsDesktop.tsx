@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import {
   IconAlertTriangle,
   IconBriefcase,
-  IconChevronRight,
   IconClock,
   IconDots,
   IconEye,
@@ -31,7 +30,6 @@ import {
 } from '../../components/ui/pagination';
 import { Button } from '../../components/ui/button';
 import { ButtonGroup } from '../../components/ui/button-group';
-import { Card } from '../../components/ui/card';
 import { TableCard } from '../../components/ui/table-card';
 import { Dialog } from '../../components/ui/dialog-compat';
 import { Input } from '../../components/ui/input';
@@ -81,65 +79,6 @@ import * as s from './EssentialsDesktop.css';
 
 type ViewMode = 'list' | 'cards';
 type EssentialsTab = string;
-
-function DonutChart({
-  segments,
-  total,
-  size = 104,
-  strokeWidth = 16,
-}: {
-  segments: Array<{ value: number; color: string }>;
-  total: number;
-  size?: number;
-  strokeWidth?: number;
-}) {
-  if (total === 0) return null;
-
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const center = size / 2;
-
-  let accumulated = 0;
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flex: '0 0 auto' }}>
-      {segments.map((seg, i) => {
-        if (seg.value <= 0) return null;
-        const percent = seg.value / total;
-        const dashLength = circumference * percent;
-        const dashOffset = circumference * accumulated;
-        accumulated += percent;
-
-        return (
-          <circle
-            key={i}
-            cx={center}
-            cy={center}
-            r={radius}
-            fill="none"
-            stroke={seg.color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={`${dashLength} ${circumference - dashLength}`}
-            strokeDashoffset={-dashOffset}
-            transform={`rotate(-90 ${center} ${center})`}
-          />
-        );
-      })}
-      <text
-        x={center}
-        y={center + 2}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="var(--havit-ink)"
-        fontSize="22"
-        fontWeight="700"
-        fontFamily="var(--havit-font-serif)"
-      >
-        {total}
-      </text>
-    </svg>
-  );
-}
 
 const PAGE_SIZE = 20;
 
@@ -251,13 +190,6 @@ export function EssentialsDesktop() {
   const awayCount = items.filter((i) => getStatusType(i) === 'away').length;
   const withYouCount = carryCount + bagCount;
 
-  const pendingItems = useMemo(
-    () => items.filter((i) => getStatusType(i) !== 'carry' && getStatusType(i) !== 'bag')
-      .sort((a, b) => a.updated_at - b.updated_at)
-      .slice(0, 5),
-    [items],
-  );
-
   const lastConfirmedTs = items.reduce((latest, i) => Math.max(latest, i.updated_at), 0);
   const overdueCount = items.filter((i) => Date.now() / 1000 - i.updated_at > 3 * 86400).length;
 
@@ -270,20 +202,6 @@ export function EssentialsDesktop() {
     { key: 'dynamicNodes', label: t('essentials.dynamicNodes') },
   ];
 
-  const donutSegments = [
-    { value: carryCount, color: 'var(--havit-success)' },
-    { value: bagCount, color: 'var(--havit-info)' },
-    { value: awayCount, color: 'var(--havit-warning)' },
-    { value: homeCount, color: 'var(--havit-line)' },
-  ];
-
-  const donutLegend: Array<{ tone: keyof typeof s.donutLegendDot; label: string; count: number }> = [
-    { tone: 'success', label: t('essentials.carry'), count: carryCount },
-    { tone: 'info', label: t('essentials.travelBag'), count: bagCount },
-    { tone: 'warning', label: t('essentials.notOnPersonShort'), count: awayCount },
-    { tone: 'neutral', label: t('essentials.homeBaseShort'), count: homeCount },
-  ];
-
   return (
     <div className={s.page}>
       <header className={s.header}>
@@ -292,6 +210,14 @@ export function EssentialsDesktop() {
           <p className={s.subtitle}>{t('essentials.description')}</p>
         </div>
         <div className={s.actions}>
+          <Button
+            variant="outline"
+            leftSection={<IconBriefcase size={14} />}
+            onClick={() => setPackOpened(true)}
+            disabled={items.length === 0}
+          >
+            {t('essentials.packAll')}
+          </Button>
           <Button
             variant="outline"
             leftSection={<IconHome size={14} />}
@@ -321,126 +247,78 @@ export function EssentialsDesktop() {
             <StatCard icon={IconClock} tone="gray" label={t('essentials.lastConfirmed')} value={formatRelative(t, lastConfirmedTs)} note={t('essentials.overdueConfirm', { count: overdueCount })} />
           </section>
 
-          <section className={s.bodyGrid}>
-            <TableCard
-              ariaLabel={t('essentials.title')}
-              filters={
-                <>
-                  <span className={s.searchWrap}>
-                    <IconSearch size={16} className={s.searchIcon} />
-                    <Input
-                      className={s.searchInput}
-                      placeholder={t('essentials.searchPlaceholder')}
-                      aria-label={t('search.query')}
-                      value={searchQuery}
-                      onChange={(event) => { setSearchQuery(event.currentTarget.value); setPage(1); }}
-                    />
-                  </span>
-                  <FilterSelect
-                    label={t('items.status')}
-                    options={[
-                      { value: 'all', label: t('essentials.allStatus') },
-                      { value: 'carry', label: t('essentials.carry') },
-                      { value: 'bag', label: t('essentials.travelBag') },
-                      { value: 'home', label: t('essentials.homeBaseShort') },
-                      { value: 'away', label: t('essentials.notOnPersonShort') },
-                    ]}
-                    value={statusFilter}
-                    onChange={(value) => { setStatusFilter(value); setPage(1); }}
+          <TableCard
+            ariaLabel={t('essentials.title')}
+            filters={
+              <>
+                <span className={s.searchWrap}>
+                  <IconSearch size={16} className={s.searchIcon} />
+                  <Input
+                    className={s.searchInput}
+                    placeholder={t('essentials.searchPlaceholder')}
+                    aria-label={t('search.query')}
+                    value={searchQuery}
+                    onChange={(event) => { setSearchQuery(event.currentTarget.value); setPage(1); }}
                   />
-                </>
-              }
-              actions={
-                <ButtonGroup aria-label={t('essentials.cardView')}>
-                  <Button
-                    variant="outline"
-                    size="icon-sm"
-                    data-active={effectiveViewMode === 'list' || undefined}
-                    onClick={() => setViewMode('list')}
-                    aria-label={t('essentials.listView')}
-                  >
-                    <IconList size={14} />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon-sm"
-                    data-active={effectiveViewMode === 'cards' || undefined}
-                    onClick={() => setViewMode('cards')}
-                    aria-label={t('essentials.cardView')}
-                  >
-                    <IconLayoutGrid size={14} />
-                  </Button>
-                </ButtonGroup>
-              }
-              footer={
-                filteredItems.length > 0 ? (
-                  <div className={s.footerBar}>
-                    <span>{t('common.itemsCount', { count: filteredItems.length })}</span>
-                    <EssentialsPager page={safePage} totalPages={totalPages} onChange={setPage} />
-                  </div>
-                ) : undefined
-              }
-            >
-              {effectiveViewMode === 'list' ? (
-                <EssentialsTable
-                  items={paginatedItems}
-                  locOptions={locOptions}
-                  t={t}
-                  returnHome={returnHome}
-                  setStatus={setStatus}
-                  onViewDetails={(itemId) => navigate({ to: '/items/$itemId', params: { itemId } })}
+                </span>
+                <FilterSelect
+                  label={t('items.status')}
+                  options={[
+                    { value: 'all', label: t('essentials.allStatus') },
+                    { value: 'carry', label: t('essentials.carry') },
+                    { value: 'bag', label: t('essentials.travelBag') },
+                    { value: 'home', label: t('essentials.homeBaseShort') },
+                    { value: 'away', label: t('essentials.notOnPersonShort') },
+                  ]}
+                  value={statusFilter}
+                  onChange={(value) => { setStatusFilter(value); setPage(1); }}
                 />
-              ) : (
-                <EssentialsCards items={paginatedItems} locOptions={locOptions} t={t} />
-              )}
-            </TableCard>
-
-            <aside className={s.sideColumn}>
-              <Card className={s.sideCard}>
-                <h3 className={s.sideTitle}>{t('essentials.quickActions')}</h3>
-                <div className={s.sideList}>
-                  <QuickAction icon={IconPlus} title={t('essentials.addItem')} hint={t('essentials.addHint')} onClick={() => setCreateOpened(true)} />
-                  <QuickAction icon={IconBriefcase} title={t('essentials.packAll')} hint={t('essentials.packAllHint')} onClick={() => setPackOpened(true)} />
-                  <QuickAction icon={IconHome} title={t('essentials.returnAllAction')} hint={t('essentials.returnAllActionHint')} onClick={() => returnAll.mutate()} />
+              </>
+            }
+            actions={
+              <ButtonGroup aria-label={t('essentials.cardView')}>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  data-active={effectiveViewMode === 'list' || undefined}
+                  onClick={() => setViewMode('list')}
+                  aria-label={t('essentials.listView')}
+                >
+                  <IconList size={14} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  data-active={effectiveViewMode === 'cards' || undefined}
+                  onClick={() => setViewMode('cards')}
+                  aria-label={t('essentials.cardView')}
+                >
+                  <IconLayoutGrid size={14} />
+                </Button>
+              </ButtonGroup>
+            }
+            footer={
+              filteredItems.length > 0 ? (
+                <div className={s.footerBar}>
+                  <span>{t('common.itemsCount', { count: filteredItems.length })}</span>
+                  <EssentialsPager page={safePage} totalPages={totalPages} onChange={setPage} />
                 </div>
-              </Card>
-
-              <Card className={s.sideCard}>
-                <h3 className={s.sideTitle}>{t('essentials.statusDistribution')}</h3>
-                <div className={s.donutWrap}>
-                  <DonutChart segments={donutSegments} total={items.length} />
-                  <div className={s.donutLegend}>
-                    {donutLegend.map((entry) => (
-                      <div className={s.donutLegendItem} key={entry.tone}>
-                        <span className={s.donutLegendDot[entry.tone]} />
-                        <span>{entry.label}</span>
-                        <span className={s.donutLegendValue}>
-                          {entry.count} ({items.length > 0 ? Math.round((entry.count / items.length) * 100) : 0}%)
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </Card>
-
-              <Card className={s.sideCard}>
-                <h3 className={s.sideTitle}>{t('essentials.lastConfirmReminder')}</h3>
-                <div className={s.sideList}>
-                  {pendingItems.length === 0 ? (
-                    <div className={s.empty}>—</div>
-                  ) : pendingItems.map((item) => (
-                    <div className={s.compactRow} key={item.id}>
-                      <div className={s.compactMeta}>
-                        <span className={s.compactTitle}>{item.name}</span>
-                        <span className={s.compactSub}>{formatRelative(t, item.updated_at)}</span>
-                      </div>
-                      <span className={s.badge[STATUS_TONE[getStatusType(item)]]}>{getStatusLabel(t, item)}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </aside>
-          </section>
+              ) : undefined
+            }
+          >
+            {effectiveViewMode === 'list' ? (
+              <EssentialsTable
+                items={paginatedItems}
+                locOptions={locOptions}
+                t={t}
+                returnHome={returnHome}
+                setStatus={setStatus}
+                onViewDetails={(itemId) => navigate({ to: '/items/$itemId', params: { itemId } })}
+              />
+            ) : (
+              <EssentialsCards items={paginatedItems} locOptions={locOptions} t={t} />
+            )}
+          </TableCard>
             </>
           )}
           {activeTab === 'departure' && <DepartureList items={items} />}
@@ -507,24 +385,6 @@ function StatCard({ icon: Icon, tone, label, value, note }: {
       </div>
       <span className={s.statIcon[tone]}><Icon size={18} /></span>
     </article>
-  );
-}
-
-function QuickAction({ icon: Icon, title, hint, onClick }: {
-  icon: TablerIcon;
-  title: string;
-  hint: string;
-  onClick?: () => void;
-}) {
-  return (
-    <Button type="button" variant="ghost" className={s.quickAction} onClick={onClick}>
-      <span className={s.quickIcon}><Icon size={15} /></span>
-      <span className={s.quickMeta}>
-        <span className={s.quickTitle}>{title}</span>
-        <span className={s.quickHint}>{hint}</span>
-      </span>
-      <IconChevronRight size={15} className={s.muted} />
-    </Button>
   );
 }
 
